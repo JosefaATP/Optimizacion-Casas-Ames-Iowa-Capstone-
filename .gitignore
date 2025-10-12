@@ -1,0 +1,36 @@
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# entornos
+.env
+.venv/
+env/
+venv/
+.envrc
+
+# notebooks
+.ipynb_checkpoints/
+
+# data grande o privada
+data/
+datasets/
+*.csv
+*.parquet
+*.xlsx
+
+# modelos y resultados pesados
+models/
+checkpoints/
+outputs/
+logs/
+
+# ide
+.vscode/
+.idea/
+
+# gurobi
+gurobi.lic
+gurobi.log
