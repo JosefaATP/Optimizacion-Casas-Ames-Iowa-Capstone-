@@ -1,0 +1,48 @@
+{
+  "grid": [
+    1550,
+    1600,
+    1650,
+    1700,
+    1750,
+    1800
+  ],
+  "folds": 5,
+  "results": [
+    {
+      "n_estimators": 1550,
+      "MAPE_cv_mean": 7.908664288255605,
+      "MAPE_cv_std": 0.532056175278136
+    },
+    {
+      "n_estimators": 1600,
+      "MAPE_cv_mean": 7.907478595741402,
+      "MAPE_cv_std": 0.5320556407959482
+    },
+    {
+      "n_estimators": 1650,
+      "MAPE_cv_mean": 7.903779302174385,
+      "MAPE_cv_std": 0.532064422281759
+    },
+    {
+      "n_estimators": 1700,
+      "MAPE_cv_mean": 7.90767931795523,
+      "MAPE_cv_std": 0.5318180406143016
+    },
+    {
+      "n_estimators": 1750,
+      "MAPE_cv_mean": 7.9117253071413955,
+      "MAPE_cv_std": 0.5326601856058075
+    },
+    {
+      "n_estimators": 1800,
+      "MAPE_cv_mean": 7.910057095898748,
+      "MAPE_cv_std": 0.533026983063227
+    }
+  ],
+  "best": {
+    "n_estimators": 1650,
+    "MAPE_cv_mean": 7.903779302174385,
+    "MAPE_cv_std": 0.532064422281759
+  }
+}
