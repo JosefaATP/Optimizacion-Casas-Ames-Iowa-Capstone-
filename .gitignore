@@ -15,14 +15,11 @@ venv/
 .ipynb_checkpoints/
 
 # data grande o privada
-data/
 datasets/
-*.csv
-*.parquet
-*.xlsx
+
 
 # modelos y resultados pesados
-models/
+
 checkpoints/
 outputs/
 logs/

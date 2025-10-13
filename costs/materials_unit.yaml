@@ -1,0 +1,39 @@
+# costos unitarios estimados en USD/ft2 instalados, referencia Iowa
+RoofMatl:
+  CompShg: 4.5
+  Metal: 8.0
+  ClyTile: 12.0
+  Membran: 6.0
+  Roll: 3.0
+  Tar&Grv: 5.0
+  WdShake: 9.0
+  WdShngl: 8.0
+
+Exterior:
+  VinylSd: 6.0
+  WdSdng: 7.0
+  WdShing: 8.0
+  MetalSd: 7.0
+  Stucco: 9.0
+  HdBoard: 7.5
+  CemntBd: 9.5
+  BrkFace: 14.0
+  Stone: 22.0
+  Plywood: 5.5
+  AsphShn: 5.0
+  AsbShng: 5.0
+  CBlock: 10.0
+  ImStucc: 8.5
+  PreCast: 18.0
+  Other: 6.0
+
+MasVnrType:
+  None: 0.0
+  BrkCmn: 10.0
+  BrkFace: 14.0
+  CBlock: 8.0
+  Stone: 22.0
+
+KitchenQual_upgrade:
+  Gd: 40.0     # premium por ft2 de cocina vs TA
+  Ex: 80.0

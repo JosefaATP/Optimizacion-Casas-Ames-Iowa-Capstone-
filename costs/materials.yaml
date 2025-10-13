@@ -1,0 +1,96 @@
+# premiums fijos por elegir una opcion mas cara que la base
+# moneda: USD, concepto: costo total aproximado por cambio (no por ft2)
+
+Utilities:
+  AllPub: 0
+  NoSewr: 2500
+  NoSeWa: 3000
+  ELO: 3500
+
+RoofStyle:
+  Flat: 800
+  Gable: 0
+  Gambrel: 1500
+  Hip: 1200
+  Mansard: 2200
+  Shed: 700
+
+RoofMatl:
+  CompShg: 0          # asfalto compuesto baseline
+  Metal: 6000
+  ClyTile: 9000
+  Membran: 3500
+  Roll: 1500
+  Tar&Grv: 2500
+  WdShake: 7000
+  WdShngl: 6000
+
+Exterior1st:
+  AsbShng: 0
+  AsphShn: 1200
+  BrkComm: 5000
+  BrkFace: 7000
+  CBlock: 3000
+  CemntBd: 5500       # fiber cement tipo Hardie
+  HdBoard: 3000
+  ImStucc: 4500
+  MetalSd: 2500
+  Other: 2000
+  Plywood: 1800
+  PreCast: 8000
+  Stone: 12000
+  Stucco: 5000
+  VinylSd: 3500
+  WdSdng: 3200
+  WdShing: 3800
+
+Exterior2nd:
+  AsbShng: 0
+  AsphShn: 800
+  BrkComm: 3500
+  BrkFace: 5000
+  CBlock: 2000
+  CemntBd: 3800
+  HdBoard: 2000
+  ImStucc: 3000
+  MetalSd: 1800
+  Other: 1200
+  Plywood: 1200
+  PreCast: 6000
+  Stone: 9000
+  Stucco: 3500
+  VinylSd: 2400
+  WdSdng: 2200
+  WdShing: 2600
+
+MasVnrType:
+  None: 0
+  BrkCmn: 3000
+  BrkFace: 4500
+  CBlock: 2000
+  Stone: 8000
+
+Electrical:
+  SBrkr: 0
+  FuseA: 900
+  FuseF: 1300
+  FuseP: 1700
+  Mix: 1100
+
+Heating:
+  GasA: 0
+  GasW: 2200
+  Floor: 6000
+  Grav: 3000
+  OthW: 2500
+  Wall: 2000
+
+KitchenQual:
+  TA: 0
+  Gd: 6000
+  Ex: 12000
+
+CentralAirInstall: 5400   # instalar A/C central si base=No
+
+# Nota: estos son montos globales aproximados por cambio de categoria,
+# no por area. Nos sirven para correr ya. Luego migraremos a unitarios (materials_unit.yaml).
