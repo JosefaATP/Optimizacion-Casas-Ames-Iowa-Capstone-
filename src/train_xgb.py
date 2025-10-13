@@ -7,6 +7,7 @@ from xgboost import XGBRegressor
 from config import Config
 from preprocess import infer_feature_types, build_preprocessor
 from metrics import regression_report
+import os
 
 def main():
     parser = argparse.ArgumentParser()
