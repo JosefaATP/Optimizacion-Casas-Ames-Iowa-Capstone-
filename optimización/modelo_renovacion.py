@@ -428,9 +428,19 @@ def optimizar_remodelacion(casa_actual, presupuesto, modelo_xgb, verbose=True):
         
     else:
         if verbose:
-            print(f"\n❌ No se encontró solución óptima. Status: {modelo.status}")
-        return None
-
+            print(f"\n❌ No se encontró solución óptima.")
+            if modelo.status == GRB.TIME_LIMIT and modelo.SolCount > 0:
+                print("⏰ Se acabó el tiempo, pero tengo una buena solución")
+                # Procesar la mejor solución encontrada hasta ahora
+            elif modelo.status == GRB.INF_OR_UNBD:
+                print("❌ Infactible o no acotado")
+            elif modelo.status == GRB.INFEASIBLE:
+                print("❌ No hay NINGUNA remodelación que cumpla todas las reglas (infactible)")
+             # Revisar presupuesto y restricciones
+            elif modelo.status == GRB.UNBOUNDED:
+                print("❌ No acotado")
+            else:  # Todos los otros casos
+                print(f"⚠️  Estado inesperado: {modelo.status}")
 
 # ============================================================================
 # SCRIPT PRINCIPAL
