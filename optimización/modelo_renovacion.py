@@ -16,6 +16,8 @@ import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
 from datetime import datetime
+import os
+from utils import guardar_resultado
 
 # Importar módulos propios
 from config import (
@@ -23,8 +25,8 @@ from config import (
     DATA_PATH,
     ATRIBUTOS_ACCIONABLES,
     ATRIBUTOS_FIJOS,
-    GUROBI_PARAMS,
-    COSTO_DEMOLICION_POR_SQFT
+    GUROBI_PARAMS
+    #COSTO_DEMOLICION_POR_SQFT
 )
 from utils import (
     cargar_modelo_xgboost,
@@ -166,11 +168,11 @@ def optimizar_remodelacion(casa_actual, presupuesto, modelo_xgb, verbose=True):
     
     # Variable para precio nuevo (aproximado)
     precio_nuevo_aprox = modelo.addVar(lb=0, name="precio_nuevo_aprox")
-    
+
     modelo.addConstr(
         precio_nuevo_aprox == precio_actual + gp.quicksum(
-            gradientes.get(attr, 0) * delta[attr]
-            for attr in ATRIBUTOS_ACCIONABLES.keys()
+        gradientes[attr] * delta[attr]
+        for attr in delta.keys() if attr in gradientes
         ),
         name="precio_nuevo_def"
     )
@@ -206,9 +208,9 @@ def optimizar_remodelacion(casa_actual, presupuesto, modelo_xgb, verbose=True):
         name="costo_numerico_def"
     )
     
-    if verbose:
-        print(f"  ✓ Costo construcción numérico definido")
-        print(f"  ✓ Costo demolición: ${COSTO_DEMOLICION_POR_SQFT}/sqft")
+    # if verbose:
+    #     print(f"  ✓ Costo construcción numérico definido")
+    #     print(f"  ✓ Costo demolición: ${COSTO_DEMOLICION_POR_SQFT}/sqft")
     
     # ========================================================================
     # PASO 6: AGREGAR RESTRICCIONES DE RENOVACIÓN (SECCIÓN 6 DEL PDF)
@@ -458,23 +460,46 @@ if __name__ == "__main__":
     # Cargar datos
     print("\n📊 Cargando dataset...")
     df = pd.read_csv(DATA_PATH)
+    #print(df.columns)
+    base = df.iloc[0].copy()
+
+    # Si existe SalePrice, eliminarlo de la serie de características
+    if 'SalePrice_Present' in base.index:
+        base = base.drop(labels=['SalePrice_Present'])
+    if 'SalePrice' in base.index:
+        base = base.drop(labels=['SalePrice'])
+
+    # Modificar valores para "inventar" la casa actual (ajusta según prefieras)
+    casa_actual = {
+    'Gr Liv Area': 1656,
+    '1st Flr SF': 1200,
+    '2nd Flr SF': 600,
+    'Total Bsmt SF': 800,
+    'Full Bath': 2,
+    'Half Bath': 1,
+    'Bedroom AbvGr': 2,
+    'Kitchen AbvGr': 1,
+    'Overall Qual': 5,
+    'Lot Area': 9000,
+    }
+
+    # Completar atributos faltantes
+    for attr in ATRIBUTOS_ACCIONABLES.keys():
+        if attr not in casa_actual:
+            casa_actual[attr] = ATRIBUTOS_ACCIONABLES[attr][2]  # Si este atributo no está definido en la casa base, asígnale su valor mínimo permitido según el diccionario de atributos accionables.
+
+    for attr in base.index:
+        if attr not in casa_actual:
+            casa_actual[attr] = base[attr]
+
+    # Presupuesto disponible para remodelación
+    presupuesto = 5000000
+
+    casa_actual = pd.Series(casa_actual)
     
-    # Seleccionar una casa de ejemplo
-    casa_idx = 0  # Primera casa del dataset
-    casa_ejemplo = df.iloc[casa_idx].drop('SalePrice' if 'SalePrice' in df.columns else None)
-    
-    print(f"\n🏠 CASA SELECCIONADA (índice {casa_idx}):")
-    print(f"  GrLivArea: {casa_ejemplo.get('GrLivArea', 'N/A')} sqft")
-    print(f"  FullBath: {casa_ejemplo.get('FullBath', 'N/A')}")
-    print(f"  BedroomAbvGr: {casa_ejemplo.get('BedroomAbvGr', 'N/A')}")
-    print(f"  OverallQual: {casa_ejemplo.get('OverallQual', 'N/A')}")
-    
-    # Definir presupuesto
-    presupuesto = 50000
-    
-    # Optimizar
+    # Ejecutar optimización
     resultado = optimizar_remodelacion(
-        casa_actual=casa_ejemplo,
+        casa_actual=casa_actual,
         presupuesto=presupuesto,
         modelo_xgb=modelo_xgb,
         verbose=True
@@ -485,7 +510,8 @@ if __name__ == "__main__":
         print("\n" + formatear_resultados_remodelacion(resultado))
         
         # Guardar resultados
-        guardar_resultados(resultado, 'remodelacion')
+        guardar_resultado(resultado, carpeta='results', prefijo='resultado_casa')
+
     else:
         print("\n❌ No se pudo generar una solución de remodelación rentable")
     

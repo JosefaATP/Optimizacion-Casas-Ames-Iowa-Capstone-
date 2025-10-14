@@ -57,6 +57,13 @@ git commit -m "chore: actualiza dependencias"
 git push
 ```
 
+## 🏠 MODELO DE OPTIMIZACIÓN RENOVACIÓN
+
+Una vez creado el entorno del proyecto, para correr el modelo de optimizacion de la renovacion de la casa ejecuta 
+```bash
+python3 optimización/modelo_renovacion.py
+```
+
 
 ## 🔁 3. Ciclo básico de trabajo con Git
 ```bash
@@ -131,6 +138,7 @@ git stash pop
 ├─ .gitignore
 └─ README.md
 ```
+
 
 ## 💡 Recomendaciones finales
 - Antes de comenzar a trabajar, hacer siempre git pull origin main

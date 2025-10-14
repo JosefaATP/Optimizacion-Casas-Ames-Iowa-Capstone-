@@ -17,65 +17,98 @@ import numpy as np
 ATRIBUTOS_ACCIONABLES = {
     # 'NombreAtributo': (costo_unitario, es_discreta, min, max, descripción)
     # Áreas (continuas) - Costo por pie cuadrado
-    'GrLivArea': (150, False, 600, 4000, 'Área habitable sobre suelo ($/sqft)'),
-    'TotalBsmtSF': (100, False, 0, 2000, 'Área total sótano ($/sqft)'),
-    '1stFlrSF': (120, False, 600, 3000, 'Área primer piso ($/sqft)'),
-    '2ndFlrSF': (110, False, 0, 2000, 'Área segundo piso ($/sqft)'),
+    'Gr Liv Area': (150, False, 600, 4000, 'Área habitable sobre suelo ($/sqft)'),
+    'Total Bsmt SF': (100, False, 0, 2000, 'Área total sótano ($/sqft)'),
+    '1st Flr SF': (120, False, 600, 3000, 'Área primer piso ($/sqft)'),
+    '2nd Flr SF': (110, False, 0, 2000, 'Área segundo piso ($/sqft)'),
     
     # Porches y exteriores
-    'WoodDeckSF': (50, False, 0, 500, 'Terraza de madera ($/sqft)'),
-    'OpenPorchSF': (45, False, 0, 400, 'Porche abierto ($/sqft)'),
-    'EnclosedPorch': (60, False, 0, 300, 'Porche cerrado ($/sqft)'),
-    'ScreenPorch': (55, False, 0, 300, 'Porche con mosquitero ($/sqft)'),
-    '3SsnPorch': (65, False, 0, 300, 'Porche 3 estaciones ($/sqft)'),
+    'Wood Deck SF': (50, False, 0, 500, 'Terraza de madera ($/sqft)'),
+    'Open Porch SF': (45, False, 0, 400, 'Porche abierto ($/sqft)'),
+    'Enclosed Porch': (60, False, 0, 300, 'Porche cerrado ($/sqft)'),
+    'Screen Porch': (55, False, 0, 300, 'Porche con mosquitero ($/sqft)'),
+    '3Ssn Porch': (65, False, 0, 300, 'Porche 3 estaciones ($/sqft)'),
     
     # Áreas especiales
-    'PoolArea': (200, False, 0, 500, 'Área piscina ($/sqft)'),
-    'GarageArea': (80, False, 0, 1000, 'Área garaje ($/sqft)'),
+    'Pool Area': (200, False, 0, 500, 'Área piscina ($/sqft)'),
+    'Garage Area': (80, False, 0, 1000, 'Área garaje ($/sqft)'),
     
     # Cantidades discretas
-    'FullBath': (12500, True, 1, 4, 'Baños completos ($/unidad)'),
-    'HalfBath': (4000, True, 0, 2, 'Medios baños ($/unidad)'),
-    'BedroomAbvGr': (5000, True, 1, 6, 'Dormitorios sobre suelo ($/unidad)'),
-    'KitchenAbvGr': (15000, True, 1, 2, 'Cocinas ($/unidad)'),
-    'TotRmsAbvGrd': (3000, True, 3, 12, 'Total habitaciones ($/unidad)'),
-    'Fireplaces': (3500, True, 0, 3, 'Chimeneas ($/unidad)'),
-    'GarageCars': (10000, True, 0, 4, 'Capacidad garaje en autos ($/auto)'),
+    'Full Bath': (12500, True, 1, 4, 'Baños completos ($/unidad)'),
+    'Half Bath': (4000, True, 0, 2, 'Medios baños ($/unidad)'),
+    'Bedroom AbvGr': (5000, True, 1, 6, 'Dormitorios sobre suelo ($/unidad)'),
+    'Kitchen AbvGr': (15000, True, 1, 2, 'Cocinas ($/unidad)'),
+    'TotRms AbvGrd': (3000, True, 3, 12, 'Total habitaciones ($/unidad)'),
+    'Fireplace Qu': (3500, True, 0, 3, 'Chimeneas ($/unidad)'),
+    'Garage Cars': (10000, True, 0, 4, 'Capacidad garaje en autos ($/auto)'),
     
     # Calidades ordinales (1-10 o 1-5)
-    'OverallQual': (20000, True, 1, 10, 'Calidad general ($/nivel)'),
-    'OverallCond': (15000, True, 1, 10, 'Condición general ($/nivel)'),
-    'ExterQual': (8000, True, 1, 5, 'Calidad exterior ($/nivel)'),
-    'ExterCond': (6000, True, 1, 5, 'Condición exterior ($/nivel)'),
-    'BsmtQual': (7000, True, 0, 5, 'Calidad sótano ($/nivel)'),
-    'BsmtCond': (5000, True, 0, 5, 'Condición sótano ($/nivel)'),
-    'HeatingQC': (6000, True, 1, 5, 'Calidad calefacción ($/nivel)'),
-    'KitchenQual': (10000, True, 1, 5, 'Calidad cocina ($/nivel)'),
-    'FireplaceQu': (4000, True, 0, 5, 'Calidad chimenea ($/nivel)'),
-    'GarageQual': (5000, True, 0, 5, 'Calidad garaje ($/nivel)'),
-    'GarageCond': (4000, True, 0, 5, 'Condición garaje ($/nivel)'),
-    'PoolQC': (8000, True, 0, 5, 'Calidad piscina ($/nivel)'),
+    'Overall Qual': (20000, True, 1, 10, 'Calidad general ($/nivel)'),
+    'Overall Cond': (15000, True, 1, 10, 'Condición general ($/nivel)'),
+    'Exter Qual': (8000, True, 1, 5, 'Calidad exterior ($/nivel)'),
+    'Exter Cond': (6000, True, 1, 5, 'Condición exterior ($/nivel)'),
+    'Bsmt Qual': (7000, True, 0, 5, 'Calidad sótano ($/nivel)'),
+    'Bsmt Cond': (5000, True, 0, 5, 'Condición sótano ($/nivel)'),
+    'Heating QC': (6000, True, 1, 5, 'Calidad calefacción ($/nivel)'),
+    'Kitchen Qual': (10000, True, 1, 5, 'Calidad cocina ($/nivel)'),
+    'Fireplace Qu': (4000, True, 0, 5, 'Calidad chimenea ($/nivel)'),
+    'Garage Qual': (5000, True, 0, 5, 'Calidad garaje ($/nivel)'),
+    'Garage Cond': (4000, True, 0, 5, 'Condición garaje ($/nivel)'),
+    'Pool QC': (8000, True, 0, 5, 'Calidad piscina ($/nivel)'),
 }
 
 # Atributos que NO se pueden modificar en remodelación
 ATRIBUTOS_FIJOS = [
-    'YearBuilt',
-    'YearRemodAdd',
-    'LotFrontage',
-    'LotArea',
-    'MSSubClass',
-    'MSZoning',
+    'Year Built',
+    'Year Remod/Add',
+    'Lot Frontage',
+    'Lot Area',
+    'MS SubClass',
+    'MS Zoning',
     'Street',
     'Alley',
-    'LotShape',
-    'LandContour',
-    'LotConfig',
-    'LandSlope',
+    'Lot Shape',
+    'Land Contour',
+    'Lot Config',
+    'Land Slope',
     'Neighborhood',
-    'Condition1',
-    'Condition2',
-    'BldgType',
-    'HouseStyle',
+    'Condition 1',
+    'Condition 2',
+    'Bldg Type',
+    'House Style',
+    #-------
+    'Utilities',
+    'Roof Style',
+    'Roof Matl',
+    'Exterior 1st',
+    'Exterior 2nd',
+    'Mas Vnr Type',
+    'Mas Vnr Area',
+    'Foundation',
+    'Bsmt Exposure',
+    'BsmtFin Type 1',
+    'BsmtFin SF 1',
+    'BsmtFin Type 2',
+    'BsmtFin SF 2',
+    'Bsmt Unf SF',
+    'Heating',
+    'Central Air',
+    'Electrical',
+    'Low Qual Fin SF',
+    'Bsmt Full Bath',
+    'Bsmt Half Bath',
+    'FunctioNo aplical',
+    'Garage Type',
+    'Garage Yr Blt',
+    'Garage Finish',
+    'Paved Drive',
+    'Fence',
+    'Misc Feature',
+    'Misc Val',
+    'Mo Sold',
+    'Yr Sold',
+    'Sale Type',
+    'Sale Condition',
 ]
 
 
@@ -175,6 +208,24 @@ ROOF_COMPATIBILITY = {
     'Gambrel': {'CompShg': 1, 'Metal': 1, 'ClyTile': 1, 'WdShngl': 1, 'WdShake': 1, 'Membran': 0},
 }
 
+# Exterior Materials (Materiales exteriores)
+COSTOS_EXTERIOR = {
+    'AsbShng': 5000,
+    'AsphShn': 4000,
+    'BrkComm': 12000,
+    'BrkFace': 15000,
+    'CBlock': 8000,
+    'CemntBd': 10000,
+    'HdBoard': 6000,
+    'ImStucc': 9000,
+    'MetalSd': 7000,
+    'Plywood': 5000,
+    'Stone': 20000,
+    'Stucco': 8000,
+    'VinylSd': 7000,
+    'Wd Sdng': 9000,
+    'WdShing': 8000,
+}
 
 # ============================================================================
 # COSTOS DE DEMOLICIÓN (Para remodelación)
@@ -256,9 +307,9 @@ GUROBI_PARAMS = {
 # PATHS DE ARCHIVOS
 # ============================================================================
 
-DATA_PATH = '../data/ames_housing_cleaned.csv'
+DATA_PATH = './data/raw/casas_completas_con_present.csv'
 # Ruta donde se persistirá el modelo entrenado
-MODEL_PATH = "./models/xgb_model.joblib"
-RESULTS_PATH = '../results/'
+MODEL_PATH = "./models/xgb/completa_present_log_p2_1800_ELEGIDO/model_xgb.joblib"
+RESULTS_PATH = '../optimizacion/results/'
 
 print("✅ Archivo config.py creado correctamente")

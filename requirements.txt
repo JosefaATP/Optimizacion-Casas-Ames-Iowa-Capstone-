@@ -1,7 +1,7 @@
 # Requisitos para el proyecto de tasación y optimización de viviendas
 
 # Librerías principales
-scikit-learn==1.3.0
+scikit-learn==1.3.2
 numpy==1.24.3
 pandas==2.0.3
 xgboost==2.0.3

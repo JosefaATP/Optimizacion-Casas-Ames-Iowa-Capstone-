@@ -9,6 +9,7 @@ import pandas as pd
 import xgboost as xgb
 from datetime import datetime
 import joblib
+import os
 
 # ============================================================================
 # FUNCIONES DE CARGA Y GUARDADO
@@ -304,3 +305,28 @@ def analisis_sensibilidad_presupuesto(funcion_optimizacion, presupuestos, **kwar
     print("ANÁLISIS DE SENSIBILIDAD - PRESUPUESTO")
     print("="*70)
     print(df_sensibilidad.to_string(index))
+
+
+# ============================================================================
+# GUARDADO DE RESULTADOS SECUENCIALES
+# ============================================================================
+
+
+def guardar_resultado(resultado, carpeta='results', prefijo='resultado_casa'):
+    # Crear carpeta si no existe
+    os.makedirs(carpeta, exist_ok=True)
+    
+    # Buscar el siguiente número disponible
+    existentes = [f for f in os.listdir(carpeta) if f.startswith(prefijo)]
+    numeros = [int(f[len(prefijo):].split('.')[0]) for f in existentes if f[len(prefijo):].split('.')[0].isdigit()]
+    siguiente = max(numeros)+1 if numeros else 1
+    
+    # Crear path final
+    filepath = os.path.join(carpeta, f"{prefijo}{siguiente}.txt")
+    
+    # Guardar resultado
+    with open(filepath, 'w', encoding='utf-8') as f:
+        for k, v in resultado.items():
+            f.write(f"{k}: {v}\n")
+    
+    print(f"✅ Resultado guardado en {filepath}")

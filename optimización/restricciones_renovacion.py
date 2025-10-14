@@ -9,6 +9,7 @@ Modelo Matemático: Restricciones de Renovación
 
 import gurobipy as gp
 from gurobipy import GRB
+import pandas as pd
 from config import ROOF_COMPATIBILITY, COSTOS_ROOF_STYLE, COSTOS_ROOF_MATERIAL, COSTOS_EXTERIOR
 
 # ============================================================================
