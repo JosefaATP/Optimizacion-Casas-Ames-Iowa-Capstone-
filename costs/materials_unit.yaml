@@ -28,7 +28,7 @@ Exterior:
   Other: 6.0
 
 MasVnrType:
-  None: 0.0
+  No aplica: 0.0
   BrkCmn: 10.0
   BrkFace: 14.0
   CBlock: 8.0

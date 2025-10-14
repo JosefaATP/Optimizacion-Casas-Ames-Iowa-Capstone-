@@ -46,18 +46,34 @@ def main():
     pool_rules = load_pool_rules()
 
     # 3) construye y resuelve el MILP generador (K planes)
-    milp = RemodelMILP(base, costs, pool_rules, compat, budget=None)
+    milp = RemodelMILP(base, costs, pool_rules, compat, budget=20000.0)
     milp.build()
     plans = milp.solve_pool(k=30, time_limit=60)
 
     # 4) evalua utilidades con XGBoost
-    predictor = XGBPricePredictor(str(MODELS/"xgb_remodel.pkl"), str(MODELS/"encoders.pkl"))
+    predictor = XGBPricePredictor()
     ranked = score_plans(predictor, base.features, plans)
 
     # 5) muestra top-5
     for i, r in enumerate(ranked[:5], 1):
         print(f"[{i}] profit={r['profit']:.0f}  pred_final={r['pred_final']:.0f}  cost={r['plan']['Cost']:.0f}")
         print("    changes:", {k:v for k,v in r["plan"].items() if k not in ("Cost",)})
+        print()
+
+    # ... luego de obtener 'ranked'
+    top_k = 5
+    for i, r in enumerate(ranked[:top_k], 1):
+        base = r["base_pred"]
+        newv = r["pred_final"]
+        cost = r["cost"]
+        prof = r["profit"]
+        print(f"[{i}] UTILIDAD (USD): {prof:,.0f}")
+        print(f"    Precio base pred.: {base:,.0f}")
+        print(f"    Precio nuevo pred.: {newv:,.0f}")
+        print(f"    Costo remodelación: {cost:,.0f}")
+        print("    Cambios:")
+        for k,(old,new) in r["changes"].items():
+            print(f"      - {k}: {old}  ->  {new}")
         print()
 
 if __name__ == "__main__":
