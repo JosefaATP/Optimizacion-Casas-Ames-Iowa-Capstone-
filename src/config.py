@@ -4,7 +4,7 @@ from typing import List, Optional
 @dataclass
 class Config:
     # nombre de la variable objetivo
-    target: str = "precio"
+    target: str = "SalePrice_Present"
 
     # columnas que NO quieres usar
     drop_cols: List[str] = field(default_factory=lambda: [
@@ -29,13 +29,14 @@ class Config:
 
     # hiperparametros iniciales de xgboost
     xgb_params = {
-        "n_estimators": 1800,
-        "learning_rate": 0.025,
-        "max_depth": 5,           # árboles más bajos → menos varianza
-        "min_child_weight": 10,   # todavía más conservador
-        "subsample": 0.7,
-        "colsample_bytree": 0.7,
-        "reg_lambda": 2.0,
+        "n_estimators": 3000,
+        "learning_rate": 0.016808015597211158,
+        "max_depth": 5,
+        "min_child_weight": 5,
+        "gamma": 0.0,
+        "subsample": 0.7065632022422546,
+        "colsample_bytree": 0.1,
+        "reg_lambda": 0.0,
         "reg_alpha": 0.0,
         "tree_method": "hist",
         "objective": "reg:squarederror",
