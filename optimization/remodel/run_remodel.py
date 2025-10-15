@@ -21,6 +21,16 @@ def explain_cost_delta(plan, base_features, costs):
     parts = []
     total = 0.0
 
+    # If the MILP produced a Cost_breakdown, prefer that (it was used to compute plan['Cost'])
+    if isinstance(plan, dict) and plan.get("Cost_breakdown"):
+        try:
+            items = plan.get("Cost_breakdown")
+            total = float(plan.get("Cost", sum(v for _, v in items if isinstance(v, (int, float)))))
+            return total, items
+        except Exception:
+            # if any problem reading the MILP breakdown, continue to recompute
+            pass
+
     def add(label, val):
         nonlocal total
         try:
@@ -65,17 +75,16 @@ def explain_cost_delta(plan, base_features, costs):
     # ... (Otras variables categóricas, como MasVnrType, Electrical, Heating, KitchenQual) ...
 
     # --- Central Air (SOLUCIÓN AL PROBLEMA DE $65) ---
-    # Asumimos que Central Air solo cobra si el estado base es negativo ('N' o 'No')
-    # y el nuevo estado es positivo ('Yes').
+    # --- Fragmento CRÍTICO para Central Air en explain_cost_delta ---
+    # (Asume que base_features es canonicalizada)
+
     base_ca_raw = str(base_features.get("Central Air")).upper().strip()
     new_ca_raw = str(plan.get("CentralAir", base_ca_raw)).upper().strip()
-    
-    is_base_no = base_ca_raw in ("N", "NO")
-    is_new_yes = new_ca_raw == "YES"
+    costs_central_air_install = costs.central_air_install # Cargar el costo de YAML
 
-    if is_base_no and is_new_yes:
-        # Aquí se agrega el costo de instalación (los 65.0)
-        add("CentralAir: Instalar (N/No -> Yes)", costs.central_air_install)
+    if base_ca_raw in ("N", "NO") and new_ca_raw == "YES":
+        # El modelo de Gurobi cobra esto si es binario. El valor viene de YAML.
+        add("CentralAir: Instalar (N/No -> Yes)", costs_central_air_install)
         
     # --- Piscina (Si se añade, se cobra, pero PoolArea = 0.0 en tu output, por eso no cobra) ---
     area = float(plan.get("PoolArea", 0.0) or 0.0)
@@ -205,6 +214,8 @@ def main():
         for name, val in items:
             print(f"       - {name}: {val:,.0f}")
         print(f"       = TOTAL: {tot:,.0f}\n")
+
+        # (Removed redundant MILP Cost_breakdown print; explain_cost_delta prefers MILP breakdown)
 
         best = ranked[0]
         if best["profit"] <= 0:

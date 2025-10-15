@@ -110,8 +110,8 @@ KitchenRemodel:
 
 
 # --- Otros costos unitarios globales ---
-CentralAirInstall: 53     # instalar aire acondicionado central (si base=No)
+CentralAirInstall: 53    # instalar aire acondicionado central (si base=No)
 CBsmt:              20          # terminar sótano: USD/ft2 de área no terminada
-PoolCostPerFt2:     70          # construir piscina: USD/ft2
+PoolCostPerFt2:     70         # construir piscina: USD/ft2
 Cstr_floor:         110         # ampliación de piso: USD/ft2 (para futura capa de ampliaciones)
-Cdemolition:        2           # demolición: USD/ft2
+Cdemolition:        2          # demolición: USD/ft2

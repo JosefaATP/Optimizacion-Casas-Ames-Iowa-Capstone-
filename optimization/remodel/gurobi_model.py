@@ -2,57 +2,11 @@
 from typing import Optional, Dict, Any, List, Tuple
 from gurobipy import Model, GRB, quicksum
 
-# -------------------------
-# Helpers (calidades, alias)
-# -------------------------
-QUAL_ORDER = {"Ex": 5, "Gd": 4, "TA": 3, "Fa": 2, "Po": 1}
-def qscore(x): return QUAL_ORDER.get(str(x).strip(), 3)
+# Reuse canonicalization and modelspec dataclasses from shared modules
+from .canon import canon, qscore
+from .model_spec import BaseHouse, CostTables, PoolRules, Compat
 
-def canon(col, v):
-    if col == "Central Air":
-        s = str(v).strip()
-        return {"Y":"Yes","N":"No"}.get(s, s)
-    if col in ("Mas Vnr Type", "Pool QC"):
-        s = "" if v is None else str(v).strip()
-        return "None" if s in ("", "NA", "No aplica", "None") else s
-    return v
 
-# ------------------------------------------------------
-# Estructuras esperadas (siguen lo que ya venías usando)
-# ------------------------------------------------------
-class BaseHouse:
-    def __init__(self, features: Dict[str, Any]):
-        self.features = features
-
-class CostTables:
-    def __init__(self, **kwargs):
-        # valores esperados en YAML (ajusta nombres si ocupas otros)
-        self.utilities       = kwargs.get("utilities", {})
-        self.roof_style      = kwargs.get("RoofStyle", kwargs.get("roof_style", {}))
-        self.roof_matl       = kwargs.get("RoofMatl",  kwargs.get("roof_matl", {}))
-        self.exterior1st     = kwargs.get("Exterior1st", {})
-        self.exterior2nd     = kwargs.get("Exterior2nd", {})
-        self.mas_vnr_type    = kwargs.get("MasVnrType", {})
-        self.electrical      = kwargs.get("Electrical", {})
-        self.heating         = kwargs.get("Heating", {})
-        self.kitchen_qual    = kwargs.get("KitchenQual", {})
-        self.central_air_install = kwargs.get("CentralAirInstall", 5362.0)  # default razonable
-        # costos por m2 / ft2 de ampliaciones (si faltan en YAML uso defaults)
-        self.cost_finish_bsmt_ft2 = kwargs.get("CBsmt", 15.0)         # Basement (ft2)
-        self.cost_pool_ft2        = kwargs.get("PoolCostPerFt2", 70.) # Piscina (ft2)
-        self.cost_addition_ft2    = kwargs.get("Cstr_floor", 106.49)  # Ampliación (ft2)
-        self.cost_demolition_ft2  = kwargs.get("Cdemolition", 1.65)   # Demolición (ft2)
-        # Kitchen remodel (por calidad, si falta algo interpolas en YAML)
-        self.kitchen_remodel      = kwargs.get("KitchenRemodel", {"Ex":180000,"TA":42500,"Po":13000})
-
-class PoolRules:
-    def __init__(self, **kwargs):
-        self.max_share = kwargs.get("max_share", 0.20)
-        self.min_area_per_quality = kwargs.get("min_area_per_quality", 100)
-
-class Compat:
-    def __init__(self, roof_style_by_matl_forbidden: List[Tuple[str,str]]):
-        self.roof_style_by_matl_forbidden = set(roof_style_by_matl_forbidden)
 
 # ==============================
 # MODELO MILP – REMODELACIÓN
@@ -78,6 +32,8 @@ class RemodelMILP:
 
     def build(self):
         f = {k: canon(k, v) for k, v in self.base.features.items()}
+        # store canonical base features so solve_pool can compute deltas
+        self._base_f = f
 
         # ---------------------------------------
         # SETS (derivados de tablas de costos)
@@ -390,5 +346,112 @@ class RemodelMILP:
                 plan["Exterior2nd"] = [e for e,v in self.vars["ext2"].items() if v.Xn > 0.5]
             else:
                 plan["Exterior2nd"] = []
+            # --- DEBUG: compute cost breakdown from the reported plan selections ---
+            try:
+                breakdown = []
+                calc_cost = 0.0
+                bf = getattr(self, '_base_f', {})
+
+                # helper to pick first element from list-like plan entries
+                def first(item):
+                    if isinstance(item, list):
+                        return item[0] if item else None
+                    return item
+
+                # Utilities
+                new_u = first(plan.get("Utilities"))
+                base_u = str(bf.get("Utilities"))
+                if new_u and new_u != base_u:
+                    term = float(self.costs.utilities.get(new_u, 0.0))
+                    breakdown.append((f"Utilities: {base_u} -> {new_u}", term))
+                    calc_cost += term
+
+                # Roof Style / Roof Matl
+                new_rs = first(plan.get("RoofStyle"))
+                new_rm = first(plan.get("RoofMatl"))
+                base_rs = str(bf.get("Roof Style"))
+                base_rm = str(bf.get("Roof Matl"))
+                if new_rs and new_rs != base_rs:
+                    term = float(self.costs.roof_style.get(new_rs, 0.0))
+                    breakdown.append((f"RoofStyle: {base_rs} -> {new_rs}", term))
+                    calc_cost += term
+                if new_rm and new_rm != base_rm:
+                    term = float(self.costs.roof_matl.get(new_rm, 0.0))
+                    breakdown.append((f"RoofMatl: {base_rm} -> {new_rm}", term))
+                    calc_cost += term
+
+                # Exterior 1st/2nd
+                new_e1 = first(plan.get("Exterior1st"))
+                new_e2 = first(plan.get("Exterior2nd"))
+                base_e1 = str(bf.get("Exterior 1st"))
+                base_e2 = str(bf.get("Exterior 2nd") or "")
+                if new_e1 and new_e1 != base_e1:
+                    term = float(self.costs.exterior1st.get(new_e1, 0.0))
+                    breakdown.append((f"Exterior1st: {base_e1} -> {new_e1}", term))
+                    calc_cost += term
+                if new_e2 and new_e2 != base_e2:
+                    term = float(self.costs.exterior2nd.get(new_e2, 0.0))
+                    breakdown.append((f"Exterior2nd: {base_e2} -> {new_e2}", term))
+                    calc_cost += term
+
+                # MasVnrType
+                new_mvt = first(plan.get("MasVnrType"))
+                base_mvt = str(canon("Mas Vnr Type", bf.get("Mas Vnr Type","None")))
+                if new_mvt and new_mvt != base_mvt:
+                    term = float(self.costs.mas_vnr_type.get(new_mvt, 0.0))
+                    breakdown.append((f"MasVnrType: {base_mvt} -> {new_mvt}", term))
+                    calc_cost += term
+
+                # Electrical
+                new_el = first(plan.get("Electrical"))
+                base_el = str(bf.get("Electrical"))
+                if new_el and new_el != base_el:
+                    term = float(self.costs.electrical.get(new_el, 0.0))
+                    breakdown.append((f"Electrical: {base_el} -> {new_el}", term))
+                    calc_cost += term
+
+                # Central Air
+                new_ca = plan.get("CentralAir")
+                base_ca = str(canon("Central Air", bf.get("Central Air","No")))
+                if base_ca in ("N", "No") and str(new_ca) == "Yes":
+                    term = float(self.costs.central_air_install)
+                    breakdown.append(("CentralAir: No -> Yes", term))
+                    calc_cost += term
+
+                # Heating
+                new_h = first(plan.get("Heating"))
+                base_h = str(bf.get("Heating"))
+                if new_h and new_h != base_h:
+                    term = float(self.costs.heating.get(new_h, 0.0))
+                    breakdown.append((f"Heating: {base_h} -> {new_h}", term))
+                    calc_cost += term
+
+                # KitchenQual
+                new_kq = first(plan.get("KitchenQual"))
+                base_kq = str(bf.get("Kitchen Qual"))
+                if new_kq and new_kq != base_kq:
+                    kcost = float(self.costs.kitchen_remodel.get(new_kq, self.costs.kitchen_qual.get(new_kq, 0.0)))
+                    breakdown.append((f"KitchenQual: {base_kq} -> {new_kq}", kcost))
+                    calc_cost += kcost
+
+                # Basement finish: use plan values x_to_BsmtFin1/x_to_BsmtFin2
+                xb1 = float(plan.get("x_to_BsmtFin1", 0.0) or 0.0)
+                xb2 = float(plan.get("x_to_BsmtFin2", 0.0) or 0.0)
+                if (xb1 + xb2) > 1e-6:
+                    term = float(self.costs.cost_finish_bsmt_ft2) * (xb1 + xb2)
+                    breakdown.append(("Bsmt finish", term))
+                    calc_cost += term
+
+                # Pool
+                pa = float(plan.get("PoolArea", 0.0) or 0.0)
+                if pa > 1e-6:
+                    term = float(self.costs.cost_pool_ft2) * pa
+                    breakdown.append(("Pool area", term))
+                    calc_cost += term
+
+                plan["Cost_breakdown"] = breakdown
+                plan["Cost"] = float(calc_cost)
+            except Exception:
+                plan["Cost_breakdown"] = [("error", 0.0)]
             sols.append(plan)
         return sols
