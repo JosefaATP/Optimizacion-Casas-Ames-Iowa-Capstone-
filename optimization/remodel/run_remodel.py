@@ -149,8 +149,9 @@ def main():
     compat = load_compat()
     pool_rules = load_pool_rules()
 
-    # 3) MILP generador (solo factible) + soluciones
-    milp = RemodelMILP(base_house, costs, pool_rules, compat, budget=100.0)  # usa None si no quieres tope
+    # 3) MILP generador (maximizar utilidad = pred_new - pred_base - costo)
+    predictor = XGBPricePredictor()
+    milp = RemodelMILP(base_house, costs, pool_rules, compat, budget=200000, predictor=predictor)
     milp.build()
     plans = milp.solve_pool(k=30, time_limit=60)
 

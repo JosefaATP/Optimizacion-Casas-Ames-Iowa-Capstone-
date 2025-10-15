@@ -1,117 +1,242 @@
 # -----------------------------------------------------------------------------
 # Costos de remodelación (USD). Regla: cambiar "a igual o mayor costo" vs base.
-# Donde corresponde son primas/paquetes; no son precios de lista exactos.
+# Fuente: Modelo_matemático.pdf (Sección 11 - Costos)
+# Actualizado: Octubre 2025
 # -----------------------------------------------------------------------------
 
 # --- Utilities (cambiar acometidas/servicios) ---
+# Fuente PDF: "Costos promedios de los servicios públicos"
 Utilities:
-  AllPub: 40       # agua+alcantarillado+electricidad públicas (base)
-  ELO: 39     # solo electricidad
-  NoSewr: 22    # sin alcantarillado público
-  NoSeWa: 20     # sin agua ni alcantarillado
+  AllPub: 31750    # Todos los servicios públicos (Elec: $10-30k + Gas: $0.5-3.5k + Water: $1-6k + Sewer: $1.5-11k)
+  NoSewr: 39500    # Sin alcantarillado (necesita tanque séptico: $5-30k adicional)
+  NoSeWa: 22000    # Sin agua pública
+  ELO: 20000       # Solo electricidad y otros básicos
 
-# --- Roof Style (forma del techo) ---
+# --- Roof Style (forma del techo) - Costos por ft² ---
+# Nota: El PDF no especifica costos diferenciados por estilo, usando estimaciones razonables
 RoofStyle:
-  Gable:   0
-  Hip:     15
-  Flat:    10
-  Gambrel: 20
-  Mansard: 25
-  Shed:    12
+  Gable: 0         # Estilo base (más común)
+  Hip: 1.5         # +30% vs Gable por complejidad
+  Flat: 1.0        # Requiere membranas especiales
+  Gambrel: 2.0     # Más complejo
+  Mansard: 2.5     # El más complejo
+  Shed: 0.8        # Simplificado
 
-# --- Roof Material (material de techo) ---
+# --- Roof Material (material de techo) - USD/ft² ---
+# Fuente PDF: "Costos de los materiales del techo por pie cuadrado"
 RoofMatl:
-  CompShg: 0
-  Tar&Grv: 10
-  Membran: 20
-  Roll:    15
-  Metal:   60
-  WdShngl: 40
-  WdShake: 50
-  ClyTile: 80
+  CompShg: 6.0     # Tejas compuestas: $4-8/ft² (promedio $6)
+  Metal: 8.99      # Metal (junta alzada): $8.99/ft² según PDF
+  ClyTile: 15.0    # Arcilla/teja (estimado alto)
+  Membran: 6.5     # Membrana para techos planos
+  Roll: 3.75       # Techo enrollado: $2-5.5/ft² (promedio $3.75)
+  Tar&Grv: 5.5     # Asfalto y grava: $3.5-7.5/ft² (promedio $5.5)
+  WdShake: 7.0     # Tejas de madera (estimado)
+  WdShngl: 6.35    # Tejas de madera: $6.35/100 ft² según PDF
 
-# --- Exterior (revestimiento). Se usa 1st y 2nd por separado ---
+# --- Exterior (revestimiento) - USD/ft² ---
+# Fuente PDF: "Costos de los materiales del revestimiento exterior"
 Exterior1st:
-  VinylSd: 18
-  MetalSd: 15
-  HdBoard: 12
-  Plywood: 10
-  Wd Sdng: 16
-  WdShing: 22
-  AsphShn: 50
-  AsbShng: 10
-  Stucco:  26
-  ImStucc: 28
-  CemntBd: 30
-  BrkFace: 35
-  BrkComm: 32
-  CBlock:  20
-  Stone:   60
+  VinylSd: 7.46    # Revestimiento de vinilo: $2.83-8.12/ft² (tomamos tope)
+  MetalSd: 5.48    # Revestimiento de metal: $2.83-8.12/ft² (promedio)
+  HdBoard: 8.0     # HardBoard (estimado)
+  Plywood: 6.0     # Contrachapado (estimado)
+  WdSdng: 3.64     # Revestimiento de madera
+  WdShing: 8.0     # Tejas de madera (estimado)
+  AsphShn: 1.5     # Tejas de asfalto: $1.25-1.75/ft² (promedio $1.5)
+  AsbShng: 11.5    # Asbesto: $8-15/ft² (promedio $11.5) - RESTRINGIDO
+  Stucco: 12.0     # Estuco: aprox $12/ft² según PDF
+  ImStucc: 13.0    # Estuco imitación
+  CemntBd: 10.0    # Tablero de cemento (estimado)
+  BrkFace: 15.0    # Ladrillo cara vista: $12-18/ft² (promedio $15)
+  BrkComm: 10.0    # Ladrillo común: $4-22/ft² (promedio bajo $10)
+  CBlock: 12.0     # Bloque de cemento
+  Stone: 27.5      # Piedra: $10-45/ft² (promedio $27.5)
+  PreCast: 18.0    # Prefabricado (estimado)
+  Other: 8.0       # Otros materiales
 
 Exterior2nd:
-  VinylSd: 18
-  MetalSd: 15
-  HdBoard: 12
-  Plywood: 10
-  Wd Sdng: 16
-  WdShing: 22
-  AsphShn: 50
-  AsbShng: 100
-  Stucco:  26
-  ImStucc: 28
-  CemntBd: 30
-  BrkFace: 35
-  BrkComm: 32
-  CBlock:  20
-  Stone:   60
+  VinylSd: 7.46
+  MetalSd: 5.48
+  HdBoard: 8.0
+  Plywood: 6.0
+  WdSdng: 3.64
+  WdShing: 8.0
+  AsphShn: 1.5
+  AsbShng: 11.5
+  Stucco: 12.0
+  ImStucc: 13.0
+  CemntBd: 10.0
+  BrkFace: 15.0
+  BrkComm: 10.0
+  CBlock: 12.0
+  Stone: 27.5
+  PreCast: 18.0
+  Other: 8.0
 
-# --- Masonry veneer (revestimiento de albañilería) ---
+# --- Masonry veneer (revestimiento de albañilería) - USD/ft² ---
+# Fuente PDF: "Costos del tipo de revestimiento de mampostería"
 MasVnrType:
-  None:     0
-  "No aplica": 0   # por si tu base trae este texto
-  BrkCmn:  30
-  BrkFace: 45
-  CBlock:  20
-  Stone:   80
+  None: 0
+  "No aplica": 0
+  BrkCmn: 10.0     # Ladrillo común: $4-22/ft² (promedio bajo)
+  BrkFace: 15.0    # Ladrillo cara vista: $12-18/ft² (promedio)
+  CBlock: 12.0     # Bloque de cemento (estimado)
+  Stone: 27.5      # Piedra: $10-45/ft² (promedio)
 
 # --- Instalación eléctrica (tableros/fusibles) ---
+# Nota: PDF no especifica costos diferenciados, usando estimaciones razonables
 Electrical:
-  SBrkr: 0
-  FuseA: 50
-  FuseF: 80
-  FuseP: 100
-  Mix:   120
+  SBrkr: 0         # Disyuntores estándar (base moderna)
+  FuseA: 1500      # Fusibles >60 AMP (upgrade menor)
+  FuseF: 2500      # Fusibles 60 AMP (Fair)
+  FuseP: 3500      # Fusibles 60 AMP (Poor) - más trabajo
+  Mix: 4000        # Sistema mixto (más complejo)
 
 # --- Tipo de calefacción (cambio de sistema) ---
+# Fuente PDF: "Costos de calefacción"
 Heating:
-  GasA: 57
-  Floor: 17
-  GasW: 85
-  OthW: 49
-  Grav: 63
-  Wall: 37
+  GasA: 5750       # Aire forzado a gas: $3,000-8,500 (promedio $5,750)
+  Floor: 1773      # Horno de gas para suelo radiante: $1,773
+  GasW: 8500       # Caldera de gas: $4,000-9,000 (promedio $8,500)
+  OthW: 4900       # Calefacción de agua (no gas): $1,800-8,000 (promedio $4,900)
+  Grav: 6300       # Horno de gravedad: $6,300
+  Wall: 3700       # Horno de pared: $1,400-6,000 (promedio $3,700)
 
 # --- Calidad de cocina (paquete de remodel) ---
+# Fuente PDF: "Costo de remodelación de cocina"
 KitchenQual:
-  Po: 0
-  Fa: 30
-  TA: 60
-  Gd: 120
-  Ex: 200
+  Po: 13000        # Remodelación básica: $1,000-25,000 (promedio bajo $13,000)
+  Fa: 27500        # Entre básica y media (interpolado)
+  TA: 42500        # Remodelación media: $25,000-60,000 (promedio $42,500)
+  Gd: 111250       # Entre media y alta (interpolado)
+  Ex: 180000       # Remodelación alta gama: $60,000-300,000 (promedio $180,000)
 
-# Si existe una tabla específica de "paquete de remodel de cocina", el modelo la usa primero:
+# Paquetes específicos de remodel (prioridad sobre KitchenQual)
 KitchenRemodel:
-  Po: 0
-  Fa: 30
-  TA: 60
-  Gd: 120
-  Ex: 200
+  Po: 13000
+  Fa: 27500
+  TA: 42500
+  Gd: 111250
+  Ex: 180000
 
+# --- NUEVOS: Basement (Sótano) ---
+# Fuente PDF: "Basement" y costos relacionados
+BsmtCond:
+  Po: 0            # Poor (base)
+  Fa: 1500         # Fair (mejora básica)
+  TA: 3000         # Typical/Average
+  Gd: 5000         # Good
+  Ex: 8000         # Excellent
 
+BsmtFinType:
+  NA: 0            # No aplica
+  Unf: 0           # Sin terminar (base)
+  LwQ: 10          # Baja calidad: $10/ft²
+  Rec: 12          # Sala de recreación: $12/ft²
+  BLQ: 15          # Calidad promedio-baja: $15/ft²
+  ALQ: 18          # Calidad promedio-alta: $18/ft²
+  GLQ: 22          # Buena calidad de vida: $22/ft²
+
+# --- NUEVOS: Fireplace (Chimenea) ---
+FireplaceQu:
+  NA: 0            # No tiene chimenea
+  Po: 500          # Poor (mejora mínima)
+  Fa: 2000         # Fair
+  TA: 4000         # Typical/Average
+  Gd: 6500         # Good
+  Ex: 10000        # Excellent
+
+# --- NUEVOS: Fence (Cerca) ---
+# Fuente: Estimaciones razonables para Iowa
+FenceCat:
+  NA: 0                    # No tiene cerca
+  MnWw: 15                 # Mínima madera ($/ft lineal)
+  GdWo: 25                 # Buena madera
+  MnPrv: 35                # Mínima privacidad
+  GdPrv: 50                # Buena privacidad
+
+FenceBuildPerFt: 30        # Costo de construcción nueva: $/ft lineal de perímetro
+
+# --- NUEVOS: Paved Drive (Entrada pavimentada) ---
+PavedDrive:
+  N: 0                     # Tierra/grava (base)
+  P: 4000                  # Parcialmente pavimentado
+  Y: 8000                  # Totalmente pavimentado
+
+# --- NUEVOS: Garage ---
+GarageQual:
+  NA: 0            # No tiene garage
+  Po: 0            # Poor (base si tiene)
+  Fa: 1500         # Fair
+  TA: 3000         # Typical/Average
+  Gd: 5000         # Good
+  Ex: 7500         # Excellent
+
+GarageCond:
+  NA: 0            # No tiene garage
+  Po: 0            # Poor (base si tiene)
+  Fa: 1200         # Fair
+  TA: 2500         # Typical/Average
+  Gd: 4000         # Good
+  Ex: 6000         # Excellent
+
+GarageFinish:
+  NA: 0            # No tiene garage
+  Unf: 0           # Sin terminar (base)
+  RFn: 2500        # Terminado rústico: $2,500
+  Fin: 5000        # Terminado completo: $5,000
+
+# --- NUEVOS: Pool (Piscina) ---
+# Fuente PDF: "Pool: C_p"
+PoolQC:
+  NA: 0                    # No tiene piscina
+  Fa: 19000                # Piscina básica pequeña: $19,000
+  TA: 60000                # Piscina típica (interpolado)
+  Gd: 100000               # Piscina buena (interpolado)
+  Ex: 135000               # Piscina de lujo: >$135,000
+
+# --- NUEVOS: Expansiones (Ampliaciones) - USD/ft² ---
+# Fuente PDF y estimaciones razonables
+Expansion:
+  Garage: 150.0            # Ampliar garage
+  WoodDeck: 35.0           # Deck de madera
+  OpenPorch: 60.0          # Porche abierto
+  Enclosed: 80.0           # Porche cerrado
+  ThreeSsn: 90.0           # Porche 3 estaciones
+  Screen: 50.0             # Porche con mosquitero
 
 # --- Otros costos unitarios globales ---
-CentralAirInstall: 53    # instalar aire acondicionado central (si base=No)
-CBsmt:              20          # terminar sótano: USD/ft2 de área no terminada
-PoolCostPerFt2:     70         # construir piscina: USD/ft2
-Cstr_floor:         110         # ampliación de piso: USD/ft2 (para futura capa de ampliaciones)
-Cdemolition:        2          # demolición: USD/ft2
+CentralAirInstall: 5362    # Fuente PDF: "Costo aire acondicionado" - promedio $5,362
+CBsmt: 15                  # Terminar sótano: $7-23/ft² (promedio $15)
+PoolCostPerFt2: 88         # Fuente PDF: "El presupuesto promedio es de $88 por pie cuadrado"
+Cstr_floor: 106.49         # Fuente PDF: Costo ampliación vivienda en Ames: $106.49/ft²
+Cdemolition: 1.65          # Fuente PDF: Demolición: $1.30-2.00/ft² (promedio $1.65)
+
+# --- NUEVOS: Baños (para construcción/agregado) ---
+# Fuente PDF: "Construcción HalfBath" y "Construcción FullBath"
+FullBathCost: 25000        # Ba˜no completo: $15,000-35,000 (promedio $25,000)
+HalfBathCost: 10000        # Medio ba˜no: $5,000-15,000 (promedio $10,000)
+
+# --- NUEVOS: Remodelación de baños (USD/ft²) ---
+# Fuente PDF: "Remodelación Bath"
+BathRemodelPerFt2: 650     # Gama media: $500-800/ft² (promedio $650)
+
+# --- Foundation (Cimentación) - USD/ft² ---
+# Fuente PDF: "Costo de cimentación"
+Foundation:
+  Slab: 10.0               # Losa de concreto: $6-14/ft² (promedio $10)
+  CBlock: 12.0             # Bloque de cemento: $9-15/ft² (promedio $12)
+  PConc: 11.0              # Concreto vertido (estimado)
+  BrkTil: 13.0             # Ladrillo/baldosa (estimado)
+  Stone: 15.0              # Piedra (estimado)
+  Wood: 40.0               # Madera: ~$40,000 para 1000 ft² → $40/ft²
+
+# --- MiscFeature (Características misceláneas) ---
+# Fuente PDF: "Costos de características diversas"
+MiscFeature:
+  Elev: 48000              # Elevador: $48,000
+  Gar2: 32100              # Segundo garage: $19,200-45,000 (promedio $32,100)
+  Shed: 5631               # Cobertizo >100 SF: $4,333-6,929 (promedio $5,631)
+  TenC: 15774              # Cancha de tenis: $15,774
+  Othr: 5000               # Otros 
