@@ -5,112 +5,112 @@
 
 # --- Utilities (cambiar acometidas/servicios) ---
 Utilities:
-  AllPub: 40000       # agua+alcantarillado+electricidad públicas (base)
-  ELO: 39500        # solo electricidad
-  NoSewr: 22000     # sin alcantarillado público
-  NoSeWa: 20000     # sin agua ni alcantarillado
+  AllPub: 40       # agua+alcantarillado+electricidad públicas (base)
+  ELO: 39     # solo electricidad
+  NoSewr: 22    # sin alcantarillado público
+  NoSeWa: 20     # sin agua ni alcantarillado
 
 # --- Roof Style (forma del techo) ---
 RoofStyle:
   Gable:   0
-  Hip:     1500
-  Flat:    1000
-  Gambrel: 2000
-  Mansard: 2500
-  Shed:    1200
+  Hip:     15
+  Flat:    10
+  Gambrel: 20
+  Mansard: 25
+  Shed:    12
 
 # --- Roof Material (material de techo) ---
 RoofMatl:
   CompShg: 0
-  Tar&Grv: 1000
-  Membran: 2000
-  Roll:    1500
-  Metal:   6000
-  WdShngl: 4000
-  WdShake: 5000
-  ClyTile: 8000
+  Tar&Grv: 10
+  Membran: 20
+  Roll:    15
+  Metal:   60
+  WdShngl: 40
+  WdShake: 50
+  ClyTile: 80
 
 # --- Exterior (revestimiento). Se usa 1st y 2nd por separado ---
 Exterior1st:
-  VinylSd: 1800
-  MetalSd: 1500
-  HdBoard: 1200
-  Plywood: 1000
-  Wd Sdng: 1600
-  WdShing: 2200
-  AsphShn: 500
-  AsbShng: 1000
-  Stucco:  2600
-  ImStucc: 2800
-  CemntBd: 3000
-  BrkFace: 3500
-  BrkComm: 3200
-  CBlock:  2000
-  Stone:   6000
+  VinylSd: 18
+  MetalSd: 15
+  HdBoard: 12
+  Plywood: 10
+  Wd Sdng: 16
+  WdShing: 22
+  AsphShn: 50
+  AsbShng: 10
+  Stucco:  26
+  ImStucc: 28
+  CemntBd: 30
+  BrkFace: 35
+  BrkComm: 32
+  CBlock:  20
+  Stone:   60
 
 Exterior2nd:
-  VinylSd: 1800
-  MetalSd: 1500
-  HdBoard: 1200
-  Plywood: 1000
-  Wd Sdng: 1600
-  WdShing: 2200
-  AsphShn: 500
-  AsbShng: 1000
-  Stucco:  2600
-  ImStucc: 2800
-  CemntBd: 3000
-  BrkFace: 3500
-  BrkComm: 3200
-  CBlock:  2000
-  Stone:   6000
+  VinylSd: 18
+  MetalSd: 15
+  HdBoard: 12
+  Plywood: 10
+  Wd Sdng: 16
+  WdShing: 22
+  AsphShn: 50
+  AsbShng: 100
+  Stucco:  26
+  ImStucc: 28
+  CemntBd: 30
+  BrkFace: 35
+  BrkComm: 32
+  CBlock:  20
+  Stone:   60
 
 # --- Masonry veneer (revestimiento de albañilería) ---
 MasVnrType:
   None:     0
   "No aplica": 0   # por si tu base trae este texto
-  BrkCmn:  3000
-  BrkFace: 4500
-  CBlock:  2000
-  Stone:   8000
+  BrkCmn:  30
+  BrkFace: 45
+  CBlock:  20
+  Stone:   80
 
 # --- Instalación eléctrica (tableros/fusibles) ---
 Electrical:
   SBrkr: 0
-  FuseA: 500
-  FuseF: 800
-  FuseP: 1000
-  Mix:   1200
+  FuseA: 50
+  FuseF: 80
+  FuseP: 100
+  Mix:   120
 
 # --- Tipo de calefacción (cambio de sistema) ---
 Heating:
-  GasA: 5750
-  Floor: 1773
-  GasW: 8500
-  OthW: 4900
-  Grav: 6300
-  Wall: 3700
+  GasA: 57
+  Floor: 17
+  GasW: 85
+  OthW: 49
+  Grav: 63
+  Wall: 37
 
 # --- Calidad de cocina (paquete de remodel) ---
 KitchenQual:
   Po: 0
-  Fa: 3000
-  TA: 6000
-  Gd: 12000
-  Ex: 20000
+  Fa: 30
+  TA: 60
+  Gd: 120
+  Ex: 200
 
 # Si existe una tabla específica de "paquete de remodel de cocina", el modelo la usa primero:
 KitchenRemodel:
   Po: 0
-  Fa: 3000
-  TA: 6000
-  Gd: 12000
-  Ex: 18000
+  Fa: 30
+  TA: 60
+  Gd: 120
+  Ex: 200
 
 
 
 # --- Otros costos unitarios globales ---
-CentralAirInstall: 5362       # instalar aire acondicionado central (si base=No)
+CentralAirInstall: 53     # instalar aire acondicionado central (si base=No)
 CBsmt:              20          # terminar sótano: USD/ft2 de área no terminada
 PoolCostPerFt2:     70          # construir piscina: USD/ft2
 Cstr_floor:         110         # ampliación de piso: USD/ft2 (para futura capa de ampliaciones)

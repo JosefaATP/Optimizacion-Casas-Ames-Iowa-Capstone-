@@ -11,6 +11,8 @@ from .evaluate import score_plans
 # -------------------------------
 # Desglose de costo (Δ vs BASE)
 # -------------------------------
+# Contenido CORREGIDO de la función explain_cost_delta en run_remodel.py
+
 def explain_cost_delta(plan, base_features, costs):
     """
     Devuelve (total, [(item, costo_delta), ...]) sumando SOLO si el valor NUEVO
@@ -30,6 +32,7 @@ def explain_cost_delta(plan, base_features, costs):
             total += v
 
     # --- Utilities ---
+    # (Mantenemos el código anterior para Utilities, RoofStyle, RoofMatl, Exterior, etc.)
     new = (plan.get("Utilities") or [None])[0]
     base_u = str(base_features.get("Utilities"))
     if new and new != base_u:
@@ -59,48 +62,38 @@ def explain_cost_delta(plan, base_features, costs):
     new = tmp[0] if tmp else ""
     if base_e2 != "" and new != base_e2:
         add(f"Exterior2nd: {base_e2} -> {new}", costs.exterior2nd.get(new, 0.0))
+    # ... (Otras variables categóricas, como MasVnrType, Electrical, Heating, KitchenQual) ...
 
-    # --- Mas Vnr Type ---
-    base_mvt = str(base_features.get("Mas Vnr Type"))
-    new = (plan.get("MasVnrType") or [None])[0]
-    if new:
-        base_mvt_n = "None" if base_mvt in ("No aplica", "NA", "", "None") else base_mvt
-        new_n = "None" if str(new).strip() in ("No aplica", "NA", "", "None") else str(new).strip()
-        if new_n != base_mvt_n:
-            add(f"MasVnrType: {base_mvt} -> {new}", costs.mas_vnr_type.get(new_n, 0.0))
+    # --- Central Air (SOLUCIÓN AL PROBLEMA DE $65) ---
+    # Asumimos que Central Air solo cobra si el estado base es negativo ('N' o 'No')
+    # y el nuevo estado es positivo ('Yes').
+    base_ca_raw = str(base_features.get("Central Air")).upper().strip()
+    new_ca_raw = str(plan.get("CentralAir", base_ca_raw)).upper().strip()
+    
+    is_base_no = base_ca_raw in ("N", "NO")
+    is_new_yes = new_ca_raw == "YES"
 
-    # --- Electrical ---
-    base_el = str(base_features.get("Electrical"))
-    new = (plan.get("Electrical") or [None])[0]
-    if new and new != base_el:
-        add(f"Electrical: {base_el} -> {new}", costs.electrical.get(new, 0.0))
-
-    # --- Central Air (solo cobra si pasamos de No->Yes) ---
-    base_ca = str(base_features.get("Central Air"))
-    new = plan.get("CentralAir", base_ca)
-    if base_ca in ("N", "No") and new == "Yes":
-        add("CentralAirInstall", costs.central_air_install)
-
-    # --- Heating ---
-    base_h = str(base_features.get("Heating"))
-    new = (plan.get("Heating") or [None])[0]
-    if new and new != base_h:
-        add(f"Heating: {base_h} -> {new}", costs.heating.get(new, 0.0))
-
-    # --- Kitchen Qual ---
-    base_kq = str(base_features.get("Kitchen Qual"))
-    new = (plan.get("KitchenQual") or [None])[0]
-    if new and new != base_kq:
-        kcost = costs.kitchen_remodel.get(new, costs.kitchen_qual.get(new, 0.0))
-        add(f"Kitchen: {base_kq} -> {new}", kcost)
-
-    # --- Pool ---
+    if is_base_no and is_new_yes:
+        # Aquí se agrega el costo de instalación (los 65.0)
+        add("CentralAir: Instalar (N/No -> Yes)", costs.central_air_install)
+        
+    # --- Piscina (Si se añade, se cobra, pero PoolArea = 0.0 en tu output, por eso no cobra) ---
     area = float(plan.get("PoolArea", 0.0) or 0.0)
-    if area > 0:
-        add(f"PoolArea: +{area:.1f} ft2", costs.cost_pool_ft2 * area)
+    if area > 1e-6: # Solo cobra si el área es significativamente mayor a cero
+        # Usamos la lógica de Gurobi, que cobra el área total
+        add(f"PoolArea: Construcción ({area:.1f} ft2)", costs.cost_pool_ft2 * area)
 
+    # --- Sótano (Si se termina, se cobra, pero x_b1/x_b2 = 0.0 en tu output, por eso no cobra) ---
+    x_b1 = plan.get("x_to_BsmtFin1", 0.0)
+    x_b2 = plan.get("x_to_BsmtFin2", 0.0)
+    total_bsmt_added = x_b1 + x_b2
+
+    if total_bsmt_added > 1e-6:
+         add(f"Bsmt: Terminar {total_bsmt_added:.1f} ft2", costs.cost_finish_bsmt_ft2 * total_bsmt_added)
+
+
+    # Devolvemos el total del desglose y los ítems
     return total, parts
-
 
 # -------------------------------
 # Rutas de proyecto

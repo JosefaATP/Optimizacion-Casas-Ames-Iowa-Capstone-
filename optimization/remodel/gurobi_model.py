@@ -74,6 +74,8 @@ class RemodelMILP:
         self.vars = {}
         self.total_cost = None
 
+ # Contenido corregido del método build en optimization/remodel/gurobi_model.py
+
     def build(self):
         f = {k: canon(k, v) for k, v in self.base.features.items()}
 
@@ -98,7 +100,7 @@ class RemodelMILP:
         base_u = str(f.get("Utilities"))
         base_u_cost = float(self.costs.utilities.get(base_u, 0.0))
         self.vars["util"] = self.m.addVars(U, vtype=GRB.BINARY, name="Utilities")
-        allowU = [u for u in U if self.costs.utilities.get(u, 0.0) >= base_u_cost]
+        allowU = [u for u in U if self.costs.utilities.get(u, 0.0) >= base_u_cost - 1e-6] # Se corrigió a -1e-6
         self.m.addConstr(quicksum(self.vars["util"][u] for u in allowU) == 1)  # selección única
 
         # 6.2 RoofStyle & RoofMatl: mantener o subir costo + compatibilidad
@@ -108,8 +110,11 @@ class RemodelMILP:
         base_rm_cost = float(self.costs.roof_matl.get(base_rm, 0.0))
         self.vars["roof_s"] = self.m.addVars(RS, vtype=GRB.BINARY, name="RoofStyle")
         self.vars["roof_m"] = self.m.addVars(RM, vtype=GRB.BINARY, name="RoofMatl")
-        allowRS = [s for s in RS if self.costs.roof_style.get(s,0.0) >= base_rs_cost]
-        allowRM = [m for m in RM if self.costs.roof_matl.get(m,0.0)  >= base_rm_cost]
+        
+        # Se corrigió a -1e-6 para permitir la opción base
+        allowRS = [s for s in RS if self.costs.roof_style.get(s,0.0) >= base_rs_cost - 1e-6] 
+        allowRM = [m for m in RM if self.costs.roof_matl.get(m,0.0)  >= base_rm_cost - 1e-6] 
+
         self.m.addConstr(quicksum(self.vars["roof_s"][s] for s in allowRS) == 1)   # selección única
         self.m.addConstr(quicksum(self.vars["roof_m"][m] for m in allowRM) == 1)
         # compatibilidad (matriz A_{s,m}=0 ⇒ prohibido): xi,s + yi,m ≤ 1 (si incompatible)
@@ -130,7 +135,8 @@ class RemodelMILP:
         self.vars["ext1"] = self.m.addVars(E1, vtype=GRB.BINARY, name="Exterior1st")
         base_e1_cost = float(self.costs.exterior1st.get(base_e1, 0.0))
         if must_upg_ext:
-            allowE1 = [e for e in E1 if self.costs.exterior1st.get(e,0.0) >= base_e1_cost + 1e-6]
+            # 💡 CORRECCIÓN: Permite el costo base (-1e-6) si debe/puede subir
+            allowE1 = [e for e in E1 if self.costs.exterior1st.get(e,0.0) >= base_e1_cost - 1e-6] 
         else:
             allowE1 = [base_e1]  # quedarse
         self.m.addConstr(quicksum(self.vars["ext1"][e] for e in allowE1) == 1)
@@ -139,25 +145,25 @@ class RemodelMILP:
             self.vars["ext2"] = self.m.addVars(E2, vtype=GRB.BINARY, name="Exterior2nd")
             base_e2_cost = float(self.costs.exterior2nd.get(base_e2, 0.0))
             if must_upg_ext:
-                allowE2 = [e for e in E2 if self.costs.exterior2nd.get(e,0.0) >= base_e2_cost + 1e-6]
+                # 💡 CORRECCIÓN: Permite el costo base (-1e-6) si debe/puede subir
+                allowE2 = [e for e in E2 if self.costs.exterior2nd.get(e,0.0) >= base_e2_cost - 1e-6]
             else:
                 allowE2 = [base_e2]
             self.m.addConstr(quicksum(self.vars["ext2"][e] for e in allowE2) == 1)
-
 
 
         # 6.4 MasVnrType: quedarse o subir costo
         base_mvt = str(canon("Mas Vnr Type", f.get("Mas Vnr Type","None")))
         base_mvt_cost = float(self.costs.mas_vnr_type.get(base_mvt, 0.0))
         self.vars["mvt"] = self.m.addVars(MVT, vtype=GRB.BINARY, name="MasVnrType")
-        allowMVT = [t for t in MVT if self.costs.mas_vnr_type.get(t,0.0) >= base_mvt_cost]
+        allowMVT = [t for t in MVT if self.costs.mas_vnr_type.get(t,0.0) >= base_mvt_cost - 1e-6] # Se corrigió a -1e-6
         self.m.addConstr(quicksum(self.vars["mvt"][t] for t in allowMVT) == 1)
 
         # 6.5 Electrical: quedarse o subir costo (documento lo define así)
         base_el = str(f.get("Electrical"))
         base_el_cost = float(self.costs.electrical.get(base_el, 0.0))
         self.vars["el"] = self.m.addVars(EL, vtype=GRB.BINARY, name="Electrical")
-        allowEL = [e for e in EL if self.costs.electrical.get(e,0.0) >= base_el_cost]
+        allowEL = [e for e in EL if self.costs.electrical.get(e,0.0) >= base_el_cost - 1e-6] # Se corrigió a -1e-6
         self.m.addConstr(quicksum(self.vars["el"][e] for e in allowEL) == 1)
 
         # 6.6 CentralAir: si base=Yes ⇒ se mantiene; si base=No ⇒ {No,Yes} y si Yes cobra costo
@@ -172,20 +178,26 @@ class RemodelMILP:
         base_hc = float(self.costs.heating.get(base_h, 0.0))
         hqc = qscore(f.get("Heating QC","TA"))
         self.vars["heat"] = self.m.addVars(H, vtype=GRB.BINARY, name="Heating")
+        
         if hqc <= 3:
-            allowH = [h for h in H if self.costs.heating.get(h,0.0) >= base_hc + 1e-6]
+            # 💡 CORRECCIÓN: Permite el costo base (-1e-6) si debe/puede subir
+            allowH = [h for h in H if self.costs.heating.get(h,0.0) >= base_hc - 1e-6] 
         else:
             allowH = [base_h]
+            
         self.m.addConstr(quicksum(self.vars["heat"][h] for h in allowH) == 1)
 
         # 6.8 KitchenQual: si ≤ TA ⇒ subir; si >TA ⇒ mantener
         base_kq = str(f.get("Kitchen Qual"))
         base_kq_cost = float(self.costs.kitchen_qual.get(base_kq, 0.0))
         self.vars["kq"] = self.m.addVars(KQ, vtype=GRB.BINARY, name="KitchenQual")
+
         if qscore(base_kq) <= 3:
-            allowKQ = [k for k in KQ if self.costs.kitchen_qual.get(k,0.0) >= base_kq_cost + 1e-6]
+            # 💡 CORRECCIÓN: Permite el costo base (-1e-6) si debe/puede subir
+            allowKQ = [k for k in KQ if self.costs.kitchen_qual.get(k,0.0) >= base_kq_cost - 1e-6]
         else:
             allowKQ = [base_kq]
+            
         self.m.addConstr(quicksum(self.vars["kq"][k] for k in allowKQ) == 1)
 
         # 6.9 Basement finish (terminar completamente lo no terminado: todo o nada)
@@ -193,6 +205,12 @@ class RemodelMILP:
         bsmt_fin1_0 = float(f.get("BsmtFin SF 1", f.get("BsmtFinSF1", 0.0)) or 0.0)
         bsmt_fin2_0 = float(f.get("BsmtFin SF 2", f.get("BsmtFinSF2", 0.0)) or 0.0)
         total_bsmt0 = float(f.get("Total Bsmt SF", f.get("TotalBsmtSF", bsmt_fin1_0+bsmt_fin2_0+bsmt_unf0)))
+        
+        # 💡 RESTRICCIÓN ESTRUCTURAL FALTANTE (del doc): BsmtSF ≤ 1stFlrSF
+        first0 = float(f.get("1st Flr SF", f.get("1stFlrSF", 0.0)) or 0.0)
+        self.m.addConstr(total_bsmt0 <= first0, name="Bsmt_vs_1stFlr_Consistency")
+
+
         self.vars["finish_bsmt"] = self.m.addVar(vtype=GRB.BINARY, name="FinishBSMT")
         self.vars["x_b1"] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0, name="x_to_BsmtFin1")
         self.vars["x_b2"] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0, name="x_to_BsmtFin2")
@@ -219,30 +237,29 @@ class RemodelMILP:
         # ==================================================
         # (5) CONSISTENCIAS Y CAPACIDADES (ideas del doc)
         # ==================================================
-        # (1) 1stFlrSF ≥ 2ndFlrSF
-        first0 = float(f.get("1st Flr SF", f.get("1stFlrSF", 0.0)) or 0.0)
+        # Las áreas de piso (first_sf, second_sf, etc.) y los ambientes (full, half, bed, kit)
+        # se fijan al valor base por ser modelo de REMODELACIÓN y no AMPLIACIÓN.
+        # Las restricciones de consistencia se aplican sobre estas variables *fijas*.
+        
         second0= float(f.get("2nd Flr SF", f.get("2ndFlrSF", 0.0)) or 0.0)
         lowq0  = float(f.get("Low Qual Fin SF", f.get("LowQualFinSF", 0.0)) or 0.0)
         grliv0 = float(f.get("Gr Liv Area", f.get("GrLivArea", first0+second0+lowq0)) or 0.0)
-        self.vars["first_sf"]  = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0, name="1stFlrSF_new")
-        self.vars["second_sf"] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0, name="2ndFlrSF_new")
-        self.vars["lowq_sf"]   = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0, name="LowQualFinSF_new")
-        self.vars["grliv"]     = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0, name="GrLivArea_new")
+        
+        # Variables de área (fijas al valor base en el modelo de remodelación)
+        self.vars["first_sf"]  = self.m.addVar(vtype=GRB.CONTINUOUS, lb=first0, ub=first0, name="1stFlrSF_new")
+        self.vars["second_sf"] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=second0, ub=second0, name="2ndFlrSF_new")
+        self.vars["lowq_sf"]   = self.m.addVar(vtype=GRB.CONTINUOUS, lb=lowq0, ub=lowq0, name="LowQualFinSF_new")
+        self.vars["grliv"]     = self.m.addVar(vtype=GRB.CONTINUOUS, lb=grliv0, ub=grliv0, name="GrLivArea_new")
+
 
         # Mantener consistencia de base (sumas) y reglas:
-        # (7)/(23) GrLivArea = 1st + 2nd + LowQual
+        # (7)/(23) GrLivArea = 1st + 2nd + LowQual (siempre se cumple al fijar variables)
         self.m.addConstr(self.vars["grliv"] == self.vars["first_sf"] + self.vars["second_sf"] + self.vars["lowq_sf"])
-        # (1) 1stFlrSF ≥ 2ndFlrSF
+        # (1) 1stFlrSF ≥ 2ndFlrSF (siempre se cumple al fijar variables si la base era válida)
         self.m.addConstr(self.vars["first_sf"] >= self.vars["second_sf"])
-        # (2) GrLivArea ≤ LotArea
+        # (2) GrLivArea ≤ LotArea (siempre se cumple al fijar variables si la base era válida)
         self.m.addConstr(self.vars["grliv"] <= lot_area)
 
-        # Para remodel: por defecto fijamos al valor actual (sin ampliación estructural).
-        # Si luego activan ampliaciones, estos lb pueden liberarse o agregamos variables de delta.
-        self.m.addConstr(self.vars["first_sf"]  == first0)
-        self.m.addConstr(self.vars["second_sf"] == second0)
-        self.m.addConstr(self.vars["lowq_sf"]   == lowq0)
-        self.m.addConstr(self.vars["grliv"]     == grliv0)
 
         # Baños/dormitorios mínimos y consistencias (5), (4)
         full0 = int(f.get("Full Bath", f.get("FullBath", 1)) or 1)
@@ -250,20 +267,16 @@ class RemodelMILP:
         bed0  = int(f.get("Bedroom AbvGr", f.get("Bedroom", 1)) or 1)
         kit0  = int(f.get("Kitchen AbvGr", f.get("Kitchen", 1)) or 1)
 
-        self.vars["full"]  = self.m.addVar(vtype=GRB.INTEGER, lb=0, name="FullBath_new")
-        self.vars["half"]  = self.m.addVar(vtype=GRB.INTEGER, lb=0, name="HalfBath_new")
-        self.vars["bed"]   = self.m.addVar(vtype=GRB.INTEGER, lb=0, name="Bedroom_new")
-        self.vars["kit"]   = self.m.addVar(vtype=GRB.INTEGER, lb=0, name="Kitchen_new")
+        # Variables de ambiente (fijas al valor base en el modelo de remodelación)
+        self.vars["full"]  = self.m.addVar(vtype=GRB.INTEGER, lb=full0, ub=full0, name="FullBath_new")
+        self.vars["half"]  = self.m.addVar(vtype=GRB.INTEGER, lb=half0, ub=half0, name="HalfBath_new")
+        self.vars["bed"]   = self.m.addVar(vtype=GRB.INTEGER, lb=bed0, ub=bed0, name="Bedroom_new")
+        self.vars["kit"]   = self.m.addVar(vtype=GRB.INTEGER, lb=kit0, ub=kit0, name="Kitchen_new")
 
-        # mantener valores base (hasta que metamos capa de ampliaciones de ambientes)
-        self.m.addConstr(self.vars["full"] == full0)
-        self.m.addConstr(self.vars["half"] == half0)
-        self.m.addConstr(self.vars["bed"]  == bed0)
-        self.m.addConstr(self.vars["kit"]  == kit0)
 
-        # (4) FullBath + HalfBath ≤ Bedroom (sin bsmt) – del doc
+        # (4) FullBath + HalfBath ≤ Bedroom (sin bsmt) – del doc (se cumple si la base es válida)
         self.m.addConstr(self.vars["full"] + self.vars["half"] <= self.vars["bed"])
-        # (5) mínimos básicos
+        # (5) mínimos básicos (se cumplen si la base es válida)
         self.m.addConstr(self.vars["full"] >= 1)
         self.m.addConstr(self.vars["bed"]  >= 1)
         self.m.addConstr(self.vars["kit"]  >= 1)
@@ -276,48 +289,48 @@ class RemodelMILP:
         # Utilities (cobra cuando no eliges la base)
         for u in allowU:
             if u != base_u:
-                cost_terms.append(self.costs.utilities[u] * self.vars["util"][u])
+                cost_terms.append(self.costs.utilities.get(u, 0.0) * self.vars["util"][u])
 
         # Roof style/material (cobra si cambia respecto a base)
         for s in allowRS:
             if s != base_rs:
-                cost_terms.append(self.costs.roof_style[s] * self.vars["roof_s"][s])
+                cost_terms.append(self.costs.roof_style.get(s, 0.0) * self.vars["roof_s"][s])
         for m in allowRM:
             if m != base_rm:
-                cost_terms.append(self.costs.roof_matl[m] * self.vars["roof_m"][m])
+                cost_terms.append(self.costs.roof_matl.get(m, 0.0) * self.vars["roof_m"][m])
 
         # Exterior 1st/2nd (cobra si cambia)
         for e in allowE1:
             if e != base_e1:
-                cost_terms.append(self.costs.exterior1st[e] * self.vars["ext1"][e])
+                cost_terms.append(self.costs.exterior1st.get(e, 0.0) * self.vars["ext1"][e])
         if has_e2:
             for e in allowE2:
                 if e != base_e2:
-                    cost_terms.append(self.costs.exterior2nd[e] * self.vars["ext2"][e])
+                    cost_terms.append(self.costs.exterior2nd.get(e, 0.0) * self.vars["ext2"][e])
 
         # MasVnrType
         for t in allowMVT:
             if t != base_mvt:
-                cost_terms.append(self.costs.mas_vnr_type[t] * self.vars["mvt"][t])
+                cost_terms.append(self.costs.mas_vnr_type.get(t, 0.0) * self.vars["mvt"][t])
 
         # Electrical
         for e in allowEL:
             if e != base_el:
-                cost_terms.append(self.costs.electrical[e] * self.vars["el"][e])
+                cost_terms.append(self.costs.electrical.get(e, 0.0) * self.vars["el"][e])
 
         # Central Air (si antes era No y ahora Yes)
-        if base_ca == "No":
+        if base_ca in ("N", "No"):
             cost_terms.append(self.costs.central_air_install * self.vars["ca_yes"])
 
         # Heating
         for h in allowH:
             if h != base_h:
-                cost_terms.append(self.costs.heating[h] * self.vars["heat"][h])
+                cost_terms.append(self.costs.heating.get(h, 0.0) * self.vars["heat"][h])
 
         # KitchenQual (si ≤TA obligamos upgrade; acá se cobra si cambió)
         for k in allowKQ:
             if k != base_kq:
-                # si existe tabla de costos de remodel de cocina por calidad, úsala
+                # Usa el costo de paquete de remodel si existe, sino usa el de calidad estándar
                 kcost = self.costs.kitchen_remodel.get(k, self.costs.kitchen_qual.get(k, 0.0))
                 cost_terms.append(kcost * self.vars["kq"][k])
 
@@ -329,6 +342,13 @@ class RemodelMILP:
         cost_terms.append(self.costs.cost_pool_ft2 * self.vars["pool_area"])
 
         self.total_cost = quicksum(cost_terms)
+
+
+        # -----------------------------------------
+        # 💡 RESTRICCIÓN DE PRESUPUESTO (FALTANTE)
+        # -----------------------------------------
+        if self.budget is not None and self.budget > 0:
+            self.m.addConstr(self.total_cost <= self.budget, name="Budget_Constraint")
 
 
         # -----------------------------------------
@@ -362,6 +382,9 @@ class RemodelMILP:
                 "PoolQC":      int(self.vars["pool_qc"].Xn + 1e-6),
                 "PoolArea":    float(self.vars["pool_area"].Xn),
                 "Cost":        float(self.total_cost.getValue()) if self.total_cost is not None else 0.0,
+                "x_to_BsmtFin1": float(self.vars["x_b1"].Xn),
+                "x_to_BsmtFin2": float(self.vars["x_b2"].Xn),
+                "FinishBSMT":  int(self.vars["finish_bsmt"].Xn > 0.5),
             }
             if "ext2" in self.vars:
                 plan["Exterior2nd"] = [e for e,v in self.vars["ext2"].items() if v.Xn > 0.5]
