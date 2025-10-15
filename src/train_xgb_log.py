@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.compose import TransformedTargetRegressor
 from xgboost import XGBRegressor
+import hashlib, numpy as np
 
 
 from config import Config
@@ -57,10 +58,29 @@ def main():
         X, y, test_size=cfg.test_size, random_state=cfg.random_state
     )
 
+    def _hash_index(idx):
+        s = ",".join(map(str, idx.tolist()))
+        return hashlib.md5(s.encode("utf-8")).hexdigest()
+
+    def _hash_array(arr):
+        # hash con 6 decimales para estabilidad de texto
+        s = ",".join([f"{x:.6f}" for x in np.asarray(arr).ravel()])
+        return hashlib.md5(s.encode("utf-8")).hexdigest()
+
+    print("[xgb_log] hash_train_idx:", _hash_index(X_train.index))
+    print("[xgb_log] hash_test_idx :", _hash_index(X_test.index))
+    print("[xgb_log] hash_y_train  :", _hash_array(y_train))
+    print("[xgb_log] hash_y_test   :", _hash_array(y_test))
+
     # 5) preprocesador
     pre = build_preprocessor(numeric_cols, categorical_cols)
 
     # 6) modelo XGB
+
+    import xgboost, sklearn
+    print("[env] xgboost.__version__:", xgboost.__version__)
+    print("[env] sklearn.__version__:", sklearn.__version__)
+
     xgb = XGBRegressor(**cfg.xgb_params)
 
     # 7) OPCIONAL: target en log con TransformedTargetRegressor (maneja log/expm1 automáticamente)

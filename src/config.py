@@ -29,18 +29,18 @@ class Config:
 
     # hiperparametros iniciales de xgboost
     xgb_params = {
-        "n_estimators": 3000,
-        "learning_rate": 0.016808015597211158,
+        "n_estimators": 2162,
+        "learning_rate": 0.011387059213756818,
         "max_depth": 5,
-        "min_child_weight": 5,
-        "gamma": 0.0,
-        "subsample": 0.7065632022422546,
-        "colsample_bytree": 0.1,
-        "reg_lambda": 0.0,
-        "reg_alpha": 0.0,
+        "min_child_weight": 19,
+        "gamma": 0.0038938292050716425,
+        "subsample": 0.992990403362096,
+        "colsample_bytree":  0.655733358664945,
+        "reg_lambda": 3.058265802441405,
+        "reg_alpha": 0.035331526098587036,
         "tree_method": "hist",
         "objective": "reg:squarederror",
-        "n_jobs": -1,
+        "n_jobs": 1,
         "random_state": 42,
         }
 
