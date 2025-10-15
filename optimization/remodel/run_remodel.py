@@ -116,25 +116,9 @@ COSTS  = BASE / "costs"
 # Loaders
 # -------------------------------
 def load_costs():
-    mats = yaml.safe_load(open(COSTS / "materials.yaml", "r", encoding="utf-8"))
-    print("[DEBUG] Cargando costos desde:", COSTS / "materials.yaml")
-    return CostTables(
-        utilities=mats["Utilities"],
-        roof_style=mats["RoofStyle"],
-        roof_matl=mats["RoofMatl"],
-        exterior1st=mats["Exterior1st"],
-        exterior2nd=mats["Exterior2nd"],
-        mas_vnr_type=mats["MasVnrType"],
-        electrical=mats["Electrical"],
-        heating=mats["Heating"],
-        kitchen_qual=mats["KitchenQual"],
-        central_air_install=mats.get("CentralAirInstall", 6000.0),
-        cost_finish_bsmt_ft2=mats.get("CBsmt", 20.0),
-        cost_pool_ft2=mats.get("PoolCostPerFt2", 70.0),
-        cost_addition_ft2=mats.get("Cstr_floor", 110.0),
-        cost_demolition_ft2=mats.get("Cdemolition", 2.0),
-        kitchen_remodel=mats.get("KitchenRemodel", {}),
-    )
+    mats_path = COSTS / "materials.yaml"
+    print("[DEBUG] Cargando costos desde:", mats_path)
+    return CostTables.from_yaml(mats_path)
 
 
 def load_compat():
@@ -156,7 +140,7 @@ def load_pool_rules():
 # -------------------------------
 def main():
     # 1) Casa base (una fila ya procesada)
-    base_row = pd.read_csv(BASE / "data/processed/one_house.csv").iloc[0].to_dict()
+    base_row = pd.read_csv(BASE / "data/processed/one_house_bad.csv").iloc[0].to_dict()
     base_house = BaseHouse(features=base_row)
     base_features = base_house.features
 
@@ -166,7 +150,7 @@ def main():
     pool_rules = load_pool_rules()
 
     # 3) MILP generador (solo factible) + soluciones
-    milp = RemodelMILP(base_house, costs, pool_rules, compat, budget=60000.0)  # usa None si no quieres tope
+    milp = RemodelMILP(base_house, costs, pool_rules, compat, budget=100.0)  # usa None si no quieres tope
     milp.build()
     plans = milp.solve_pool(k=30, time_limit=60)
 
@@ -215,7 +199,21 @@ def main():
             print(f"       - {name}: {val:,.0f}")
         print(f"       = TOTAL: {tot:,.0f}\n")
 
-        # (Removed redundant MILP Cost_breakdown print; explain_cost_delta prefers MILP breakdown)
+        # Budget diagnostics (if MILP added debug flags)
+        try:
+            pb = r.get("plan", {})
+            if pb.get("_violates_budget"):
+                b = pb.get("_budget_value")
+                m = pb.get("_total_cost_from_model")
+                reported = pb.get("Cost")
+                print(f"    !!! VIOLACIÓN DE PRESUPUESTO: budget={b:,.0f}, model_total={m if m is not None else 'N/A'}, reported Cost={reported:,.0f}\n")
+            elif pb.get("_budget_value") is not None:
+                b = pb.get("_budget_value")
+                m = pb.get("_total_cost_from_model")
+                reported = pb.get("Cost")
+                print(f"    Presupuesto MILP: {b:,.0f}; model_total={m if m is not None else 'N/A'}; reported Cost={reported:,.0f}\n")
+        except Exception:
+            pass
 
         best = ranked[0]
         if best["profit"] <= 0:

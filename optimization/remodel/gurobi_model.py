@@ -451,6 +451,15 @@ class RemodelMILP:
 
                 plan["Cost_breakdown"] = breakdown
                 plan["Cost"] = float(calc_cost)
+                # Debug: flag if the calculated cost exceeds the provided budget
+                try:
+                    if self.budget is not None and self.budget > 0 and plan["Cost"] > float(self.budget) + 1e-6:
+                        plan["_violates_budget"] = True
+                        plan["_budget_value"] = float(self.budget)
+                        plan["_total_cost_from_model"] = float(self.total_cost.getValue()) if self.total_cost is not None else None
+                except Exception:
+                    # don't break enumeration for debugging errors
+                    pass
             except Exception:
                 plan["Cost_breakdown"] = [("error", 0.0)]
             sols.append(plan)
