@@ -1,96 +1,117 @@
-# premiums fijos por elegir una opcion mas cara que la base
-# moneda: USD, concepto: costo total aproximado por cambio (no por ft2)
+# -----------------------------------------------------------------------------
+# Costos de remodelación (USD). Regla: cambiar "a igual o mayor costo" vs base.
+# Donde corresponde son primas/paquetes; no son precios de lista exactos.
+# -----------------------------------------------------------------------------
 
+# --- Utilities (cambiar acometidas/servicios) ---
 Utilities:
-  AllPub: 0
-  NoSewr: 2500
-  NoSeWa: 3000
-  ELO: 3500
+  AllPub: 40000       # agua+alcantarillado+electricidad públicas (base)
+  ELO: 39500        # solo electricidad
+  NoSewr: 22000     # sin alcantarillado público
+  NoSeWa: 20000     # sin agua ni alcantarillado
 
+# --- Roof Style (forma del techo) ---
 RoofStyle:
-  Flat: 800
-  Gable: 0
-  Gambrel: 1500
-  Hip: 1200
-  Mansard: 2200
-  Shed: 700
+  Gable:   0
+  Hip:     1500
+  Flat:    1000
+  Gambrel: 2000
+  Mansard: 2500
+  Shed:    1200
 
+# --- Roof Material (material de techo) ---
 RoofMatl:
-  CompShg: 0          # asfalto compuesto baseline
-  Metal: 6000
-  ClyTile: 9000
-  Membran: 3500
-  Roll: 1500
-  Tar&Grv: 2500
-  WdShake: 7000
-  WdShngl: 6000
+  CompShg: 0
+  Tar&Grv: 1000
+  Membran: 2000
+  Roll:    1500
+  Metal:   6000
+  WdShngl: 4000
+  WdShake: 5000
+  ClyTile: 8000
 
+# --- Exterior (revestimiento). Se usa 1st y 2nd por separado ---
 Exterior1st:
-  AsbShng: 0
-  AsphShn: 1200
-  BrkComm: 5000
-  BrkFace: 7000
-  CBlock: 3000
-  CemntBd: 5500       # fiber cement tipo Hardie
-  HdBoard: 3000
-  ImStucc: 4500
-  MetalSd: 2500
-  Other: 2000
-  Plywood: 1800
-  PreCast: 8000
-  Stone: 12000
-  Stucco: 5000
-  VinylSd: 3500
-  WdSdng: 3200
-  WdShing: 3800
+  VinylSd: 1800
+  MetalSd: 1500
+  HdBoard: 1200
+  Plywood: 1000
+  Wd Sdng: 1600
+  WdShing: 2200
+  AsphShn: 500
+  AsbShng: 1000
+  Stucco:  2600
+  ImStucc: 2800
+  CemntBd: 3000
+  BrkFace: 3500
+  BrkComm: 3200
+  CBlock:  2000
+  Stone:   6000
 
 Exterior2nd:
-  AsbShng: 0
-  AsphShn: 800
-  BrkComm: 3500
-  BrkFace: 5000
-  CBlock: 2000
-  CemntBd: 3800
-  HdBoard: 2000
-  ImStucc: 3000
-  MetalSd: 1800
-  Other: 1200
-  Plywood: 1200
-  PreCast: 6000
-  Stone: 9000
-  Stucco: 3500
-  VinylSd: 2400
-  WdSdng: 2200
-  WdShing: 2600
+  VinylSd: 1800
+  MetalSd: 1500
+  HdBoard: 1200
+  Plywood: 1000
+  Wd Sdng: 1600
+  WdShing: 2200
+  AsphShn: 500
+  AsbShng: 1000
+  Stucco:  2600
+  ImStucc: 2800
+  CemntBd: 3000
+  BrkFace: 3500
+  BrkComm: 3200
+  CBlock:  2000
+  Stone:   6000
 
+# --- Masonry veneer (revestimiento de albañilería) ---
 MasVnrType:
-  No aplica: 0
-  BrkCmn: 3000
+  None:     0
+  "No aplica": 0   # por si tu base trae este texto
+  BrkCmn:  3000
   BrkFace: 4500
-  CBlock: 2000
-  Stone: 8000
+  CBlock:  2000
+  Stone:   8000
 
+# --- Instalación eléctrica (tableros/fusibles) ---
 Electrical:
   SBrkr: 0
-  FuseA: 900
-  FuseF: 1300
-  FuseP: 1700
-  Mix: 1100
+  FuseA: 500
+  FuseF: 800
+  FuseP: 1000
+  Mix:   1200
 
+# --- Tipo de calefacción (cambio de sistema) ---
 Heating:
-  GasA: 0
-  GasW: 2200
-  Floor: 6000
-  Grav: 3000
-  OthW: 2500
-  Wall: 2000
+  GasA: 5750
+  Floor: 1773
+  GasW: 8500
+  OthW: 4900
+  Grav: 6300
+  Wall: 3700
 
+# --- Calidad de cocina (paquete de remodel) ---
 KitchenQual:
-  TA: 0
-  Gd: 6000
-  Ex: 12000
+  Po: 0
+  Fa: 3000
+  TA: 6000
+  Gd: 12000
+  Ex: 20000
 
-CentralAirInstall: 5400   # instalar A/C central si base=No
+# Si existe una tabla específica de "paquete de remodel de cocina", el modelo la usa primero:
+KitchenRemodel:
+  Po: 0
+  Fa: 3000
+  TA: 6000
+  Gd: 12000
+  Ex: 18000
 
-# Nota: estos son montos globales aproximados por cambio de categoria,
-# no por area. Nos sirven para correr ya. Luego migraremos a unitarios (materials_unit.yaml).
+
+
+# --- Otros costos unitarios globales ---
+CentralAirInstall: 5362       # instalar aire acondicionado central (si base=No)
+CBsmt:              20          # terminar sótano: USD/ft2 de área no terminada
+PoolCostPerFt2:     70          # construir piscina: USD/ft2
+Cstr_floor:         110         # ampliación de piso: USD/ft2 (para futura capa de ampliaciones)
+Cdemolition:        2           # demolición: USD/ft2

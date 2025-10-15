@@ -1,2 +1,3 @@
-max_share: 0.20
-min_area_per_quality: 100
+# Parámetros geométricos de piscina (no de precio)
+max_share: 0.20              # PoolArea <= 20% del Lot Area
+min_area_per_quality: 100    # área mínima ~ 100 ft2 por nivel de calidad (Fa=1 → 100 ft2, Ex=4 → 400 ft2)
