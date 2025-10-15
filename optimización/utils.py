@@ -35,6 +35,9 @@ def cargar_datos(path, columnas=None):
     Returns:
         pd.DataFrame: Dataset cargado
     """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"El archivo no existe: {path}")
+    
     if columnas:
         df = pd.read_csv(path, usecols=columnas)
     else:
@@ -53,8 +56,9 @@ def guardar_resultados(resultado, filename, carpeta='../results/'):
         filename (str): Nombre del archivo (sin extensión)
         carpeta (str): Carpeta donde guardar
     """
+    os.makedirs(carpeta, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filepath = f"{carpeta}{filename}_{timestamp}.txt"
+    filepath = os.path.join(carpeta, f"{filename}_{timestamp}.txt")
     
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write("="*70 + "\n")
@@ -85,40 +89,59 @@ def validar_restricciones_basicas(caracteristicas):
     """
     errores = []
     
+    # Helper para aceptar múltiples nombres de campo (por compatibilidad con distintos datasets)
+    def obtener_val(keys, default=0):
+        for k in keys:
+            if k in caracteristicas:
+                return caracteristicas[k]
+        return default
+    
+    # Nombres alternativos comunes
+    k_1st = '1stFlrSF'
+    k_2nd = '2ndFlrSF'
+    k_bsmt = 'TotalBsmtSF'
+    k_grliv = 'GrLivArea'
+    k_fullbath = 'FullBath'
+    k_halfbath = 'HalfBath'
+    k_bedroom = ['BedroomAbvGr', 'Bedroom']
+    k_kitchen = ['KitchenAbvGr', 'Kitchen']
+    
     # 1. Segundo piso no puede ser más grande que el primero
-    if '2ndFlrSF' in caracteristicas and '1stFlrSF' in caracteristicas:
-        if caracteristicas['2ndFlrSF'] > caracteristicas['1stFlrSF']:
+    if k_2nd in caracteristicas and k_1st in caracteristicas:
+        if caracteristicas[k_2nd] > caracteristicas[k_1st]:
             errores.append("❌ 2ndFlrSF > 1stFlrSF (segundo piso más grande que primero)")
     
     # 2. Sótano no puede ser más grande que primer piso
-    if 'TotalBsmtSF' in caracteristicas and '1stFlrSF' in caracteristicas:
-        if caracteristicas['TotalBsmtSF'] > caracteristicas['1stFlrSF']:
+    if k_bsmt in caracteristicas and k_1st in caracteristicas:
+        if caracteristicas[k_bsmt] > caracteristicas[k_1st]:
             errores.append("❌ TotalBsmtSF > 1stFlrSF (sótano más grande que primer piso)")
     
     # 3. Área habitable debe ser coherente con pisos
-    if all(k in caracteristicas for k in ['GrLivArea', '1stFlrSF', '2ndFlrSF']):
-        suma_pisos = caracteristicas['1stFlrSF'] + caracteristicas['2ndFlrSF']
-        if abs(caracteristicas['GrLivArea'] - suma_pisos) > 10:  # Tolerancia de 10 sqft
-            errores.append(f"❌ GrLivArea ({caracteristicas['GrLivArea']}) != 1stFlr + 2ndFlr ({suma_pisos})")
+    if all(k in caracteristicas for k in [k_grliv, k_1st, k_2nd]):
+        suma_pisos = caracteristicas[k_1st] + caracteristicas[k_2nd]
+        if abs(caracteristicas[k_grliv] - suma_pisos) > 10:  # Tolerancia de 10 sqft
+            errores.append(f"❌ GrLivArea ({caracteristicas[k_grliv]}) != 1stFlr + 2ndFlr ({suma_pisos})")
     
     # 4. No más baños que dormitorios
-    if 'FullBath' in caracteristicas and 'BedroomAbvGr' in caracteristicas:
-        total_banos = caracteristicas.get('FullBath', 0) + caracteristicas.get('HalfBath', 0) * 0.5
-        if total_banos > caracteristicas['BedroomAbvGr'] + 2:  # +2 de tolerancia
-            errores.append(f"❌ Demasiados baños ({total_banos}) para {caracteristicas['BedroomAbvGr']} dormitorios")
+    bedrooms = obtener_val(k_bedroom, 0)
+    total_banos = caracteristicas.get(k_fullbath, 0) + caracteristicas.get(k_halfbath, 0) * 0.5
+    if bedrooms and total_banos > bedrooms + 2:  # +2 de tolerancia
+        errores.append(f"❌ Demasiados baños ({total_banos}) para {bedrooms} dormitorios")
     
     # 5. Al menos 1 baño, 1 dormitorio, 1 cocina
-    if caracteristicas.get('FullBath', 0) < 1:
+    if caracteristicas.get(k_fullbath, 0) < 1:
         errores.append("❌ Debe haber al menos 1 baño completo")
     
-    if caracteristicas.get('BedroomAbvGr', 0) < 1:
+    if bedrooms < 1:
         errores.append("❌ Debe haber al menos 1 dormitorio")
     
-    if caracteristicas.get('KitchenAbvGr', 0) < 1:
+    kitchens = obtener_val(k_kitchen, 0)
+    if kitchens < 1:
         errores.append("❌ Debe haber al menos 1 cocina")
     
     # 6. Área mínima razonable
-    if caracteristicas.get('GrLivArea', 0) < 600:
+    grliv = caracteristicas.get(k_grliv, 0)
+    if grliv < 600:
         errores.append("❌ GrLivArea < 600 sqft (área muy pequeña)")
     
     es_valido = len(errores) == 0
@@ -130,39 +153,49 @@ def validar_restricciones_basicas(caracteristicas):
 # ============================================================================
 
 def calcular_gradientes_xgboost(casa_referencia, modelo_xgb, epsilon=1e-4, atributos_accionables=None):
+def calcular_gradientes_xgboost(casa_referencia, modelo_xgb, epsilon=1e-4, atributos_accionables=None):
     """
     Calcula gradientes numéricos de XGBoost para linearización local.
     
     Args:
         casa_referencia (pd.Series or dict): Casa de referencia
         modelo_xgb: Modelo XGBoost entrenado
-        epsilon (float): Tamaño de perturbación
+        epsilon (float): Tamaño de perturbación (no cero)
         atributos_accionables (list): Lista de atributos a calcular gradientes
         
     Returns:
-        dict: Diccionario {atributo: gradiente}
+        tuple: (dict_gradientes, precio_referencia)
     """
+    if epsilon == 0:
+        raise ValueError("epsilon no puede ser 0")
+    
     if isinstance(casa_referencia, dict):
         casa_referencia = pd.Series(casa_referencia)
     
     # Crear DataFrame con estructura correcta
     X_ref = pd.DataFrame([casa_referencia])
-    precio_ref = modelo_xgb.predict(X_ref)[0]
+    try:
+        precio_ref = float(modelo_xgb.predict(X_ref)[0])
+    except Exception as e:
+        raise RuntimeError(f"Error al predecir con el modelo XGBoost: {e}")
     
     gradientes = {}
     
     # Si no se especifican, calcular para todos los atributos numéricos
     if atributos_accionables is None:
-        atributos_accionables = [col for col in X_ref.columns if X_ref[col].dtype in ['int64', 'float64']]
+        atributos_accionables = [col for col in X_ref.columns if is_numeric_dtype(X_ref[col])]
     
     for attr in atributos_accionables:
-        if attr in X_ref.columns:
+        if attr in X_ref.columns and is_numeric_dtype(X_ref[attr]):
             X_perturb = X_ref.copy()
             X_perturb[attr] = X_ref[attr] + epsilon
-            precio_perturb = modelo_xgb.predict(X_perturb)[0]
-            gradientes[attr] = (precio_perturb - precio_ref) / epsilon
+            try:
+                precio_perturb = float(modelo_xgb.predict(X_perturb)[0])
+                gradientes[attr] = (precio_perturb - precio_ref) / epsilon
+            except Exception:
+                gradientes[attr] = 0.0
         else:
-            gradientes[attr] = 0
+            gradientes[attr] = 0.0
     
     return gradientes, precio_ref
 
@@ -304,7 +337,8 @@ def analisis_sensibilidad_presupuesto(funcion_optimizacion, presupuestos, **kwar
     print("\n" + "="*70)
     print("ANÁLISIS DE SENSIBILIDAD - PRESUPUESTO")
     print("="*70)
-    print(df_sensibilidad.to_string(index))
+    print(df_sensibilidad.to_string(index=False))
+    return df_sensibilidad
 
 
 # ============================================================================
@@ -318,7 +352,14 @@ def guardar_resultado(resultado, carpeta='results', prefijo='resultado_casa'):
     
     # Buscar el siguiente número disponible
     existentes = [f for f in os.listdir(carpeta) if f.startswith(prefijo)]
-    numeros = [int(f[len(prefijo):].split('.')[0]) for f in existentes if f[len(prefijo):].split('.')[0].isdigit()]
+    numeros = []
+    for f in existentes:
+        try:
+            num_part = f[len(prefijo):].split('.')[0]
+            if num_part.isdigit():
+                numeros.append(int(num_part))
+        except Exception:
+            continue
     siguiente = max(numeros)+1 if numeros else 1
     
     # Crear path final
@@ -330,3 +371,4 @@ def guardar_resultado(resultado, carpeta='results', prefijo='resultado_casa'):
             f.write(f"{k}: {v}\n")
     
     print(f"✅ Resultado guardado en {filepath}")
+    return filepath
