@@ -1,0 +1,1319 @@
+Found 33 matching pages
+
+--- PAGE 1 ---
+1 Supuestos Renovaci´ on
+1. La variable Foundation indica los cimientos de la casa, por lo que se fija como
+par´ ametro, ya que cambiarla implicar´ ıa destruir la casa completa.
+2. La variable BsmtQual indica la altura del s´ otano y define su calidad seg´ un
+eso, no se proceder´ a a cambiar esta calidad ya que implicar´ ıa cambiar la in-
+fraestructura de la casa.
+3. No se considera expanci´ on del s´ otano de la casa, ya que implicar´ ıa destrucci´ on
+de cimientos de la casa y evaluaciones de suelo de los cuales no tenemos infor-
+maci´ on. Por ende es por limitaci´ on de la base de datos.
+4. No se agregaran chimeneas, ya que la variable Fireplaces contabiliza la can-
+tidad total de chimeneas sin diferenciar cuales estan en la casa y cu´ ales en
+el s´ otano, por ende para restringir c´ uantas se puede agregar no se tendr´ ıa un
+par´ ametro claro de m´ aximo. Adem´ as, si se agregan no se sabr´ ıa d´ onde por lo
+mismo. La desici´ on esta tomada por la limitaci´ on de informaci´ on de la base de
+datos.
+5. Las variables Overall Qual y Overall Cond no se cambiaran, ya que indican
+la calidad y condiciones generales de la casa, por lo que depende de todos los
+otros factores de calidad y condici´ on de la casa.
+6. La variable Functional que indica la evaluaci´ on cualitativa del estado fun-
+cional general de la vivienda no ser´ a modificada, esto debido a que no podemos
+hacer mejoras espec´ ıficas si no tenemos conocimiento de qu´ e es deficiente en
+particular. La desici´ on esta tomada por la limitaci´ on de informaci´ on de la base
+de datos.
+7. La variabel LowQualFinSF que indica pies cuadrados de mala calidad en
+todos los pisos no se cambiar´ a. No podemos hacer mejoras espec´ ıficas si no ten-
+emos conocimiento de qu´ e es deficiente en particular.La desici´ on esta tomada
+por la limitaci´ on de informaci´ on de la base de datos.
+8. Para la renovaci´ on de espacios se considera que no se modificaran las habita-
+ciones del interior de la casa, esto debido a que no existen especificaciones de
+losf2que hay de cada habitaci´ on, por ende esto limita su posible expansi´ on
+y/o reducci´ on. La desici´ on esta tomada por la limitaci´ on de informaci´ on de la
+base de datos.
+9. Para la renovaci´ on de espacios se considera el caso de ampliaciones en el
+primer piso, ya que existen variables descriptivas de losf2disponibles del ter-
+reno total de la vivienda. Dichas expanciones se realizan seg´ un el m´ ınimos de
+superficie habitable requeridos para cada tipo de habitaci´ on. En este caso se
+considera, BedRooms, Kitchen, HalfBath y FullBath. No se incorporan habita-
+ciones de tama˜ no variable, ya que definir proporciones m´ aximas de superficie
+por tipo de recinto no resulta adecuado sin conocer la distribuci´ on interna de
+cada vivienda. Por esta raz´ on, se considera poco coherente establecer un l´ ımite
+superior fijo aplicable a todas las propiedades. La desici´ on esta tomada por la
+limitaci´ on de informaci´ on de la base de datos.
+10. La ampliaci´ on de espacios se consideran en una escala de ampliaci´ on
+peque˜ na, moderada y grande. Las variables GarageArea, WoodDeckSF, Open-
+PorchSF, EnclosedPorch, 3SsnPorch, ScreenPorch y PoolArea se consideran
+1
+
+--- PAGE 2 ---
+para estas amppliaciones. Esto debido a que se tiene conocimiento de losf2
+disponibles del terreno total de la vivienda y dichas variables de ´ area estan in-
+volucradas en este espacio. Las ampliaciones peque˜ nas involucran el aumento
+de un 10% de su ´ area, las ampliaciones moderadas de un 20% y por ´ ultimo las
+grandes de un 30%. Se define como m´ ınimo un 10% ya que es el primer salto
+que evita microajustes geom´ etricos poco ejecutables en obra.
+2 Supuestos Construcci´ on
+1. Cuando la vivienda se construye desde cero la calidad de sus materiales y la
+condici´ on que tendran seran excelente. (falta poner el porque de excelente y no
+good que lo dijo el tito PONER EXACTAMENTE CUALES NOS DARAN AL
+FINAL SOBRE EL TERRRNO
+por ejemplo MSZoning, LotArea, LotFrontage, Street, Alley, LotShape, Land-
+Countour, 2.
+2
+
+--- PAGE 3 ---
+Modelo matem´ atico
+Grupo 5 Capstone
+October 2025
+3 Funci´ on Objetivo: Revisar
+Max(∆P−C total)
+•∆P=V alorFinal−V alorInicial
+- Valor creado gracias a las remodelaciones/ampliaciones.
+•Ctotal= Costos de construcci´ on + Costos destrucci´ on
+CT=X
+rX
+kθrk·δrk·ζrk·λrk+X
+iαi·βi·ηi·κi+X
+sγs·εs+ C destrucci´ on
+•θrk:Par´ ametro que es costo de contrstuir un pie cuadrado de r de la calidad
+k.
+•δrk:variable binaria que toma valor 1 en caso de construir r en calidad k.
+•ζrk: variable de cantidad de r a construir de calidad k.
+•λrk: variable de pies cuadrados que tendr´ a pieza r de k.
+•αi: par´ ametro costo unitario de pie cuadrado de i
+•βi: binaria
+•ηi: cantidad de i a construir
+•κi: metros de i a contruir
+•γs: par´ ametro de costo de instalaci´ on de s
+•εs: binaria de instalaci´ on
+3
+
+--- PAGE 4 ---
+4 Par´ ametros - Variables
+5 Restricciones ideas
+1. Segundo piso no puede ser m´ as grande que el primero. (supuesto)
+1stFlrSF≥2ndFlrSF
+2. GrLivArea (´ area habitable) no puede ser mayor que LotArea que es el ´ area
+total del terreno.
+GrLivArea≤LotArea
+3. El s´ otano no puede tener m´ as ´ area que el ´ area del primer piso. (supuesto)
+1stFlrSF≥TotalBsmtSF
+4. No pueden haber m´ as ba˜ nos que dormitorios. (sin considerar el bsmt)
+FullBath + Halfbath≤Bedroom
+5. Tiene que haber al menos un FullBath, Bedroom y Kitchen para cumplir con
+las necesidades b´ asicas.
+FullBath≥1
+Bedroom≥1
+Kitchen≥1
+(falta poner el techo)
+7. Consistencia entre los pies cuadrados (sale directo desde la base de datos)
+Gr Liv Area = 1st Flr SF + 2nd Flr SF + LowQualFinSf
+8. Consistencia de habitaciones.
+TotRmsAbvGrd = Bedroom + Kitchen + OtrasHabitaciones
+OtrasHabitaciones = TotRmsAbvGrd - (Bedroom + Kitchen)
+9. Escoger a lo m´ as una calidad
+P
+kδrk≤1
+10. Techo para cantidad de pies cuadrados a construir
+6 Restricciones renovaci´ on
+•Utilities: Se puede cambiar a alternativas que sean de costo mayor o
+mantenerse.
+- Par´ ametro de Utilitie original:
+ubase
+i∈u∀i∈ I.
+4
+
+--- PAGE 5 ---
+- Par´ ametro de Costo de la Utilitie original:
+Cubase
+i∈u∀i∈ I.
+-Definici´ on de conjunto permitido de utilities
+U+
+i={u∈ {AllPub, NoSewr, NoSeWa, ELO}:C u≥Cubase
+i}.
+-Variables de decisi´ on
+Utilities i,u∈ {0,1} ∀i∈ I,∀u∈ U+
+i.
+-Restricci´ on X
+u∈U+
+iUtilities i,u= 1∀i∈ I.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoUtilities =X
+i∈IX
+u∈U+
+i
+u̸=ubase
+iCuUtilities i,u.
+•RoofStyle y RoofMatl: Se selecciona un tipo deroof styley un tipo deroof
+materialcompatibles entre s´ ı. El material y el estilo pueden mantenerse
+o cambiarse a una alternativa de costo mayor, respetando las compatibil-
+idades constructivas.
+- Matriz de compatibilidad entre estilos y materiales:
+La compatibilidad se representa mediante el par´ ametro binarioA s,m, donde
+As,m= 1 si el materialmpuede ser utilizado con el estilos, yA s,m= 0
+en caso contrario.
+As,m=AsphaltShingle Metal ClayTile WoodShingle Slate Membrane
+Gable 1 1 1 1 1 0
+Hip 1 1 1 1 1 0
+Flat 0 1 0 0 0 1
+Mansard 1 1 1 1 1 0
+Shed 1 1 0 1 0 1
+Esta matriz fue construida en base a compatibilidades constructivas re-
+portadas en fuentes t´ ecnicas de cubiertas (Inc., 2023; Roof-Crafters, 2024;
+Wikipedia contributors, 2024).
+- Par´ ametro de Roof Style original:
+sbase
+i∈s∀i∈ I.
+5
+
+--- PAGE 6 ---
+- Par´ ametro de Roof Material original:
+mbase
+i∈m∀i∈ I.
+- Par´ ametro de costo de Roof Style y Roof Material:
+Cs, Cm ∀s∈s,∀m∈m.
+- Definici´ on de conjuntos permitidos:
+S+
+i={s∈ {Flat, Gable, Gambrel, Hip, Mansard, Shed}:C s≥Csbase
+i}
+M+
+i={m∈ {ClyTile, CompShg, Membran, Metal, Roll, TarGrv, WdShake, WdShngl:C m≥Cmbase
+i}.
+- Variables de decisi´ on:
+xi,s∈ {0,1} ∀i∈ I,∀s∈ S+
+i,
+yi,m∈ {0,1} ∀i∈ I,∀m∈ M+
+i.
+- Restricci´ on de selecci´ on ´ unica:
+X
+s∈S+
+ixi,s= 1∀i∈ I,X
+m∈M+
+iyi,m= 1∀i∈ I.
+- Restricci´ on de compatibilidad entre estilo y material seg´ un la matriz
+As,m.:
+xi,s+yi,m≤1∀i∈ I,∀s∈ S+
+i,∀m∈ M+
+i:As,m= 0.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoRoofA=X
+i∈IX
+s∈S+
+i
+s̸=sbase
+iCsxi,s
+| {z }
+Roof Style+X
+i∈IX
+m∈M+
+i
+m̸=mbase
+iCmyi,m
+| {z }
+Roof Material.
+•Exterior1st, Exterior2nd, ExterQual, ExterCond: Si la calidad o condici´ on
+del material exterior presenta un indice de Average/Typical o inferior, en-
+tonces el material del Exterior1st y el Exterior2nd puede reemplazarse
+por otro de costo superior al actual. Exterior2nd solo aplica si existe un
+segundo material en la casa.
+- Conjunto de materiales de exterior (comunes a Exterior1st y Exte-
+rior2nd):
+E={AsbShng,AsphShn,BrkComm,BrkFace,CBlock,CemntBd,HdBoard,ImStucc,MetalSd,Other,Plywood,PreCast,Stone,Stucco,VinylSd,WdSdng,WdShing}.
+6
+
+--- PAGE 7 ---
+- Par´ ametro de costo por material:
+Ce1∀e∈ E.
+Ce2∀e∈ E.
+- Par´ ametros material base de Exterior1st y Exterior2nd (si existe):
+(e1)base
+i∈ E ∀i∈ I,(e 2)base
+i∈ EsiHas2 i= 1.
+- Indicador de existencia de segundo material:
+Has2 i∈ {0,1} ∀i∈ I.
+- Par´ ametros de calidad y condici´ on del conjunto exterior:
+ExterQual i,eq∈ {0,1} ∀i∈ I, eq∈ Q, ExterCond i,ec∈ {0,1} ∀i∈ I, ec∈ C.
+dondeQ={Ex,Gd,TA,Fa,Po}y dondeC={Ex,Gd,TA,Fa,Po}.
+- Subconjuntos de categor´ ıas “promedio o menor”:
+Q≤Av={TA,Fa,Po},C≤Av={TA,Fa,Po}.
+- Variable de activaci´ on:
+Upgi∈ {0,1} ∀i∈ I.
+dondeUpg i= 1 si ExterQuali≤AverageoExterCond i≤Average; en
+caso contrarioUpg i= 0.
+- Restricciones de activaci´ on:
+Upgi≥ExterQual i,eq ∀i∈ I, eq∈ Q≤Av,
+Upgi≥ExterCond i,ec ∀i∈ I, ec∈ C≤Av,
+Upgi≤X
+eq∈Q≤AvExterQual i,eq+X
+ec∈C≤AvExterCond i,ec ∀i∈ I.
+Estas restricciones garantizan que:
+–Si la calidad o condici´ on es “Average/Typical” o peor,Upg i= 1.
+–Si ambas son mejores que “Average”,Upg i= 0.
+- Conjunto permitido para Exterior1st (dependiente deUpg i):
+E(1)
+i,allow=(
+{ebase
+1(i)}siUpg i= 0,
+{e∈ E:C e≥Cebase
+1(i)}siUpg i= 1.
+7
+
+--- PAGE 8 ---
+- Conjunto permitido para Exterior2nd (si existe y seg´ unUpg i):
+E(2)
+i,allow=
+
+∅siHas2 i= 0,
+{ebase
+2(i)}siHas2 i= 1 yUpg i= 0,
+{e∈ E:C e≥Cebase
+2(i)}siHas2 i= 1 yUpg i= 1.
+- Variables binarias prefiltradas por conjuntos permitidos:
+Exterior1st i,e1∈ {0,1} ∀i∈ I,∀e 1∈ E(1)
+i,allow,
+Exterior2nd i,e2∈ {0,1} ∀i∈ IconHas2 i= 1,∀e 2∈ E(2)
+i,allow.
+- Selecci´ on ´ unica en Exterior1st:
+X
+e1∈E(1)
+i,allowExterior1st i,e1= 1∀i∈ I.
+- Selecci´ on ´ unica en Exterior2nd (solo si existe):
+X
+e2∈E(2)
+i,allowExterior2nd i,e2= 1∀i∈ IconHas2 i= 1.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoExteriorA=X
+i∈IX
+e1∈E(1)
+i,allow
+e1̸=(e1)base
+iCe1Exterior1st i,e1
+| {z }
+Exterior1st+X
+i∈IX
+e2∈E(2)
+i,allow
+e2̸=(e2)base
+iCe2Exterior2nd i,e2
+| {z }
+Exterior2nd.
+•MasVnrType: Se puede cambiar a alternativas que sean de costo mayor o
+mantenerse.
+- Par´ ametro de tipo original:
+tbase
+i∈t∀i∈ I.
+- Par´ ametro de costo por tipo:
+Ct∀t
+- Definici´ on de conjunto permitido (quedarse o subir):
+T+
+i={t∈ {BrkCmn, BrkFace, CBlock, None, Stone}:C t≥Ctbase
+i}.
+8
+
+--- PAGE 9 ---
+- Variables de decisi´ on:
+MasV nrType i,t∈ {0,1} ∀i∈ I,∀t∈ T+
+i.
+- Restricci´ on:
+X
+t∈T+
+iMasV nrType i,t= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoMasVnrA=X
+i∈IX
+t∈T+
+i
+t̸=tbase
+iCtMasV nrType i,t.
+•Electrical: Se puede cambiar a alternativas que sean de costo mayor o
+mantenerse.
+- Par´ ametro de tipo el´ ectrico original:
+ebase
+i∈e∀i∈ I.
+- Par´ ametro de costo por tipo el´ ectrico:
+Ce∀e∈ E.
+- Definici´ on de conjunto permitido:
+E+
+i={e∈ {SBrkr, FuseA, FuseF, FuseP, Mix}:C e≥Cebase
+i}.
+- Variables de decisi´ on:
+Electrical i,e∈ {0,1} ∀i∈ I,∀e∈ E+
+i.
+- Restricci´ on: X
+e∈E+
+iElectrical i,e= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoElectricalA=X
+i∈IX
+e∈E+
+i
+e̸=ebase
+iCeElectrical i,e.
+•CentralAir: Si la casa no tiene aire central, se permite mantener No o
+cambiar a Yes, incurriendo en el costo de implementaci´ on. Si la casa ya
+tiene aire central, se mantiene en Yes.
+9
+
+--- PAGE 10 ---
+- Par´ ametro de estado original de Central Air:
+abase
+i∈a∀i∈ I.
+- Costo de implementaci´ on de Central Air:
+CCentralAir
+- Conjunto permitido por ´ ıtem:
+Ai,allow =(
+{Yes}siabase
+i= Yes,
+{No,Yes}siabase
+i= No.
+- Variables binarias:
+CentralAir i,a∈ {0,1} ∀i∈ I,∀a∈ A i,allow .
+- Selecci´ on ´ unica:
+X
+a∈A i,allowCentralAir i,a= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+X
+i∈I:abase
+i=NoCCentralAir ·CentralAir i,Yes.
+•Heating y Heating QC: Si HeatingQC esAverage/Typicalo peor, entonces
+el tipo deHeatingpuede mantenerse o cambiarse a uno de mayor costo
+que el actual. Si la calidad es mejor que Average, se mantiene el tipo base.
+- Conjunto de tipos de Heating:
+H={Floor,GasA,GasW,Grav,OthW,Wall}.
+- Par´ ametro de costo por tipo de Heating:
+Ch∀h
+- Par´ ametro de tipo de Heating:
+hbase
+i∈h∀i∈ I.
+- Variables binarias de calidad:
+HeatingQC i,q∈ {0,1} ∀i∈ I, q∈ Q,
+dondeQ={Ex,Gd,TA,Fa,Po}.
+10
+
+--- PAGE 11 ---
+- Subconjunto de categor´ ıas “Average/Typical o peor”:
+Q≤Av={TA,Fa,Po}.
+- Variable de activaci´ on de mejora:
+UpgHeat i∈ {0,1} ∀i∈ I.
+- Restricciones de activaci´ on:
+UpgHeat i≥HeatingQC i,q ∀i∈ I,∀q∈ Q≤Av,
+UpgHeat i≤X
+q∈Q≤AvHeatingQC i,q ∀i∈ I.
+- Conjunto permitido para Heating:
+Hi,allow =(
+{hbase
+i}siUpgHeat i= 0,
+{h∈ H:C h≥Chbase
+i}siUpgHeat i= 1.
+- Variables binarias (prefiltradas):
+Heating i,h∈ {0,1} ∀i∈ I,∀h∈ H i,allow .
+- Selecci´ on ´ unica de tipo de Heating:
+X
+h∈H i,allowHeating i,h= 1∀i∈ I.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoHeatingA=X
+i∈IX
+h∈H i,allow
+h̸=hbase
+iChHeating i,h.
+•KitchenQual: La calidad de la cocina puede aumentar si es Typical/Average
+o peor.
+- Conjunto de calidades posibles:
+K={Ex,Gd,TA,Fa,Po}.
+- Par´ ametro de costo:
+Ck∀k∈ K.
+- Par´ ametro de categor´ ıa base por ´ ıtem:
+kbase
+i∈ K ∀i∈ I.
+11
+
+--- PAGE 12 ---
+- Subconjunto “Average/Typical o peor”:
+K≤Av={TA,Fa,Po}.
+- Variables binarias de estado de calidad:
+KitchenQual i,k∈ {0,1} ∀i∈ I,∀k∈ K.
+X
+k∈KKitchenQual i,k= 1∀i∈ I.
+- Variable de activaci´ on de mejora:
+UpgKitch i∈ {0,1} ∀i∈ I.
+- Restricciones de activaci´ on:
+UpgKitch i≥KitchenQual i,k ∀i∈ I,∀k∈ K≤Av,
+UpgKitch i≤X
+k∈K≤AvKitchenQual i,k ∀i∈ I.
+- Conjunto permitido dependiente deUpgKitch i:
+Ki,allow =(
+{kbase
+i}siUpgKitch i= 0,
+{k∈ K:C k≥Ckbase
+i}siUpgKitch i= 1.
+- Variables binarias prefiltradas:
+KitchenQual i,k∈ {0,1} ∀i∈ I,∀k∈ K i,allow .
+- Selecci´ on ´ unica dentro del conjunto permitido:
+X
+k∈Ki,allowKitchenQual i,k= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoKitchenA=X
+i∈IX
+k∈Ki,allow
+k̸=kbase
+iCkKitchenQual i,k.
+•BsmtFinSF1, BsmtFinSF2, BsmtUnfSF, TotalBsmtSF: Si existe ´ area no
+terminada del s´ otano (BsmtUnfSF>0), se da la posibilida de terminarla,
+reasignando toda esa superficie a las zonas terminadas 1 y/o 2. Si se decide
+terminar, se termina completamente.
+12
+
+--- PAGE 13 ---
+- Par´ ametros base por ´ ıtem:
+(BsmtFinSF1)base
+i∈Z≥0,
+(BsmtFinSF2)base
+i∈Z≥0,
+(BsmtUnfSF)base
+i∈Z≥0,
+(TotalBsmtSF)base
+i∈Z≥0,
+con
+(TotalBsmtSF)base
+i= (BsmtFinSF1)base
+i+(BsmtFinSF2)base
+i+(BsmtUnfSF)base
+i ∀i∈ I.
+- Variables de desici´ on:
+BsmtFinSF1 i∈Z≥0, BsmtFinSF2 i∈Z≥0, BsmtUnfSF i∈Z≥0 ∀i∈ I.
+- Variable binaria de decisi´ on para “terminar completamente el s´ otano”:
+FinishBSMT i∈ {0,1} ∀i∈ I.
+- Variables de transferencia de superficie:
+x(1)
+i, x(2)
+i∈Z≥0 ∀i∈ I.
+- Conservaci´ on del total de s´ otano:
+BsmtFinSF1 i+BsmtFinSF2 i+BsmtUnfSF i= (TotalBsmtSF)base
+i ∀i∈ I.
+- Todo o nada sobre el ´ area sin terminar:
+BsmtUnfSF i= (1−FinishBSMT i) (BsmtUnfSF)base
+i ∀i∈ I.
+- Definici´ on de las zonas terminadas mediante la transferencia:
+BsmtFinSF1 i= (BsmtFinSF1)base
+i+x(1)
+i, BsmtFinSF2 i= (BsmtFinSF2)base
+i+x(2)
+i ∀i∈ I.
+- Si se termina, se transfieretodael ´ area no terminada:
+x(1)
+i+x(2)
+i= (BsmtUnfSF)base
+iFinishBSMT i∀i∈ I.
+- Si se termina de construir el s´ otano se incurre en un costo por m´ etro
+cuadrado construido (C Bsmt), en la FO agregar: **** REVISAR: deberia
+ser pies cuadrados
+CostoBsmt =X
+i∈ICBsmt
+x(1)
+i+x(2)
+i
+.
+13
+
+--- PAGE 14 ---
+•BsmtCond: Si la condici´ on del s´ otano esTypical/Averageo peor, entonces
+puede mantenerse en su nivel base o mejorarse a Good (Gd) o Excellent
+(Ex), incurriendo en el costo correspondiente.
+- Conjunto de categor´ ıas posibles:
+B={Ex,Gd,TA,Fa,Po}.
+- Par´ ametro de costo:
+Cb∀b∈ B.
+- Par´ ametro de categor´ ıa base por ´ ıtem:
+bbase
+i∈ B ∀i∈ I.
+- Subconjunto “Average/Typical o peor”:
+B≤Av={TA,Fa,Po}.
+- Variables binarias de estado de condici´ on:
+BsmtCond i,b∈ {0,1} ∀i∈ I,∀b∈ B.
+X
+b∈BBsmtCond i,b= 1∀i∈ I.
+- Variable de activaci´ on de mejora:
+UpgBsmt i∈ {0,1} ∀i∈ I.
+- Restricciones de activaci´ on:
+UpgBsmt i≥BsmtCond i,b ∀i∈ I,∀b∈ B≤Av,
+UpgBsmt i≤X
+b∈B≤AvBsmtCond i,b ∀i∈ I.
+- Definici´ on de conjunto permitido dependiente deUpgBsmt i:
+Bi,allow =(
+{bbase
+i}siUpgBsmt i= 0,
+{b∈ B:C b≥Cbbase
+i}siUpgBsmt i= 1.
+- Variables binarias prefiltradas:
+BsmtCond i,b∈ {0,1} ∀i∈ I,∀b∈ B i,allow .
+- Selecci´ on ´ unica dentro del conjunto permitido:
+X
+b∈Bi,allowBsmtCond i,b= 1∀i∈ I.
+14
+
+--- PAGE 15 ---
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoBsmtCondA=X
+i∈IX
+b∈Bi,allow
+b̸=bbase
+iCbBsmtCond i,b,
+•BsmtFinType1 y BsmtFinType2: Si existe BsmtFinType1 y BsmtFin-
+Type2, entonces si una tipolog´ ıa est´ a enReco peor (Rec/LwQ/Unf), se
+da la posibilidad de aumentar la calidad puede a una de mayor costo. Si
+la tipolog´ ıa est´ a enNA, no se hace nada se mantiene NA y no hay costo.
+- Conjunto de categor´ ıas:
+B={GLQ,ALQ,BLQ,Rec,LwQ,Unf,NA}.
+- Subconjunto “Rec o peor”:
+B≤Rec={Rec,LwQ,Unf}.
+- Costo por categor´ ıa (C NA= 0):
+Cb∀b∈ B.
+- Par´ ametros de la categor´ ıa base:
+BaseB1 i,b∈ {0,1},X
+b∈BBaseB1 i,b= 1, BaseB2 i,b∈ {0,1},X
+b∈BBaseB2 i,b=HasB2 i.
+- Indicador de existencia de BsmtFinType2:
+HasB2 i∈ {0,1}.
+- Variables:
+BsmtFinType1 i,b1∈ {0,1} ∀b 1∈ B,X
+b1∈BBsmtFinType1 i,b1= 1,
+BsmtFinType2 i,b2∈ {0,1} ∀b 2∈ B,X
+b2∈BBsmtFinType2 i,b2=HasB2 i.
+- Binarias de activaci´ on:
+UpgB1 i, UpgB2 i∈ {0,1}.
+- Activaci´ on de binarias:
+UpgB1 i≥BaseB1 i,b∀b∈ B≤Rec, UpgB1 i≤X
+b∈B≤RecBaseB1 i,b,
+UpgB2 i≥BaseB2 i,b∀b∈ B≤Rec, UpgB2 i≤X
+b∈B≤RecBaseB2 i,b.
+15
+
+--- PAGE 17 ---
+- Conjunto permitido dependiente defbase
+i:
+Fi,allow =
+
+{NA}sifbase
+i= NA,
+{TA,Gd,Ex}sifbase
+i= TA,
+{Po,Fa}sifbase
+i= Po,
+{fbase
+i}sifbase
+i∈ {Fa,Gd,Ex}.
+- Variables binarias:
+FireplaceQu i,f∈ {0,1} ∀i∈ I,∀f∈ F i,allow .
+- Selecci´ on ´ unica:
+X
+f∈Fi,allowFireplaceQu i,f= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoFireA=X
+i∈IX
+f∈Fi,allow
+f̸=fbase
+iCfFireplaceQu i,f.
+•Fence: Si la cerca es GdWo o MnWw, se permite mantener o subir a
+MnPrv o GdPrv. Si es NA, se permite construir con costo por pie cuadrado
+proporcional aLotArea i.
+- Conjunto de categor´ ıas:
+F={GdPrv,MnPrv,GdWo,MnWw,NA}.
+- Costo por categor´ ıa de calidad (definirC NA= 0):
+Ccat
+f ∀f∈ F.
+- Costo de construcci´ on por pie cuadrado:
+Cpsf
+Fence≥0.
+- Par´ ametro de superficie del lote:
+LotArea i≥0∀i∈ I.
+- Categor´ ıa base:
+fbase
+i∈ F ∀i∈ I.
+17
+
+--- PAGE 18 ---
+- Conjunto permitido dependiente defbase
+i:
+Fi,allow =
+
+{NA,MnPrv,GdPrv}sifbase
+i= NA,
+{fbase
+i,MnPrv,GdPrv}sifbase
+i∈ {GdWo,MnWw},
+{fbase
+i}sifbase
+i∈ {MnPrv,GdPrv}.
+- Variables binarias:
+Fence i,f∈ {0,1} ∀i∈ I,∀f∈ F i,allow .
+- Selecci´ on ´ unica:
+X
+f∈Fi,allowFence i,f= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoFencecat=X
+i∈IX
+f∈Fi,allow
+f̸=fbase
+iCcat
+fFence i,f.
+- Si se decide construir se incurre en un costo, en la FO agregar:
+CostoFencebuild=X
+i∈I:fbase
+i=NACpsf
+Fence·LotArea i·
+Fence i,MnPrv +Fence i,GdPrv
+.
+•Paved Drive: Si es P:Partial Pavement se puede subir a Y: Paved. Si es
+N: Dirt/Gravel se puede subir a P o Y.
+- Conjunto de categor´ ıas:
+D={Y,P,N}.
+- Par´ ametro de costo por categor´ ıa:
+Cd∀d∈ D.
+- Categor´ ıa base:
+dbase
+i∈ D ∀i∈ I.
+- Conjuntos permitidos:
+Di,allow =
+
+{Y}sidbase
+i= Y,
+{P,Y}sidbase
+i= P,
+{N,P,Y}sidbase
+i= N.
+18
+
+--- PAGE 19 ---
+- Variables:
+PavedDrive i,d∈ {0,1} ∀i∈ I,∀d∈ D i,allow ,
+-Restricci´ on:
+X
+d∈Di,allowPavedDrive i,d= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoPavedA=X
+i∈IX
+d∈Di,allow
+d̸=dbase
+iCdPavedDrive i,d.
+•GarageQual y GarageCond: Si alguno es Typical/Average o peor (TA/Fa/Po),
+entonces ambos pueden mantenerse o subir a una categor´ ıa de mayor costo
+- Conjunto de categor´ ıas:
+G={Ex,Gd,TA,Fa,Po,NA}.
+- Subconjunto “Average/Typical o peor”:
+G≤Av={TA,Fa,Po}.
+- Costos por categor´ ıa (definirC NA= 0):
+CQ
+g∀g∈ G(GarageQual), CC
+g∀g∈ G(GarageCond).
+- Par´ ametro de costos:
+CQ,base
+i ∀i∈ I(GarageQual), CC,base
+i ∀i∈ I(GarageCond).
+- Par´ ametros base:
+BaseGQual i,g∈ {0,1},X
+g∈GBaseGQual i,g= 1,
+BaseGCond i,g∈ {0,1},X
+g∈GBaseGCond i,g= 1.
+- Variables:
+GarageQual i,g∈ {0,1},X
+g∈GGarageQual i,g= 1,
+GarageCond i,g∈ {0,1},X
+g∈GGarageCond i,g= 1.
+19
+
+--- PAGE 20 ---
+- Variable de activaci´ on:
+UpgGar i∈ {0,1} ∀i∈ I.
+- Restricciones de activaci´ on:
+UpgGar i≥BaseGQual i,g∀g∈ G≤Av, UpgGar i≥BaseGCond i,g∀g∈ G≤Av,
+UpgGar i≤X
+g∈G≤Av
+BaseGQual i,g+BaseGCond i,g
+∀i∈ I.
+- Permitidos paraGarageQual:
+GQ
+i,allow=
+
+{NA}siBaseGQual i,NA= 1,
+{g:CQ
+g≥CQ,base
+i }siBaseGQual i,NA= 0 yUpgGar i= 1,
+{g:BaseGQual i,g= 1}siBaseGQual i,NA= 0 yUpgGar i= 0.
+- Permitidos paraGarageCond:
+GC
+i,allow =
+
+{NA}siBaseGCond i,NA= 1,
+{g:CC
+g≥CC,base
+i}siBaseGCond i,NA= 0 yUpgGar i= 1,
+{g:BaseGCond i,g= 1}siBaseGCond i,NA= 0 yUpgGar i= 0.
+-Resctricciones:
+GarageQual i,g= 0∀g /∈ GQ
+i,allow,X
+g∈GQ
+i,allowGarageQual i,g= 1,
+GarageCond i,g= 0∀g /∈ GC
+i,allow ,X
+g∈GC
+i,allowGarageCond i,g= 1.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoGarA=X
+i∈I"X
+g∈GQ
+i,allow
+g̸=gQ
+0CQ
+gGarageQual i,g+X
+g∈GC
+i,allow
+g̸=gC
+0CC
+gGarageCond i,g#
+,
+dondekQ
+0ykC
+0son las categor´ ıas base tales queBaseGQuali,kQ
+0= 1 y
+BaseGCondi,kC
+0= 1.
+•´Area libre y decisiones de ampliaci´ on/agregado: Para agregados se toman
+en consideraci´ on BedRoom, Kitchen, HalfBath y FullBath, los cuales si
+hay espacio disponible se pueden agregar en orden de uno, es decir uno de
+20
+
+--- PAGE 22 ---
+- Ampliaciones porcentuales, a lo m´ as se realiza una ampliaci´ on por com-
+ponente:
+z10
+i,c, z20
+i,c, z30
+i,c∈ {0,1} ∀i,∀c∈ C,
+z10
+i,c+z20
+i,c+z30
+i,c≤1∀i,∀c∈ C.
+- Variables de ´ areas finales post ampliaci´ on:
+(GrLivArea) i,(GarageArea) i,(WoodDeckSF) i,(OpenPorchSF) i,(EnclosedPorch) i,
+(3SsnPorch) i,(ScreenPorch) i,(PoolArea) i,(AreaLibre) i∈Z≥0.
+- Variables contadores de ambientes finales:
+FullBath i, HalfBath i, Bedroom i, Kitchen i∈Z≥0.
+- Vincular agregados al living area y a contadores:
+(GrLivArea) i= (GrLivArea)base
+i+AKitch(AddKitch) i+ABed(AddBed) i.
+FullBath i= (FullBath)base
+i+AddFull i, HalfBath i= (HalfBath)base
+i+AddHalf i,
+Bedroom i= (Bedroom)base
+i+AddBed i, Kitchen i= (Kitchen)base
+i+AddKitch i.
+- Vincular ampliaciones porcentuales a ´ areas finales (cada componentec):
+ci= (c)base
+i+ ∆10
+i,cz10
+i,c+ ∆20
+i,cz20
+i,c+ ∆30
+i,cz30
+i,c ∀c∈ C.
+-Actualizaci´ on y capacidad de AreaLibre, no se agrega ni amplia si no hay
+suficiente espacio:
+(AreaLibre) i= (AreaLibre)base
+i−h
+AFull(AddFull) i+AHalf(AddHalf) i+AKitch(AddKitch) i
++ABed(AddBed) ii
+−X
+c∈Ch
+∆10
+i,cz10
+i,c+ ∆20
+i,cz20
+i,c+ ∆30
+i,cz30
+i,ci
+.
+AreaLibre i≥0.
+- Costo por f2:
+CostoLiv =X
+iCliv
+AFullAddFull i+AHalfAddHalf i+AKitchAddKitch i+ABedAddBed i
+.
+- Costo por ampliaciones porcentuales:
+CostoExt =X
+iX
+c∈C
+C10
+c∆10
+i,cz10
+i,c+C20
+c∆20
+i,cz20
+i,c+C30
+c∆30
+i,cz30
+i,c
+.
+22
+
+--- PAGE 23 ---
+•PoolQC: La calidad de la piscina puede aumentar si es Typical/Average
+o peor (TA/Fa/Po).
+- Conjunto de categor´ ıas:
+P={Ex,Gd,TA,Fa,Po,NA}.
+- Par´ ametro de costo por categor´ ıa (C NA= 0):
+Cp∀p∈ P.
+- Categor´ ıa base por ´ ıtem:
+pbase
+i∈ P ∀i∈ I.
+- Subconjunto “Average/Typical o peor”:
+P≤Av={TA,Fa,Po}.
+- Variables binarias de estado de calidad:
+PoolQC i,p∈ {0,1} ∀i∈ I,∀p∈ P,X
+p∈PPoolQC i,p= 1∀i∈ I.
+- Variable de activaci´ on de mejora:
+UpgPool i∈ {0,1} ∀i∈ I.
+- Restricciones de activaci´ on:
+UpgPool i≥PoolQC i,p ∀i∈ I,∀p∈ P≤Av,
+UpgPool i≤X
+p∈P≤AvPoolQC i,p ∀i∈ I.
+- Conjunto permitido:
+Pi,allow =
+
+{NA}sipbase
+i= NA,
+{pbase
+i}sipbase
+i̸= NA yUpgPool i= 0,
+{p∈ P \ {NA}:C p≥Cpbase
+i}sipbase
+i̸= NA yUpgPool i= 1.
+- Prefiltrado y selecci´ on ´ unica:
+PoolQC i,p= 0∀p /∈ P i,allow ,X
+p∈Pi,allowPoolQC i,p= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoPoolA=X
+i∈IX
+p∈Pi,allow
+p̸=pbase
+iCpPoolQC i,p.
+23
+
+--- PAGE 24 ---
+•GarageFinish: Si el acabado del garaje es RFn: Rough Finished o Unf:
+Unfinished, se puede subir Fin: Finished.
+- Conjunto de categor´ ıas:
+Ga={Fin,RFn,Unf,NA}.
+- Subconjunto “RFn o peor”:
+Ga≤RFn={RFn,Unf}.
+- Costo por categor´ ıa (CGa
+NA= 0):
+CGa
+ga ∀ga∈ Ga.
+- Categor´ ıa base (one-hot desde datos):
+BaseGa i,ga∈ {0,1},X
+ga∈GaBaseGa i,ga= 1∀i∈ I.
+gari,ga∈ {0,1} ∀i∈ I,∀ga∈ Ga,X
+ga∈Gagari,ga= 1.
+- Variable de activaci´ on:
+UpgGa i∈ {0,1} ∀i∈ I.
+- Restricciones de activaci´ on:
+UpgGa i≥BaseGa i,RFn, UpgGa i≥BaseGa i,Unf,
+UpgGa i≤BaseGa i,RFn +BaseGa i,Unf ∀i∈ I.
+- Permitidos (implementados con fijaciones/filtrado):
+
+
+SiBaseGa i,NA= 1 :gar i,NA= 1, gar i,ga= 0∀ga̸= NA.
+SiBaseGa i,Fin= 1 :gar i,Fin= 1, gar i,ga= 0∀ga̸= Fin.
+SiBaseGa i,RFn = 1 oBaseGa i,Unf= 1 :gar i,Fin≤UpgGa i,P
+ga∈Ga≤RFngari,ga≤1−UpgGa i,P
+ga∈Gagari,ga= 1.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoGaA=X
+i∈IX
+ga∈Ga
+ga̸=ga 0CGa
+gagari,ga,dondega 0satisfaceBaseGa i,ga0= 1.
+24
+
+--- PAGE 25 ---
+7 Funci´ on objetivo
+Max(V alorfinal−I)
+I: Inversi´ on/Presupuesto que incluye todos los costos de construcci´ on.
+8 Restricciones construcci´ on
+hacer relaciones con vecindario y lot area para que sea mas realista
+Posibles restricciones del modelo:
+(1) M´ aximo a contruir dependiendo del barrioSea ATotal
+b el promedio
+hist´ orico del ´ area total edificada en el barriob, calculado desde la bdd:
+ATotal
+b =1
+NbX
+j∈I:Neighborhood j=b 
+1stFlrSF j+2ndFlrSF j+TotalBsmtSF j
+,∀b∈ B.
+Definici´ on de ´ area total de la vivienda i
+TotalArea i:=1stFlrSF i+2ndFlrSF i+TotalBsmtSF i,∀i∈ I.
+´Area m´ axima por barrio
+TotalArea i≤ATotal
+Neighborhood i∀i∈ I.(1)
+(2) El ´ area total construida no puede superar el terreno
+1stFlrSFnew+TotalPorchnew+PoolAreanew≤LotArea(2)
+(3) Se pueden contruir maximo 2 pisos
+2ndFlrSF i≤1stFlrSF i,
+Falta acotar a que sea maximo 2 pisos (3)
+(4) Consistencias de ´ area
+TotalBsmtSF i=BsmtFinSF1 i+BsmtFinSF2 i+BsmtUnfSF i,(4)
+GrLivArea i=1stFlrSF i+2ndFlrSF i+LowQualFinSF i,(5)
+TotalArea i=1stFlrSF i+2ndFlrSF i+TotalBsmtSF i.(6)
+25
+
+--- PAGE 26 ---
+(5) Las half-bath (de visita) s´ olo pueden existir si ya hay al menos un
+ba˜ no completo.
+HalfBath i≤FullBath i∀i∈ I.(7)
+(6) Cada 3 piezas 2 ba˜ nos completos
+FullBath i≥2
+3Bedroom i.(8)
+(7) El n´ umero de habitaciones no puede ser mayor que el permitido
+por la superficie construida.
+(8)**** M´ ınimos/m´ aximos por ambienteDefinimos el n´ umero deotras
+habitaciones:
+OtherRooms i=TotRmsAbvGrd i−Bedroom i−Kitchen i(≥0).
+(Revisar)
+(a) Cota inferior agregada (suma de m´ ınimos razonables)
+GrLivArea i≥abed
+minBedroom i+akit
+minKitchen i+aoth
+minOtherRooms i.(9)
+(b) Cota superior agregada (suma de m´ aximos razonables)
+GrLivArea i≤abed
+maxBedroom i+akit
+maxKitchen i+aoth
+maxOtherRooms i.(10)
+(9) Funcionalidad m´ ınima
+Kitchen i≥1,(11)
+Bedroom i≥1,(12)
+FullBath i≥1.(13)
+(10) Consistencias de ´ areas internas
+TotalBsmtSF=BsmtFinSF1+BsmtFinSF2+BsmtUnfSF,(14)
+GrLivArea=1stFlrSF+2ndFlrSF+LowQualFinSF.(15)
+(11) Presupuesto de construcci´ on
+Costbuild
+i=Cstr
+flr(1stFlrSF i+2ndFlrSF i) +Cstr
+bsmtTotalBsmtSF i
++CgarageGarageAreai+CporchTotalPorchSF i+CdeckWoodDeckSF i+CpoolPoolArea i+CMEP,
+(16)
+Costbuild
+i≤Ii.(17)
+26
+
+--- PAGE 27 ---
+(Aqu´ ı tomeCpoolc´ omo el costo de construir un pie cuadrado de piscina y
+eso se multiplica por PoolArea que es la cantidad de pies de los que deseo hacer
+piscina (variable decision).
+Tambi´ en tom´ eCstr
+floor como el costo de construir un pie cuadrado de casa.
+Cstr
+basement =Costo por pie2des´otanoconstruido.
+Cmvncosto de revestimiento
+CMEP= costo de instalaciones
+Me falta agregar algunos costos, como si se decide pavimentar la entrada, o
+cosas as´ ı
+Falta incluir costo de estilo de techo
+Costo de techo seg´ un estiloFO
+Cost s=C s·1stFlrSF i (18)
+ME falta definir que se multiplique por el area del segundo piso en caso de tener
+Costo de techo seg´ un materialFO
+Cost m=C m·1stFlrSF i−(19)
+Costo total de piscina
+Costpool
+i=C pool·PoolArea i
+(20)
+6.Cada tipo de ambiente debe tener un ´ area m´ ınima razonable. (esto se puede
+relacionar con el minimo que tiene la cocina basica y el maximo de la cocina
+top)
+Variables de ´ area:
+•Area Kitchen ∈R+:´Area total de cocinas (m²)
+•Area FullBath ∈R+:´Area total de ba˜ nos completos (m²)
+•Area Bedroom ∈R+:´Area total de dormitorios (m²)
+•Area Pool∈R+:´Area total de piscinas (m²)
+Restricciones:
+Area Kitchen ≥7 (21)
+Area FullBath ≥5 (22)
+Area Bedroom ≥9 (23)
+Area Pool≥15 (24)
+27
+
+--- PAGE 28 ---
+7.M´ aximo de ambientes repetidos (maximo n´ umero de cocina, comedores,etc.)
+Kitchen≤3 (25)
+Bedroom≤6 (26)
+FullBath≤4 (27)
+13.Relaci´ on ba˜ nos/pisos: al menos 1 ba˜ no por piso habitable
+FullBath i+HalfBath i≥floors i (28)
+- Restricciones relacionadas al sotanoVariables:
+•BsmtFinSF1∈R+:´Area terminada tipo 1 (pies²)
+•BsmtFinSF2∈R+:´Area terminada tipo 2 (pies²)
+•BsmtUnfSF∈R+:´Area sin terminar (pies²)
+•TotalBsmtSF∈R+:´Area total del s´ otano (pies²)
+•HasBsmtFin1∈ {0,1}: 1 si existe s´ otano tipo 1, 0 si no
+•HasBsmtFin2∈ {0,1}: 1 si existe s´ otano tipo 2, 0 si no
+Restricci´ on: Consistencia de ´Areas
+BsmtFinSF1 +BsmtFinSF2 +BsmtUnfSF=TotalBsmtSF(29)
+Restricci´ on: Dependencia Calidad- ´Area Tipo 1
+BsmtFinSF1≤TotalBsmtSF·HasBsmtFin1 (30)
+BsmtFinSF1≥0 (31)
+Restricci´ on: Dependencia Calidad- ´Area Tipo 2
+BsmtFinSF2≤TotalBsmtSF·HasBsmtFin2 (32)
+BsmtFinSF2≥0 (33)
+Estas restricciones garantizan que solo se asigne ´ area terminada a un tipo de
+s´ otano si este existe realmente, evitando inconsistencias como tener metros
+cuadrados de s´ otano terminado cuando no hay s´ otano. B´ asicamente, ligan la
+existencia del s´ otano (variable binaria) con su ´ area correspondiente, asegurando
+que el ´ area sea cero si no existe y que no supere el ´ area total disponible si existe.
+Restricci´ on variable heating:
+•Heating Floor∈ {0,1}: 1 si calefacci´ on es Floor Furnace
+•Heating GasA∈ {0,1}: 1 si calefacci´ on es Gas forced warm air furnace
+•Heating GasW∈ {0,1}: 1 si calefacci´ on es Gas hot water or steam heat
+28
+
+--- PAGE 29 ---
+•Heating Grav∈ {0,1}: 1 si calefacci´ on es Gravity furnace
+•Heating OthW∈ {0,1}: 1 si calefacci´ on es Hot water or steam heat other
+than gas
+•Heating Wall∈ {0,1}: 1 si calefacci´ on es Wall furnace
+- Restricci´ on: Exclusividad del Sistema de Calefacci´ on
+Heating Floor +Heating GasA +Heating GasW +Heating Grav+Heating OthW +Heating Wall= 1
+(34)
+Variables para restricci´ on de selecci´ on de un solo sistema electrico
+:
+•Electrical SBrkr ∈ {0,1}: 1 si sistema el´ ectrico es Standard Circuit Break-
+ers & Romex
+•Electrical FuseA ∈ {0,1}: 1 si sistema el´ ectrico es Fuse Box over 60 AMP
+•Electrical FuseF ∈ {0,1}: 1 si sistema el´ ectrico es 60 AMP Fuse Box (Fair)
+•Electrical FuseP ∈ {0,1}: 1 si sistema el´ ectrico es 60 AMP Fuse Box
+(Poor)
+•Electrical Mix∈ {0,1}: 1 si sistema el´ ectrico es Mixed
+- Restricci´ on : Exclusividad del Sistema El´ ectrico
+Electrical SBrkr +Electrical FuseA +Electrical FuseF +Electrical FuseP +Electrical Mix= 1
+(35)
+Variables de RoofStyle para restricci´ on:
+•RoofStyle Flat∈ {0,1}: 1 si estilo es Flat
+•RoofStyle Gable∈ {0,1}: 1 si estilo es Gable
+•RoofStyle Gambrel ∈ {0,1}: 1 si estilo es Gambrel
+•RoofStyle Hip∈ {0,1}: 1 si estilo es Hip
+•RoofStyle Mansard ∈ {0,1}: 1 si estilo es Mansard
+•RoofStyle Shed∈ {0,1}: 1 si estilo es Shed
+- Restricci´ on 1: Exclusividad de Estilo de Techo
+RoofStyle Flat+RoofStyle Gable +RoofStyle Gambrel +RoofStyle Hip+RoofStyle Mansard +RoofStyle Shed= 1
+(36)
+Variables de RoofMatl para restricci´ on:
+29
+
+--- PAGE 30 ---
+•RoofMatl ClyTile ∈ {0,1}: 1 si material es Clay or Tile
+•RoofMatl CompShg ∈ {0,1}: 1 si material es Composite Shingle
+•RoofMatl Membran ∈ {0,1}: 1 si material es Membrane
+•RoofMatl Metal∈ {0,1}: 1 si material es Metal
+•RoofMatl Roll∈ {0,1}: 1 si material es Roll
+•RoofMatl TarGrv ∈ {0,1}: 1 si material es Gravel & Tar
+•RoofMatl WdShake ∈ {0,1}: 1 si material es Wood Shakes
+•RoofMatl WdShngl ∈ {0,1}: 1 si material es Wood Shingles
+Restricci´ on 2: Exclusividad de Material de Techo
+RoofMatl ClyTile +RoofMatl CompShg +RoofMatl Membran +RoofMatl Metal +
+RoofMatl Roll+RoofMatl TarGrv +RoofMatl WdShake +RoofMatl WdShngl = 1
+(37)
+Restricci´ on de Compatibilidad entre RoofStyle y RoofMatl, Par´ ametros:
+•As,m∈ {0,1}: 1 si el estilo de techoses compatible con el materialm, 0
+en caso contrario
+- Variables:
+•RoofStyle s∈ {0,1}: 1 si se selecciona el estilo de techos
+•RoofMatl m∈ {0,1}: 1 si se selecciona el material de techom
+- Restricci´ on: Compatibilidad Estilo-Material
+X
+sX
+mRoofStyle s·RoofMatl m·(1−A s,m) = 0 (38)
+Alternativamente:
+RoofStyle s+RoofMatl m≤1 +A s,m∀s,∀m(39)
+Restricciones para Variable HouseStyle, Variables:
+•HouseStyle 1Story ∈ {0,1}: 1 si estilo es One story
+•HouseStyle 1.5Fin ∈ {0,1}: 1 si estilo es One and one-half story: 2nd level
+finished
+•HouseStyle 1.5Unf ∈ {0,1}: 1 si estilo es One and one-half story: 2nd level
+unfinished
+•HouseStyle 2Story ∈ {0,1}: 1 si estilo es Two story
+30
+
+--- PAGE 31 ---
+•HouseStyle 2.5Fin ∈ {0,1}: 1 si estilo es Two and one-half story: 2nd level
+finished
+•HouseStyle 2.5Unf ∈ {0,1}: 1 si estilo es Two and one-half story: 2nd
+level unfinished
+•HouseStyle SFoyer ∈ {0,1}: 1 si estilo es Split Foyer
+•HouseStyle SLvl∈ {0,1}: 1 si estilo es Split Level
+- Restricci´ on 1: M´ aximo 2 Pisos Completos
+HouseStyle 2.5Fin +HouseStyle 2.5Unf = 0 (40)
+- Restricci´ on 2: Todos los Pisos Terminados
+HouseStyle 1.5Unf +HouseStyle 2.5Unf = 0 (41)
+- Restricci´ on 3: Exclusividad de Estilo
+HouseStyle 1Story +HouseStyle 1.5Fin +HouseStyle 1.5Unf +HouseStyle 2Story +
+HouseStyle 2.5Fin +HouseStyle 2.5Unf +HouseStyle SFoyer +HouseStyle SLvl= 1
+(42)
+Restricciones para Variables Exterior, Variables:
+•UseExterior1st∈ {0,1}: 1 si se usa material principal
+•UseExterior2nd∈ {0,1}: 1 si se usa material secundario
+•SameMaterial∈ {0,1}: 1 si ambos materiales son iguales
+- Restricci´ on 1: Material Principal Obligatorio
+UseExterior1st= 1 (43)
+- Restricci´ on 2: Material Secundario Condicional
+UseExterior2nd≤1−SameMaterial(44)
+UseExterior2nd≥0 (45)
+Donde:
+•SiSameMaterial= 1 (materiales iguales)⇒UseExterior2nd= 0
+•SiSameMaterial= 0 (materiales diferentes)⇒UseExterior2ndpuede
+ser 0 o 1
+Restricciones para Variable MasVnrType,Variables:
+•MasV nrType BrkCmn ∈ {0,1}: 1 si revestimiento es Brick Common
+31
+
+--- PAGE 32 ---
+•MasV nrType BrkFace ∈ {0,1}: 1 si revestimiento es Brick Face
+•MasV nrType CBlock ∈ {0,1}: 1 si revestimiento es Cinder Block
+•MasV nrType None∈ {0,1}: 1 si no hay revestimiento
+•MasV nrType Stone∈ {0,1}: 1 si revestimiento es Stone
+•MasV nrArea∈R+:´Area de revestimiento (pies²)
+- Restricci´ on 1: Exclusividad del Tipo de Revestimiento
+MasV nrType BrkCmn +MasV nrType BrkFace +MasV nrType CBlock +MasV nrType None +MasV nrType Stone = 1
+(46)
+- Restricci´ on 2: Consistencia con ´Area de Revestimiento
+MasV nrArea≤M·(1−MasV nrType None) (47)
+MasV nrArea≥0 (48)
+- Donde:
+•M: Constante suficientemente grande (ej: ´ area m´ axima posible de reves-
+timiento)
+•SiMasV nrType None = 1⇒MasV nrArea= 0
+•SiMasV nrType None = 0⇒MasV nrArea≥0 (puede tener ´ area posi-
+tiva)
+Restricci´ on para Variable PavedDrive, Variables:
+•PavedDrive Y∈ {0,1}: 1 si el acceso es pavimentado completo
+•PavedDrive P∈ {0,1}: 1 si el acceso es pavimentado parcial
+•PavedDrive N∈ {0,1}: 1 si el acceso es de tierra/grava
+-Restricci´ on: Exclusividad del Tipo de Acceso
+PavedDrive Y+PavedDrive P+PavedDrive N= 1 (49)
+9 Par´ ametros
+Modelo de construcci´ on:
+•MSZoning i: Identifica la clasificaci´ on general de zonificaci´ on de la
+venta. venta.
+•LotFrontage i: Pies lineales de calle conectados a la propiedad.
+•LotArea i: Tama˜ no del lote en pies cuadrados.
+32
+
+--- PAGE 33 ---
+•Street i: Tipo de acceso desde la calle a la propiedad.
+•Alley i: Tipo de acceso desde callej´ on a la propiedad.
+•LotShape i: Forma general de la propiedad.
+•LandContour i: Nivelaci´ on del terreno.
+•LotConfig i: Configuraci´ on del lote.
+•LandSlope i: Pendiente de la propiedad.
+•Neighborhood i: Ubicaciones f´ ısicas dentro de los l´ ımites de la ciudad
+de Ames.
+•Condition1: Proximidad a diversas condiciones.
+•Condition2 i: Proximidad a varias condiciones (si hay m´ as de una pre-
+sente).
+•OverallQual i: Califica el material general y el acabado de la casa.
+•OverallCond i: Califica el estado general de la casa.
+•Y earBuilt i: Fecha de construcci´ on original.
+•Y earRemodAdd i: Fecha de remodelaci´ on (igual que la fecha de con-
+strucci´ on si no hay remodelaciones ni adiciones).
+•ExterQual i: Eval´ ua la calidad del material en el exterior.
+•ExterCond i: Eval´ ua el estado actual del material en el exterior.
+•BsmtQual i: Eval´ ua la altura del s´ otano.
+•BsmtCond i: Eval´ ua el estado general del s´ otano.
+•HeatingQC i: Calidad y estado de la calefacci´ on.
+•Functional i: Funcionalidad del hogar (Asuma t´ ıpica a menos que se
+justifiquen deducciones).
+•FireplaceQu i: Calidad de la chimenea.
+•KitchenQual i: Calidad de la cocina.
+•GarageY rBlt i: A˜ no de construcci´ on del garaje.
+•GarageQual i: Calidad del garaje.
+•GarageCond i: Estado del garaje.
+•PoolQC i: Calidad de la piscina.
+•Fence i: Calidad de la cerca.
+33
+
+--- PAGE 36 ---
+•GrLivArea i: Superficie habitable sobre el nivel del suelo (pies cuadra-
+dos).
+•BsmtFullBath i: Ba˜ nos completos en s´ otano.
+•BsmtHalfBath i: Medios ba˜ nos en s´ otano.
+•FullBath i: Ba˜ nos completos sobre el nivel del suelo.
+•HalfBath i: Medios ba˜ nos sobre el nivel del suelo.
+•Bedroom iDormitorios sobre el nivel del suelo (no incluye dormitorios
+en el s´ otano).
+•Kitchen i: Cocinas sobre el nivel del suelo.
+•KitchenQual i: Calidad de la cocina.
+•TotRmsAbvGrd i: Total de habitaciones sobre el nivel del suelo (no
+incluye ba˜ nos).
+•Functional i: Funcionalidad del hogar (Asuma t´ ıpica a menos que se
+justifiquen deducciones).
+•Fireplaces i: N´ umero de chimeneas.
+•FireplaceQu i: Calidad de la chimenea.
+•GarageType i: Ubicaci´ on del garaje.
+•GarageY rBlt i: A˜ no de construcci´ on del garaje.
+•GarageFinish i: Acabado interior del garaje.
+•GarageCars i: Tama˜ no del garaje en capacidad de coches.
+•GarageArea i: Tama˜ no del garaje en pies cuadrados.
+•GarageQual i: Calidad del garaje.
+•GarageCond i: Estado del garaje.
+•PavedDrive i: Camino de entrada pavimentado.
+•WoodDeckSF i:´Area de cubierta de madera en pies cuadrados.
+•OpenPorchSF i:´Area de porche abierto en pies cuadrados.
+•EnclosedPorch i:´Area de porche cerrado en pies cuadrados.
+•3SsnPorch i:´Area de porche de tres estaciones en pies cuadrado.
+•ScreenPorch i:´Area del porche con mosquitero en pies cuadrados.
+•PoolArea i:´Area de la piscina en pies cuadrados.
+36
+
+--- PAGE 37 ---
+•PoolQC i: Calidad de la piscina.
+•Fence i: Calidad de la cerca.
+•MiscFeature i: Caracter´ ısticas diversas no cubiertas en otras categor´ ıas.
+•MiscV al i: Valor de la caracter´ ıstica miscel´ anea.
+•MoSold i: Mes vendido (MM).
+•Y rSold i: A˜ no de venta (AAAA).
+•SaleType i: Tipo de venta.
+•SaleCondition i: Condici´ on de venta.
+10 Naturaleza de las variables
+Modelo de construcci´ on:
+A continuaci´ on se detallan las variables que se utilizan para el modelo de con-
+strucci´ on de una viviendai∈ {1, ..., I}desde cero. Para mayor entendimiento de
+los subindices de las variables pueden revisarlo en el archivo data description.txt.
+Variable Descripci´ on
+MSSubClass i,s∈ {0,1}
+s∈ {20,30,40,45,50,60,70,75,80,85,90,120,150,
+160,180,190}Identifica el tipo de vivienda in-
+volucrada en la venta.
+Utilities i,u∈ {0,1}
+u∈ {AllPub, NoSewr, NoSeWa, ELO}Tipo de servicios p´ ublicos
+disponibles
+BldgType i,b∈ {0,1}
+b∈ {1Fam,2FmCon, Duplx, TwnhsE, TwnhsI}Tipo de vivienda.
+HouseStyle i,hs∈ {0,1}
+hs∈ {1Story,1.5Fin,1.5Unf,2Story,2.5Fin,
+2.5Unf, SFoyer, SLvl}Estilo de vivienda.
+RoofStyle i,r∈ {0,1}
+r∈ {Flat, Gable, Gambrel, Hip, Mansard, Shed}Tipo de techo
+RoofMatl i,m∈ {0,1}
+m∈ {ClyTile, CompShg, Membran, Metal, Roll,
+TarGrv, WdShake, WdShngl}Material del techo
+Exterior1st i,e1∈ {0,1}
+e1∈ {AsbShng, AsphShn, BrkComm, BrkFace,
+CBlock, CemntBd, HdBoard, ImStucc,
+MetalSd, Other, Plywood, PreCast, Stone,
+Stucco, V inylSd, WdSdng, WdShing}Revestimiento exterior de la casa
+37
+

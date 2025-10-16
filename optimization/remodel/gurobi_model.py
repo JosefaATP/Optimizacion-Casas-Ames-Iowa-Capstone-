@@ -28,6 +28,8 @@ class RemodelMILP:
         self.m = Model("remodel_complete")
         self.vars = {}
         self.total_cost = None
+        # list of callables that return (label, cost) when evaluated after a solution is set
+        self._cost_items = []
 
     def build(self):
         """Construye el modelo MILP completo con todas las restricciones del PDF."""
@@ -448,137 +450,175 @@ class RemodelMILP:
         # COSTO TOTAL (C_total)
         # ===========================================================
         cost_terms = []
+        # reset cost items (callables returning (label, cost) using .Xn on vars)
+        self._cost_items = []
+
+        def _append_simple(label: str, scalar: float, var):
+            # add model expression
+            cost_terms.append(scalar * var)
+            # add evaluator
+            def _eval(label=label, scalar=scalar, var=var):
+                try:
+                    val = float(var.Xn)
+                except Exception:
+                    val = 0.0
+                cost = scalar * val
+                if cost <= 1e-6:
+                    return None
+                return (label, float(cost))
+            self._cost_items.append(_eval)
+
+        def _append_sum(label: str, scalar: float, var_list: List):
+            # sum of continuous/vars times scalar (e.g., x_b1 + x_b2)
+            expr = quicksum(var_list)
+            cost_terms.append(scalar * expr)
+            def _eval(label=label, scalar=scalar, var_list=var_list):
+                s = 0.0
+                for v in var_list:
+                    try:
+                        s += float(v.Xn)
+                    except Exception:
+                        s += 0.0
+                cost = scalar * s
+                if cost <= 1e-6:
+                    return None
+                return (label, float(cost))
+            self._cost_items.append(_eval)
 
         # --- Utilities ---
         for u in allowU:
             if u != base_u:
-                cost_terms.append(self.costs.utilities.get(u, 0.0) * self.vars["util"][u])
+                _append_simple(f"Utilities → {u}", float(self.costs.utilities.get(u, 0.0)), self.vars["util"][u])
 
         # --- Roof Style/Material ---
         # Use first floor area as a proxy for roof/exterior area (USD/ft2 tables)
         roof_area_proxy = float(first0)
         for s in allowRS:
             if s != base_rs:
-                cost_terms.append(self.costs.roof_style.get(s, 0.0) * roof_area_proxy * self.vars["roof_s"][s])
+                _append_simple(f"RoofStyle → {s}", float(self.costs.roof_style.get(s, 0.0)) * roof_area_proxy, self.vars["roof_s"][s])
         for m in allowRM:
             if m != base_rm:
-                cost_terms.append(self.costs.roof_matl.get(m, 0.0) * roof_area_proxy * self.vars["roof_m"][m])
+                _append_simple(f"RoofMatl → {m}", float(self.costs.roof_matl.get(m, 0.0)) * roof_area_proxy, self.vars["roof_m"][m])
 
         # --- Exterior 1st/2nd ---
         # Exterior costs are per ft2: approximate wall area with first floor area
         exterior_area_proxy = float(first0)
         for e in allowE1:
             if e != base_e1:
-                cost_terms.append(self.costs.exterior1st.get(e, 0.0) * exterior_area_proxy * self.vars["ext1"][e])
+                _append_simple(f"Exterior1st → {e}", float(self.costs.exterior1st.get(e, 0.0)) * exterior_area_proxy, self.vars["ext1"][e])
         if has_e2:
             for e in allowE2:
                 if e != base_e2:
-                    cost_terms.append(self.costs.exterior2nd.get(e, 0.0) * exterior_area_proxy * self.vars["ext2"][e])
+                    _append_simple(f"Exterior2nd → {e}", float(self.costs.exterior2nd.get(e, 0.0)) * exterior_area_proxy, self.vars["ext2"][e])
 
         # --- MasVnrType ---
         # Masonry veneer costs are per ft2; scale by first floor area proxy
         for t in allowMVT:
             if t != base_mvt:
-                cost_terms.append(self.costs.mas_vnr_type.get(t, 0.0) * float(first0) * self.vars["mvt"][t])
+                _append_simple(f"MasVnrType → {t}", float(self.costs.mas_vnr_type.get(t, 0.0)) * float(first0), self.vars["mvt"][t])
 
         # --- Electrical ---
         for e in allowEL:
             if e != base_el:
-                cost_terms.append(self.costs.electrical.get(e, 0.0) * self.vars["el"][e])
+                _append_simple(f"Electrical → {e}", float(self.costs.electrical.get(e, 0.0)), self.vars["el"][e])
 
         # --- Central Air (si antes era No y ahora Yes) ---
         if base_ca in ("N", "No"):
-            cost_terms.append(self.costs.central_air_install * self.vars["ca_yes"])
+            _append_simple("CentralAir → Yes", float(self.costs.central_air_install), self.vars["ca_yes"])
 
         # --- Heating ---
         for h in allowH:
             if h != base_h:
-                cost_terms.append(self.costs.heating.get(h, 0.0) * self.vars["heat"][h])
+                _append_simple(f"Heating → {h}", float(self.costs.heating.get(h, 0.0)), self.vars["heat"][h])
 
         # --- KitchenQual ---
         for k in allowKQ:
             if k != base_kq:
                 # Usa costo de remodel si existe, sino usa el de calidad estándar
-                kcost = self.costs.kitchen_remodel.get(k, self.costs.kitchen_qual.get(k, 0.0))
-                cost_terms.append(kcost * self.vars["kq"][k])
+                kcost = float(self.costs.kitchen_remodel.get(k, self.costs.kitchen_qual.get(k, 0.0)))
+                _append_simple(f"KitchenQual → {k}", kcost, self.vars["kq"][k])
 
         # --- Basement Finish (ÚNICA VEZ - corregido) ---
         if bsmt_unf0 > 0:
-            cost_terms.append(self.costs.cost_finish_bsmt_ft2 * (self.vars["x_b1"] + self.vars["x_b2"]))
+            _append_sum(f"Bsmt finish (ft²)", float(self.costs.cost_finish_bsmt_ft2), [self.vars["x_b1"], self.vars["x_b2"]])
 
         # --- BsmtCond ---
         for b in allowBC:
             if b != base_bc:
-                cost_terms.append(self.costs.bsmt_cond.get(b, 0.0) * self.vars["bsmt_cond"][b])
+                _append_simple(f"BsmtCond → {b}", float(self.costs.bsmt_cond.get(b, 0.0)), self.vars["bsmt_cond"][b])
 
         # --- BsmtFinType1/2 ---
         for t in allowBT1:
             if t != base_bt1:
-                cost_terms.append(self.costs.bsmt_fin_type.get(t, 0.0) * self.vars["bsmt_type1"][t])
+                _append_simple(f"BsmtFinType1 → {t}", float(self.costs.bsmt_fin_type.get(t, 0.0)), self.vars["bsmt_type1"][t])
         for t in allowBT2:
             if t != base_bt2:
-                cost_terms.append(self.costs.bsmt_fin_type.get(t, 0.0) * self.vars["bsmt_type2"][t])
+                _append_simple(f"BsmtFinType2 → {t}", float(self.costs.bsmt_fin_type.get(t, 0.0)), self.vars["bsmt_type2"][t])
 
         # --- FireplaceQu ---
         for f in allowFQ:
             if f != base_fq:
-                cost_terms.append(self.costs.fireplace_qu.get(f, 0.0) * self.vars["fire_qu"][f])
+                _append_simple(f"FireplaceQu → {f}", float(self.costs.fireplace_qu.get(f, 0.0)), self.vars["fire_qu"][f])
 
         # --- Fence (construcción desde NA o mejora de calidad) ---
         for fe in allowFE:
             if fe != base_fence:
                 if base_fence == "NA" and fe in ["MnPrv", "GdPrv"]:
                     # Costo de construcción por LotArea
-                    cost_terms.append(self.costs.fence_build_psf * lot_area * self.vars["fence"][fe])
+                    _append_simple(f"Fence build {fe}", float(self.costs.fence_build_psf * lot_area), self.vars["fence"][fe])
                 else:
                     # Solo mejora de calidad
-                    cost_terms.append(self.costs.fence_cat.get(fe, 0.0) * self.vars["fence"][fe])
+                    _append_simple(f"Fence → {fe}", float(self.costs.fence_cat.get(fe, 0.0)), self.vars["fence"][fe])
 
         # --- PavedDrive ---
         for p in allowPD:
             if p != base_pd:
-                cost_terms.append(self.costs.paved_drive.get(p, 0.0) * self.vars["paved"][p])
+                _append_simple(f"PavedDrive → {p}", float(self.costs.paved_drive.get(p, 0.0)), self.vars["paved"][p])
 
         # --- GarageQual/Cond ---
         for g in allowGQ:
             if g != base_gq:
-                cost_terms.append(self.costs.garage_qual.get(g, 0.0) * self.vars["gar_qual"][g])
+                _append_simple(f"GarageQual → {g}", float(self.costs.garage_qual.get(g, 0.0)), self.vars["gar_qual"][g])
         for g in allowGC:
             if g != base_gc:
-                cost_terms.append(self.costs.garage_cond.get(g, 0.0) * self.vars["gar_cond"][g])
+                _append_simple(f"GarageCond → {g}", float(self.costs.garage_cond.get(g, 0.0)), self.vars["gar_cond"][g])
 
         # --- GarageFinish ---
         for g in allowGF:
             if g != base_gf:
-                cost_terms.append(self.costs.garage_finish.get(g, 0.0) * self.vars["gar_finish"][g])
+                _append_simple(f"GarageFinish → {g}", float(self.costs.garage_finish.get(g, 0.0)), self.vars["gar_finish"][g])
 
         # --- PoolQC (mejora de calidad) ---
         for p in allowPQC:
             if p != base_pqc and p != "NA":
-                cost_terms.append(self.costs.pool_qc.get(p, 0.0) * self.vars["pool_qc_cat"][p])
+                _append_simple(f"PoolQC → {p}", float(self.costs.pool_qc.get(p, 0.0)), self.vars["pool_qc_cat"][p])
 
         # --- Pool Area (costo por ft2 si hay cambio en área) ---
         # Solo cobra por el área NUEVA (no por la que ya existía)
         pool_area_delta = self.vars["pool_area"] - pool_area0
         if pool_area0 > 0:
             # Si ya tenía piscina, cobra solo por el incremento
-            cost_terms.append(self.costs.cost_pool_ft2 * pool_area_delta)
+            # We model this as cost_per_ft2 * (pool_area - pool_area0) so use a helper that sums vars
+            _append_sum("Pool area delta (ft²)", float(self.costs.cost_pool_ft2), [pool_area_delta])
         else:
             # Si no tenía, cobra por toda el área nueva
-            cost_terms.append(self.costs.cost_pool_ft2 * self.vars["pool_area"])
+            _append_simple("Pool area new (ft²)", float(self.costs.cost_pool_ft2), self.vars["pool_area"])
 
         # --- Ampliaciones (10%, 20%, 30%) ---
         for a in AMPL:
             base_val = base_areas[a]
-            cost_per_ft2 = self.costs.expansion.get(a, 100.0)  # costo por ft2 de ampliación
+            cost_per_ft2 = float(self.costs.expansion.get(a, 100.0))  # costo por ft2 de ampliación
             
             delta_10 = int(0.10 * base_val)
             delta_20 = int(0.20 * base_val)
             delta_30 = int(0.30 * base_val)
             
-            cost_terms.append(cost_per_ft2 * delta_10 * self.vars["expand_10"][a])
-            cost_terms.append(cost_per_ft2 * delta_20 * self.vars["expand_20"][a])
-            cost_terms.append(cost_per_ft2 * delta_30 * self.vars["expand_30"][a])
+            if delta_10 > 0:
+                _append_simple(f"{a} expansion 10% (+{delta_10} ft2)", cost_per_ft2 * delta_10, self.vars["expand_10"][a])
+            if delta_20 > 0:
+                _append_simple(f"{a} expansion 20% (+{delta_20} ft2)", cost_per_ft2 * delta_20, self.vars["expand_20"][a])
+            if delta_30 > 0:
+                _append_simple(f"{a} expansion 30% (+{delta_30} ft2)", cost_per_ft2 * delta_30, self.vars["expand_30"][a])
 
         # --- COSTO TOTAL ---
         self.total_cost = quicksum(cost_terms)
@@ -703,6 +743,8 @@ class RemodelMILP:
             # Build final objective: maximize predicted delta - total_cost
             obj_expr = quicksum(value_terms) - self.total_cost
             self.m.setObjective(obj_expr, GRB.MAXIMIZE)
+            # keep the linearized objective expression for later evaluation/diagnostics
+            self._linearized_obj_expr = obj_expr
         else:
             # default: feasibility search
             self.m.setObjective(0.0, GRB.MINIMIZE)
@@ -719,13 +761,19 @@ class RemodelMILP:
         self.m.optimize()
 
         sols = []
+        seen = set()
         solcount = min(k, self.m.SolCount)
-        
+
         for i in range(solcount):
             self.m.Params.SolutionNumber = i
             plan = self._extract_solution()
+            # deduplicate by decision fingerprint (tuple of sorted key/values)
+            key = tuple(sorted((k, str(v)) for k, v in plan.items() if k not in ("Cost_breakdown", "Cost")))
+            if key in seen:
+                continue
+            seen.add(key)
             sols.append(plan)
-            
+
         return sols
 
 
@@ -799,9 +847,38 @@ class RemodelMILP:
             elif self.vars["expand_30"][a].Xn > 0.5:
                 plan["Expansions"][a] = "30%"
 
-        # --- CALCULAR DESGLOSE DE COSTOS ---
-        plan["Cost_breakdown"] = self._compute_cost_breakdown(plan)
-        plan["Cost"] = sum(v for _, v in plan["Cost_breakdown"])
+        # Add explicit expansion deltas (ft2) for diagnostics
+        plan["_expansion_deltas"] = {}
+        for a in AMPL:
+            base_key = {
+                "Garage": "Garage Area", "WoodDeck": "Wood Deck SF", "OpenPorch": "Open Porch SF",
+                "Enclosed": "Enclosed Porch", "ThreeSsn": "3Ssn Porch", "Screen": "Screen Porch"
+            }[a]
+            base_area = float(self._base_f.get(base_key, 0.0) or 0.0)
+            plan_key = {
+                "Garage": "GarageArea", "WoodDeck": "WoodDeckSF", "OpenPorch": "OpenPorchSF",
+                "Enclosed": "EnclosedPorch", "ThreeSsn": "3SsnPorch", "Screen": "ScreenPorch"
+            }[a]
+            new_area = float(plan.get(plan_key, base_area))
+            plan["_expansion_deltas"][a] = new_area - base_area
+
+        # --- CALCULAR DESGLOSE DE COSTOS usando evaluadores registrados ---
+        breakdown = []
+        for ev in self._cost_items:
+            try:
+                item = ev()
+            except Exception:
+                item = None
+            if item:
+                label, cost = item
+                # skip trivial/NA labels or zero-cost
+                if cost > 1e-6:
+                    breakdown.append((label, cost))
+
+        # sort breakdown by descending cost for readability
+        breakdown.sort(key=lambda x: -x[1])
+        plan["Cost_breakdown"] = breakdown
+        plan["Cost"] = sum(v for _, v in breakdown)
 
         # Debug: validar presupuesto
         if self.budget is not None and self.budget > 0:
