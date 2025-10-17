@@ -15,8 +15,16 @@ QUALITY_CANDIDATE_NAMES: List[str] = [
     "Pool QC",
 ]
 
+# Utilities ordinal
 UTIL_ORDER = ["ELO", "NoSeWa", "NoSewr", "AllPub"]
 UTIL_TO_ORD = {u:i for i,u in enumerate(UTIL_ORDER)}
+
+# RoofStyle / RoofMatl (usamos las categorías del Ames “estándar”)
+ROOF_STYLE_ORDER = ["Flat", "Gable", "Gambrel", "Hip", "Mansard", "Shed"]
+ROOF_STYLE_TO_ORD = {u:i for i,u in enumerate(ROOF_STYLE_ORDER)}
+
+ROOF_MATL_ORDER  = ["ClyTile", "CompShg", "Membran", "Metal", "Roll", "Tar&Grv", "WdShake", "WdShngl"]
+ROOF_MATL_TO_ORD = {u:i for i,u in enumerate(ROOF_MATL_ORDER)}
 
 def infer_feature_types(
     df: pd.DataFrame,
@@ -39,28 +47,21 @@ def build_preprocessor(
     numeric_cols: List[str],
     categorical_cols: List[str],
     quality_cols: List[str] | None = None,
-    utilities_cols: List[str] | None = None
+    utilities_cols: List[str] | None = None,
+    roof_cols: List[str] | None = None,
 ) -> ColumnTransformer:
-    # OJO: ya tratamos calidades como numéricas, así que no las metas a OHE
-    quality_cols = quality_cols or []
+    # TODO: el OHE ya estará horneado en el DataFrame, aquí solo pasamos numéricas
+    quality_cols   = quality_cols or []
     utilities_cols = utilities_cols or []
+    roof_cols      = roof_cols or []
 
-    # quítalas de las categóricas
-    cat_ohe_cols = [c for c in categorical_cols if c not in quality_cols + utilities_cols]
+    # tras get_dummies, todo es numérico; por seguridad consolida:
+    all_numeric = sorted(list(set(numeric_cols + quality_cols + utilities_cols + roof_cols)))
 
     num_pipe = SKPipeline(steps=[("passthrough", "passthrough")])
 
-    # OHE sólo para categóricas "normales"
-    try:
-        ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
-    except TypeError:
-        ohe = OneHotEncoder(handle_unknown="ignore", sparse=False)
-
     pre = ColumnTransformer(
-        transformers=[
-            ("num", num_pipe, numeric_cols),     # ← aquí van también las Q/Cond ya ordinalizadas
-            ("cat", ohe, cat_ohe_cols),
-        ],
+        transformers=[("num", num_pipe, all_numeric)],
         remainder="drop",
         n_jobs=None,
     )

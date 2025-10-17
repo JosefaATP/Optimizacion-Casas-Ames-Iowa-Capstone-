@@ -29,6 +29,26 @@ MAP_Q_ORD = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
 UTIL_ORDER = ["ELO", "NoSeWa", "NoSewr", "AllPub"]
 UTIL_TO_ORD = {u: i for i, u in enumerate(UTIL_ORDER)}
 
+ROOF_STYLE_TO_ORD = {
+    "Flat":0, "Gable":1, "Gambrel":2, "Hip":3, "Mansard":4, "Shed":5
+}
+ROOF_MATL_TO_ORD = {
+    "ClyTile":0, "CompShg":1, "Membran":2, "Metal":3, "Roll":4, "Tar&Grv":5, "WdShake":6, "WdShngl":7
+}
+
+def _coerce_roof_ordinals_inplace(X: pd.DataFrame) -> pd.DataFrame:
+    if "Roof Style" in X.columns:
+        s = X["Roof Style"]
+        as_num = pd.to_numeric(s, errors="coerce")
+        ok = as_num.isin(list(range(6)))
+        X["Roof Style"] = as_num.where(ok, s.astype(str).map(ROOF_STYLE_TO_ORD)).fillna(-1).astype(int)
+    if "Roof Matl" in X.columns:
+        s = X["Roof Matl"]
+        as_num = pd.to_numeric(s, errors="coerce")
+        ok = as_num.isin(list(range(8)))
+        X["Roof Matl"] = as_num.where(ok, s.astype(str).map(ROOF_MATL_TO_ORD)).fillna(-1).astype(int)
+    return X
+
 def _coerce_quality_ordinals_inplace(X: pd.DataFrame, quality_cols: list[str]) -> pd.DataFrame:
     # Convierte strings Po/Fa/TA/Gd/Ex a 0..4; si ya viene 0..4, lo deja; raro -> -1.
     for c in quality_cols:
@@ -157,9 +177,10 @@ class XGBBundle:
         return self.pipe_for_embed
 
     def predict(self, X: pd.DataFrame) -> pd.Series:
+        # Asegura calidades/utilities como int si corresponde (tú ya lo haces)
         X_fixed = X.copy()
         _coerce_quality_ordinals_inplace(X_fixed, self.quality_cols)
-        _coerce_utilities_ordinal_inplace(X_fixed)          # 👈 asegura 0..3
-        X_fixed = _align_ohe_input_dtypes(X_fixed, self.pre)
+        _coerce_utilities_ordinal_inplace(X_fixed)
+        # No hay OHE en el pre, el pipe espera solo columnas numéricas (incluyendo dummies)
         y = self.pipe_full.predict(X_fixed)
         return pd.Series(y, index=X.index)

@@ -50,6 +50,19 @@ MODIFIABLE += [
     FeatureSpec("u_util_AllPub", 0, 1, "B"),
 ]
 
+# códigos que alimentan al predictor Roof Style y Roof Matl
+MODIFIABLE.append(FeatureSpec("Roof Style", 0, 5, "I"))
+MODIFIABLE.append(FeatureSpec("Roof Matl",  0, 7, "I"))
+
+# ==== ROOF: elección de estilo/material (exactamente una de cada) ====
+for _nm in ["Flat","Gable","Gambrel","Hip","Mansard","Shed"]:
+    MODIFIABLE.append(FeatureSpec(name=f"roof_style_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+for _nm in ["ClyTile","CompShg","Membran","Metal","Roll","Tar&Grv","WdShake","WdShngl"]:
+    MODIFIABLE.append(FeatureSpec(name=f"roof_matl_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+
+
 # features fijas que el modelo necesita pero no se modifican (tomadas de la casa base)
 IMMUTABLE: List[str] = [
     "MSSubClass", "Neighborhood", "OverallQual", "OverallCond",

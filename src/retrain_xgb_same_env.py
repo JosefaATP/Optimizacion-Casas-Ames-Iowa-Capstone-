@@ -65,6 +65,21 @@ def main():
     for col in utilities_cols:
         df[col] = df[col].map(UTIL_TO_ORD).fillna(-1).astype(int)
 
+    # ====== BAKED ONE-HOT ======
+    # 1) Define qué columnas vas a convertir a dummies (las que antes iban a OHE)
+    #    Si ya tienes listas en tu Config, usa esas; si no, toma del DataFrame:
+    cands_for_ohe = df.select_dtypes(include=["object","category"]).columns.tolist()
+
+    # remueve las que ya convertiste a ordinal (quality_cols) y Utilities (ahora es int)
+    skip = set(quality_cols + ["Utilities"])
+    cands_for_ohe = [c for c in cands_for_ohe if c not in skip]
+
+    # 2) get_dummies con todas las columnas (drop_first=False para no perder información)
+    df = pd.get_dummies(df, columns=cands_for_ohe, drop_first=False, dtype=float)
+
+    # 3) Guarda la lista de dummies creadas (para usarla luego en inferencia/MIP)
+    dummy_cols = [c for c in df.columns if any(c.startswith(f"{base}_") for base in cands_for_ohe)]
+
     # 4) tipos
     numeric_cols, categorical_cols = infer_feature_types(
         df, target=cfg.target, drop_cols=cfg.drop_cols,
@@ -138,6 +153,8 @@ def main():
         "log_target": True,
         "quality_cols": quality_cols,
         "utilities_cols": utilities_cols,
+        "dummy_cols": dummy_cols,
+        "ohe_baked_bases": cands_for_ohe,   # por si quieres reconstruir
     }
     with open(Path(args.outdir) / "meta.json", "w") as f:
         import json

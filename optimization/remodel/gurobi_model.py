@@ -27,51 +27,35 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     m = gp.Model("remodel_embed")
 
     # -------------------
-    # 1) Variables decisión
+    # 1) Variables de decisión
     # -------------------
     x: dict[str, gp.Var] = {}
     for f in MODIFIABLE:
         x[f.name] = m.addVar(lb=f.lb, ub=f.ub, vtype=_vtype(f.vartype), name=f"x_{f.name}")
 
     # -------------------
-    # 2) Input al pipeline (orden correcto)
+    # 2) Armar X_input (fila 1xN en el ORDEN que espera el modelo)
     # -------------------
     feature_order = bundle.feature_names_in()
-    modifiable_names = {f.name for f in MODIFIABLE}
+    modif = {f.name for f in MODIFIABLE}
+
+    # Base: var si es modificable, si no el valor de la casa base
     row_vals: Dict[str, Any] = {}
     for fname in feature_order:
-        if fname in modifiable_names:
-            row_vals[fname] = x[fname]
-        else:
-            row_vals[fname] = base_row[fname]
+        row_vals[fname] = x[fname] if fname in modif else base_row.get(fname, 0)
 
     X_input = pd.DataFrame([row_vals], columns=feature_order)
 
-    # forzar str en columnas que irán a OHE (para evitar isnan sobre object mixto)
-    from sklearn.preprocessing import OneHotEncoder
-    from sklearn.pipeline import Pipeline as SKPipeline
-    def _align_ohe_dtypes(X: pd.DataFrame, pre: ColumnTransformer) -> pd.DataFrame:
-        trs = pre.transformers_ if hasattr(pre, "transformers_") else pre.transformers
-        X2 = X.copy()
-        for item in trs:
-            name, transformer, cols = item[0], item[1], item[2]
-            est = transformer.steps[-1][1] if isinstance(transformer, SKPipeline) else transformer
-            if isinstance(est, OneHotEncoder):
-                for c in cols:
-                    if c in X2.columns:
-                        X2[c] = X2[c].astype(str)
-        return X2
-    X_input = _align_ohe_dtypes(X_input, bundle.pre)
-
     # -------------------
-    # 3) Restricción de Kitchen Qual (paquetes TA/EX) — como ya lo tenías
+    # 3) Kitchen Qual (paquetes TA/EX)  [solo constraints aquí]
     # -------------------
     def _q_to_ord(v):
         mapping = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
         try:
             return int(v)
         except Exception:
-            return mapping[str(v)]
+            return mapping.get(str(v), 2)
+
     kq_base = _q_to_ord(base_row.get("Kitchen Qual", "TA"))
     dTA = x["delta_KitchenQual_TA"]
     dEX = x["delta_KitchenQual_EX"]
@@ -81,30 +65,79 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     q_TA = max(kq_base, 2)
     q_EX = max(kq_base, 4)
     q_new = x["Kitchen Qual"]
-    m.addConstr(q_new == kq_base + (q_TA - kq_base) * dTA + (q_EX - kq_base) * dEX,
-                name="R9_kitchen_upgrade_link")
+    m.addConstr(
+        q_new == kq_base + (q_TA - kq_base) * dTA + (q_EX - kq_base) * dEX,
+        name="R9_kitchen_upgrade_link"
+    )
 
     # -------------------
-    # 4) Predictor (pre -> XGB), salida en log
+    # 4) ROOF: estilo/material con dummies "horneadas" y compatibilidad
+    # -------------------
+    style_names = ["Flat", "Gable", "Gambrel", "Hip", "Mansard", "Shed"]
+    matl_names  = ["ClyTile", "CompShg", "Membran", "Metal", "Roll", "Tar&Grv", "WdShake", "WdShngl"]
+
+    # binarios provenientes de features.py
+    s_bin = {nm: x[f"roof_style_is_{nm}"] for nm in style_names if f"roof_style_is_{nm}" in x}
+    m_bin = {nm: x[f"roof_matl_is_{nm}"]  for nm in matl_names  if f"roof_matl_is_{nm}"  in x}
+
+    # (exactamente uno)
+    if s_bin:
+        m.addConstr(gp.quicksum(s_bin.values()) == 1, name="ROOF_pick_one_style")
+    if m_bin:
+        m.addConstr(gp.quicksum(m_bin.values()) == 1, name="ROOF_pick_one_matl")
+
+    # helper para asignar gp.Var en DataFrame sin warning
+    def _put_var(df: pd.DataFrame, col: str, var: gp.Var):
+        if col in df.columns:
+            if df[col].dtype != "O":  # 'O' = object
+                df[col] = df[col].astype("object")
+            df.loc[0, col] = var
+
+    # Inyectar dummies en X_input si el modelo las tiene
+    for nm in style_names:
+        col = f"Roof Style_{nm}"
+        if col in X_input.columns and nm in s_bin:
+            _put_var(X_input, col, s_bin[nm])
+
+    for nm in matl_names:
+        col = f"Roof Matl_{nm}"
+        if col in X_input.columns and nm in m_bin:
+            _put_var(X_input, col, m_bin[nm])
+
+
+    # Compatibilidad (0 = prohibido)
+    A = {sn: {mn: 1 for mn in matl_names} for sn in style_names}
+    # Ajusta con tu tabla:
+    for sn, forbids in {
+        "Gable":   ["Membran"],
+        "Hip":     ["Membran"],
+        "Flat":    ["WoodShingle", "Slate", "ClayTile", "AsphaltShingle"],
+        "Mansard": ["Membran"],
+        "Shed":    ["ClayTile", "Slate"],
+    }.items():
+        for mn in forbids:
+            if sn in s_bin and mn in m_bin:
+                m.addConstr(s_bin[sn] + m_bin[mn] <= 1, name=f"ROOF_compat_{sn}_{mn}")
+
+    # -------------------
+    # 5) Enlazar predictor (pre -> XGB) y pasar de log a precio
     # -------------------
     y_log = m.addVar(lb=-gp.GRB.INFINITY, name="y_log")
     _add_sklearn(m, bundle.pipe_for_gurobi(), X_input, [y_log])
 
-    # convertir log→precio
     if bundle.is_log_target():
         y_price = m.addVar(lb=0.0, name="y_price")
-        z_min, z_max = 10.0, 14.0
-        grid = np.linspace(z_min, z_max, 81)
+        grid = np.linspace(10.0, 14.0, 81)
         m.addGenConstrPWL(y_log, y_price, grid.tolist(), np.expm1(grid).tolist(), name="exp_expm1")
     else:
         y_price = y_log
 
     # -------------------
-    # 5) Costos (lineales)
+    # 6) Costos lineales (numéricos + cocina + utilities + roof)
     # -------------------
-    def _num_base(name: str) -> float:
+    def _num_base(col: str) -> float:
         try:
-            return float(pd.to_numeric(base_row.get(name), errors="coerce"))
+            return float(pd.to_numeric(base_row.get(col), errors="coerce"))
         except Exception:
             return 0.0
 
@@ -134,31 +167,24 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     if "Total Bsmt SF" in x:
         lin_cost += pos(x["Total Bsmt SF"] - base_vals["Total Bsmt SF"]) * ct.finish_basement_per_f2
 
-    # costos de paquetes Kitchen
+    # Cocina (paquetes) — ahora sí sumamos costo
     lin_cost += dTA * ct.kitchenQual_upgrade_TA
     lin_cost += dEX * ct.kitchenQual_upgrade_EX
 
-    # -------------------
-    # 6) Utilities (upgrade-only + costo si cambia + link al entero)
-    # -------------------
+    # Utilities (upgrade-only; costo solo si cambias)
     if "Utilities" in x:
-        # nombres y ordinales consistentes con el entrenamiento
         util_names = {0: "ELO", 1: "NoSeWa", 2: "NoSewr", 3: "AllPub"}
-        util_to_ord = {"ELO":0, "NoSeWa":1, "NoSewr":2, "AllPub":3}
+        util_to_ord = {"ELO": 0, "NoSeWa": 1, "NoSewr": 2, "AllPub": 3}
 
-        # entero de decisión (entra al predictor)
         u_new = x["Utilities"]
-
-        # base como nombre y ordinal
         u_base_name = str(base_row.get("Utilities"))
         try:
             u_base_ord = int(pd.to_numeric(base_row.get("Utilities"), errors="coerce"))
-            if u_base_ord not in (0,1,2,3):
+            if u_base_ord not in (0, 1, 2, 3):
                 u_base_ord = util_to_ord.get(u_base_name, 0)
         except Exception:
             u_base_ord = util_to_ord.get(u_base_name, 0)
 
-        # one-hot internos (exactamente uno)
         u_bin = {
             0: m.addVar(vtype=gp.GRB.BINARY, name="util_ELO"),
             1: m.addVar(vtype=gp.GRB.BINARY, name="util_NoSeWa"),
@@ -167,16 +193,25 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         }
         m.addConstr(gp.quicksum(u_bin.values()) == 1, name="UTIL_one_hot")
         m.addConstr(u_new == gp.quicksum(k * u_bin[k] for k in u_bin), name="UTIL_link")
+        m.addConstr(u_new >= u_base_ord, name="UTIL_upgrade_only")  # solo mejorar
 
-        # upgrade only
-        m.addConstr(u_new >= u_base_ord, name="UTIL_upgrade_only")
+        for k, vb in u_bin.items():
+            if k != u_base_ord:
+                lin_cost += ct.util_cost(util_names[k]) * vb
 
-        # costo: 0 si te quedas, costo categoría si cambias
-        for k in u_bin:
-            name_k = util_names[k]
-            if k == u_base_ord:
-                continue
-            lin_cost += ct.util_cost(name_k) * u_bin[k]
+    # Roof: costos (fuera del bloque de utilities)
+    if s_bin or m_bin:
+        base_style = str(base_row.get("Roof Style", "Gable"))
+        base_matl  = str(base_row.get("Roof Matl",  "CompShg"))
+
+        for sn, vb in s_bin.items():
+            if sn != base_style:
+                lin_cost += ct.roof_style_cost(sn) * vb  # costo fijo por cambiar estilo
+
+        roof_area = float(pd.to_numeric(base_row.get("Gr Liv Area"), errors="coerce") or 0.0)
+        for mn, vb in m_bin.items():
+            if mn != base_matl:
+                lin_cost += ct.roof_matl_cost(mn) * roof_area * vb  # $/ft2 * área
 
     # -------------------
     # 7) Presupuesto y objetivo
@@ -186,23 +221,20 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     m.setObjective(y_price - total_cost, gp.GRB.MAXIMIZE)
 
     # -------------------
-    # 8) Resto de restricciones (R1..R8) — igual que las que ya tenías
+    # 8) Resto de restricciones (R1..R8)
     # -------------------
-    # (R1) 1stFlrSF ≥ 2ndFlrSF
     if "1st Flr SF" in x and "2nd Flr SF" in x:
         m.addConstr(x["1st Flr SF"] >= x["2nd Flr SF"], name="R1_floor1_ge_floor2")
 
-    # (R2) GrLivArea ≤ LotArea
     if "Gr Liv Area" in x and "Lot Area" in base_row:
         m.addConstr(x["Gr Liv Area"] <= float(base_row["Lot Area"]), name="R2_grliv_le_lot")
 
-    # (R3) 1stFlrSF ≥ TotalBsmtSF
     if "1st Flr SF" in x and "Total Bsmt SF" in x:
         m.addConstr(x["1st Flr SF"] >= x["Total Bsmt SF"], name="R3_floor1_ge_bsmt")
 
-    # (R4) FullBath + HalfBath ≤ Bedroom
     def _val_or_var(col):
         return x[col] if col in x else float(base_row[col])
+
     need = all(c in base_row for c in ["Full Bath", "Bedroom AbvGr"])
     if need and ("Half Bath" in base_row or "Half Bath" in x):
         fullb = _val_or_var("Full Bath")
@@ -210,7 +242,6 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         beds  = _val_or_var("Bedroom AbvGr")
         m.addConstr(fullb + halfb <= beds, name="R4_baths_le_bedrooms")
 
-    # (R5) mínimos
     if ("Full Bath" in x) or ("Full Bath" in base_row):
         m.addConstr(_val_or_var("Full Bath") >= 1, name="R5_min_fullbath")
     if ("Bedroom AbvGr" in x) or ("Bedroom AbvGr" in base_row):
@@ -218,20 +249,16 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     if ("Kitchen AbvGr" in x) or ("Kitchen AbvGr" in base_row):
         m.addConstr(_val_or_var("Kitchen AbvGr") >= 1, name="R5_min_kitchen")
 
-    # (R7) Gr Liv Area = 1st + 2nd (+ LowQual si existe)
     lowqual_names = ["Low Qual Fin SF", "LowQualFinSF"]
     lowqual_col = next((c for c in lowqual_names if c in X_input.columns), None)
     cols_needed = ["Gr Liv Area", "1st Flr SF", "2nd Flr SF"]
     if all(c in X_input.columns for c in cols_needed):
-        def _v(name: str):
-            return x[name] if name in x else float(base_row[name])
-        lhs = _v("Gr Liv Area")
-        rhs = _v("1st Flr SF") + _v("2nd Flr SF")
+        lhs = _val_or_var("Gr Liv Area")
+        rhs = _val_or_var("1st Flr SF") + _val_or_var("2nd Flr SF")
         if lowqual_col is not None:
-            rhs += _v(lowqual_col)
+            rhs += _val_or_var(lowqual_col)
         m.addConstr(lhs == rhs, name="R7_gr_liv_equality")
 
-    # (R8) TotRms AbvGrd = Bedroom + Kitchen + Other
     r8_ok = all(c in X_input.columns for c in ["TotRms AbvGrd", "Bedroom AbvGr", "Kitchen AbvGr"])
     if r8_ok:
         other = m.addVar(lb=0, ub=15, vtype=gp.GRB.INTEGER, name="R8_other_rooms")
