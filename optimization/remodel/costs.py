@@ -1,59 +1,105 @@
 # optimization/remodel/costs.py
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict
+import pandas as pd  # <- necesario para exterior_area_proxy
 
 @dataclass
 class CostTables:
-    # ===== costos unitarios existentes =====
-    add_bedroom: float = 8000
-    add_bathroom: float = 12000
-    deck_per_m2: float = 200
-    garage_per_car: float = 9000
-    finish_basement_per_f2: float = 15
-    kitchenQual_upgrade_TA: float = 10   # demo
-    kitchenQual_upgrade_EX: float = 10   # demo
+    # ====== COSTOS BASE (numéricos) ======
+    add_bedroom: float = 8000.0
+    add_bathroom: float = 12000.0
+    deck_per_m2: float = 200.0
+    garage_per_car: float = 9000.0
+    finish_basement_per_f2: float = 15.0  # nota: f2 = ft², mantén consistente
 
-    # ===== Utilities (ya tenías) =====
-    utilities_costs = {
+    # ====== COCINA (paquetes) ======
+    kitchenQual_upgrade_TA: float = 42.0   # demo
+    kitchenQual_upgrade_EX: float = 18.0  # demo
+
+    # ====== UTILITIES ======
+    utilities_costs: Dict[str, float] = field(default_factory=lambda: {
         "AllPub": 31750.0,
         "NoSewr": 39500.0,
         "NoSeWa": 22000.0,
         "ELO":    20000.0,
-    }
+    })
     def util_cost(self, name: str) -> float:
         return float(self.utilities_costs.get(str(name), 0.0))
 
-    # costo Fijo por CAMBIO de estilo (elige números que te acomoden)
-    roof_style_costs = {
+    # ====== TECHO ======
+    # Costo fijo por CAMBIO de estilo
+    roof_style_costs: Dict[str, float] = field(default_factory=lambda: {
         "Flat":   3500.0,
         "Gable":  3000.0,
         "Gambrel":4500.0,
         "Hip":    4000.0,
         "Mansard":6000.0,
         "Shed":   2000.0,
-    }
+    })
     def roof_style_cost(self, name: str) -> float:
         return float(self.roof_style_costs.get(str(name), 0.0))
 
-    # costo por ft² para material (usa los del PDF; aquí un ejemplo)
-    roof_matl_costs_sqft = {
+    # Costo por ft² de material
+    roof_matl_costs_sqft: Dict[str, float] = field(default_factory=lambda: {
         "ClyTile": 11.89,
-        "CompShg": 6.00,     # = Asphalt/Composite Shingle
+        "CompShg": 6.00,
         "Membran": 6.00,
         "Metal":   8.99,
         "Roll":    3.75,
         "Tar&Grv": 5.50,
         "WdShake": 11.00,
         "WdShngl": 6.35,
-    }
+    })
     def roof_matl_cost(self, name: str) -> float:
         return float(self.roof_matl_costs_sqft.get(str(name), 0.0))
 
+    # ---- Masonry veneer (Mas Vnr) ----
+    mas_vnr_costs_sqft = {
+        # nombres estándar Ames
+        "BrkCmn": 1.21,
+        "BrkFace": 15.0,
+        "CBlock": 22.5,
+        "None": 0.0,
+        "Stone": 27.5,
+    }
+    def mas_vnr_cost(self, name: str) -> float:
+        return float(self.mas_vnr_costs_sqft.get(str(name), 0.0))
 
-    # costo fijo de proyecto
-    project_fixed: float = 0
+    # ====== EXTERIOR ======
+    # Demolición por frente (si cambias material)
+    exterior_demo_face1: float = 1.65   # $/ft² (placeholder del PDF)
+    exterior_demo_face2: float = 1.65   # $/ft² (placeholder del PDF)
+
+    # Costo de material exterior $/ft² (ajusta nombres a tu CSV)
+    exterior_matl_costs: Dict[str, float] = field(default_factory=lambda: {
+        "AsbShng": 11.50, "AsphShn": 1.50, "BrkComm": 1.21, "BrkFace": 15.00,
+        "CBlock": 22.50, "CemntBd": 12.50, "HdBoard": 11.00, "ImStucc": 8.50,
+        "MetalSd": 5.48, "Other": 11.56, "Plywood": 2.00, "PreCast": 37.50,
+        "Stone": 27.50, "Stucco": 12.00, "VinylSd": 7.46, "Wd Sdng": 3.64,
+        "WdShngl": 12.50,
+    })
+    def ext_mat_cost(self, name: str) -> float:
+        return float(self.exterior_matl_costs.get(str(name), 0.0))
+
+    # Upgrades de calidad / condición (por nivel 0..4; costo por casa)
+    exter_qual_upgrade_per_level: float = 3000.0
+    exter_cond_upgrade_per_level: float = 2500.0
+
+    # Proxy de “área de revestimiento exterior”
+    @staticmethod
+    def exterior_area_proxy(base_row: pd.Series) -> float:
+        # Muy simple: proporción de Gr Liv Area
+        try:
+            gla = float(pd.to_numeric(base_row.get("Gr Liv Area"), errors="coerce"))
+        except Exception:
+            gla = 0.0
+        if pd.isna(gla):
+            gla = 0.0
+        return 0.8 * gla  # ajustable
 
 
-    # costo inicial de la casa (si tienes una columna real cámbialo)
+    # ====== COSTO FIJO Y COSTO INICIAL ======
+    project_fixed: float = 0.0
+
     def initial_cost(self, base_row) -> float:
         return float(base_row.get("InitialCost", 0.0))

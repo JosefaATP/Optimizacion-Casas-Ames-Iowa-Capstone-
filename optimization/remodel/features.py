@@ -10,6 +10,8 @@ class FeatureSpec:
     ub: float
     vartype: str = "C"  # C continuo, I entero, B binario
 
+
+
 # define las features que SI puede modificar la optimizacion
 # ajusta los bounds segun tu PDF "modelo matematico"
 MODIFIABLE = [
@@ -23,6 +25,13 @@ MODIFIABLE = [
     FeatureSpec("1st Flr SF", 0.0, 5000.0, "C"),
     FeatureSpec("2nd Flr SF", 0.0, 4000.0, "C"),
     FeatureSpec("Low Qual Fin SF", 0.0, 1000.0, "C"),
+    # --- Mas Vnr Type (binarios) ---
+    FeatureSpec("mvt_is_BrkCmn", lb=0, ub=1, vartype="B"),
+    FeatureSpec("mvt_is_BrkFace", lb=0, ub=1, vartype="B"),
+    FeatureSpec("mvt_is_CBlock", lb=0, ub=1, vartype="B"),
+    FeatureSpec("mvt_is_None", lb=0, ub=1, vartype="B"),
+    FeatureSpec("mvt_is_Stone", lb=0, ub=1, vartype="B"),
+
 ]
 
 QUALITY_COLS = [
@@ -62,6 +71,23 @@ for _nm in ["ClyTile","CompShg","Membran","Metal","Roll","Tar&Grv","WdShake","Wd
     MODIFIABLE.append(FeatureSpec(name=f"roof_matl_is_{_nm}", lb=0, ub=1, vartype="B"))
 
 
+# ... imports y tu definición Feature(...)
+
+    # === MATERIALES EXTERIORES ===
+    EXT_MATS = [
+        "AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard","ImStucc",
+        "MetalSd","Other","Plywood","PreCast","Stone","Stucco","VinylSd","Wd Sdng","WdShngl",
+    ]
+
+    for nm in EXT_MATS:
+        MODIFIABLE.append(FeatureSpec(f"ex1_is_{nm}", lb=0, ub=1, vartype="B"))
+    for nm in EXT_MATS:
+        MODIFIABLE.append(FeatureSpec(f"ex2_is_{nm}", lb=0, ub=1, vartype="B"))
+
+# Asegúrate de que Exter Qual y Exter Cond estén en MODIFIABLE como enteras 0..4:
+# (si ya estaban, no dupliques)
+# MODIFIABLE.append(Feature("Exter Qual", lb=0, ub=4, vartype="I"))
+# MODIFIABLE.append(Feature("Exter Cond", lb=0, ub=4, vartype="I"))
 
 # features fijas que el modelo necesita pero no se modifican (tomadas de la casa base)
 IMMUTABLE: List[str] = [

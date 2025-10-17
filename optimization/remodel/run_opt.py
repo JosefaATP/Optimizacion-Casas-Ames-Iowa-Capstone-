@@ -131,6 +131,57 @@ def main():
     except Exception:
         pass
 
+    # DEBUG: efecto precio de Exterior 1st
+    if any(c.startswith("Exterior 1st_") for c in X_base.columns):
+        Xd = X_base.copy()
+        for c in [c for c in Xd.columns if c.startswith("Exterior 1st_")]:
+            Xd[c] = 0.0
+        vals = []
+        for nm in ["AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard","ImStucc",
+                "MetalSd","Other","Plywood","PreCast","Stone","Stucco","VinylSd","Wd Sdng","WdShngl"]:
+            col = f"Exterior 1st_{nm}"
+            if col in Xd.columns:
+                Xd[col] = 1.0
+                vals.append((nm, float(bundle.predict(Xd).iloc[0])))
+                Xd[col] = 0.0
+        print("DEBUG Exterior 1st → precio:", vals)
+
+    # DEBUG: calidad / condición
+    if "Exter Qual" in X_base.columns:
+        Xd = X_base.copy()
+        vals = []
+        for q in [0,1,2,3,4]:
+            Xd.loc[:, "Exter Qual"] = q
+            vals.append((q, float(bundle.predict(Xd).iloc[0])))
+        print("DEBUG Exter Qual → precio:", vals)
+
+    if "Exter Cond" in X_base.columns:
+        Xd = X_base.copy()
+        vals = []
+        for q in [0,1,2,3,4]:
+            Xd.loc[:, "Exter Cond"] = q
+            vals.append((q, float(bundle.predict(Xd).iloc[0])))
+        print("DEBUG Exter Cond → precio:", vals)
+    
+    # ==== DEBUG: efecto precio vs Mas Vnr Type (manteniendo el resto) ====
+    try:
+        if any(c.startswith("Mas Vnr Type_") for c in X_base.columns):
+            X_dbg = X_base.copy()
+            # apaga todas las dummies de MVT
+            for c in [c for c in X_dbg.columns if c.startswith("Mas Vnr Type_")]:
+                X_dbg[c] = 0.0
+            vals = []
+            for nm in ["BrkCmn","BrkFace","CBlock","None","Stone"]:
+                col = f"Mas Vnr Type_{nm}"
+                if col in X_dbg.columns:
+                    X_dbg[col] = 1.0
+                    vals.append((nm, float(bundle.predict(X_dbg).iloc[0])))  # mantiene Mas Vnr Area fija
+                    X_dbg[col] = 0.0
+            print("DEBUG Mas Vnr Type → precio:", vals)
+    except Exception:
+        pass
+
+
     # ===== construir MIP =====
     m: gp.Model = build_mip_embed(base.row, args.budget, ct, bundle)
 
@@ -250,6 +301,102 @@ def main():
     # ===== métricas =====
     aumento_utilidad = (precio_remodelada - precio_base) - total_cost
 
+        # --------- LECTURA Y REPORTE DE ROOF ---------
+    try:
+        style_names = ["Flat","Gable","Gambrel","Hip","Mansard","Shed"]
+        matl_names  = ["ClyTile","CompShg","Membran","Metal","Roll","Tar&Grv","WdShake","WdShngl"]
+
+        # detecta el pick leyendo los binarios (prefijo que usamos en el MIP)
+        def _pick_one(prefix: str, names: list[str]) -> str | None:
+            for nm in names:
+                v = m.getVarByName(f"{prefix}{nm}")
+                if v is not None and v.X > 0.5:
+                    return nm
+            return None
+
+        style_new = _pick_one("roof_style_is_", style_names)
+        matl_new  = _pick_one("roof_matl_is_",  matl_names)
+
+        style_base = str(base.row.get("Roof Style", "Gable"))
+        matl_base  = str(base.row.get("Roof Matl",  "CompShg"))
+
+        # costo (SOLO para mostrar; el total ya lo incluye el MIP)
+        roof_area = float(pd.to_numeric(base.row.get("Gr Liv Area"), errors="coerce") or 0.0)
+        style_cost = 0.0
+        matl_cost  = 0.0
+        if style_new and style_new != style_base:
+            style_cost = ct.roof_style_cost(style_new)
+            cambios_costos.append(("Roof Style", style_base, style_new, style_cost))
+        if matl_new and matl_new != matl_base:
+            matl_cost = ct.roof_matl_cost(matl_new) * roof_area
+            cambios_costos.append(("Roof Matl", matl_base, matl_new, matl_cost))
+    except Exception:
+        pass
+
+    # --------- LECTURA Y REPORTE DE EXTERIOR (1st / 2nd / Qual / Cond) ---------
+    try:
+        # Nombres de materiales según tu modelado (ajusta si usaste otros):
+        ext_names = ["AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard",
+                    "ImStucc","MetalSd","Plywood","PreCast","Stone","Stucco","VinylSd",
+                    "Wd Sdng","WdShngl"]
+
+        # helper para detectar el pick leyendo binarios ex1_/ex2_
+        def _pick_ext(prefix: str, names: list[str]) -> str | None:
+            for nm in names:
+                v = m.getVarByName(f"{prefix}{nm}")
+                if v is not None and v.X > 0.5:
+                    return nm
+            return None
+
+        ex1_new = _pick_ext("ex1_", ext_names)
+        ex2_new = _pick_ext("ex2_", ext_names)
+
+        ex1_base = str(base.row.get("Exterior 1st", "VinylSd"))
+        ex2_base = str(base.row.get("Exterior 2nd", ex1_base))
+
+        # Área proxy para costos $/ft²
+        area_ext = ct.exterior_area_proxy(base.row)
+
+        # Si cambió ex1, mostramos costo de demo+material (SOLO para reporte)
+        if ex1_new and ex1_new != ex1_base:
+            c_demo = (ct.exterior_demo_face1 * area_ext)
+            c_mat  = (ct.ext_mat_cost(ex1_new) * area_ext)
+            cambios_costos.append(("Exterior 1st", ex1_base, ex1_new, c_demo + c_mat))
+
+        if ex2_new and ex2_new != ex2_base:
+            c_demo = (ct.exterior_demo_face2 * area_ext)
+            c_mat  = (ct.ext_mat_cost(ex2_new) * area_ext)
+            cambios_costos.append(("Exterior 2nd", ex2_base, ex2_new, c_demo + c_mat))
+
+        # Qual/Cond finales (si las modelaste como enteros modificables)
+        def _read_int_var(name: str, default=None):
+            v = m.getVarByName(f"x_{name}")
+            return int(round(v.X)) if v is not None else default
+
+        exq_base = base.row.get("Exter Qual", None)
+        exc_base = base.row.get("Exter Cond", None)
+
+        exq_new = _read_int_var("Exter Qual", exq_base)
+        exc_new = _read_int_var("Exter Cond", exc_base)
+
+        # Si suben niveles, mostramos el costo por nivel (reporte; el MIP ya lo incorporó)
+        def _q2i(v):
+            MAP = {"Po":0, "Fa":1, "TA":2, "Gd":3, "Ex":4}
+            try: return int(v)
+            except Exception: return MAP.get(str(v), 2)
+
+        if exq_new is not None and exq_base is not None:
+            d = max(0, _q2i(exq_new) - _q2i(exq_base))
+            if d > 0:
+                cambios_costos.append(("Exter Qual", exq_base, exq_new, d * ct.exter_qual_upgrade_per_level))
+
+        if exc_new is not None and exc_base is not None:
+            d = max(0, _q2i(exc_new) - _q2i(exc_base))
+            if d > 0:
+                cambios_costos.append(("Exter Cond", exc_base, exc_new, d * ct.exter_cond_upgrade_per_level))
+    except Exception:
+        pass
+
     # ===== impresión =====
     if aumento_utilidad <= 0:
         print("tu casa ya está en su punto optimo para tu presupuesto")
@@ -286,6 +433,20 @@ def main():
             print(f"Roof Matl  base→nuevo: {matl_base} → {matl_new}")
         except Exception:
             pass
+
+        # --- resultado Mas Vnr Type (si existen las vars) ---
+        try:
+            pick = None
+            for nm in ["BrkCmn","BrkFace","CBlock","None","Stone"]:
+                v = m.getVarByName(f"x_mvt_is_{nm}")
+                if v is not None and v.X > 0.5:
+                    pick = nm
+                    break
+            if pick is not None:
+                print(f"Mas Vnr Type base→nuevo: {str(base.row.get('Mas Vnr Type','None'))} → {pick}")
+        except Exception:
+            pass
+
 
 if __name__ == "__main__":
     main()
