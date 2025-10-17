@@ -1,3 +1,4 @@
+# optimization/remodel/costs.py
 from dataclasses import dataclass
 from typing import Dict
 
@@ -10,8 +11,24 @@ class CostTables:
     deck_per_m2: float = 200
     garage_per_car: float = 9000
     finish_basement_per_f2: float = 15
-    kitchenQual_upgrade_TA: float = 42500   # EJEMPLO: costo paquete TA
-    kitchenQual_upgrade_EX: float = 180000  # EJEMPLO: costo paquete Ex
+    kitchenQual_upgrade_TA: float = 10  # EJEMPLO: costo paquete TA
+    kitchenQual_upgrade_EX: float = 10  # EJEMPLO: costo paquete Ex
+
+    # costos de Utilities (si aplica)
+    #-------------------------------------------
+    utilities_costs = {
+        # Rellena con los costos de la tabla del PDF:
+        # ojo: usa exactamente los labels como en tu CSV
+        "AllPub": 31750.0,
+        "NoSewr": 39500.0,
+        "NoSeWa": 22000.0,
+        "ELO":    20000.0,
+    }
+    
+    # helper opcional
+    def util_cost(self, name: str) -> float:
+        return float(self.utilities_costs.get(str(name), 0.0))
+    #-------------------------------------------
 
     # costo fijo de proyectos (permisos, etc.)
     project_fixed: float = 0

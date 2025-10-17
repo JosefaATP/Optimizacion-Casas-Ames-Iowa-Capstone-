@@ -1,3 +1,4 @@
+# optimization/remodel/features.py
 from dataclasses import dataclass
 from typing import List, Dict, Tuple
 import numpy as np
@@ -22,10 +23,31 @@ MODIFIABLE = [
     FeatureSpec("1st Flr SF", 0.0, 5000.0, "C"),
     FeatureSpec("2nd Flr SF", 0.0, 4000.0, "C"),
     FeatureSpec("Low Qual Fin SF", 0.0, 1000.0, "C"),
-    FeatureSpec("Kitchen Qual", 0, 4, "I"),  # ordinal 0..4
-    # binarios δ_{k} para "a lo más una / exactamente una"
-    FeatureSpec("delta_KitchenQual_TA", 0, 1, "B"),
-    FeatureSpec("delta_KitchenQual_EX", 0, 1, "B"),
+]
+
+QUALITY_COLS = [
+    "Kitchen Qual", "Exter Qual", "Exter Cond",
+    "Bsmt Qual", "Bsmt Cond",
+    "Heating QC",
+    "Fireplace Qu",
+    "Garage Qual", "Garage Cond",
+    "Pool QC",
+]
+
+# cada calidad: entero 0..4
+for _q in QUALITY_COLS:
+    MODIFIABLE.append(FeatureSpec(name=_q, lb=0, ub=4, vartype="I"))
+
+MODIFIABLE.append(FeatureSpec("delta_KitchenQual_TA", lb=0, ub=1, vartype="B"))
+MODIFIABLE.append(FeatureSpec("delta_KitchenQual_EX", lb=0, ub=1, vartype="B"))
+
+# Utilities como entero ordinal 0..3 (ELO, NoSeWa, NoSewr, AllPub)
+MODIFIABLE.append(FeatureSpec("Utilities", 0, 3, "I"))
+MODIFIABLE += [
+    FeatureSpec("u_util_ELO",    0, 1, "B"),
+    FeatureSpec("u_util_NoSeWa", 0, 1, "B"),
+    FeatureSpec("u_util_NoSewr", 0, 1, "B"),
+    FeatureSpec("u_util_AllPub", 0, 1, "B"),
 ]
 
 # features fijas que el modelo necesita pero no se modifican (tomadas de la casa base)

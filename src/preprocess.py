@@ -15,12 +15,15 @@ QUALITY_CANDIDATE_NAMES: List[str] = [
     "Pool QC",
 ]
 
+UTIL_ORDER = ["ELO", "NoSeWa", "NoSewr", "AllPub"]
+UTIL_TO_ORD = {u:i for i,u in enumerate(UTIL_ORDER)}
+
 def infer_feature_types(
     df: pd.DataFrame,
     target: str,
     drop_cols: List[str],
     numeric_cols: Optional[List[str]] = None,
-    categorical_cols: Optional[List[str]] = None
+    categorical_cols: Optional[List[str]] = None,
 ) -> Tuple[List[str], List[str]]:
     X = df.drop(columns=[target] + [c for c in drop_cols if c in df.columns], errors="ignore")
     if numeric_cols is None or categorical_cols is None:
@@ -35,28 +38,30 @@ def infer_feature_types(
 def build_preprocessor(
     numeric_cols: List[str],
     categorical_cols: List[str],
-    quality_cols: Optional[List[str]] = None,  # <-- sigue existiendo por API, pero no usamos Ordinal
+    quality_cols: List[str] | None = None,
+    utilities_cols: List[str] | None = None
 ) -> ColumnTransformer:
-    """
-    Preprocesador SOLO con OneHotEncoder para TODAS las categóricas.
-    (Nada de OrdinalEncoder: gurobi-ml no lo soporta.)
-    Las restricciones de 'calidad' (Kitchen, etc.) se modelan en el MIP.
-    """
-    # Numérico: passthrough (tu dataset ya viene limpio)
-    num_pipe = "passthrough"
+    # OJO: ya tratamos calidades como numéricas, así que no las metas a OHE
+    quality_cols = quality_cols or []
+    utilities_cols = utilities_cols or []
 
-    # Categóricas: OneHotEncoder (compat sklearn 1.1/1.2+)
+    # quítalas de las categóricas
+    cat_ohe_cols = [c for c in categorical_cols if c not in quality_cols + utilities_cols]
+
+    num_pipe = SKPipeline(steps=[("passthrough", "passthrough")])
+
+    # OHE sólo para categóricas "normales"
     try:
-        ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False, dtype=float)
+        ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
     except TypeError:
-        ohe = OneHotEncoder(handle_unknown="ignore", sparse=False, dtype=float)
+        ohe = OneHotEncoder(handle_unknown="ignore", sparse=False)
 
     pre = ColumnTransformer(
         transformers=[
-            ("num", num_pipe, numeric_cols),
-            ("cat", ohe, categorical_cols),
+            ("num", num_pipe, numeric_cols),     # ← aquí van también las Q/Cond ya ordinalizadas
+            ("cat", ohe, cat_ohe_cols),
         ],
         remainder="drop",
-        verbose_feature_names_out=False,
+        n_jobs=None,
     )
     return pre

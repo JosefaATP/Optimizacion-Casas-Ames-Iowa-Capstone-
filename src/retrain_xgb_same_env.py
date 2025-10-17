@@ -17,6 +17,7 @@ from .preprocess import (
     infer_feature_types,
     build_preprocessor,
     QUALITY_CANDIDATE_NAMES,
+    UTIL_TO_ORD,        # 👈 mapeo ordinal para Utilities
 )
 
 from .metrics import regression_report
@@ -34,102 +35,98 @@ def main():
     df = pd.read_csv(args.csv, sep=None, engine="python")
     df.columns = [c.replace("\ufeff", "").strip() for c in df.columns]
 
-
     # forzar categóricas que mencionaste
     for col in ["MS SubClass", "Mo Sold"]:
         if col in df.columns:
             df[col] = df[col].astype("category")
-    
-    # 3) tipos de variables como tu entrenamiento original
-    df["Mas Vnr Area"] = pd.to_numeric(df["Mas Vnr Area"], errors="coerce")  # nada de "No aplica"
-    df["Mas Vnr Area"] = df["Mas Vnr Area"].fillna(0.0)  # o deja NaN y usa imputador numérico
 
     # 2) target numeric & drop NA en target
     df[cfg.target] = pd.to_numeric(df[cfg.target], errors="coerce")
     df = df.dropna(subset=[cfg.target])
 
-    # 1) Normalizar columnas de calidad a texto (Po, Fa, TA, Gd, Ex)
-    MAP_Q = {0: "Po", 1: "Fa", 2: "TA", 3: "Gd", 4: "Ex"}
-    quality_cols = [c for c in QUALITY_CANDIDATE_NAMES if c in df.columns]
-    for col in quality_cols:
-        # si ya viene como string Po/Fa/TA/Gd/Ex, esto no la daña;
-        # si viene como números 0..4, la mapea; si viene otra cosa, la deja como str
-        df[col] = df[col].map(MAP_Q).fillna(df[col].astype(str))
+    # 3) limpieza específica que ya usabas
+    df["Mas Vnr Area"] = pd.to_numeric(df["Mas Vnr Area"], errors="coerce").fillna(0.0)
 
-    # 2) Tipos como antes
+    # === A) Calidades → ordinal (0..4) =======================================
+    MAP_Q_ORD = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
+    quality_cols = [c for c in QUALITY_CANDIDATE_NAMES if c in df.columns]
+
+    def to_ord_series(s: pd.Series) -> pd.Series:
+        # si ya viene como 0..4, respétalo; si viene como string Po..Ex, mapéalo; raro -> -1
+        as_num = pd.to_numeric(s, errors="coerce")
+        mask_ok = as_num.isin([0, 1, 2, 3, 4])
+        return as_num.where(mask_ok, s.map(MAP_Q_ORD)).fillna(-1).astype(int)
+
+    for col in quality_cols:
+        df[col] = to_ord_series(df[col])
+
+    # === B) Utilities → ordinal con tu orden ================================
+    utilities_cols = [c for c in ["Utilities"] if c in df.columns]
+    for col in utilities_cols:
+        df[col] = df[col].map(UTIL_TO_ORD).fillna(-1).astype(int)
+
+    # 4) tipos
     numeric_cols, categorical_cols = infer_feature_types(
         df, target=cfg.target, drop_cols=cfg.drop_cols,
         numeric_cols=cfg.numeric_cols, categorical_cols=cfg.categorical_cols
     )
 
-    # 4) split
-    X = df.drop(columns=[cfg.target] + [c for c in cfg.drop_cols if c in df.columns], errors="ignore")
-    y = df[cfg.target].values
-    Xtr, Xte, ytr, yte = train_test_split(
-        X, y, test_size=cfg.test_size, random_state=cfg.random_state
+    # 5) preprocesador (excluye Q y Utilities del OHE)
+    pre = build_preprocessor(
+        numeric_cols=numeric_cols,
+        categorical_cols=categorical_cols,
+        quality_cols=quality_cols,
+        utilities_cols=utilities_cols
     )
-    # 5) preprocesador
-    pre = build_preprocessor(numeric_cols, categorical_cols)
 
-    # 6) modelo
+    # 6) modelo + target en log
     xgb = XGBRegressor(**cfg.xgb_params)
-
-    # 7) target en log como antes
     reg = TransformedTargetRegressor(regressor=xgb, func=np.log1p, inverse_func=np.expm1)
 
-    # 8) pipeline y fit
+    # 7) pipeline y fit
+    X = df.drop(columns=[cfg.target] + [c for c in cfg.drop_cols if c in df.columns], errors="ignore")
+    y = df[cfg.target].values
+    Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=cfg.test_size, random_state=cfg.random_state)
+
     pipe = Pipeline(steps=[("pre", pre), ("xgb", reg)])
     pipe.fit(Xtr, ytr)
 
+    # Booster robusto para joblib
     from sklearn.compose import TransformedTargetRegressor as TTR
-
     xgb_step = pipe.named_steps["xgb"]
-    # >>> OJO: después de fit, el estimador entrenado está en `regressor_`
     xgb_reg = xgb_step.regressor_ if isinstance(xgb_step, TTR) else xgb_step
-
-    # ====== OBTENER BOOSTER DE FORMA SEGURA (sin forzar get_booster) ======
-    bst = getattr(xgb_reg, "_Booster", None)   # muchos builds lo tienen aquí tras fit
+    bst = getattr(xgb_reg, "_Booster", None)
     if bst is None:
-        # como respaldo, intenta get_booster, pero protegido
-        try:
-            bst = xgb_reg.get_booster()
-        except Exception as e:
-            bst = None
-
-    # Si logramos el booster, guardamos bytes crudos para que sobreviva a joblib
+        try: bst = xgb_reg.get_booster()
+        except Exception: bst = None
     if bst is not None:
-        try:
-            xgb_reg._Booster_raw = bst.save_raw()
-        except Exception:
-            pass
-    # ======================================================================
+        try: xgb_reg._Booster_raw = bst.save_raw()
+        except Exception: pass
 
+    # 8) evaluación y guardado
+    yhat_tr = pipe.predict(Xtr); yhat_te = pipe.predict(Xte)
+    rep_tr = regression_report(ytr, yhat_tr); rep_te = regression_report(yte, yhat_te)
+    print("train:", rep_tr); print("test :", rep_te)
 
-    # 9) evaluación
-    yhat_tr = pipe.predict(Xtr)
-    yhat_te = pipe.predict(Xte)
-    rep_tr = regression_report(ytr, yhat_tr)
-    rep_te = regression_report(yte, yhat_te)
-
-    # extras de residuos
-    res_tr = pd.Series(ytr - yhat_tr)
-    res_te = pd.Series(yte - yhat_te)
-    extra_tr = {"residual_skew": float(res_tr.skew()), "residual_kurtosis": float(res_tr.kurtosis())}
-    extra_te = {"residual_skew": float(res_te.skew()), "residual_kurtosis": float(res_te.kurtosis())}
-
-    print("train:", rep_tr)
-    print("test :", rep_te)
-
-    # 10) guardar artefactos
     model_path = Path(args.outdir) / "model_xgb.joblib"
     joblib.dump(pipe, model_path)
 
+    # Booster opcional
+    from sklearn.compose import TransformedTargetRegressor as TTR
+    xgb_step = pipe.named_steps["xgb"]
+    xgb_reg = xgb_step.regressor_ if isinstance(xgb_step, TTR) else xgb_step
+    bst = getattr(xgb_reg, "_Booster", None)
     if bst is not None:
         (Path(args.outdir) / "booster.json").unlink(missing_ok=True)
         bst.save_model(str(Path(args.outdir) / "booster.json"))
 
+    # ---- ¡OJO! Usar el pd del import de arriba (no reimportar dentro de la función) ----
+    res_tr = pd.Series(ytr - yhat_tr); res_te = pd.Series(yte - yhat_te)
+    extra_tr = {"residual_skew": float(res_tr.skew()), "residual_kurtosis": float(res_tr.kurtosis())}
+    extra_te = {"residual_skew": float(res_te.skew()), "residual_kurtosis": float(res_te.kurtosis())}
 
     with open(Path(args.outdir) / "metrics.json", "w") as f:
+        import json
         json.dump({"train": {**rep_tr, **extra_tr}, "test": {**rep_te, **extra_te}, "log_target": True}, f, indent=2)
 
     meta = {
@@ -139,16 +136,14 @@ def main():
         "categorical_cols": categorical_cols,
         "xgb_params": cfg.xgb_params,
         "log_target": True,
+        "quality_cols": quality_cols,
+        "utilities_cols": utilities_cols,
     }
     with open(Path(args.outdir) / "meta.json", "w") as f:
+        import json
         json.dump(meta, f, indent=2)
 
-    # 11) opcional: export Booster a JSON (por si quieres usarlo directo alguna vez)
-    # OJO: esto requiere acceder al regressor interno ya fitted:
-    '''booster = pipe.named_steps["xgb"].regressor.get_booster()
-    booster.save_model(str(Path(args.outdir) / "booster.json"))'''
     print(f"Guardado:\n - {model_path}\n - booster.json\n - metrics.json\n - meta.json")
 
 if __name__ == "__main__":
     main()
-
