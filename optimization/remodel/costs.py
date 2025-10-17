@@ -12,7 +12,7 @@ class CostTables:
     finish_basement_per_m2: float = 300
 
     # costo fijo de proyectos (permisos, etc.)
-    project_fixed: float = 1500
+    project_fixed: float = 0
 
     # costo inicial de la casa (sin cambios). cambia por columna real si la tienes
     def initial_cost(self, base_row) -> float:

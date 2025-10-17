@@ -4,7 +4,7 @@ from typing import List, Optional
 @dataclass
 class Config:
     # nombre de la variable objetivo
-    target: str = "precio"
+    target: str = "SalePrice_Present"
 
     # columnas que NO quieres usar
     drop_cols: List[str] = field(default_factory=lambda: [

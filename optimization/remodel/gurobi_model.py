@@ -1,11 +1,17 @@
+#gurobi_model.py
 from typing import Dict, Any
 import pandas as pd
 import gurobipy as gp
 import numpy as np
 
+from sklearn.compose import ColumnTransformer
+
 # >>> EL SHIM DEBE IR ANTES DE CUALQUIER IMPORT DE gurobi_ml <<<
 from .compat_sklearn import ensure_check_feature_names
 ensure_check_feature_names()
+
+from .compat_xgboost import patch_get_booster
+patch_get_booster()
 
 # Import compatible para distintas versiones de gurobi-ml
 try:
@@ -31,40 +37,59 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     for f in MODIFIABLE:
         x[f.name] = m.addVar(lb=f.lb, ub=f.ub, vtype=_vtype(f.vartype), name=f"x_{f.name}")
 
-    # armar input_vars: tomar TODAS las features que espera el pipeline
-    feats: Dict[str, Any] = {}
-    for fname in bundle.feature_names_in():
-        if fname in {f.name for f in MODIFIABLE}:
-            continue
-        val = base_row[fname]
-        # intento de cast a float; si falla, lo dejamos como string
-        try:
-            feats[fname] = float(val)
-        except Exception:
-            feats[fname] = str(val)
+    # === ENTRADA AL PIPELINE (DataFrame 1xN, en el orden que espera) ===
+    feature_order = bundle.feature_names_in()
+    modifiable_names = {f.name for f in MODIFIABLE}
+    row_vals: Dict[str, Any] = {}
 
-    # añadir decision vars y chequear que existan en el modelo
-    for f in MODIFIABLE:
-        if f.name not in bundle.feature_names_in():
-            raise KeyError(
-                f"La variable modificable '{f.name}' no existe en las features del modelo. "
-                f"Revisa el nombre exacto en el CSV/modelo."
-            )
-        feats[f.name] = x[f.name]
+    for fname in feature_order:
+        if fname in modifiable_names:
+            row_vals[fname] = x[fname]           # var de decisión
+        else:
+            row_vals[fname] = base_row[fname]  # conservar dtype original del dataset
 
 
-    # salida del predictor en escala ORIGINAL (porque usamos el Pipeline completo con TTR)
-    y_price = m.addVar(lb=-gp.GRB.INFINITY, name="y_price")
+    X_input = pd.DataFrame([row_vals], columns=feature_order)
+    
+    from sklearn.preprocessing import OneHotEncoder
+    from sklearn.pipeline import Pipeline as SKPipeline
 
-    # conectar pipeline(pre -> TTR(XGB)) ya fitted (usar posicionales)
+    def _align_ohe_dtypes(X: pd.DataFrame, pre: ColumnTransformer) -> pd.DataFrame:
+        trs = pre.transformers_ if hasattr(pre, "transformers_") else pre.transformers
+        X2 = X.copy()
+        for item in trs:
+            name, transformer, cols = item[0], item[1], item[2]
+            est = transformer.steps[-1][1] if isinstance(transformer, SKPipeline) else transformer
+            if isinstance(est, OneHotEncoder):
+                for c in cols:
+                    if c in X2.columns:
+                        # fuerza str para que coincida con categories_ parcheadas
+                        X2[c] = X2[c].astype(str)
+        return X2
+
+    X_input = pd.DataFrame([row_vals], columns=feature_order)
+    X_input = _align_ohe_dtypes(X_input, bundle.pre)  # 👈 nuevo
+
+    # === salida del predictor: LOG(PRECIO) porque pipe_for_gurobi es (pre -> XGB) ===
+    y_log = m.addVar(lb=-gp.GRB.INFINITY, name="y_log")
+
     _add_sklearn(
         m,
-        bundle.pipe_for_gurobi(),   # == pipeline completo que cargaste del joblib
-        feats,
-        [y_price],
+        bundle.pipe_for_gurobi(),   # (pre -> XGBRegressor) SIN TTR
+        X_input,                    # DataFrame (no dict)
+        [y_log],
     )
 
-    # costos de remodelacion (placeholder por delta vs base)
+    # === convertir log->precio con PWL expm1 ===
+    if bundle.is_log_target():
+        y_price = m.addVar(lb=0.0, name="y_price")
+        z_min, z_max = 10.0, 14.0
+        grid = np.linspace(z_min, z_max, 81)
+        m.addGenConstrPWL(y_log, y_price, grid.tolist(), np.expm1(grid).tolist(), name="exp_expm1")
+    else:
+        y_price = y_log
+
+    # --- costos (igual que tenías) ---
     base_vals = {f.name: float(base_row.get(f.name, 0.0)) for f in MODIFIABLE}
     lin_cost = gp.LinExpr(ct.project_fixed)
 
@@ -85,20 +110,14 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         lin_cost += pos(x["Total Bsmt SF"] - base_vals.get("Total Bsmt SF", 0.0)) * ct.finish_basement_per_m2
 
     total_cost = lin_cost
-
-    # presupuesto
     m.addConstr(total_cost <= budget, name="budget")
 
-    # ejemplos de restricciones
     if "2nd Flr SF" in x and "1st Flr SF" in x:
         m.addConstr(x["2nd Flr SF"] <= x["1st Flr SF"], name="floor2_le_floor1")
     if "Garage Area" in x and "Garage Cars" in x:
         m.addConstr(x["Garage Area"] >= 150 * x["Garage Cars"], name="garage_min_area")
-    if "Garage Area" in x and "Garage Cars" in x:
         m.addConstr(x["Garage Area"] <= 250 * x["Garage Cars"], name="garage_max_area")
 
-    # objetivo: max rentabilidad = y_price - costo_remodelacion - costo_inicial(base)
     initial_cost = ct.initial_cost(base_row)
-    m.setObjective(y_price - total_cost - initial_cost, gp.GRB.MAXIMIZE)
-
+    m.setObjective(y_price - total_cost, gp.GRB.MAXIMIZE)
     return m
