@@ -117,12 +117,23 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         y_price = y_log
 
     # --- costos (igual que tenías) ---
-    base_vals = {f.name: float(base_row.get(f.name, 0.0)) for f in MODIFIABLE}
+    def _num_base(name: str) -> float:
+        """Devuelve el valor base como float si es numérico; si no, 0.0."""
+        try:
+            return float(pd.to_numeric(base_row.get(name), errors="coerce"))
+        except Exception:
+            return 0.0
+
+    base_vals = {
+    "Bedroom AbvGr": _num_base("Bedroom AbvGr"),
+    "Full Bath": _num_base("Full Bath"),
+    "Wood Deck SF": _num_base("Wood Deck SF"),
+    "Garage Cars": _num_base("Garage Cars"),
+    "Total Bsmt SF": _num_base("Total Bsmt SF"),
+    # si más adelante agregas costos para otras numéricas, añádelas acá
+}
+  
     lin_cost = gp.LinExpr(ct.project_fixed)
-    # después de construir lin_cost:
-    total_cost_var = m.addVar(lb=0.0, name="total_cost")
-    m.addConstr(total_cost_var == lin_cost, name="def_total_cost")
-    total_cost = total_cost_var  # usa esta en el objetivo y en prints
 
     def pos(expr):
         v = m.addVar(lb=0.0, name=f"pos_{len(m.getVars())}")
@@ -130,18 +141,20 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         return v
 
     if "Bedroom AbvGr" in x:
-        lin_cost += pos(x["Bedroom AbvGr"] - base_vals.get("Bedroom AbvGr", 0.0)) * ct.add_bedroom
+        lin_cost += pos(x["Bedroom AbvGr"] - base_vals["Bedroom AbvGr"]) * ct.add_bedroom
     if "Full Bath" in x:
-        lin_cost += pos(x["Full Bath"] - base_vals.get("Full Bath", 0.0)) * ct.add_bathroom
+        lin_cost += pos(x["Full Bath"] - base_vals["Full Bath"]) * ct.add_bathroom
     if "Wood Deck SF" in x:
-        lin_cost += pos(x["Wood Deck SF"] - base_vals.get("Wood Deck SF", 0.0)) * ct.deck_per_m2
+        lin_cost += pos(x["Wood Deck SF"] - base_vals["Wood Deck SF"]) * ct.deck_per_m2
     if "Garage Cars" in x:
-        lin_cost += pos(x["Garage Cars"] - base_vals.get("Garage Cars", 0.0)) * ct.garage_per_car
+        lin_cost += pos(x["Garage Cars"] - base_vals["Garage Cars"]) * ct.garage_per_car
     if "Total Bsmt SF" in x:
-        lin_cost += pos(x["Total Bsmt SF"] - base_vals.get("Total Bsmt SF", 0.0)) * ct.finish_basement_per_m2
-    
-    lin_cost += dTA * ct.KitchenQual_upgrade_TA
-    lin_cost += dEX * ct.KitchenQual_upgrade_EX
+        lin_cost += pos(x["Total Bsmt SF"] - base_vals["Total Bsmt SF"]) * ct.finish_basement_per_f2
+
+    # Costos de paquetes de cocina (binarios, ya definidos en features como delta_KitchenQual_…)
+    lin_cost += x["delta_KitchenQual_TA"] * ct.kitchenQual_upgrade_TA
+    lin_cost += x["delta_KitchenQual_EX"] * ct.kitchenQual_upgrade_EX
+
 
     total_cost = lin_cost
     m.addConstr(total_cost <= budget, name="budget")
