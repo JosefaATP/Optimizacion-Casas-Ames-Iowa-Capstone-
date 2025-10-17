@@ -22,6 +22,10 @@ MODIFIABLE = [
     FeatureSpec("1st Flr SF", 0.0, 5000.0, "C"),
     FeatureSpec("2nd Flr SF", 0.0, 4000.0, "C"),
     FeatureSpec("Low Qual Fin SF", 0.0, 1000.0, "C"),
+    FeatureSpec("Kitchen Qual", 0, 4, "I"),  # ordinal 0..4
+    # binarios δ_{k} para "a lo más una / exactamente una"
+    FeatureSpec("delta_KitchenQual_TA", 0, 1, "B"),
+    FeatureSpec("delta_KitchenQual_EX", 0, 1, "B"),
 ]
 
 # features fijas que el modelo necesita pero no se modifican (tomadas de la casa base)

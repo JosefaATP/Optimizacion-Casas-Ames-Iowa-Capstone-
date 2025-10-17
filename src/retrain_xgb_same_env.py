@@ -13,7 +13,12 @@ from xgboost import XGBRegressor
 
 # importa tus utilidades
 from .config import Config
-from .preprocess import infer_feature_types, build_preprocessor
+from .preprocess import (
+    infer_feature_types,
+    build_preprocessor,
+    QUALITY_CANDIDATE_NAMES,
+)
+
 from .metrics import regression_report
 
 def main():
@@ -29,6 +34,7 @@ def main():
     df = pd.read_csv(args.csv, sep=None, engine="python")
     df.columns = [c.replace("\ufeff", "").strip() for c in df.columns]
 
+
     # forzar categóricas que mencionaste
     for col in ["MS SubClass", "Mo Sold"]:
         if col in df.columns:
@@ -42,7 +48,15 @@ def main():
     df[cfg.target] = pd.to_numeric(df[cfg.target], errors="coerce")
     df = df.dropna(subset=[cfg.target])
 
+    # 1) Normalizar columnas de calidad a texto (Po, Fa, TA, Gd, Ex)
+    MAP_Q = {0: "Po", 1: "Fa", 2: "TA", 3: "Gd", 4: "Ex"}
+    quality_cols = [c for c in QUALITY_CANDIDATE_NAMES if c in df.columns]
+    for col in quality_cols:
+        # si ya viene como string Po/Fa/TA/Gd/Ex, esto no la daña;
+        # si viene como números 0..4, la mapea; si viene otra cosa, la deja como str
+        df[col] = df[col].map(MAP_Q).fillna(df[col].astype(str))
 
+    # 2) Tipos como antes
     numeric_cols, categorical_cols = infer_feature_types(
         df, target=cfg.target, drop_cols=cfg.drop_cols,
         numeric_cols=cfg.numeric_cols, categorical_cols=cfg.categorical_cols
@@ -54,7 +68,6 @@ def main():
     Xtr, Xte, ytr, yte = train_test_split(
         X, y, test_size=cfg.test_size, random_state=cfg.random_state
     )
-
     # 5) preprocesador
     pre = build_preprocessor(numeric_cols, categorical_cols)
 

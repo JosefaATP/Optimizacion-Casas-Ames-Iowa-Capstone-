@@ -6,10 +6,12 @@ class CostTables:
     # costos unitarios simples, ajusta segun tu PDF
     add_bedroom: float = 8000
     add_bathroom: float = 12000
-    kitchen_upgrade_ta_to_gd: float = 7000
+    #kitchen_upgrade_ta_to_gd: float = 7000
     deck_per_m2: float = 200
     garage_per_car: float = 9000
-    finish_basement_per_m2: float = 300
+    finish_basement_per_f2: float = 15
+    kitchenQual_upgrade_TA: float = 42500   # EJEMPLO: costo paquete TA
+    kitchenQual_upgrade_EX: float = 180000  # EJEMPLO: costo paquete Ex
 
     # costo fijo de proyectos (permisos, etc.)
     project_fixed: float = 0

@@ -70,6 +70,33 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     X_input = pd.DataFrame([row_vals], columns=feature_order)
     X_input = _align_ohe_dtypes(X_input, bundle.pre)  # 👈 nuevo
 
+    #==================================================================
+    #=== RESTRICCIONES DE CALIDAD ================================
+    # === R9-KITCHEN: Mejora de calidad sólo a TA o Ex, a lo más un paquete ===
+    def _q_to_ord(v):
+        mapping = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
+        try:
+            return int(v)
+        except Exception:
+            return mapping[str(v)]
+
+    kq_base = _q_to_ord(base_row.get("Kitchen Qual", "TA"))  # default defensivo
+
+    # Vars binarias que declaraste en features.py
+    dTA = x["delta_KitchenQual_TA"]
+    dEX = x["delta_KitchenQual_EX"]
+
+    # A lo más un paquete
+    m.addConstr(dTA + dEX <= 1, name="R9_kitchen_at_most_one_pkg")
+
+    # Si la base ya es >= TA, no ofertar paquete TA (sería 'no-op')
+    if kq_base >= 2:
+        dTA.UB = 0
+    # Si la base ya es EX, no ofertar nada
+    if kq_base >= 4:
+        dEX.UB = 0
+    #==================================================================
+
     # === salida del predictor: LOG(PRECIO) porque pipe_for_gurobi es (pre -> XGB) ===
     y_log = m.addVar(lb=-gp.GRB.INFINITY, name="y_log")
 
@@ -112,6 +139,9 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         lin_cost += pos(x["Garage Cars"] - base_vals.get("Garage Cars", 0.0)) * ct.garage_per_car
     if "Total Bsmt SF" in x:
         lin_cost += pos(x["Total Bsmt SF"] - base_vals.get("Total Bsmt SF", 0.0)) * ct.finish_basement_per_m2
+    
+    lin_cost += dTA * ct.KitchenQual_upgrade_TA
+    lin_cost += dEX * ct.KitchenQual_upgrade_EX
 
     total_cost = lin_cost
     m.addConstr(total_cost <= budget, name="budget")
