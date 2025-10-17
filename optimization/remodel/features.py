@@ -18,7 +18,10 @@ MODIFIABLE = [
     FeatureSpec("Garage Cars", 0, 4, "I"),
     FeatureSpec("Wood Deck SF", 0.0, 120.0, "C"),
     FeatureSpec("Total Bsmt SF", 0.0, 300.0, "C"),
-    FeatureSpec("Gr Liv Area", 20.0, 400.0, "C"),
+    FeatureSpec("Gr Liv Area", 0.0, 10000.0, "C"),
+    FeatureSpec("1st Flr SF", 0.0, 5000.0, "C"),
+    FeatureSpec("2nd Flr SF", 0.0, 4000.0, "C"),
+    FeatureSpec("Low Qual Fin SF", 0.0, 1000.0, "C"),
 ]
 
 # features fijas que el modelo necesita pero no se modifican (tomadas de la casa base)

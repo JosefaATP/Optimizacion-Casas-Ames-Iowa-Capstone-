@@ -92,6 +92,10 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # --- costos (igual que tenías) ---
     base_vals = {f.name: float(base_row.get(f.name, 0.0)) for f in MODIFIABLE}
     lin_cost = gp.LinExpr(ct.project_fixed)
+    # después de construir lin_cost:
+    total_cost_var = m.addVar(lb=0.0, name="total_cost")
+    m.addConstr(total_cost_var == lin_cost, name="def_total_cost")
+    total_cost = total_cost_var  # usa esta en el objetivo y en prints
 
     def pos(expr):
         v = m.addVar(lb=0.0, name=f"pos_{len(m.getVars())}")
@@ -112,12 +116,95 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     total_cost = lin_cost
     m.addConstr(total_cost <= budget, name="budget")
 
-    if "2nd Flr SF" in x and "1st Flr SF" in x:
-        m.addConstr(x["2nd Flr SF"] <= x["1st Flr SF"], name="floor2_le_floor1")
-    if "Garage Area" in x and "Garage Cars" in x:
+
+    '''if "Garage Area" in x and "Garage Cars" in x:
         m.addConstr(x["Garage Area"] >= 150 * x["Garage Cars"], name="garage_min_area")
-        m.addConstr(x["Garage Area"] <= 250 * x["Garage Cars"], name="garage_max_area")
+        m.addConstr(x["Garage Area"] <= 250 * x["Garage Cars"], name="garage_max_area")'''
 
     initial_cost = ct.initial_cost(base_row)
+
+
+    #------------------------------------
+    #RESTRICCIONES#------------------------------------
+    #------------------------------------
+
+    # === Restricciones "ideas" (§5) ===========================================
+    # (1) 1stFlrSF ≥ 2ndFlrSF
+    if "1st Flr SF" in x and "2nd Flr SF" in x:
+        m.addConstr(x["1st Flr SF"] >= x["2nd Flr SF"], name="R1_floor1_ge_floor2")  # [R1] §5.1
+
+    # (2) GrLivArea ≤ LotArea  (si Gr Liv Area es variable, comparar var vs parámetro; si no, usar base)
+    if "Gr Liv Area" in x and "Lot Area" in base_row:
+        m.addConstr(x["Gr Liv Area"] <= float(base_row["Lot Area"]), name="R2_grliv_le_lot")  # [R2] §5.2
+    elif "Gr Liv Area" not in x and "Lot Area" in base_row:
+        # Si 'Gr Liv Area' no es variable, revisa que la base respete (o déjala como soft en otra iteración)
+        pass
+
+    # (3) 1stFlrSF ≥ TotalBsmtSF
+    if "1st Flr SF" in x and "Total Bsmt SF" in x:
+        m.addConstr(x["1st Flr SF"] >= x["Total Bsmt SF"], name="R3_floor1_ge_bsmt")  # [R3] §5.3
+
+    # (4) FullBath + HalfBath ≤ Bedroom (arriba de nivel)
+    # Usa variable si existe; si no, valor base para la que falte.
+    def _val_or_var(col):
+        return x[col] if col in x else float(base_row[col])
+
+    need = all(c in base_row for c in ["Full Bath", "Bedroom AbvGr"])  # Half Bath puede faltar a veces
+    if need and ("Half Bath" in base_row or "Half Bath" in x):
+        fullb   = _val_or_var("Full Bath")
+        halfb   = _val_or_var("Half Bath") if ("Half Bath" in x or "Half Bath" in base_row) else 0.0
+        beds    = _val_or_var("Bedroom AbvGr")
+        m.addConstr(fullb + halfb <= beds, name="R4_baths_le_bedrooms")  # [R4] §5.4
+
+    # (R5) Mínimos: FullBath ≥ 1, BedroomAbvGr ≥ 1, KitchenAbvGr ≥ 1
+    def _val_or_var(col):
+        return x[col] if col in x else float(base_row[col])
+
+    if ("Full Bath" in x) or ("Full Bath" in base_row):
+        m.addConstr(_val_or_var("Full Bath") >= 1, name="R5_min_fullbath")
+    if ("Bedroom AbvGr" in x) or ("Bedroom AbvGr" in base_row):
+        m.addConstr(_val_or_var("Bedroom AbvGr") >= 1, name="R5_min_bedrooms")
+    if ("Kitchen AbvGr" in x) or ("Kitchen AbvGr" in base_row):
+        m.addConstr(_val_or_var("Kitchen AbvGr") >= 1, name="R5_min_kitchen")
+
+    # === R7. Consistencia de superficie habitable sobre rasante (PDF §7) ===
+    # Gr Liv Area = 1st Flr SF + 2nd Flr SF + Low Qual Fin SF (si existe)
+    lowqual_names = ["Low Qual Fin SF", "LowQualFinSF"]
+    lowqual_col = next((c for c in lowqual_names if c in X_input.columns), None)
+
+    cols_needed = ["Gr Liv Area", "1st Flr SF", "2nd Flr SF"]
+    if all(c in X_input.columns for c in cols_needed):
+
+        def _val(name: str):
+            # usa var de decisión si es modificable; si no, valor base
+            return x[name] if name in x else float(base_row[name])
+
+        lhs = _val("Gr Liv Area")
+        rhs = _val("1st Flr SF") + _val("2nd Flr SF")
+        if lowqual_col is not None:
+            rhs = rhs + _val(lowqual_col)
+
+        m.addConstr(lhs == rhs, name="R7_gr_liv_equality")
+
+    
+    # === R8. Consistencia de habitaciones (PDF §8) ===
+    # Creamos una variable auxiliar "other rooms" ≥ 0 (entera).
+    r8_ok = all(c in X_input.columns for c in ["TotRms AbvGrd", "Bedroom AbvGr", "Kitchen AbvGr"])
+    if r8_ok:
+        def _val(name: str):
+            return x[name] if name in x else float(base_row[name])
+
+        other_max = 15  # cota superior razonable para evitar no acotación
+        other = m.addVar(lb=0, ub=other_max, vtype=gp.GRB.INTEGER, name="R8_other_rooms")
+
+        # Igualdad TotRmsAbvGrd = Bedroom + Kitchen + Otras
+        m.addConstr(
+            _val("TotRms AbvGrd") == _val("Bedroom AbvGr") + _val("Kitchen AbvGr") + other,
+            name="R8_rooms_balance"
+        )
+
+
+    # ==========================================================================
+
     m.setObjective(y_price - total_cost, gp.GRB.MAXIMIZE)
     return m
