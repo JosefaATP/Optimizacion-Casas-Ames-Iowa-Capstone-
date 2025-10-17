@@ -6,6 +6,7 @@ Funciones auxiliares compartidas entre los modelos de optimización.
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_numeric_dtype  # <-- agregar
 import xgboost as xgb
 from datetime import datetime
 import joblib
@@ -152,7 +153,6 @@ def validar_restricciones_basicas(caracteristicas):
 # CÁLCULO DE GRADIENTES NUMÉRICOS
 # ============================================================================
 
-def calcular_gradientes_xgboost(casa_referencia, modelo_xgb, epsilon=1e-4, atributos_accionables=None):
 def calcular_gradientes_xgboost(casa_referencia, modelo_xgb, epsilon=1e-4, atributos_accionables=None):
     """
     Calcula gradientes numéricos de XGBoost para linearización local.

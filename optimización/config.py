@@ -34,12 +34,13 @@ ATRIBUTOS_ACCIONABLES = {
     'Garage Area': (80, False, 0, 1000, 'Área garaje ($/sqft)'),
     
     # Cantidades discretas
-    'Full Bath': (12500, True, 1, 4, 'Baños completos ($/unidad)'),
-    'Half Bath': (4000, True, 0, 2, 'Medios baños ($/unidad)'),
+    # **VALORES CORREGIDOS SEGÚN PDF**
+    'Full Bath': (25000, True, 1, 4, 'Baños completos ($/unidad)'),
+    'Half Bath': (10000, True, 0, 2, 'Medios baños ($/unidad)'),
     'Bedroom AbvGr': (5000, True, 1, 6, 'Dormitorios sobre suelo ($/unidad)'),
     'Kitchen AbvGr': (15000, True, 1, 2, 'Cocinas ($/unidad)'),
     'TotRms AbvGrd': (3000, True, 3, 12, 'Total habitaciones ($/unidad)'),
-    'Fireplace Qu': (3500, True, 0, 3, 'Chimeneas ($/unidad)'),
+    'Fireplaces': (3500, True, 0, 3, 'Chimeneas ($/unidad)'),
     'Garage Cars': (10000, True, 0, 4, 'Capacidad garaje en autos ($/auto)'),
     
     # Calidades ordinales (1-10 o 1-5)
@@ -115,9 +116,19 @@ ATRIBUTOS_FIJOS = [
 # ============================================================================
 # COSTOS DE MATERIALES (Variables categóricas)
 # ============================================================================
-#Define costos de materiales categóricos (solo puedes elegir UNO)
+# Define costos de materiales categóricos (solo puedes elegir UNO)
 
-#VERFICAR COSTOS EN EL PDF
+# **COSTOS ACTUALIZADOS Y NUEVOS**
+
+# Costos Utilities (Actualizados según PDF)
+COSTOS_UTILITIES = {
+    'AllPub': 31750,
+    'NoSewr': 39500,
+    'NoSeWa': 22000,
+    'ELO': 20000,
+}
+
+# Costos Roof Style (Mantienen valores iniciales)
 COSTOS_ROOF_STYLE = {
     'Flat': 5000,
     'Gable': 8000,
@@ -127,78 +138,39 @@ COSTOS_ROOF_STYLE = {
     'Shed': 6000,
 }
 
-# COSTOS_UTILITIES = {         
-#     'AllPub': 0,
-#     'NoSewr': 15000,
-#     'NoSeWa': 20000,
-#     'ELO': 25000,
-# }
-
-COSTOS_MASVNRTYPE = {         
-    'BrkCmn': 8000,
-    'BrkFace': 12000,
-    'CBlock': 6000,
-    'None': 0,
-    'Stone': 18000,
-}
-
-COSTOS_HEATING = {            
-    'Floor': 8000,
-    'GasA': 10000,
-    'GasW': 9000,
-    'Grav': 7000,
-    'OthW': 8500,
-    'Wall': 7500,
-}
-
-COSTOS_ELECTRICAL = {         
-    'SBrkr': 5000,    # Standard Circuit Breakers
-    'FuseA': 3000,    # Fuse Box > 60 AMP
-    'FuseF': 2500,    # 60 AMP Fuse Box
-    'FuseP': 2000,    # Poor Fuse Box
-    'Mix': 3500,
-}
-
-COSTOS_GARAGETYPE = {        
-    '2Types': 12000,
-    'Attchd': 10000,   # Attached to home
-    'Basment': 8000,
-    'BuiltIn': 11000,
-    'CarPort': 5000,
-    'Detchd': 9000,    # Detached
-    'NoGarage': 0,
-}
-
-COSTOS_PAVEDDRIVE = {         
-    'Paved': 3000,
-    'PartialPavement': 1500,
-    'Dirt/Gravel': 0,
-}
-
-COSTOS_MISCFEATURE = {        
-    'Elev': 50000,    # Elevador
-    'Gar2': 15000,    # Garaje extra
-    'Othr': 5000,
-    'Shed': 3000,
-    'TenC': 10000,    # Cancha de tenis
-    'NoMisc': 0,
-}
-
-# Roof Material (Material de techo)
+# Costos Roof Matl (Actualizados según PDF)
 COSTOS_ROOF_MATERIAL = {
-    'ClyTile': 15000,    # Tejas de arcilla
-    'CompShg': 8000,     # Asfalto compuesto
-    'Membran': 12000,    # Membrana (techos planos)
-    'Metal': 13000,
-    'Roll': 5000,
-    'Tar&Grv': 6000,
-    'WdShake': 14000,
-    'WdShngl': 11000,
+    'ClyTile': 15000,    # Tejas de arcilla (Coste fijo estimado)
+    'CompShg': 6,        # $6/sqft (desde PDF)
+    'Membran': 12000,    # Membrana (Coste fijo estimado)
+    'Metal': 8.99,       # $8.99/sqft (desde PDF)
+    'Roll': 3.7,         # $3.7/sqft (desde PDF)
+    'Tar&Grv': 5.5,      # $5.5/sqft (desde PDF)
+    'WdShake': 14000,    # Shakes de madera (Coste fijo estimado)
+    'WdShngl': 6.35,     # $6.35/sqft (desde PDF)
+}
+
+# Exterior Materials (Actualizados según PDF)
+COSTOS_EXTERIOR = {
+    'AsbShng': 11.5,
+    'AsphShn': 1.5,
+    'BrkComm': 1.21,
+    'BrkFace': 15,
+    'CBlock': 8,       # Estimado promedio
+    'CemntBd': 7,      # Estimado promedio
+    'HdBoard': 5,      # Estimado promedio
+    'ImStucc': 10,     # Estimado promedio
+    'MetalSd': 5.48,
+    'Plywood': 3,
+    'PreCast': 10,     # Estimado promedio
+    'Stone': 27.5,
+    'Stucco': 12,
+    'VinylSd': 7.46,
+    'Wd Sdng': 9000,
+    'WdShing': 8000,
 }
 
 # Matriz de compatibilidad: A[estilo][material] = 1 si compatible
-
-#Define qué combinaciones son técnicamente posibles
 ROOF_COMPATIBILITY = {
     'Gable':   {'CompShg': 1, 'Metal': 1, 'ClyTile': 1, 'WdShngl': 1, 'WdShake': 1, 'Membran': 0},
     'Hip':     {'CompShg': 1, 'Metal': 1, 'ClyTile': 1, 'WdShngl': 1, 'WdShake': 1, 'Membran': 0},
@@ -208,23 +180,71 @@ ROOF_COMPATIBILITY = {
     'Gambrel': {'CompShg': 1, 'Metal': 1, 'ClyTile': 1, 'WdShngl': 1, 'WdShake': 1, 'Membran': 0},
 }
 
-# Exterior Materials (Materiales exteriores)
-COSTOS_EXTERIOR = {
-    'AsbShng': 5000,
-    'AsphShn': 4000,
-    'BrkComm': 12000,
-    'BrkFace': 15000,
-    'CBlock': 8000,
-    'CemntBd': 10000,
-    'HdBoard': 6000,
-    'ImStucc': 9000,
-    'MetalSd': 7000,
-    'Plywood': 5000,
-    'Stone': 20000,
-    'Stucco': 8000,
-    'VinylSd': 7000,
-    'Wd Sdng': 9000,
-    'WdShing': 8000,
+# **NUEVOS COSTOS FALTANTES (Valores basados en PDF y estimaciones)**
+COSTO_BSMT_FINISH_SQFT = 15 # $15/sqft (desde PDF)
+COSTO_CENTRAL_AIR = 5362 # $5,362 (desde PDF)
+
+# Electrical
+COSTOS_ELECTRICAL = {
+    'SBrkr': 5000,
+    'FuseA': 3000,
+    'FuseF': 2500,
+    'FuseP': 2000,
+    'Mix': 3500,
+}
+
+# Heating (Actualizados según PDF)
+COSTOS_HEATING = {
+    'Floor': 1773,
+    'GasA': 5750,
+    'GasW': 8500,
+    'Grav': 6300,
+    'OthW': 4900,
+    'Wall': 3700,
+}
+
+# Kitchen Qual (Basado en valores del PDF)
+COSTOS_KITCHEN_QUAL = {
+    'Po': 13000,
+    'Fa': 27750, # Interpolado
+    'TA': 42500,
+    'Gd': 111250, # Interpolado
+    'Ex': 180000,
+}
+
+# Fence (Costos por categoría y construcción)
+COSTOS_FENCE_CAT = {
+    'NA': 0,
+    'MnWw': 1000,
+    'GdWo': 2000,
+    'MnPrv': 3000,
+    'GdPrv': 4000,
+}
+COSTO_FENCE_PSF = 8 # Costo de construcción por pie cuadrado (Estimado)
+
+# Paved Drive
+COSTOS_PAVEDDRIVE = {
+    'N': 0,
+    'P': 1000,
+    'Y': 3000,
+}
+
+# Pool Qual (Basado en valores del PDF)
+COSTOS_POOL_QUAL = {
+    'NA': 0,
+    'Po': 500,
+    'Fa': 19000,
+    'TA': 77000, # Interpolado
+    'Gd': 77000,
+    'Ex': 135000,
+}
+
+# Garage Finish
+COSTOS_GARAGE_FINISH = {
+    'NA': 0,
+    'Unf': 2000,
+    'RFn': 4000,
+    'Fin': 8000,
 }
 
 # ============================================================================
@@ -232,7 +252,7 @@ COSTOS_EXTERIOR = {
 # ============================================================================
 
 #Define cuánto cuesta demoler algo existente (para remodelación)
-#COSTO_DEMOLICION_POR_SQFT = 10  # $/sqft para demoler
+COSTO_DEMOLICION_POR_SQFT = 1.65 # $1.65/sqft
 
 
 # ============================================================================
@@ -277,6 +297,30 @@ CALIDADES_CONSTRUCCION_NUEVA = {
     'GarageQual': 5,
     'GarageCond': 5,
 }
+
+# ============================================================================
+# PARÁMETROS DE EXPANSIÓN PORCENTUAL (Sección 6 del PDF)
+# ============================================================================
+
+# Conjunto C de áreas exteriores sujetas a ampliación porcentual.
+# El valor asociado es el costo unitario por pie cuadrado (C_c) tomado de ATRIBUTOS_ACCIONABLES.
+ATRIBUTOS_EXPANSION_PORCENTUAL = {
+    'Garage Area': 80, 
+    'Wood Deck SF': 50,
+    'Open Porch SF': 45,
+    'Enclosed Porch': 60,
+    '3Ssn Porch': 65,
+    'Screen Porch': 55,
+    'Pool Area': 200,
+}
+
+# Parámetros de áreas fijas para agregados puntuales (ft²) - Secc. 6, pág 21
+AREA_AGREGADOS_PUNTUALES = {
+    'Full Bath': 40,
+    'Half Bath': 20,
+    'Kitchen AbvGr': 75,
+    'Bedroom AbvGr': 70,
+} 
 
 # ============================================================================
 # CONFIGURACIÓN DE XGBOOST

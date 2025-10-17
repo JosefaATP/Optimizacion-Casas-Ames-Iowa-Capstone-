@@ -18,6 +18,7 @@ from gurobipy import GRB
 from datetime import datetime
 import os
 from utils import guardar_resultado
+from config import COSTO_DEMOLICION_POR_SQFT, ATRIBUTOS_EXPANSION_PORCENTUAL, AREA_AGREGADOS_PUNTUALES
 
 # Importar módulos propios
 from config import (
@@ -187,7 +188,7 @@ def optimizar_remodelacion(casa_actual, presupuesto, modelo_xgb, verbose=True):
     if verbose:
         print("\n💸 Definiendo costos de remodelación...")
     
-    # Costo de construcción/modificación de atributos numéricos
+    # Costo de construcción/modificación de atributos numéricos (usando valor absoluto)
     costo_construccion_numerico = gp.quicksum(
         delta_abs[attr] * ATRIBUTOS_ACCIONABLES[attr][0]
         for attr in ATRIBUTOS_ACCIONABLES.keys()
@@ -195,22 +196,40 @@ def optimizar_remodelacion(casa_actual, presupuesto, modelo_xgb, verbose=True):
     )
     
     # Costo de demolición (cuando reduces área)
-    # costo_demolicion = gp.quicksum(
-    #     -delta[attr] * COSTO_DEMOLICION_POR_SQFT
-    #     for attr in ['GrLivArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF']
-    #     if attr in delta
-    # )
+    # Se aplica el costo de demolición ($1.65/sqft) a la reducción de área
+    
+    # Atributos de área cuya reducción implica demolición
+    atributos_area_demolicion = [
+        'Gr Liv Area', 'Total Bsmt SF', '1st Flr SF', '2nd Flr SF', 
+        'Garage Area', 'Wood Deck SF', 'Open Porch SF', 'Enclosed Porch', 
+        '3Ssn Porch', 'Screen Porch', 'Pool Area'
+    ]
+
+    # Variables auxiliares para la parte negativa del cambio (demolición)
+    delta_negativa = {}
+    for attr in atributos_area_demolicion:
+        if attr in delta:
+            # Variable que almacena el valor de la demolición (si delta < 0)
+            delta_negativa[attr] = modelo.addVar(lb=0, name=f"delta_neg_{attr}")
+            
+            # Restricción: delta_neg >= -delta (captura solo la parte de reducción)
+            modelo.addConstr(delta_negativa[attr] >= -delta[attr], name=f"def_neg_{attr}")
+            
+    costo_demolicion = gp.quicksum(
+        delta_negativa[attr] * COSTO_DEMOLICION_POR_SQFT
+        for attr in delta_negativa.keys()
+    )
     
     # Variable para costo total numérico
     costo_numerico = modelo.addVar(lb=0, name="costo_numerico")
     modelo.addConstr(
-        costo_numerico == costo_construccion_numerico,  # + costo_demolicion,
+        costo_numerico == costo_construccion_numerico + costo_demolicion,
         name="costo_numerico_def"
     )
     
-    # if verbose:
-    #     print(f"  ✓ Costo construcción numérico definido")
-    #     print(f"  ✓ Costo demolición: ${COSTO_DEMOLICION_POR_SQFT}/sqft")
+    if verbose:
+        print(f"  ✓ Costo construcción numérico definido (incluye Costo Demolición: ${COSTO_DEMOLICION_POR_SQFT}/sqft)")
+    
     
     # ========================================================================
     # PASO 6: AGREGAR RESTRICCIONES DE RENOVACIÓN (SECCIÓN 6 DEL PDF)

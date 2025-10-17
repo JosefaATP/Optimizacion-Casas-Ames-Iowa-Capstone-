@@ -1,0 +1,2478 @@
+--- Page 1 ---
+1 Supuestos Renovaci´ on
+1. La variable Foundation indica los cimientos de la casa, por lo que se fija como
+par´ ametro, ya que cambiarla implicar´ ıa destruir la casa completa.
+2. La variable BsmtQual indica la altura del s´ otano y define su calidad seg´ un
+eso, no se proceder´ a a cambiar esta calidad ya que implicar´ ıa cambiar la in-
+fraestructura de la casa.
+3. No se considera expanci´ on del s´ otano de la casa, ya que implicar´ ıa destrucci´ on
+de cimientos de la casa y evaluaciones de suelo de los cuales no tenemos infor-
+maci´ on. Por ende es por limitaci´ on de la base de datos.
+4. No se agregaran chimeneas, ya que la variable Fireplaces contabiliza la can-
+tidad total de chimeneas sin diferenciar cuales estan en la casa y cu´ ales en
+el s´ otano, por ende para restringir c´ uantas se puede agregar no se tendr´ ıa un
+par´ ametro claro de m´ aximo. Adem´ as, si se agregan no se sabr´ ıa d´ onde por lo
+mismo. La desici´ on esta tomada por la limitaci´ on de informaci´ on de la base de
+datos.
+5. Las variables Overall Qual y Overall Cond no se cambiaran, ya que indican
+la calidad y condiciones generales de la casa, por lo que depende de todos los
+otros factores de calidad y condici´ on de la casa.
+6. La variable Functional que indica la evaluaci´ on cualitativa del estado fun-
+cional general de la vivienda no ser´ a modificada, esto debido a que no podemos
+hacer mejoras espec´ ıficas si no tenemos conocimiento de qu´ e es deficiente en
+particular. La desici´ on esta tomada por la limitaci´ on de informaci´ on de la base
+de datos.
+7. La variable LowQualFinSF que indica pies cuadrados de mala calidad en
+todos los pisos no se cambiar´ a. No podemos hacer mejoras espec´ ıficas si no ten-
+emos conocimiento de qu´ e es deficiente en particular.La desici´ on esta tomada
+por la limitaci´ on de informaci´ on de la base de datos.
+8. Para la renovaci´ on de espacios se considera que no se modificaran las habita-
+ciones del interior de la casa, esto debido a que no existen especificaciones de
+losf2que hay de cada habitaci´ on, por ende esto limita su posible expansi´ on
+y/o reducci´ on. La desici´ on esta tomada por la limitaci´ on de informaci´ on de la
+base de datos.
+9. Para la renovaci´ on de espacios se considera el caso de ampliaciones en el
+primer piso, ya que existen variables descriptivas de losf2disponibles del ter-
+reno total de la vivienda. Dichas expanciones se realizan seg´ un el m´ ınimos de
+superficie habitable requeridos para cada tipo de habitaci´ on. En este caso se
+considera, BedRooms, Kitchen, HalfBath y FullBath. No se incorporan habita-
+ciones de tama˜ no variable, ya que definir proporciones m´ aximas de superficie
+por tipo de recinto no resulta adecuado sin conocer la distribuci´ on interna de
+cada vivienda. Por esta raz´ on, se considera poco coherente establecer un l´ ımite
+superior fijo aplicable a todas las propiedades. La desici´ on esta tomada por la
+limitaci´ on de informaci´ on de la base de datos.
+10. La ampliaci´ on de espacios se consideran en una escala de ampliaci´ on
+peque˜ na, moderada y grande. Las variables GarageArea, WoodDeckSF, Open-
+PorchSF, EnclosedPorch, 3SsnPorch, ScreenPorch y PoolArea se consideran
+1
+--- Page 2 ---
+para estas amppliaciones. Esto debido a que se tiene conocimiento de losf2
+disponibles del terreno total de la vivienda y dichas variables de ´ area estan in-
+volucradas en este espacio. Las ampliaciones peque˜ nas involucran el aumento
+de un 10% de su ´ area, las ampliaciones moderadas de un 20% y por ´ ultimo las
+grandes de un 30%. Se define como m´ ınimo un 10% ya que es el primer salto
+que evita microajustes geom´ etricos poco ejecutables en obra.
+10.
+2 Supuestos Construcci´ on
+2.1 Calidad de Construcci´ on
+Supuesto 1:Todas las construcciones se consideran de calidad excelente por
+ser de nueva edificaci´ on. Las variables de calidad y condici´ on toman su valor
+m´ aximo porque se asume que el nuevo material est´ a en su mejor estado.
+•OverallQual= 10 (Very Excellent)
+•OverallCond= 10 (Very Excellent)
+•ExterQual= Ex (Excellent)
+•ExterCond= Ex (Excellent)
+•BsmtQual= Ex (Excellent)
+•HeatingQC= Ex (Excellent)
+•KitchenQual= Ex (Excellent)
+2.2 Exclusividad en Sistemas
+Supuesto 2:Solo puede seleccionarse una opci´ on en variables categ´ oricas de
+sistemas y caracter´ ısticas estructurales.
+•Electrical: Solo un tipo de sistema el´ ectrico
+•Heating: Solo un tipo de sistema de calefacci´ on
+•RoofStyle: Solo un estilo de techo
+•RoofMatl: Solo un material de techo
+•HouseStyle: Solo un estilo de vivienda
+•Foundation: Solo un tipo de cimentaci´ on
+2
+--- Page 3 ---
+2.3 Completitud de ´Areas
+Supuesto 3:No existen ´ areas sin terminar en la construcci´ on. Todas las ´ areas
+deben estar completamente finalizadas.
+•BsmtFinType1̸= Unf (No unfinished basement)
+•BsmtFinType2̸= Unf (No unfinished basement)
+•BsmtUnfSF= 0 (No unfinished basement area)
+•LowQualFinSF= 0 (No low quality finished area)
+•HouseStyle/∈ {1.5Unf,2.5Unf}(No unfinished levels)
+2.4 L´ ımite de Pisos
+Supuesto 4:Las viviendas pueden tener m´ aximo 2 pisos completos. No se
+consideran niveles parciales o medios pisos sin terminar.
+•HouseStyle∈ {1Story,2Story}
+•2ndFlrSF≤1stFlrSF
+•No se permiten estilos con niveles parciales (1.5Fin, 1.5Unf, 2.5Fin, 2.5Unf)
+2.5 Par´ ametros Fijos del Terreno
+Supuesto 5:Las caracter´ ısticas f´ ısicas del terreno son par´ ametros fijos que no
+pueden modificarse.
+•LotArea: Par´ ametro fijo (´ area total del terreno)
+•LotFrontage: Par´ ametro fijo (frente lineal de la propiedad)
+•Street: Par´ ametro fijo (tipo de acceso vial)
+•Alley: Par´ ametro fijo (tipo de acceso por callej´ on)
+•LotShape: Par´ ametro fijo (forma del terreno)
+•LandContour: Par´ ametro fijo (topograf´ ıa del terreno)
+•LotConfig: Par´ ametro fijo (configuraci´ on del lote)
+•LandSlope: Par´ ametro fijo (pendiente del terreno)
+3
+--- Page 4 ---
+2.5.1 Garaje Opcional pero Estandarizado
+Supuesto 6:El garaje es opcional, pero si se construye debe cumplir con
+est´ andares m´ ınimos de capacidad, ´ area y acabado.
+•Capacidad m´ ınima: 1 veh´ ıculo si hay garaje
+•´Area proporcional: 150-250 ft²por veh´ ıculo
+•Acabado completo: Todos los garajes deben estar terminados
+2.5.2 Capacidad de Calefacci´ on de Chimeneas
+Supuesto 7:Cada chimenea tiene una capacidad de calefacci´ on de 900 pies
+cuadrados de ´ area habitable.
+•Una chimenea est´ andar puede calentar efectivamente hasta 900 ft²
+•El ´ area habitable considera solo pisos sobre nivel: 1stFlrSF+ 2ndFlrSF
+•El n´ umero m´ aximo de chimeneas est´ a limitado por:1stFlrSF+2ndFlrSF
+900
+2.5.3 L´ ımites Proporcionales al Terreno
+Supuesto 8:Los l´ ımites de construcci´ on se basan en proporciones del ´ area
+total del terreno (LotArea).
+•´Area construida:M´ aximo 80% del terreno para ´ area habitable
+•Pisos:Primer piso m´ aximo 60%, segundo piso m´ aximo 50% del terreno
+•S´ otano:M´ aximo 50% del ´ area del terreno
+•Garaje:M´ aximo 20% del terreno
+•Piscina y porches:Entre 5-15% del terreno seg´ un tipo
+2.5.4 ´Area M´ ınima para Deck de Madera
+Supuesto 9:Si se construye un deck de madera, debe tener un ´ area m´ ınima
+de 40 ft²para ser funcional, con funcional nos referimos a que pueda caer una
+mesa y al menos 4 sillas.
+•´Area m´ ınima: 40 ft²(approx. 2m x 2m) para mobiliario b´ asico
+•´Area m´ axima: 15% del terreno para mantener espacio ´ util en patio
+•Opcional: La vivienda puede o no tener deck de madera
+4
+--- Page 5 ---
+Modelo matem´ atico
+Grupo 5 Capstone
+October 2025
+3 Funci´ on Objetivo: Revisar
+Max(∆P−C total)
+•∆P=V alorFinal−V alorInicial
+- Valor creado gracias a las remodelaciones/ampliaciones.
+•Ctotal= Costos de construcci´ on + Costos destrucci´ on
+CT=X
+rX
+kθrk·δrk·ζrk·λrk+X
+iαi·βi·ηi·κi+X
+sγs·εs+ C destrucci´ on
+•θrk:Par´ ametro que es costo de contrstuir un pie cuadrado de r de la calidad
+k.
+•δrk:variable binaria que toma valor 1 en caso de construir r en calidad k.
+•ζrk: variable de cantidad de r a construir de calidad k.
+•λrk: variable de pies cuadrados que tendr´ a pieza r de k.
+•αi: par´ ametro costo unitario de pie cuadrado de i
+•βi: binaria
+•ηi: cantidad de i a construir
+•κi: metros de i a contruir
+•γs: par´ ametro de costo de instalaci´ on de s
+•εs: binaria de instalaci´ on
+5
+--- Page 6 ---
+4 Par´ ametros - Variables
+5 Restricciones ideas
+1. Segundo piso no puede ser m´ as grande que el primero. (supuesto)
+1stFlrSF≥2ndFlrSF
+2. GrLivArea (´ area habitable) no puede ser mayor que LotArea que es el ´ area
+total del terreno.
+GrLivArea≤LotArea
+3. El s´ otano no puede tener m´ as ´ area que el ´ area del primer piso. (supuesto)
+1stFlrSF≥TotalBsmtSF
+4. No pueden haber m´ as ba˜ nos que dormitorios. (sin considerar el bsmt)
+FullBath + Halfbath≤Bedroom
+5. Tiene que haber al menos un FullBath, Bedroom y Kitchen para cumplir con
+las necesidades b´ asicas.
+FullBath≥1
+Bedroom≥1
+Kitchen≥1
+(falta poner el techo)
+7. Consistencia entre los pies cuadrados (sale directo desde la base de datos)
+Gr Liv Area = 1st Flr SF + 2nd Flr SF + LowQualFinSf
+8. Consistencia de habitaciones.
+TotRmsAbvGrd = Bedroom + Kitchen + OtrasHabitaciones
+OtrasHabitaciones = TotRmsAbvGrd - (Bedroom + Kitchen)
+9. Escoger a lo m´ as una calidad
+P
+kδrk≤1
+10. Techo para cantidad de pies cuadrados a construir
+6 Restricciones renovaci´ on
+•Utilities: Se puede cambiar a alternativas que sean de costo mayor o
+mantenerse.
+- Par´ ametro de Utilitie original:
+ubase
+i∈u∀i∈ I.
+6
+--- Page 7 ---
+- Par´ ametro de Costo de la Utilitie original:
+Cubase
+i∈u∀i∈ I.
+-Definici´ on de conjunto permitido de utilities
+U+
+i={u∈ {AllPub, NoSewr, NoSeWa, ELO}:C u≥Cubase
+i}.
+-Variables de decisi´ on
+Utilities i,u∈ {0,1} ∀i∈ I,∀u∈ U+
+i.
+-Restricci´ on X
+u∈U+
+iUtilities i,u= 1∀i∈ I.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoUtilities =X
+i∈IX
+u∈U+
+i
+u̸=ubase
+iCuUtilities i,u.
+•RoofStyle y RoofMatl: Se selecciona un tipo deroof styley un tipo deroof
+materialcompatibles entre s´ ı. El material y el estilo pueden mantenerse
+o cambiarse a una alternativa de costo mayor, respetando las compatibil-
+idades constructivas.
+- Matriz de compatibilidad entre estilos y materiales:
+La compatibilidad se representa mediante el par´ ametro binarioA s,m, donde
+As,m= 1 si el materialmpuede ser utilizado con el estilos, yA s,m= 0
+en caso contrario.
+As,m=AsphaltShingle Metal ClayTile WoodShingle Slate Membrane
+Gable 1 1 1 1 1 0
+Hip 1 1 1 1 1 0
+Flat 0 1 0 0 0 1
+Mansard 1 1 1 1 1 0
+Shed 1 1 0 1 0 1
+Esta matriz fue construida en base a compatibilidades constructivas re-
+portadas en fuentes t´ ecnicas de cubiertas (Inc., 2023; Roof-Crafters, 2024;
+Wikipedia contributors, 2024).
+- Par´ ametro de Roof Style original:
+sbase
+i∈s∀i∈ I.
+7
+--- Page 8 ---
+- Par´ ametro de Roof Material original:
+mbase
+i∈m∀i∈ I.
+- Par´ ametro de costo de Roof Style y Roof Material:
+Cs, Cm ∀s∈s,∀m∈m.
+- Definici´ on de conjuntos permitidos:
+S+
+i={s∈ {Flat, Gable, Gambrel, Hip, Mansard, Shed}:C s≥Csbase
+i}
+M+
+i={m∈ {ClyTile, CompShg, Membran, Metal, Roll, TarGrv, WdShake, WdShngl:C m≥Cmbase
+i}.
+- Variables de decisi´ on:
+xi,s∈ {0,1} ∀i∈ I,∀s∈ S+
+i,
+yi,m∈ {0,1} ∀i∈ I,∀m∈ M+
+i.
+- Restricci´ on de selecci´ on ´ unica:
+X
+s∈S+
+ixi,s= 1∀i∈ I,X
+m∈M+
+iyi,m= 1∀i∈ I.
+- Restricci´ on de compatibilidad entre estilo y material seg´ un la matriz
+As,m.:
+xi,s+yi,m≤1∀i∈ I,∀s∈ S+
+i,∀m∈ M+
+i:As,m= 0.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoRoofA=X
+i∈IX
+s∈S+
+i
+s̸=sbase
+iCsxi,s
+| {z }
+Roof Style+X
+i∈IX
+m∈M+
+i
+m̸=mbase
+iCmyi,m
+| {z }
+Roof Material.
+•Exterior1st, Exterior2nd, ExterQual, ExterCond: Si la calidad o condici´ on
+del material exterior presenta un indice de Average/Typical o inferior, en-
+tonces se pueden seguir dos caminos. El primero es que el material del
+Exterior1st y el Exterior2nd pueden mantenerse recostruyendo cada uno
+denuevo o reemplazarse por otro de costo superior al actual. Exterior2nd
+solo aplica si existe un segundo material en la casa. El segundo es que Ex-
+terQual y ExterCond puedan cambiar aumentando su calidad y condici´ on
+respectivamente.
+8
+--- Page 9 ---
+- Materiales:
+E={AsbShng,AsphShn,BrkComm,BrkFace,CBlock,CemntBd,HdBoard,ImStucc,
+MetalSd,Other,Plywood,PreCast,Stone,Stucco,VinylSd,WdSdng,WdShing}.
+- Par´ ametros de costos de materiales:
+C(1)
+e∀e∈ E, C(2)
+e∀e∈ E.
+- Par´ ametros de costos de calidad/condici´ on:
+Q={Ex,Gd,TA,Fa,Po},C={Ex,Gd,TA,Fa,Po},
+CQ
+eq∀eq∈ Q, CC
+ec∀ec∈ C.
+- Costos de demolici´ on por frente (aplican s´ olo si se toma el camino ma-
+terial):
+Cdem
+1≥0, Cdem
+2≥0.
+- Par´ ametros base:
+(e1)base
+i∈ E,(e 2)base
+i∈ EsiHas2 i= 1,
+BaseQual i,eq∈ {0,1},X
+eq∈QBaseQual i,eq= 1, BaseCond i,ec∈ {0,1},X
+ec∈CBaseCond i,ec= 1,
+Has2 i∈ {0,1}.
+- Subconjuntos “Average o peor”:
+Q≤Av={TA,Fa,Po},C≤Av={TA,Fa,Po}.
+- Par´ ametros costos base:
+CQ,base
+i =X
+eqCQ
+eqBaseQual i,eq, CC,base
+i =X
+ecCC
+ecBaseCond i,ec.
+- Selecci´ on final de materiales:
+Exterior1st i,e1∈ {0,1} ∀e 1∈ E,X
+e1Exterior1st i,e1= 1,
+Exterior2nd i,e2∈ {0,1} ∀e 2∈ E,X
+e2Exterior2nd i,e2=Has2 i.
+- Variables finales de calidad y condici´ on:
+ExterQualSel i,eq∈ {0,1},X
+eqExterQualSel i,eq= 1,
+ExterCondSel i,ec∈ {0,1},X
+ecExterCondSel i,ec= 1.
+9
+--- Page 10 ---
+- Binarias de caminos y elegibilidad:
+UpgMat i, UpgQC i, Eligible i∈ {0,1}.
+- Detecci´ on de cambio de material:
+Change1 i, Change2 i∈ {0,1}.
+-Activaci´ on binarias:
+Eligible i≥X
+eq∈Q≤AvBaseQual i,eq, Eligible i≥X
+ec∈C≤AvBaseCond i,ec,
+Eligible i≤X
+eq∈Q≤AvBaseQual i,eq+X
+ec∈C≤AvBaseCond i,ec.
+-Restricci´ on de caminos excluyentes:
+UpgMat i+UpgQC i≤Eligible i.
+-Restricci´ on de que no empeora calidad ni condici´ on:
+Exterior1st i,e1= 0∀e 1:C(1)
+e1< C(1)
+(e1)base
+i,
+Exterior2nd i,e2= 0∀e 2:C(2)
+e2< C(2)
+(e2)base
+i,
+ExterQualSel i,eq= 0∀eq:CQ
+eq< CQ,base
+i , ExterCondSel i,ec= 0∀ec:CC
+ec< CC,base
+i .
+-Restricciones material s´ olo cambia si se toma el camino material:
+X
+e1∈E
+e1̸=(e1)base
+iExterior1st i,e1≤UpgMat i,
+X
+e2∈E
+e2̸=(e2)base
+iExterior2nd i,e2≤UpgMat i·Has2 i.
+X
+eq∈Q
+BaseQual i,eq=0ExterQualSel i,eq≤UpgQC i,
+X
+ec∈C
+BaseCond i,ec=0ExterCondSel i,ec≤UpgQC i.
+-Restricciones de exclusion:
+X
+eq∈Q
+BaseQual i,eq=0ExterQualSel i,eq≤1−UpgMat i,
+10
+--- Page 11 ---
+X
+ec∈C
+BaseCond i,ec=0ExterCondSel i,ec≤1−UpgMat i,
+X
+e1∈E
+e1̸=(e1)base
+iExterior1st i,e1≤1−UpgQC i,
+X
+e2∈E
+e2̸=(e2)base
+iExterior2nd i,e2≤(1−UpgQC i)·Has2 i.
+-Restricciones de cambio de material:
+Change1 i≥Exterior1st i,e1∀e1̸= (e 1)base
+i, Change1 i≤X
+e1∈E
+e1̸=(e1)base
+iExterior1st i,e1,
+Change2 i≥Exterior2nd i,e2∀e2̸= (e 2)base
+i, Change2 i≤X
+e2∈E
+e2̸=(e2)base
+iExterior2nd i,e2.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+X
+i∈I"
+Cdem
+1UpgMat i|{z }
+demolici´ on frente 1+C(1)
+(e1)base
+i(UpgMat i−Change1 i)
+| {z }
+reconstruir material base (1)+X
+e1∈E
+e1̸=(e1)base
+iC(1)
+e1Exterior1st i,e1
+| {z }
+cambiar a material m´ as caro (1)
++Has2 i
+Cdem
+2UpgMat i+C(2)
+(e2)base
+i(UpgMat i−Change2 i) +X
+e2∈E
+e2̸=(e2)base
+iC(2)
+e2Exterior2nd i,e2
+| {z }
+frente 2 s´ olo si existe
++X
+eq∈Q
+BaseQual i,eq=0CQ
+eqExterQualSel i,eq+X
+ec∈C
+BaseCond i,ec=0CC
+ecExterCondSel i,ec
+| {z }
+mejorar calidad/condici´ on#
+.
+•MasVnrType: Se puede cambiar a alternativas que sean de costo mayor o
+mantenerse.
+- Par´ ametro de tipo original:
+tbase
+i∈t∀i∈ I.
+- Par´ ametro de costo por tipo:
+Ct∀t
+11
+--- Page 12 ---
+- Definici´ on de conjunto permitido (quedarse o subir):
+T+
+i={t∈ {BrkCmn, BrkFace, CBlock, None, Stone}:C t≥Ctbase
+i}.
+- Variables de decisi´ on:
+MasV nrType i,t∈ {0,1} ∀i∈ I,∀t∈ T+
+i.
+- Restricci´ on:
+X
+t∈T+
+iMasV nrType i,t= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoMasVnrA=X
+i∈IX
+t∈T+
+i
+t̸=tbase
+iCtMasV nrType i,t.
+•Electrical: Se puede cambiar a alternativas que sean de costo mayor o
+mantenerse.
+- Par´ ametro de tipo el´ ectrico original:
+ebase
+i∈e∀i∈ I.
+- Par´ ametro de costo por tipo el´ ectrico:
+Ce∀e∈ E.
+- Definici´ on de conjunto permitido:
+E+
+i={e∈ {SBrkr, FuseA, FuseF, FuseP, Mix}:C e≥Cebase
+i}.
+- Variables de decisi´ on:
+Electrical i,e∈ {0,1} ∀i∈ I,∀e∈ E+
+i.
+- Restricci´ on: X
+e∈E+
+iElectrical i,e= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoElectricalA=X
+i∈IX
+e∈E+
+i
+e̸=ebase
+iCeElectrical i,e.
+12
+--- Page 13 ---
+•CentralAir: Si la casa no tiene aire central, se permite mantener No o
+cambiar a Yes, incurriendo en el costo de implementaci´ on. Si la casa ya
+tiene aire central, se mantiene en Yes.
+- Par´ ametro de estado original de Central Air:
+abase
+i∈a∀i∈ I.
+- Costo de implementaci´ on de Central Air:
+CCentralAir
+- Conjunto permitido por ´ ıtem:
+Ai,allow =(
+{Yes}siabase
+i= Yes,
+{No,Yes}siabase
+i= No.
+- Variables binarias:
+CentralAir i,a∈ {0,1} ∀i∈ I,∀a∈ A i,allow .
+- Selecci´ on ´ unica:
+X
+a∈A i,allowCentralAir i,a= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+X
+i∈I:abase
+i=NoCCentralAir ·CentralAir i,Yes.
+•Heating y Heating QC: Si HeatingQC esAverage/Typicalo peor, entonces
+pueden decidirse dos camino. EL primero es que el tipo deHeatingpuede
+mantenerse construy´ endolo denuevo o cambiarse a uno de mayor costo que
+el actual. El segundo, es que HeatingQC puede cambiar aumentando su
+calidad a una mejor.
+- Tipos de Heating:
+H={Floor,GasA,GasW,Grav,OthW,Wall}.
+- Calidades de HeatingQC:
+Q={Ex,Gd,TA,Fa,Po},Q≤Av={TA,Fa,Po}.
+- Par´ ametros de costos:
+Ch∀h∈ H, C hqc∀hqc∈ Q, C demolici´ on ≥0.
+13
+--- Page 14 ---
+- Par´ ametros de tipo base y calidad base:
+hbase
+i∈ H, BaseQC i,q∈ {0,1},X
+q∈QBaseQC i,q= 1.
+- Conjuntos “no empeorar” respecto a la base:
+H+
+i={h∈ H:C h≥Chbase
+i},Q+
+i={q∈ Q:C q≥X
+q0∈QCq0BaseQC i,q0}.
+- Variables de desici´ on:
+Heating i,h∈ {0,1} ∀h∈ H+
+i,X
+h∈H+
+iHeating i,h= 1,
+HeatingQC i,q∈ {0,1} ∀q∈ Q+
+i,X
+q∈Q+
+iHeatingQC i,q= 1.
+- Binarias decaminos(excluyentes) y elegibilidad:
+UpgType i, UpgQC i, Eligible i∈ {0,1} ∀i.
+- Binaria auxiliar para detectar cambio de tipo:
+ChangeType i∈ {0,1} ∀i.
+-Activaci´ on binaria:
+Eligible i≥BaseQC i,q∀q∈ Q≤Av, Eligible i≤X
+q∈Q≤AvBaseQC i,q.
+UpgType i+UpgQC i≤Eligible i.
+X
+h∈H+
+i
+h̸=hbase
+iHeating i,h≤UpgType i,
+X
+q∈Q+
+i
+q̸=q0HeatingQC i,q≤UpgQC i,dondeq 0satisfaceBaseQC i,q0= 1.
+X
+h∈H+
+i
+h̸=hbase
+iHeating i,h≤Eligible i,X
+q∈Q+
+i
+q̸=q0HeatingQC i,q≤Eligible i.
+-Restricci´ on que excluye ambos caminos simult´ aneos:
+X
+q∈Q+
+i
+q̸=q0HeatingQC i,q≤1−UpgType i,
+14
+--- Page 15 ---
+X
+h∈H+
+i
+h̸=hbase
+iHeating i,h≤1−UpgQC i.
+ChangeType i≥Heating i,h∀h∈ H+
+i:h̸=hbase
+i, ChangeType i≤X
+h∈H+
+i
+h̸=hbase
+iHeating i,h.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+Cdestrucci´ on UpgType i| {z }
+demolici´ on+Chbase
+i(UpgType i−ChangeType i)
+| {z }
+reconstruir mismo tipo (mismo costo de base)
++X
+h∈H+
+i
+h̸=hbase
+iChHeating i,h
+| {z }
+cambiar a tipo m´ as caro+X
+q∈Q+
+i
+q̸=q0ChqcHeatingQC i,q
+| {z }
+cambiar calidad,conq 0:BaseQC i,q0= 1.
+(1)
+•KitchenQual: La calidad de la cocina puede aumentar si es Typical/Average
+o peor.
+- Conjunto de calidades posibles:
+K={Ex,Gd,TA,Fa,Po}.
+- Par´ ametro de costo:
+Ck∀k∈ K.
+- Par´ ametro de categor´ ıa base por ´ ıtem:
+kbase
+i∈ K ∀i∈ I.
+- Subconjunto “Average/Typical o peor”:
+K≤Av={TA,Fa,Po}.
+- Variables binarias de estado de calidad:
+KitchenQual i,k∈ {0,1} ∀i∈ I,∀k∈ K.
+X
+k∈KKitchenQual i,k= 1∀i∈ I.
+- Variable de activaci´ on de mejora:
+UpgKitch i∈ {0,1} ∀i∈ I.
+15
+--- Page 16 ---
+- Restricciones de activaci´ on:
+UpgKitch i≥KitchenQual i,k ∀i∈ I,∀k∈ K≤Av,
+UpgKitch i≤X
+k∈K≤AvKitchenQual i,k ∀i∈ I.
+- Conjunto permitido dependiente deUpgKitch i:
+Ki,allow =(
+{kbase
+i}siUpgKitch i= 0,
+{k∈ K:C k≥Ckbase
+i}siUpgKitch i= 1.
+- Variables binarias prefiltradas:
+KitchenQual i,k∈ {0,1} ∀i∈ I,∀k∈ K i,allow .
+- Selecci´ on ´ unica dentro del conjunto permitido:
+X
+k∈Ki,allowKitchenQual i,k= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoKitchenA=X
+i∈IX
+k∈Ki,allow
+k̸=kbase
+iCkKitchenQual i,k.
+•BsmtFinSF1, BsmtFinSF2, BsmtUnfSF, TotalBsmtSF: Si existe ´ area no
+terminada del s´ otano (BsmtUnfSF>0), se da la posibilida de terminarla,
+reasignando toda esa superficie a las zonas terminadas 1 y/o 2. Si se decide
+terminar, se termina completamente.
+- Par´ ametros base por ´ ıtem:
+(BsmtFinSF1)base
+i∈Z≥0,
+(BsmtFinSF2)base
+i∈Z≥0,
+(BsmtUnfSF)base
+i∈Z≥0,
+(TotalBsmtSF)base
+i∈Z≥0,
+con
+(TotalBsmtSF)base
+i= (BsmtFinSF1)base
+i+(BsmtFinSF2)base
+i+(BsmtUnfSF)base
+i ∀i∈ I.
+- Variables de desici´ on:
+BsmtFinSF1 i∈Z≥0, BsmtFinSF2 i∈Z≥0, BsmtUnfSF i∈Z≥0 ∀i∈ I.
+16
+--- Page 17 ---
+- Variable binaria de decisi´ on para “terminar completamente el s´ otano”:
+FinishBSMT i∈ {0,1} ∀i∈ I.
+- Variables de transferencia de superficie:
+x(1)
+i, x(2)
+i∈Z≥0 ∀i∈ I.
+- Conservaci´ on del total de s´ otano:
+BsmtFinSF1 i+BsmtFinSF2 i+BsmtUnfSF i= (TotalBsmtSF)base
+i ∀i∈ I.
+- Todo o nada sobre el ´ area sin terminar:
+BsmtUnfSF i= (1−FinishBSMT i) (BsmtUnfSF)base
+i ∀i∈ I.
+- Definici´ on de las zonas terminadas mediante la transferencia:
+BsmtFinSF1 i= (BsmtFinSF1)base
+i+x(1)
+i, BsmtFinSF2 i= (BsmtFinSF2)base
+i+x(2)
+i ∀i∈ I.
+- Si se termina, se transfieretodael ´ area no terminada:
+x(1)
+i+x(2)
+i= (BsmtUnfSF)base
+iFinishBSMT i∀i∈ I.
+- Si se termina de construir el s´ otano se incurre en un costo por m´ etro
+cuadrado construido (C Bsmt), en la FO agregar: **** REVISAR: deberia
+ser pies cuadrados
+CostoBsmt =X
+i∈ICBsmt
+x(1)
+i+x(2)
+i
+.
+•BsmtCond: Si la condici´ on del s´ otano esTypical/Averageo peor, entonces
+puede mantenerse en su nivel base o mejorarse a Good (Gd) o Excellent
+(Ex), incurriendo en el costo correspondiente.
+- Conjunto de categor´ ıas posibles:
+B={Ex,Gd,TA,Fa,Po}.
+- Par´ ametro de costo:
+Cb∀b∈ B.
+- Par´ ametro de categor´ ıa base por ´ ıtem:
+bbase
+i∈ B ∀i∈ I.
+- Subconjunto “Average/Typical o peor”:
+B≤Av={TA,Fa,Po}.
+17
+--- Page 18 ---
+- Variables binarias de estado de condici´ on:
+BsmtCond i,b∈ {0,1} ∀i∈ I,∀b∈ B.
+X
+b∈BBsmtCond i,b= 1∀i∈ I.
+- Variable de activaci´ on de mejora:
+UpgBsmt i∈ {0,1} ∀i∈ I.
+- Restricciones de activaci´ on:
+UpgBsmt i≥BsmtCond i,b ∀i∈ I,∀b∈ B≤Av,
+UpgBsmt i≤X
+b∈B≤AvBsmtCond i,b ∀i∈ I.
+- Definici´ on de conjunto permitido dependiente deUpgBsmt i:
+Bi,allow =(
+{bbase
+i}siUpgBsmt i= 0,
+{b∈ B:C b≥Cbbase
+i}siUpgBsmt i= 1.
+- Variables binarias prefiltradas:
+BsmtCond i,b∈ {0,1} ∀i∈ I,∀b∈ B i,allow .
+- Selecci´ on ´ unica dentro del conjunto permitido:
+X
+b∈Bi,allowBsmtCond i,b= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoBsmtCondA=X
+i∈IX
+b∈Bi,allow
+b̸=bbase
+iCbBsmtCond i,b,
+•BsmtFinType1 y BsmtFinType2: Si existe BsmtFinType1 y BsmtFin-
+Type2, entonces si una tipolog´ ıa est´ a enReco peor (Rec/LwQ/Unf), se
+da la posibilidad de aumentar la calidad a una de mayor costo. Si la
+tipolog´ ıa est´ a enNA, no se hace nada se mantiene NA y no hay costo.
+- Conjunto de categor´ ıas:
+B={GLQ,ALQ,BLQ,Rec,LwQ,Unf,NA}.
+- Subconjunto “Rec o peor”:
+B≤Rec={Rec,LwQ,Unf}.
+18
+--- Page 19 ---
+- Costo por categor´ ıa (C NA= 0):
+Cb∀b∈ B.
+- Par´ ametros de la categor´ ıa base:
+BaseB1 i,b∈ {0,1},X
+b∈BBaseB1 i,b= 1, BaseB2 i,b∈ {0,1},X
+b∈BBaseB2 i,b=HasB2 i.
+- Indicador de existencia de BsmtFinType2:
+HasB2 i∈ {0,1}.
+- Variables:
+BsmtFinType1 i,b1∈ {0,1} ∀b 1∈ B,X
+b1∈BBsmtFinType1 i,b1= 1,
+BsmtFinType2 i,b2∈ {0,1} ∀b 2∈ B,X
+b2∈BBsmtFinType2 i,b2=HasB2 i.
+- Binarias de activaci´ on:
+UpgB1 i, UpgB2 i∈ {0,1}.
+- Activaci´ on de binarias:
+UpgB1 i≥BaseB1 i,b∀b∈ B≤Rec, UpgB1 i≤X
+b∈B≤RecBaseB1 i,b,
+UpgB2 i≥BaseB2 i,b∀b∈ B≤Rec, UpgB2 i≤X
+b∈B≤RecBaseB2 i,b.
+- Permitidos para BsmtFinType1:
+B(1)
+i,allow=
+
+{NA}siBaseB1 i,NA= 1,
+{b:P
+b0Cb≥P
+b0Cb0BaseB1 i,b0}siBaseB1 i,NA= 0 yUpgB1 i= 1,
+{b:BaseB1 i,b= 1}siBaseB1 i,NA= 0 yUpgB1 i= 0.
+- Permitidos para BsmtFinType2 (solo siHasB2 i= 1):
+B(2)
+i,allow=
+
+∅siHasB2 i= 0,
+{NA}siBaseB2 i,NA= 1,
+{b:P
+b0Cb≥P
+b0Cb0BaseB2 i,b0}siBaseB2 i,NA= 0 yUpgB2 i= 1,
+{b:BaseB2 i,b= 1}siBaseB2 i,NA= 0 yUpgB2 i= 0.
+19
+--- Page 20 ---
+X
+b1∈B(1)
+i,allowBsmtFinType1 i,b1= 1,X
+b2∈B(2)
+i,allowBsmtFinType2 i,b2=HasB2 i.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoB1A=X
+iX
+b1∈B(1)
+i,allow
+b1̸=b0Cb1BsmtFinType1 i,b1,conb 0:BaseB1 i,b0= 1,
+CostoB2A=X
+i:HasB2 i=1X
+b2∈B(2)
+i,allow
+b2̸=b0Cb2BsmtFinType2 i,b2,conb 0:BaseB2 i,b0= 1.
+•FireplaceQu: Si la calidad de la chimenea es TA, se permite mantener o
+subir a Gd o Ex. Si es Po, se permite mantener o subir a Fa. Si es NA,
+no se hace nada.
+- Conjunto de categor´ ıas:
+F={Ex,Gd,TA,Fa,Po,NA}.
+- Costo por categor´ ıa (definirC NA= 0 para conveniencia):
+Cf∀f∈ {Ex,Gd,TA,Fa,Po}.
+- Categor´ ıa base por ´ ıtem:
+fbase
+i∈ F ∀i∈ I.
+- Conjunto permitido dependiente defbase
+i:
+Fi,allow =
+
+{NA}sifbase
+i= NA,
+{TA,Gd,Ex}sifbase
+i= TA,
+{Po,Fa}sifbase
+i= Po,
+{fbase
+i}sifbase
+i∈ {Fa,Gd,Ex}.
+- Variables binarias:
+FireplaceQu i,f∈ {0,1} ∀i∈ I,∀f∈ F i,allow .
+- Selecci´ on ´ unica:
+X
+f∈Fi,allowFireplaceQu i,f= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoFireA=X
+i∈IX
+f∈Fi,allow
+f̸=fbase
+iCfFireplaceQu i,f.
+20
+--- Page 21 ---
+•Fence: Si la cerca es GdWo o MnWw, se permite mantener o subir a
+MnPrv o GdPrv. Si es NA, se permite construir con costo por pie cuadrado
+proporcional aLotFrontage i.
+- Conjunto de categor´ ıas:
+F={GdPrv,MnPrv,GdWo,MnWw,NA}.
+- Costo por categor´ ıa de calidad (definirC NA= 0):
+Ccat
+f ∀f∈ F.
+- Costo de construcci´ on por pie cuadrado:
+Cpsf
+Fence≥0.
+- Par´ ametro de superficie del lote:
+LotArea i≥0∀i∈ I.
+- Categor´ ıa base:
+fbase
+i∈ F ∀i∈ I.
+- Conjunto permitido dependiente defbase
+i:
+Fi,allow =
+
+{NA,MnPrv,GdPrv}sifbase
+i= NA,
+{fbase
+i,MnPrv,GdPrv}sifbase
+i∈ {GdWo,MnWw},
+{fbase
+i}sifbase
+i∈ {MnPrv,GdPrv}.
+- Variables binarias:
+Fence i,f∈ {0,1} ∀i∈ I,∀f∈ F i,allow .
+- Selecci´ on ´ unica:
+X
+f∈Fi,allowFence i,f= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoFencecat=X
+i∈IX
+f∈Fi,allow
+f̸=fbase
+iCcat
+fFence i,f.
+- Si se decide construir se incurre en un costo, en la FO agregar:
+CostoFencebuild=X
+i∈I:fbase
+i=NACpsf
+Fence·LotFrontage i·
+Fence i,MnPrv +Fence i,GdPrv
+.
+21
+--- Page 22 ---
+•Paved Drive: Si es P:Partial Pavement se puede subir a Y: Paved. Si es
+N: Dirt/Gravel se puede subir a P o Y.
+- Conjunto de categor´ ıas:
+D={Y,P,N}.
+- Par´ ametro de costo por categor´ ıa:
+Cd∀d∈ D.
+- Categor´ ıa base:
+dbase
+i∈ D ∀i∈ I.
+- Conjuntos permitidos:
+Di,allow =
+
+{Y}sidbase
+i= Y,
+{P,Y}sidbase
+i= P,
+{N,P,Y}sidbase
+i= N.
+- Variables:
+PavedDrive i,d∈ {0,1} ∀i∈ I,∀d∈ D i,allow ,
+-Restricci´ on:
+X
+d∈Di,allowPavedDrive i,d= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoPavedA=X
+i∈IX
+d∈Di,allow
+d̸=dbase
+iCdPavedDrive i,d.
+•GarageQual y GarageCond: Si alguno es Typical/Average o peor (TA/Fa/Po),
+entonces ambos pueden mantenerse o subir a una categor´ ıa de mayor costo
+- Conjunto de categor´ ıas:
+G={Ex,Gd,TA,Fa,Po,NA}.
+- Subconjunto “Average/Typical o peor”:
+G≤Av={TA,Fa,Po}.
+- Costos por categor´ ıa (definirC NA= 0):
+CQ
+g∀g∈ G(GarageQual), CC
+g∀g∈ G(GarageCond).
+22
+--- Page 23 ---
+- Par´ ametro de costos:
+CQ,base
+i ∀i∈ I(GarageQual), CC,base
+i ∀i∈ I(GarageCond).
+- Par´ ametros base:
+BaseGQual i,g∈ {0,1},X
+g∈GBaseGQual i,g= 1,
+BaseGCond i,g∈ {0,1},X
+g∈GBaseGCond i,g= 1.
+- Variables:
+GarageQual i,g∈ {0,1},X
+g∈GGarageQual i,g= 1,
+GarageCond i,g∈ {0,1},X
+g∈GGarageCond i,g= 1.
+- Variable de activaci´ on:
+UpgGar i∈ {0,1} ∀i∈ I.
+- Restricciones de activaci´ on:
+UpgGar i≥BaseGQual i,g∀g∈ G≤Av, UpgGar i≥BaseGCond i,g∀g∈ G≤Av,
+UpgGar i≤X
+g∈G≤Av
+BaseGQual i,g+BaseGCond i,g
+∀i∈ I.
+- Permitidos paraGarageQual:
+GQ
+i,allow=
+
+{NA}siBaseGQual i,NA= 1,
+{g:CQ
+g≥CQ,base
+i }siBaseGQual i,NA= 0 yUpgGar i= 1,
+{g:BaseGQual i,g= 1}siBaseGQual i,NA= 0 yUpgGar i= 0.
+- Permitidos paraGarageCond:
+GC
+i,allow =
+
+{NA}siBaseGCond i,NA= 1,
+{g:CC
+g≥CC,base
+i}siBaseGCond i,NA= 0 yUpgGar i= 1,
+{g:BaseGCond i,g= 1}siBaseGCond i,NA= 0 yUpgGar i= 0.
+-Resctricciones:
+GarageQual i,g= 0∀g /∈ GQ
+i,allow,X
+g∈GQ
+i,allowGarageQual i,g= 1,
+23
+--- Page 24 ---
+GarageCond i,g= 0∀g /∈ GC
+i,allow ,X
+g∈GC
+i,allowGarageCond i,g= 1.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoGarA=X
+i∈I"X
+g∈GQ
+i,allow
+g̸=gQ
+0CQ
+gGarageQual i,g+X
+g∈GC
+i,allow
+g̸=gC
+0CC
+gGarageCond i,g#
+,
+dondekQ
+0ykC
+0son las categor´ ıas base tales queBaseGQuali,kQ
+0= 1 y
+BaseGCondi,kC
+0= 1.
+•´Area libre y decisiones de ampliaci´ on/agregado: Para agregados se toman
+en consideraci´ on BedRoom, Kitchen, HalfBath y FullBath, los cuales si
+hay espacio disponible se pueden agregar en orden de uno, es decir uno de
+cada uno. Este tipo de habitaci´ on se agregan seg´ un el ´ area m´ ınima hab-
+itable permitida. Para ampliaciones se consideraron GarageArea, Wood-
+DeckSF, OpenPorchSF, EnclosedPorch, 3SsnPorch, ScreenPorch y PoolArea.
+A estos espacios se les permite ampliar en una escala de 3. Ampliaciones
+peque˜ nas involucran un aumento del 10%, ampliaciones moderadas de un
+20% y ampliaciones grandes de un 30%.
+- Par´ ametros base:
+(LotArea) i∈Z≥0,
+(GrLivArea)base
+i∈Z≥0,
+(GarageArea)base
+i∈Z≥0,
+(WoodDeckSF)base
+i∈Z≥0,
+(OpenPorchSF)base
+i∈Z≥0,
+(EnclosedPorch)base
+i∈Z≥0,
+(3SsnPorch)base
+i∈Z≥0,
+(ScreenPorch)base
+i∈Z≥0,
+(PoolArea)base
+i∈Z≥0.
+-´Area librebase(par´ ametro calculado):
+(AreaLibre)base
+i= (LotArea) i−h
+(GrLivArea)base
+i+ (GarageArea)base
+i+ (WoodDeckSF)base
+i
++ (OpenPorchSF)base
+i+ (EnclosedPorch)base
+i+ (3SsnPorch)base
+i
++ (ScreenPorch)base
+i+ (PoolArea)base
+ii
+.
+24
+--- Page 25 ---
+- Superficies fijas de los agregados (ft2):
+AFull= 40, AHalf= 20, AKitch= 75, ABed= 70.
+- Ampliaciones porcentuales: para evitar no-enteros, definir como par´ ametros
+∆10
+i,c=
+0.10·(c)base
+i
+,∆20
+i,c=
+0.20·(c)base
+i
+,∆30
+i,c=
+0.30·(c)base
+i
+,
+para cadac∈ C={GarageArea,WoodDeckSF,OpenPorchSF,EnclosedPorch,
+3SsnPorch,ScreenPorch,PoolArea}.
+(⌊·⌉indica redondeo a entero)
+- Binarias para agregados puntuales, es decir a lo m´ as se agrega 1 de cada
+una de las siguientes habitaciones:
+AddFull i, AddHalf i, AddKitch i, AddBed i∈ {0,1} ∀i.
+- Ampliaciones porcentuales, a lo m´ as se realiza una ampliaci´ on por com-
+ponente:
+z10
+i,c, z20
+i,c, z30
+i,c∈ {0,1} ∀i,∀c∈ C,
+z10
+i,c+z20
+i,c+z30
+i,c≤1∀i,∀c∈ C.
+- Variables de ´ areas finales post ampliaci´ on:
+(GrLivArea) i,(GarageArea) i,(WoodDeckSF) i,(OpenPorchSF) i,(EnclosedPorch) i,
+(3SsnPorch) i,(ScreenPorch) i,(PoolArea) i,(AreaLibre) i∈Z≥0.
+- Variables contadores de ambientes finales:
+FullBath i, HalfBath i, Bedroom i, Kitchen i∈Z≥0.
+- Vincular agregados al living area y a contadores:
+(GrLivArea) i= (GrLivArea)base
+i+AKitch(AddKitch) i+ABed(AddBed) i.
+FullBath i= (FullBath)base
+i+AddFull i, HalfBath i= (HalfBath)base
+i+AddHalf i,
+Bedroom i= (Bedroom)base
+i+AddBed i, Kitchen i= (Kitchen)base
+i+AddKitch i.
+- Vincular ampliaciones porcentuales a ´ areas finales (cada componentec):
+ci= (c)base
+i+ ∆10
+i,cz10
+i,c+ ∆20
+i,cz20
+i,c+ ∆30
+i,cz30
+i,c ∀c∈ C.
+-Actualizaci´ on y capacidad de AreaLibre, no se agrega ni amplia si no hay
+suficiente espacio:
+(AreaLibre) i= (AreaLibre)base
+i−h
+AFull(AddFull) i+AHalf(AddHalf) i+AKitch(AddKitch) i
++ABed(AddBed) ii
+−X
+c∈Ch
+∆10
+i,cz10
+i,c+ ∆20
+i,cz20
+i,c+ ∆30
+i,cz30
+i,ci
+.
+25
+--- Page 26 ---
+AreaLibre i≥0.
+- Costo por f2:
+CostoLiv =X
+iCliv
+AFullAddFull i+AHalfAddHalf i+AKitchAddKitch i+ABedAddBed i
+.
+- Costo por ampliaciones porcentuales:
+CostoExt =X
+iX
+c∈C
+C10
+c∆10
+i,cz10
+i,c+C20
+c∆20
+i,cz20
+i,c+C30
+c∆30
+i,cz30
+i,c
+.
+•PoolQC: La calidad de la piscina puede aumentar si es Typical/Average
+o peor (TA/Fa/Po).
+- Conjunto de categor´ ıas:
+P={Ex,Gd,TA,Fa,Po,NA}.
+- Par´ ametro de costo por categor´ ıa (C NA= 0):
+Cp∀p∈ P.
+- Categor´ ıa base por ´ ıtem:
+pbase
+i∈ P ∀i∈ I.
+- Subconjunto “Average/Typical o peor”:
+P≤Av={TA,Fa,Po}.
+- Variables binarias de estado de calidad:
+PoolQC i,p∈ {0,1} ∀i∈ I,∀p∈ P,X
+p∈PPoolQC i,p= 1∀i∈ I.
+- Variable de activaci´ on de mejora:
+UpgPool i∈ {0,1} ∀i∈ I.
+- Restricciones de activaci´ on:
+UpgPool i≥PoolQC i,p ∀i∈ I,∀p∈ P≤Av,
+UpgPool i≤X
+p∈P≤AvPoolQC i,p ∀i∈ I.
+26
+--- Page 27 ---
+- Conjunto permitido:
+Pi,allow =
+
+{NA}sipbase
+i= NA,
+{pbase
+i}sipbase
+i̸= NA yUpgPool i= 0,
+{p∈ P \ {NA}:C p≥Cpbase
+i}sipbase
+i̸= NA yUpgPool i= 1.
+- Prefiltrado y selecci´ on ´ unica:
+PoolQC i,p= 0∀p /∈ P i,allow ,X
+p∈Pi,allowPoolQC i,p= 1∀i∈ I.
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoPoolA=X
+i∈IX
+p∈Pi,allow
+p̸=pbase
+iCpPoolQC i,p.
+•GarageFinish: Si el acabado del garaje es RFn: Rough Finished o Unf:
+Unfinished, se puede subir Fin: Finished.
+- Conjunto de categor´ ıas:
+Ga={Fin,RFn,Unf,NA}.
+- Subconjunto “RFn o peor”:
+Ga≤RFn={RFn,Unf}.
+- Costo por categor´ ıa (CGa
+NA= 0):
+CGa
+ga ∀ga∈ Ga.
+- Categor´ ıa base (one-hot desde datos):
+BaseGa i,ga∈ {0,1},X
+ga∈GaBaseGa i,ga= 1∀i∈ I.
+gari,ga∈ {0,1} ∀i∈ I,∀ga∈ Ga,X
+ga∈Gagari,ga= 1.
+- Variable de activaci´ on:
+UpgGa i∈ {0,1} ∀i∈ I.
+- Restricciones de activaci´ on:
+UpgGa i≥BaseGa i,RFn, UpgGa i≥BaseGa i,Unf,
+27
+--- Page 28 ---
+UpgGa i≤BaseGa i,RFn +BaseGa i,Unf ∀i∈ I.
+- Permitidos (implementados con fijaciones/filtrado):
+
+
+SiBaseGa i,NA= 1 :gar i,NA= 1, gar i,ga= 0∀ga̸= NA.
+SiBaseGa i,Fin= 1 :gar i,Fin= 1, gar i,ga= 0∀ga̸= Fin.
+SiBaseGa i,RFn = 1 oBaseGa i,Unf= 1 :gar i,Fin≤UpgGa i,P
+ga∈Ga≤RFngari,ga≤1−UpgGa i,P
+ga∈Gagari,ga= 1.
+-Si se realiza el cambio se incurre en un costo, en la FO agregar:
+CostoGaA=X
+i∈IX
+ga∈Ga
+ga̸=ga 0CGa
+gagari,ga,dondega 0satisfaceBaseGa i,ga0= 1.
+Supuestos: Todo lo que se construya ser´ a de calidad excelente. No existir´ an
+´ areas sin terminar dentro de la casa
+7 Funci´ on objetivo
+Max(V alorfinal−I)
+I: Inversi´ on/Presupuesto que incluye todos los costos de construcci´ on.
+8 Restricciones de Construcci´ on
+8.1 Restricciones de ´Area y Dimensiones
+8.1.1 L´ ımites por Vecindario y Terreno
+TotalArea i≤ATotal
+Neighborhood i∀i∈ I(2)
+1stFlrSF+TotalPorchSF+PoolArea≤LotArea(3)
+2ndFlrSF≤1stFlrSF(4)
+8.1.2 Consistencias de ´Area
+TotalBsmtSF=BsmtFinSF1 +BsmtFinSF2 +BsmtUnfSF(5)
+GrLivArea= 1stFlrSF+ 2ndFlrSF+LowQualFinSF(6)
+TotalArea= 1stFlrSF+ 2ndFlrSF+TotalBsmtSF(7)
+28
+--- Page 29 ---
+8.1.3 Piscina Condicionada a Espacio
+Variables:
+•HasPool i∈ {0,1}: 1 si se instala piscina
+AreaPool i≤(LotArea i−GrLivArea i−GarageArea i−WoodDeckSF i−OpenPorchSF i)·HasPool i
+(8)
+8.2 Restricciones de Ambientes
+8.2.1 Variables de ´Area por Ambiente
+Variables:
+•AreaKitchen i∈R+:´Area total de cocina(s) (ft²)
+•AreaFullBath i∈R+:´Area total de ba˜ nos completos (ft²)
+•AreaHalfBath i∈R+:´Area total de medios ba˜ nos (ft²)
+•AreaBedroom i∈R+:´Area total de dormitorios (ft²)
+•AreaPool i∈R+:´Area total de piscina (ft²)
+8.2.2 ´Areas M´ ınimas por Ambiente
+Incluir estas variables de decisi´ on en variables construcci´ on:
+AreaKitchen i≥75 (9)
+AreaFullBath i≥40 (10)
+AreaHalfbath i≥20 (11)
+AreaBedroom i≥70 (12)
+AreaPool i≥161 (13)
+(14)
+8.2.3 M´ aximo de Ambientes Repetidos
+Kitchen i≤3 (15)
+Bedroom i≤6 (16)
+FullBath i≤4 (17)
+29
+--- Page 30 ---
+8.2.4 Relaci´ on Ba˜ nos/Pisos
+Variables:Agregar a Variables construcci´ on.
+•Floor1 i∈ {0,1}: 1 si tiene un piso
+•Floor2 i∈ {0,1}: 1 si tiene dos pisos
+FullBath i+HalfBath i≥Floor1 i+ 2·Floor2 i (18)
+HalfBath i≤FullBath i (19)
+FullBath i≥2
+3·Bedroom i (20)
+8.2.5 Funcionalidad M´ ınima
+Kitchen i≥1 (21)
+Bedroom i≥1 (22)
+FullBath i≥1 (23)
+8.3 Restricciones del S´ otano
+Variables:
+•BsmtFinSF1 i∈Q+,BsmtFinSF2 i∈Q+,BsmtUnfSF i∈Q+∀i
+•TotalBsmtSF i∈Q+∀i
+•HasBsmtFin1 i∈ {0,1},HasBsmtFin2 i∈ {0,1} ∀i
+Restricciones:
+BsmtFinSF1 i+BsmtFinSF2 i+BsmtUnfSF i=TotalBsmtSF i(24)
+BsmtFinSF1 i≤TotalBsmtSF i·HasBsmtFin1 i (25)
+BsmtFinSF2 i≤TotalBsmtSF i·HasBsmtFin2 i (26)
+BsmtFinSF1 i≥0, BsmtFinSF2 i≥0 (27)
+8.4 Restricciones de Sistemas
+8.4.1 Sistema de Calefacci´ on
+Variables:
+•Heating i,h∈ {0,1}parah∈ {Floor,GasA,GasW,Grav,OthW,Wall}
+X
+h∈H heatingHeating i,h= 1∀i(28)
+30
+--- Page 31 ---
+8.4.2 Sistema El´ ectrico
+Variables:
+•Electrical i,e∈ {0,1}parae∈ {SBrkr,FuseA,FuseF,FuseP,Mix}
+X
+e∈EelectricalElectrical i,e= 1∀i(29)
+8.4.3 Aire Acondicionado
+Variables:
+•CentralAir i∈ {0,1}: 1 si tiene aire acondicionado central
+8.5 Restricciones del Techo
+8.5.1 Estilo de Techo
+Variables:
+•RoofStyle i,s∈ {0,1}paras∈ {Flat,Gable,Gambrel,Hip,Mansard,Shed}
+X
+s∈SRoofStyle i,s= 1∀i(30)
+8.5.2 Material de Techo
+Variables:
+•RoofMatl i,m∈ {0,1}param∈ {ClyTile,CompShg,Membran,Metal,Roll,TarGrv,WdShake,WdShngl}
+X
+m∈MRoofMatl i,m= 1∀i(31)
+8.5.3 Compatibilidad Techo
+Par´ ametros:
+•As,m∈ {0,1}: Compatibilidad estilo-material
+RoofStyle s+RoofMatl m≤1 +A s,m∀s∈T roof style,∀m∈T roof matl
+(32)
+31
+--- Page 32 ---
+8.6 Restricciones de Estilo de Vivienda
+Variables:
+•HouseStyle1Story i∈ {0,1}
+•HouseStyle2Story i∈ {0,1}
+HouseStyle1Story i+HouseStyle2Story i= 1 (33)
+FullBath i+HalfBath i≥HouseStyle1Story i+ 2·HouseStyle2Story i(34)
+8.7 Restricciones de Exterior
+8.7.1 Revestimiento Exterior
+Conjunto:
+•e1={AsbShng,AsphShn, . . . ,WdShing}
+Variables:
+•Exterior1st i,e1∈ {0,1},∀e 1∈E 1
+•Exterior2nd i,e1∈ {0,1},∀e 1∈E 1
+•UseExterior1st i∈ {0,1},UseExterior2nd i∈ {0,1},SameMaterial i∈
+{0,1}
+Restricciones:
+X
+e1∈E1Exterior1st i,e1=UseExterior1st i (35)
+X
+e1∈E1Exterior2nd i,e1=UseExterior2nd i (36)
+UseExterior1st i= 1 (37)
+SameMaterial i≥Exterior1st i,e1+Exterior2nd i,e2−1∀e 1∈E 1(38)
+UseExterior2nd i≤1−SameMaterial i (39)
+8.7.2 Revestimiento de Mamposter´ ıa
+Variables:
+•MasV nrType i,t∈ {0,1}parat∈ {BrkCmn,BrkFace,CBlock,None,Stone}
+•MasV nrArea i∈R+,HasMasV nr i,t∈ {0,1}
+X
+t∈TMasV nrType i,t= 1 (40)
+HasMasV nr i,t= 1−MasV nrType i,t (41)
+MasV nrArea i,t≤TotalArea i·HasMasV nr i,t (42)
+MasV nrArea i,t≥0 (43)
+32
+--- Page 33 ---
+8.8 Restricciones Adicionales
+8.8.1 Acceso Pavimentado
+Variables:
+•PavedDrive i,p∈ {0,1},PavedDrive i,p∈ {0,1}
+X
+pPavedDrive i,p+PavedDrive N i= 1∀i(44)
+8.8.2 Servicios P´ ublicos
+Variables:
+•Utilities i,u∈ {0,1}parau∈ {AllPub,NoSewr,NoSeWa,ELO}
+X
+u∈UUtilities i,u= 1∀i(45)
+8.8.3 Cerca/Reja
+Variables:Hacer Variable:PReja i=LotFrontage i
+•Reja i∈ {0,1}: 1 si se instala reja
+8.9 Restricci´ on de Presupuesto
+Costbuild+ Costtecho+ Costpool+ Costpaved+ Costreja+ Costheating(46)
++ Costcentralair+ Costelectrical+ Costbedrooms+ Costbaths≤Presupuesto
+(47)
+Variable Binaria:Garage i
+8.10 Restricciones del Garaje
+8.10.1 Capacidad M´ ınima
+Variables:
+•HasGarage i∈ {0,1}: 1 si la vivienda tiene garaje
+GarageCars i≥HasGarage i (48)
+8.10.2 Consistencia ´Area-Capacidad
+GarageArea i≥150·GarageCars i (49)
+GarageArea i≤250·GarageCars i (50)
+33
+--- Page 34 ---
+8.10.3 Garaje Terminado
+GarageFinish i= Fin siHasGarage= 1 (51)
+8.10.4 Exclusividad de Tipo de Garaje
+Variables:
+•GarageType 2Types ∈ {0,1}: 1 si tiene m´ ultiples tipos
+•GarageType Attchd ∈ {0,1}: 1 si est´ a adjunto a la casa
+•GarageType Basment ∈ {0,1}: 1 si est´ a en s´ otano
+•GarageType BuiltIn ∈ {0,1}: 1 si est´ a integrado
+•GarageType CarPort ∈ {0,1}: 1 si es cochera
+•GarageType Detchd ∈ {0,1}: 1 si est´ a separado
+•GarageType NA∈ {0,1}: 1 si no tiene garaje
+•GarageType i,g∈0,1 parag∈G
+8.11 Restricciones de Tipo de Vivienda
+8.11.1 Exclusividad del Tipo de Vivienda
+Variables:
+•BldgType 1∈ {0,1}: 1 si es vivienda unifamiliar
+•BldgType 2FmCon ∈ {0,1}: 1 si es conversi´ on de dos familias
+•BldgType Duplx∈ {0,1}: 1 si es d´ uplex
+•BldgType TwnhsE ∈ {0,1}: 1 si es townhouse extremo
+•BldgType TwnhsI ∈ {0,1}: 1 si es townhouse interior
+Restricci´ on: Selecci´ on ´Unica de Tipo
+BldgType 1Fam +BldgType 2FmCon +BldgType Duplx +BldgType TwnhsE +BldgType TwnhsI = 1
+(52)
+Restricci´ on: Selecci´ on ´Unica de Tipo
+X
+t∈TgarageGarageType t= 1 (53)
+Donde:
+•Tgarage ={2Types,Attchd,Basment,BuiltIn,CarPort,Detchd,NA}
+Restricci´ on: Consistencia con Existencia de Garaje
+HasGarage= 1−GarageType NA (54)
+34
+--- Page 35 ---
+8.12 Restricciones de Cimentaci´ on
+8.12.1 Exclusividad del Tipo de Cimentaci´ on
+Variables:
+•Foundation BrkTil ∈ {0,1}: 1 si cimentaci´ on es Brick & Tile
+•Foundation CBlock ∈ {0,1}: 1 si cimentaci´ on es Cinder Block
+•Foundation PConc ∈ {0,1}: 1 si cimentaci´ on es Poured Concrete
+•Foundation Slab∈ {0,1}: 1 si cimentaci´ on es Slab
+•Foundation Stone∈ {0,1}: 1 si cimentaci´ on es Stone
+•Foundation Wood∈ {0,1}: 1 si cimentaci´ on es Wood
+Restricci´ on: Selecci´ on ´Unica de Cimentaci´ on
+X
+f∈TfoundationFoundation f= 1 (55)
+Donde:
+•Tfoundation ={BrkTil,CBlock,PConc,Slab,Stone,Wood}
+8.13 Restricciones de Exposici´ on del S´ otano
+8.13.1 Exclusividad del Nivel de Exposici´ on
+Variables:
+•BsmtExposure Gd∈ {0,1}: 1 si exposici´ on buena
+•BsmtExposure Av∈ {0,1}: 1 si exposici´ on promedio
+•BsmtExposure Mn∈ {0,1}: 1 si exposici´ on m´ ınima
+•BsmtExposure No∈ {0,1}: 1 si no hay exposici´ on
+•BsmtExposure NA∈ {0,1}: 1 si no hay s´ otano
+Restricci´ on: Selecci´ on ´Unica de Exposici´ on
+BsmtExposure Gd+BsmtExposure Av+BsmtExposure Mn+BsmtExposure No+BsmtExposure NA= 1
+(56)
+8.13.2 Dependencia con Existencia del S´ otano
+Variables:
+•HasBasement i∈ {0,1}: 1 si la vivienda tiene s´ otano
+BsmtExposure NAi= 1−HasBasement i (57)
+BsmtExposure Gd+BsmtExposure Av+BsmtExposure Mn+BsmtExposure No=HasBasement i
+(58)
+35
+--- Page 36 ---
+8.14 Restricciones de ´Area Habitable
+8.14.1 Consistencia con ´Areas de Pisos
+GrLivArea i= 1stFlrSF i+ 2ndFlrSF i (59)
+8.15 Restricciones de Ba˜ nos en S´ otano
+8.15.1 Dependencia con Existencia del S´ otano
+Variables:
+•HasBasement i∈ {0,1}: 1 si la vivienda tiene s´ otano
+BsmtFullBath i≤TotalBsmtSF i·HasBasement i (60)
+BsmtHalfBath i≤TotalBsmtSF i·HasBasement i (61)
+BsmtFullBath i≥0, BsmtHalfBath i≥0 (62)
+8.16 Restricciones de Habitaciones
+8.16.1 M´ ınimo de Habitaciones
+TotRmsAbvGrd i≥1∀i(63)
+8.17 Restricciones de Chimeneas
+8.17.1 M´ aximo de Chimeneas por ´Area Habitable
+Fireplaces i≤1stFlrSF i+ 2ndFlrSF i
+900
+(64)
+8.18 L´ ımites de Variables Num´ ericas
+8.18.1 L´ ımites de Ambientes
+HalfBath i≥0, HalfBath i≤3 (65)
+TotRmsAbvGrd i≥3, TotRmsAbvGrd i≤12 (66)
+BsmtFullBath i≥0, BsmtFullBath i≤2 (67)
+BsmtHalfBath i≥0, BsmtHalfBath i≤1 (68)
+36
+--- Page 37 ---
+8.18.2 L´ ımites de ´Areas de Construcci´ on
+1stFlrSF i≥500,1stFlrSF i≤0.6·LotArea i (69)
+2ndFlrSF i≥0,2ndFlrSF i≤0.5·LotArea i (70)
+TotalBsmtSF i≥0, TotalBsmtSF i≤0.5·LotArea i (71)
+GrLivArea i≥800, GrLivArea i≤0.8·LotArea i (72)
+GarageArea i≥0, GarageArea i≤0.2·LotArea i (73)
+GarageCars i≥0, GarageCars i≤4 (74)
+8.18.3 L´ ımites de ´Areas Exteriores
+PoolArea i≥0, PoolArea i≤0.1·LotArea i (75)
+WoodDeckSF i≥0, WoodDeckSF i≤0.15·LotArea i (76)
+OpenPorchSF i≥0, OpenPorchSF i≤0.1·LotArea i (77)
+EnclosedPorch i≥0, EnclosedPorch i≤0.1·LotArea i (78)
+ScreenPorch i≥0, ScreenPorch i≤0.05·LotArea i (79)
+8.19 Restricciones de Deck de Madera
+8.19.1 ´Area M´ ınima Funcional
+Variables:
+•HasWoodDeck i∈ {0,1}: 1 si se construye deck de madera
+WoodDeckSF i≥40·HasWoodDeck i (80)
+WoodDeckSF i≤0.15·LotArea i·HasWoodDeck i (81)
+9 Par´ ametros
+Modelo de construcci´ on:
+•MSZoning i: Identifica la clasificaci´ on general de zonificaci´ on de la
+venta. venta.
+•LotFrontage i: Pies lineales de calle conectados a la propiedad.
+•LotArea i: Tama˜ no del lote en pies cuadrados.
+•Street i: Tipo de acceso desde la calle a la propiedad.
+•Alley i: Tipo de acceso desde callej´ on a la propiedad.
+•LotShape i: Forma general de la propiedad.
+37
+--- Page 38 ---
+•LandContour i: Nivelaci´ on del terreno.
+•LotConfig i: Configuraci´ on del lote.
+•LandSlope i: Pendiente de la propiedad.
+•Neighborhood i: Ubicaciones f´ ısicas dentro de los l´ ımites de la ciudad
+de Ames.
+•Condition1: Proximidad a diversas condiciones.
+•Condition2 i: Proximidad a varias condiciones (si hay m´ as de una pre-
+sente).
+•OverallQual i: Califica el material general y el acabado de la casa.
+•OverallCond i: Califica el estado general de la casa.
+•Y earBuilt i: Fecha de construcci´ on original.
+•Y earRemodAdd i: Fecha de remodelaci´ on (igual que la fecha de con-
+strucci´ on si no hay remodelaciones ni adiciones).
+•ExterQual i: Eval´ ua la calidad del material en el exterior.
+•ExterCond i: Eval´ ua el estado actual del material en el exterior.
+•BsmtQual i: Eval´ ua la altura del s´ otano.
+•BsmtCond i: Eval´ ua el estado general del s´ otano.
+•HeatingQC i: Calidad y estado de la calefacci´ on.
+•Functional i: Funcionalidad del hogar (Asuma t´ ıpica a menos que se
+justifiquen deducciones).
+•FireplaceQu i: Calidad de la chimenea.
+•KitchenQual i: Calidad de la cocina.
+•GarageY rBlt i: A˜ no de construcci´ on del garaje.
+•GarageQual i: Calidad del garaje.
+•GarageCond i: Estado del garaje.
+•PoolQC i: Calidad de la piscina.
+•Fence i: Calidad de la cerca.
+•MiscV al i: Valor de la caracter´ ıstica miscel´ anea.
+•MoSold i: Mes vendido (MM).
+•Y rSold i: A˜ no de venta (AAAA).
+38
+--- Page 39 ---
+Modelo de remodelacion:Para este caso, se iniciara todo como par´ ametro,
+ya que a partir de la informaci´ on de la vivienda que se quiere remodelar se
+har´ an los respectivos cambios. Es decir, depende de la casa base que se quiere
+remodelar.
+•MSSubClass i: Identifica el tipo de vivienda involucrada en la venta.
+•MSZoning i: Identifica la clasificaci´ on general de zonificaci´ on de la
+venta. venta.
+•LotFrontage i: Pies lineales de calle conectados a la propiedad.
+•LotArea i: Tama˜ no del lote en pies cuadrados.
+•Street i: Tipo de acceso desde la calle a la propiedad.
+•Alley i: Tipo de acceso desde callej´ on a la propiedad.
+•LotShape i: Forma general de la propiedad.
+•LandContour i: Nivelaci´ on del terreno.
+•Utilities i: Tipo de servicios p´ ublicos disponibles.
+•LotConfig i: Configuraci´ on del lote.
+•LandSlope i: Pendiente de la propiedad.
+•Neighborhood i: Ubicaciones f´ ısicas dentro de los l´ ımites de la ciudad
+de Ames.
+•Condition1 i: Proximidad a diversas condiciones.
+•Condition2 i: Proximidad a varias condiciones (si hay m´ as de una pre-
+sente).
+•BldgType i: Tipo de vivienda.
+•HouseStyle i: Estilo de vivienda.
+•OverallQual i: Califica el material general y el acabado de la casa.
+•OverallCond i: Califica el estado general de la casa.
+•Y earBuilt i: Fecha de construcci´ on original.
+•Y earRemodAdd i: Fecha de remodelaci´ on (igual que la fecha de con-
+strucci´ on si no hay remodelaciones ni adiciones).
+•RoofStyle i: Tipo de techo.
+•RoofMatl i: Material del techo.
+•Exterior1st i: Revestimiento exterior de la casa.
+39
+--- Page 40 ---
+•Exterior2nd i: Revestimiento exterior de la casa (si hay m´ as de un
+material).
+•MasV nrType i: Tipo de revestimiento de mamposter´ ıa.
+•MasV nrArea i: ´ area de revestimiento de mamposter´ ıa en pies cuadra-
+dos.
+•ExterQual i: Eval´ ua la calidad del material en el exterior.
+•ExterCond i: Eval´ ua el estado actual del material en el exterior.
+•Foundation i: Tipo de cimentaci´ on.
+•BsmtQual i: Eval´ ua la altura del s´ otano.
+•BsmtCond i: Eval´ ua el estado general del s´ otano.
+•BsmtExposure i: Se refiere a muros a nivel de jard´ ın o de acceso.
+•BsmtFinType1 i: Clasificaci´ on del ´ area terminada del s´ otano.
+•BsmtFinSF1 i: Pies cuadrados terminados tipo 1.
+•BsmtFinType2 i: Clasificaci´ on del ´ area terminada del s´ otano (si hay
+varios tipos).
+•BsmtFinSF2 i: Pies cuadrados terminados tipo 2.
+•BsmtUnfSF i: Metros cuadrados sin terminar del ´ area del s´ otano.
+•TotalBsmtSF i: Total de pies cuadrados del ´ area del s´ otano.
+•Heating i: Tipo de calefacci´ on.
+•HeatingQC i: Calidad y estado de la calefacci´ on.
+•CentralAir i: Aire acondicionado centralizado.
+•Electrical i: Sistema el´ ectrico.
+•1stFlrSF i: Pies cuadrados del primer piso.
+•2ndFlrSF i: Pies cuadrados del segundo piso.
+•LowQualFinSF i: Pies cuadrados terminados de baja calidad (todos los
+pisos).
+•GrLivArea i: Superficie habitable sobre el nivel del suelo (pies cuadra-
+dos).
+•BsmtFullBath i: Ba˜ nos completos en s´ otano.
+•BsmtHalfBath i: Medios ba˜ nos en s´ otano.
+40
+--- Page 41 ---
+•FullBath i: Ba˜ nos completos sobre el nivel del suelo.
+•HalfBath i: Medios ba˜ nos sobre el nivel del suelo.
+•Bedroom iDormitorios sobre el nivel del suelo (no incluye dormitorios
+en el s´ otano).
+•Kitchen i: Cocinas sobre el nivel del suelo.
+•KitchenQual i: Calidad de la cocina.
+•TotRmsAbvGrd i: Total de habitaciones sobre el nivel del suelo (no
+incluye ba˜ nos).
+•Functional i: Funcionalidad del hogar (Asuma t´ ıpica a menos que se
+justifiquen deducciones).
+•Fireplaces i: N´ umero de chimeneas.
+•FireplaceQu i: Calidad de la chimenea.
+•GarageType i: Ubicaci´ on del garaje.
+•GarageY rBlt i: A˜ no de construcci´ on del garaje.
+•GarageFinish i: Acabado interior del garaje.
+•GarageCars i: Tama˜ no del garaje en capacidad de coches.
+•GarageArea i: Tama˜ no del garaje en pies cuadrados.
+•GarageQual i: Calidad del garaje.
+•GarageCond i: Estado del garaje.
+•PavedDrive i: Camino de entrada pavimentado.
+•WoodDeckSF i:´Area de cubierta de madera en pies cuadrados.
+•OpenPorchSF i:´Area de porche abierto en pies cuadrados.
+•EnclosedPorch i:´Area de porche cerrado en pies cuadrados.
+•3SsnPorch i:´Area de porche de tres estaciones en pies cuadrado.
+•ScreenPorch i:´Area del porche con mosquitero en pies cuadrados.
+•PoolArea i:´Area de la piscina en pies cuadrados.
+•PoolQC i: Calidad de la piscina.
+•Fence i: Calidad de la cerca.
+•MiscFeature i: Caracter´ ısticas diversas no cubiertas en otras categor´ ıas.
+41
+--- Page 42 ---
+•MiscV al i: Valor de la caracter´ ıstica miscel´ anea.
+•MoSold i: Mes vendido (MM).
+•Y rSold i: A˜ no de venta (AAAA).
+•SaleType i: Tipo de venta.
+•SaleCondition i: Condici´ on de venta.
+9.0.1 Exclusividad de Tipo de Garaje
+Variables:
+•GarageType 2Types ∈ {0,1}: 1 si tiene m´ ultiples tipos
+•GarageType Attchd ∈ {0,1}: 1 si est´ a adjunto a la casa
+•GarageType Basment ∈ {0,1}: 1 si est´ a en s´ otano
+•GarageType BuiltIn ∈ {0,1}: 1 si est´ a integrado
+•GarageType CarPort ∈ {0,1}: 1 si es cochera
+•GarageType Detchd ∈ {0,1}: 1 si est´ a separado
+•GarageType NA∈ {0,1}: 1 si no tiene garaje
+Restricci´ on: Selecci´ on ´Unica de Tipo
+X
+g∈GGarageType i,g= 1∀i(82)
+Donde:
+•G={2Types,Attchd,Basment,BuiltIn,CarPort,Detchd,NA}
+Restricci´ on: Consistencia con Existencia de Garaje
+HasGarage i= 1−GarageType NA (83)
+10 Naturaleza de las variables
+Modelo de construcci´ on:
+A continuaci´ on se detallan las variables que se utilizan para el modelo de con-
+strucci´ on de una viviendai∈ {1, ..., I}desde cero. Para mayor entendimiento de
+los subindices de las variables pueden revisarlo en el archivo data description.txt.
+Variable Descripci´ on
+42
+--- Page 43 ---
+MSSubClass i,s∈ {0,1}
+s∈ {20,30,40,45,50,60,70,75,80,85,90,120,150,
+160,180,190}Identifica el tipo de vivienda in-
+volucrada en la venta.
+Utilities i,u∈ {0,1}
+u∈ {AllPub, NoSewr, NoSeWa, ELO}Tipo de servicios p´ ublicos
+disponibles
+BldgType i,b∈ {0,1}
+b∈ {1Fam,2FmCon, Duplx, TwnhsE, TwnhsI}Tipo de vivienda.
+HouseStyle i,hs∈ {0,1}
+hs∈ {1Story,1.5Fin,1.5Unf,2Story,2.5Fin,
+2.5Unf, SFoyer, SLvl}Estilo de vivienda.
+RoofStyle i,r∈ {0,1}
+r∈ {Flat, Gable, Gambrel, Hip, Mansard, Shed}Tipo de techo
+RoofMatl i,m∈ {0,1}
+m∈ {ClyTile, CompShg, Membran, Metal, Roll,
+TarGrv, WdShake, WdShngl}Material del techo
+Exterior1st i,e1∈ {0,1}
+e1∈ {AsbShng, AsphShn, BrkComm, BrkFace,
+CBlock, CemntBd, HdBoard, ImStucc,
+MetalSd, Other, Plywood, PreCast, Stone,
+Stucco, V inylSd, WdSdng, WdShing}Revestimiento exterior de la casa
+Exterior2nd i,e2∈ {0,1}
+e2∈ {AsbShng, AsphShn, BrkComm, BrkFace,
+CBlock, CemntBd, HdBoard, ImStucc,
+MetalSd, Other, Plywood, PreCast, Stone,
+Stucco, V inylSd, WdSdng, WdShing}Revestimiento exterior de la casa
+(si hay m´ as de un material).
+MasV nrType i,t∈ {0,1}
+t∈ {BrkCmn, BrkFace, CBlock, None, Stone}Tipo de revestimiento de mam-
+poster´ ıa
+MasV nrArea i≥0, MasV nrArea i∈Z ´Area de revestimiento de mam-
+poster´ ıa en pies cuadrados.
+Foundation i,f∈ {0,1}
+f∈ {BrkTil, CBlock, PConc, Slab, Stone, Wood}Tipo de cimentaci´ on.
+BsmtExpoure i,x∈ {0,1}
+x∈ {Gd, Av, Mn, No, NA}Se refiere a muros a nivel de
+jard´ ın o de acceso.
+BsmtFinType1 i,b1∈ {0,1}
+b1∈ {GLQ, ALQ, BLQ, Rec, LwQ, Unf, NA}Clasificaci´ on del ´ area terminada
+del s´ otano.
+BsmtFinSF1 i,sf1≥0,BsmtFinSF1 i,sf1∈Z Pies cuadrados terminados tipo
+1.
+BsmtFinType2 i,b2
+b2∈ {GLQ, ALQ, BLQ, Rec, LwQ, Unf, NA}Clasificaci´ on del ´ area terminada
+del s´ otano (si hay varios tipos).
+BsmtFinSF2 i≥0, BsmtFinSF2 i∈Z Pies cuadrados terminados tipo
+2.
+BsmtUnfSF i≥0, BsmtUnfSF i∈Z Metros cuadrados sin terminar
+del ´ area del s´ otano.
+43
+--- Page 44 ---
+TotalBsmtSF i≥0, TotalBsmtSF i∈Z Total de pies cuadrados del ´ area
+del s´ otano.
+Heating i,h∈ {0,1}
+h∈ {Floor, GasA, GasW, Grav, OthW, Wall}Tipo de calefacci´ on.
+CentralAir i,a∈ {0,1}
+a∈ {Y es, No}Aire acondicionado centralizado.
+Electrical i,e∈ {0,1}
+e∈ {SBrkr, FuseA, FuseF, FuseP, Mix}Sistema el´ ectrico.
+1stFlrSF i≥0,1stFlrSFi∈Z Pies cuadrados del primer piso.
+2ndFlrSF i≥0,2ndFlrSF i∈Z Pies cuadrados del segundo piso.
+LowQualFinSF i≥0, LowQualFinSF i∈Z Pies cuadrados terminados de
+baja calidad (todos los pisos).
+GrLivArea i≥0, GrLivArea i∈Z Superficie habitable sobre el
+nivel del suelo (pies cuadrados).
+BsmtFullBath i≥0, BsmtFullBath i∈Z Ba˜ nos completos en s´ otano.
+BsmtHalfBath i≥0, BsmtHalfBath i∈Z Medios ba˜ nos del s´ otano.
+FullBath i≥0, FullBath i∈Z Ba˜ nos completos sobre el nivel
+del suelo.
+HalfBath i≥0, HalfBath i∈Z Medios ba˜ nos sobre el nivel del
+suelo.
+Bedroom i≥0, Bedroom i∈Z Dormitorios sobre el nivel del
+suelo (no incluye dormitorios en
+el s´ otano).
+Kitchen i≥0, Kitchen i∈Z Cocinas sobre el nivel del suelo.
+TotRmsAbvGrd i≥0, TotRmsAbvGrd i∈Z Total de habitaciones sobre el
+nivel del suelo (no incluye
+ba˜ nos).
+Fireplaces i≥0, Fireplaces i∈Z N´ umero de chimeneas.
+GarageType i,g∈ {0,1}
+g∈ {2Types, Attchd, Basment, BuiltIn, CarPort,
+Detchd, Noaplica}Ubicaci´ on del garaje.
+GarageFinish i,gf∈ {0,1}
+gf∈ {Fin, RFn, Unf, Noaplica}Acabado interior del garaje.
+GarageCars i≥0, GarageCars i∈Z Tama˜ no del garaje en capacidad
+de coches.
+GarageArea i≥0, GarageArea i∈Z Tama˜ no del garaje en pies
+cuadrados.
+PavedDrive i,p∈ {0,1}
+p∈ {Paved, PartialPavement, Dirt/Gravel}Camino de entrada pavimentado.
+WoodDeckSF i≥0, WoodDeckSF i∈Z ´Area de cubierta de madera en
+pies cuadrados.
+OpenPorchSF i≥0, OpenPorchSF i∈Z ´Area de porche abierto en pies
+cuadrados.
+44
+--- Page 45 ---
+EnclosedPorch i≥0, EnclosedPorch i∈Z ´Area de porche cerrado en pies
+cuadrados.
+3SsnPorch i≥0,3SsnPorch i∈Z ´Area de porche de tres estaciones
+en pies cuadrado.
+ScreenPorch i≥0, ScreenPorch i∈Z ´Area del porche con mosquitero
+en pies cuadrados.
+PoolArea i≥0, PoolArea i∈Z ´Area de la piscina en pies cuadra-
+dos
+MiscFeature i,misc ∈ {0,1}
+misc∈ {Elev, Gar2, Othr, Shed, TenC, Noaplica}Caracter´ ısticas diversas no cu-
+biertas en otras categor´ ıas.
+SaleType i,st∈ {0,1}
+st∈ {WD, CWD, V WD, New, COD, Con, ConLw,
+ConLI, ConLD, Oth}Tipo de venta.
+SaleCondition i,sc∈ {0,1}
+sc∈ {Normal, Abnorml, AdjLand, Alloca, Family,
+Partial}Condici´ on de venta.
+11 Costos
+Se presenta la siguiente tabla con los costos de los distintos tipos de estilos,
+materiales y otros adicionales de la vivienda. Los valores obtenidos son en base
+a un promedio en Estados Unidos.
+Costo Descripci´ on
+Construcci´ on
+Cconstrucci´on = $230”El costo promedio de construir una
+casa es de$180 a$280 por pie
+cuadrado para una casa b´ asica de
+construcci´ on con acabados est´ andar”
+(Cramer, 2025).
+Ampliaci´ on
+Campliaci´on =$106,49”Costo de construir una ampliaci´ on de
+vivienda en Ames, Iowa$106,49 por pie
+cuadrado para construcci´ on de grado
+est´ andar (rango:$82,28 -$130,70)”.
+(ProMatcher, 2021).
+Demolici´ on
+Cdemolici´on =$1,65”Antes de comenzar la construcci´ on de
+su nuevo dormitorio y ba˜ no, es nece-
+sario despejar completamente el espa-
+cio de elementos paisaj´ ısticos. El costo
+de demolici´ on y preparaci´ on es de entre
+$1.30 y$2 por pie cuadrado”. (Cellucci,
+2025).
+45
+--- Page 46 ---
+Utilities:C u
+CAllPub = $31,750
+CNoSewr = $39,500
+CNoSeWa = $22,000
+CELO= $20,000Costos promedios de los servicios
+p´ ublicos
+•Electricity:$10,000–$30,000
+•Gas:$500–$3,500
+•Water (Septic Tank):
+$5,000–$30,000
+•Water:$1,000–$6,000
+•Sewer:$1,500–$11,000
+(Big How, 2025).
+46
+--- Page 47 ---
+RoofMatl:C m
+CClyTile = $11,89
+CCompShg = $6
+CMembran = $6
+CMetal = $8,99
+CRoll= $3,75
+CTar&Grv = $5,5
+CWdShake = $11
+CWdShngl = $6,35Costos de los materiales del techo por
+pie cuadrado
+•ClyTile: ”Los techos de tejas
+de arcilla cuestan entre$9.72 y
+$14.05 por pie cuadrado” (Was-
+son, 2025).
+•CompShg: ”El costo promedio de
+un techo de tejas compuestas es
+de$20,000 , con un rango de en-
+tre$15,000 y$25,000. Los techos
+compuestos cuestan un promedio
+de$4 a$8 por pie cuadrado.
+(Home Advisor, 2025).
+•Membran: ”Costo promedio de
+un techo de membrana:$4 a
+$8 por pie cuadrado” (Wallender,
+2025).
+•Metal: ”Costo de instalaci´ on
+de techos de metal$899,11 por
+100 pies cuadrados (junta alzada,
+sin necesidad de quitar el techo
+existente) (Rango:$778,88 -
+$1.019,34)”. (Pro Matcher, s.f.).
+•Roll: ”El costo promedio de un
+techo enrollado es de$2.00 a
+$5.50 por pie cuadrado instalado,
+o de$3,200 a$12,000”. (Carlson,
+2023).
+•Tar&Grv: ”Un techo de asfalto
+y grava cuesta entre$3.50 y
+$7.50 por pie cuadrado con insta-
+laci´ on, o entre$4,500 y$12,600 en
+promedio”. (Carlson, 2023).
+•WdShake: ”Un techo de tejas de
+cedro cuesta en promedio entre$7
+y$15 por pie cuadrado instalado”
+(Cramer, 2024).
+•WdShngl: ”Costo de instalaci´ on
+de techos de tejas de madera
+$635,13 por 100 pies cuadrados
+(calidad est´ andar, sin necesidad
+de retirar el existente)”. (Pro
+Matcher, s.f.).47
+--- Page 48 ---
+Exterior1st y Exterior2nd:C e1, Ce2
+CAsbShng = $11,5
+CAsphShn = $1,5
+CBrkComm = $1,21
+CBrkFace = $15
+CCBlock = $22,5
+CCemntBd = $12,5
+CHdBoard = $4,24
+CImStucc = $8,5
+CMetalSd = $5,48
+COther = $11,56
+CPlywood = $2
+CPreCast = $37,5
+CStone = $27,5
+CStucco = $12
+CV inylSd = $7,46
+CWdSdng = $3,64
+CWdShing = $12,5Costos de los materiales del reves-
+timiento exterior de la casa por pie
+cuadrado
+•AsbShng: ”El costo promedio de
+reemplazar el revestimiento de as-
+besto es de$19,000 , y la mayor´ ıa
+de los propietarios gastan entre
+$16,000 y$22,000. Los pre-
+cios pueden variar entre$8 y
+$15 por pie cuadrado”. (Angi,
+2025). Para este caso, fue difi-
+cil encontrar un costo de insta-
+laci´ on de este tipo de material,
+ya que esta cada vez m´ as re-
+stringido. ”EPA ha anunciado
+una norma definitiva para pro-
+hibir el uso continuo del asbesto
+crisotilo, la ´ unica forma conocida
+de asbesto que se utiliza actual-
+mente en Estados Unidos o se im-
+porta a este pa´ ıs” (W&L Team,
+2024).
+•AsphShn: Al haber varios tipos
+de tejas de asfalto, nos quedare-
+mos con la m´ as com´ un ”las te-
+jas dimensionales son las tejas de
+asfalto m´ as comunes”. (Certain-
+teed, s.f.).$1.25 –$1.75 por pie
+cuadrado.
+•BrkComm: ”La instalaci´ on com-
+pleta de un revestimiento de
+ladrillo cuesta un promedio de$13
+por metro cuadrado , aunque los
+precios pueden variar entre$4 y
+$22 por metro cuadrado”. (La-
+coma, 2024).
+•BrkFace: ”Revestimiento de
+ladrillo cara vista, cuesta entre
+$12 y$18 por pie cuadrado
+instalado”. (Carlson, 2025)
+•CBlock: ”Construir un muro de
+bloques de hormig´ on cuesta entre
+$60 y$240 por pie lineal o en-
+tre$15 y$30 por pie cuadrado”
+(Noel, 2023).
+•CemntBd: ”Instalar un reves-
+timiento de fibrocemento nuevo
+cuesta entre$7 y$18 por pie
+cuadrado” (Simms, 2025).
+•HdBoard: ”Costo del reves-
+timiento de tableros duros$3.55
+-$4.92 Precio por pie cuadrado”
+(Planner 5D, 2024).
+•ImStucc: ”El estuco sint´ etico, o
+EIFS (Sistema de Aislamiento y
+Acabado Exterior)$7–$10 por pie
+cuadrado” (Angi, 2025).
+•MetalSd: ”Costo promedio por
+pie cuadrado de revestimiento de
+metal$2.83–$8.12”. ()
+•Other: Al no saber a que mate-
+rial se refieren exactamente y no
+se puede llegar y borrar decidimos
+que sera el promedio de los dem´ as
+materiales. Teniendo como resul-
+tado$11,56.
+•Plywood: El contrachapado es
+un material vers´ atil ampliamente
+utilizado en la construcci´ on (...)
+normalmente, se puede esperar
+pagar entre$0.50 y$3.50 por pie
+cuadrado” (Brooks, 2025).
+•PreCast: ”Los muros de
+hormig´ on prefabricado suelen
+costar entre 25 y 50 d´ olares por
+pie cuadrado” (Vintage Cast,
+2024).
+•Stone: ”Costo promedio por
+pie cuadrado de revestimiento de
+piedra$10 –$45”. (Cramer,
+2024).
+•Stucco: ”Costo promedio por pie
+cuadrado de revestimiento de es-
+tuco$7 –$17”. (Cramer, 2024).
+•VinylSd: ”Costo promedio por
+pie cuadrado de revestimiento de
+vinilo$3.40–$11.52”. ()
+•WdSdng: ”Costo promedio por
+pie cuadrado de revestimiento de
+madera$2.13–$5.15”. ()
+•WdShing: ”Una vez que se abor-
+dan las instalaciones y formas
+complejas, como las tejas de
+madera y los troncos, se calcula
+que el costo de los materiales es de
+$5 a$20 por pie cuadrado” (Bier-
+meier, 2025).48
+--- Page 49 ---
+ExterQual y ExterCond:C Exter
+CExter,Ex =
+CExter,Gd =
+CExter,TA =
+CExter,Fa =
+CExter,Po =•Ex:
+•Gd:
+•TA:
+•Fa:
+•Po:
+MasVnrType:C t
+CBrkCmn =$1,21
+CBrkFace = $15
+CCBlock = $22,5
+CNone = 0
+CStone = $27,5Costos del tipo de revestimiento de
+mamposter´ ıa en pies cuadrados
+•BrkCmn: ”La instalaci´ on com-
+pleta de un revestimiento de
+ladrillo cuesta un promedio de$13
+por metro cuadrado , aunque los
+precios pueden variar entre$4 y
+$22 por metro cuadrado”. (La-
+coma, 2024).
+•BrkFace: ”Revestimiento de
+ladrillo cara vista, cuesta entre
+$12 y$18 por pie cuadrado
+instalado”. (Carlson, 2025)
+•CBlock: ”Construir un muro de
+bloques de hormig´ on cuesta entre
+$60 y$240 por pie lineal o en-
+tre$15 y$30 por pie cuadrado”
+(Noel, 2023).
+•Stone: ”Costo promedio por
+pie cuadrado de revestimiento de
+piedra$10 –$45”. (Cramer,
+2024).
+Supuesto: Se usaran los mismos cos-
+tos que en la casilla anterior debido a
+que son los mismos materiales en pies
+cuadrados solo que se utilizan para dis-
+tintas partes de la casa, es decir, para
+el revestimiento de la casa en general y
+el revestimiento de la mamposter´ ıa.
+49
+--- Page 50 ---
+Foundation
+CBrkTil =
+CCBlock = $12
+CPConc = $10
+CSlab= $10
+CStone = $23,5
+CWood =$40Costo de cimentaci´ on por pie cuadrado
+•BrkTil:
+•CBlock: ”Tipo de cimentaci´ on
+bloque (cemento o ceniza) prome-
+dio por pie cuadrado es de
+$9–$15” (HomeAdvisor, 2025).
+•PConc: ”El costo de una ci-
+mentaci´ on de losa o monol´ ıtica
+var´ ıa entre$6 y$14 por pie
+cuadrado” (USA Estimators,
+s.f.).
+•Slab: ”En Estados Unidos, los
+propietarios de viviendas pagan
+entre$6 y$14 por pie cuadrado
+por una losa de concreto” (Miller,
+s.f.).
+•Stone: ”Los cimientos de piedra
+cuestan entre$12 y$35 por pie
+cuadrado” (Nuance Energy, s.f.).
+•Wood: ”El costo promedio de
+una cimentaci´ on de madera es de
+alrededor de$40,000 para una
+casa t´ ıpica de 1,000 pies cuadra-
+dos” (Simms, 2023).
+50
+--- Page 51 ---
+Heating:C h
+CFloor = $1,773
+CGasA = $5,750
+CGasW = $8,500
+CGrav = $6,300
+COthW = $4,900
+CWall= $3,700Costos de calefacci´ on
+•Floor: ”Cu´ anto cuesta instalar un
+horno de gas para calefacci´ on por
+suelo radiante?$1,773 (horno de
+gas de piso de 35,000 BTU/h - ac-
+tualizaci´ on 1) ”. (HowMuch, s.f.).
+•GasA: ”La mayor´ ıa de los propi-
+etarios de viviendas en EE. UU.
+gastan entre$3,000 y$8,500
+en reemplazar un calefactor de
+aire forzado a gas sin conductos
+nuevos”. (Langer, 2025).
+•GasW: ”Reemplazar una caldera
+de gas cuesta entre$4,000 y
+$9,000. Una caldera de gas re-
+quiere una l´ ınea de gas para su
+hogar y acceso a tuber´ ıas y con-
+ductos de ventilaci´ on.”(Tschudi,
+2025). En promedio ser´ ıa$8,500
+por una caldera de gas est´ andar.
+•Grav: ”En promedio, reemplazar
+un horno de gravedad cuesta
+$6,300.” (Grant, 2025).
+•OthW: Mencionan que tiene que
+ser una calefacci´ on distinta a gas,
+por lo tanto, decidimos que ser´ ıa
+con electricidad que es el segundo
+con mayor porcentaje. (Statista,
+2025). ”Las calderas el´ ectricas
+son las m´ as econ´ omicas de reem-
+plazar que otros tipos, con precios
+desde$1,800, pero algunos mode-
+los pueden costar$8,000 o m´ as.”
+(Tschudi, 2025).
+•Wall: ”Total t´ ıpico$1,400–$6,000
+para una instalaci´ on sencilla de
+un horno de pared el´ ectrico o
+con ventilaci´ on directa”. (Langer,
+2025).
+51
+--- Page 52 ---
+HeatingQC:C hqc
+Ch,Ex=
+Ch,Gd=
+Ch,TA =
+Ch,Fa=
+Ch,Po=Costos de calidad de la calefacci´ on
+•Ex:
+•Gd:
+•TA:
+•FA:
+•Po:
+CentralAir
+CCentralAir = $5,362Costo aire acondicionado
+”La mayor´ ıa de los propietarios pa-
+garon un promedio de$5,362.” (Manta,
+2025).
+Electrical:C e
+CSBrkr =
+CFuseA =
+CFuseF =
+CFuseP =
+CMix=Costos de sistema electrico
+•SBrkr:
+•FuseA:
+•FuseF:
+•FuseP:
+•Mix:
+52
+--- Page 53 ---
+MiscFeature
+CElev= $48,000
+CGar2 = $32,100
+CShed= $5,631
+CTenC = $15,774Costos de caracter´ ısticas diversas no cu-
+biertas en otras categor´ ıas
+•Elevator: ”Costo promedio na-
+cional$48,000.” (Cramer, 2023).
+•2nd Garage (if not described in
+garage section): ”El promedio na-
+cional para construir un garaje in-
+dependiente es de entre$19,200
+y$45,000, dependiendo del tipo
+de garaje, los materiales que pre-
+fiera, su lugar de residencia y si es
+necesario demoler un garaje ante-
+rior.” (Home Go, 2022).
+•Shed (over 100 SF): ”Para 100
+pies cuadrados$4,333 y para 240
+pies cuadrados que es lo m´ aximo
+que ofrece esta p´ agina$6,929.”
+(Shed Crafters, s.f).
+•Tenis court: ”Estas canchas de
+tenis cuestan un promedio de
+$15,774.” (Moore, 2023).
+PavedDrive:C d
+CY= $8,5
+CP= $5,25
+CN= $2Costo de entrada pavimentada
+•Y: ”Pavimentar su entrada para
+autos puede aumentar el valor de
+su casa (...) que oscila entre$2
+y$15 por pie cuadrado” (Alexan-
+dre, 2025).
+•P: Se decidio sacar un promedio
+entre ambos extremos, ya que no
+se encontro un costo para una en-
+trada parcialmente pavimentada.
+•N: ”El costo promedio por pie
+cuadrado de una entrada de grava
+es de$1 a$3 por pie cuadrado”
+(Selzer, 2024).
+Basement
+CBsmt =$15”El costo por pie cuadrado para termi-
+nar un s´ otano var´ ıa entre$7 y$23.”
+(Home Advisor, 2025).
+53
+--- Page 54 ---
+BasementCond:C BstmCond
+CBsmtCond,Ex =
+CBsmtCond,Gd =
+CBsmtCond,TA =
+CBsmtCond,Fa =
+CBsmtCond,Po =
+CBsmtCond,Na =Costo de la calidad del s´ otano
+•Ex:
+•Gd:
+•TA:
+•Fa:
+•Po: ”El acabado b´ asico de un
+s´ otano comienza en$75,000 a
+$125,000” ()
+Encontrar estas caracter´ ısticas tan es-
+pecificas es de gran complejidad asi
+que lo haremos en base al acabado que
+tienen.
+BsmtFinType1 y BsmtFinType2:
+CBstmType
+CBstmType,GLQ =
+CBstmType,ALQ =
+CBstmType,BLQ =
+CBstmType,Rec =
+CBstmType,LwQ =
+CBstmType,Unf =
+CBstmType,NA = 0Costos de calidad del s´ otano terminado
+•GLQ:
+•ALQ:
+•BLQ:
+•Rec:
+•LwQ:
+•Unf:
+Construcci´ on costos Kitchen
+Ckitchen = $200Costo promedio de construir una
+cocina en pies cuadrados
+”Instalar una cocina nueva cuesta
+entre$5,000 y$125,000 , con un costo
+promedio de$65,000 . El costo por
+pie cuadrado var´ ıa entre$100 y$300”
+(HomeAdvisor, 2025).
+54
+--- Page 55 ---
+KitchenQual:C k
+CEx,r= $180.000
+CGd,r=
+CTA,r= $42,500
+CFA,r =
+CPo,r= $13,000•Ex: ”Costo de remodelaci´ on de
+cocina de alta gama. Una remod-
+elaci´ on importante de su cocina
+costar´ a entre$60,000 y$300,000”.
+(Billock, 2024).
+•Gd: Interpolada (Ex/Ta) por
+falta de informaci´ on.
+•TA: ”Costo de remodelaci´ on de
+cocina de gama media. Una re-
+modelaci´ on moderada cuesta en-
+tre$25,000 y$60,000”. (Billock,
+2024).
+•FA: Interpolada (Ta/Po) por falta
+de informaci´ on.
+•Po: ”Costo de remodelaci´ on
+b´ asica de la cocina. Una remod-
+elaci´ on menor puede costar en-
+tre$1,000 y$25,000”. (Billock,
+2024).
+Construcci´ on HalfBath
+Chalfbath,c =$10,000”Su tama˜ no puede variar entre 15 y 25
+pies cuadrados. Esto lo convierte en
+una opci´ on econ´ omica y que ahorra es-
+pacio, con gastos que suelen oscilar en-
+tre$5,000 y$15,000”. (Block renova-
+tion, 2025).
+Construcci´ on FullBath
+CFullbath,c =$25,000”Con una superficie t´ ıpica de entre 40
+y 60 pies cuadrados, es una adici´ on
+vers´ atil que puede servir como ba˜ no
+principal o como ba˜ no familiar com-
+partido. El costo de a˜ nadir un ba˜ no
+completo suele oscilar entre$15,000 y
+$35,000”. (Block renovation, 2025).
+55
+--- Page 56 ---
+Remodelaci´ on Bath
+CBath,r = $650•”Conversi´ on b´ asica/de gama
+baja:$250 –$450 por pie
+cuadrado”. (Cedreo, 2025).
+•”Ampliaci´ on de ba˜ no de gama
+media:$500 –$800 por pie
+cuadrado”. (Cedreo, 2025).
+•”Lujo:$850 –$1200+ por pie
+cuadrado”. (Cedreo, 2025).
+Para este caso, al no tener una vari-
+able que diga la calidad del ba˜ no, de-
+cidimos quedarnos con el costo de un
+ba˜ no medio.
+FireplaceQu:C f
+Cf,Ex=
+Cf,Gd=
+Cf,TA =
+Cf,Fa=
+Cf,Po= $3,000
+Cf,Na= 0Costos de calidad de chimenea
+•Ex:
+•Gd: ”Construir una chimenea de
+mamposter´ ıa cuesta entre$3,500
+y$5,600” (Grupa, 2024).
+•TA: ”Instalar una chimenea de
+ladrillo prefabricada cuesta entre
+$2,000 y$3,000” (Grupa, 2024).
+•Fa:
+•Po: ”En promedio, instalar una
+estufa de le˜ na cuesta$3,000. Sin
+embargo, los precios var´ ıan entre
+$1,500 y$4,000” (Jonaitis, 2025).
+No tenemos informaci´ on sobre el costo
+de chimeneas prefabricadas que se in-
+stalan en el s´ otano o living. Es por
+esto que decidimos hacerlo en base a
+los materiales y no al lugar en donde
+se encuentran ubicadas dentro de la
+vivienda.
+56
+--- Page 57 ---
+GarageQual y GarageCond:C g
+Cg,Ex= $51,659
+Cg,Gd=
+Cg,TA = $24,038
+Cg,Fa=
+Cg,Po= $4,188
+Cg,Na= 0Costos de calidad del garaje
+•Ex(5): Costo de gama alta
+$51,659.
+•Gd(4): Interpolada.
+•TA(3): Costo promedio$24,038.
+•Fa(2): Interpolada.
+•Po(1): Costo de gama baja
+$4,188.
+(Carthan, 2025).
+GarageFinish:C GFin
+CGFin,Fin =
+CGFin,RFin =
+CGFin,Unf = $27,5
+CGFin,Na = 0Costo de acabado del garaje
+”Caracter´ ısticas que se mueven o
+instalan com´ unmente en las remod-
+elaciones de garajes son: armarios,
+puertas de garaje, electrico, ais-
+lamiento, paneles de yesos y pisos ”
+(Simms, 2025).
+•Fin: ”Un garaje terminado es
+aquel que cuenta con paneles de
+yeso que cubren las vigas y los
+huecos. Puede tener o no ais-
+lamiento y cableado el´ ectrico”
+(Dykstra, 2020).
+•RFin:
+•Unf: ”El costo de construir un
+garaje sin terminar puede variar
+mucho, pero en promedio, se es-
+pera un precio base de entre$15
+y$40 por pie cuadrado” (Cutter
+Construction LLC, s.f.).
+GarageArea
+CGarageArea = $47,5”¿Cu´ anto cuesta construir un garaje?
+$35 –$60 costo por pie cuadrado”
+(Grupa, 2025).
+OpenPorchSF
+EnclosedPorch
+3SsnPorch
+ScreenPorch
+57
+--- Page 58 ---
+Pool:C p
+CPoolArea = $88
+CPool,Ex = $135,000
+CPool,Gd = $96,333
+CPool,TA = $57,667
+CPool,Fa = $19,000
+CPool,NA = 0•”El presupuesto promedio es
+de$88 por pie cuadrado para
+una piscina enterrada” (Loveland,
+2025).
+•Ex: ”Una piscina grande, person-
+alizada, con caracter´ ısticas de lujo
+y materiales de alta gama podr´ ıa
+costar m´ as de$135,000” (Love-
+land, 2025).
+•Gd: Interpolada.
+•TA: Interpolada.
+•Fa: ”Una piscina peque˜ na y
+b´ asica, hecha con materiales
+econ´ omicos, podr´ ıa costar tan
+solo$19,000” (Loveland, 2025).
+58
+--- Page 59 ---
+Fence:C Fence
+CFence = $40
+CFence,GdPrv = $42
+CFence,MnPrv = $31.33
+CFence,GdWo = $12
+CFence,MnWw = $2
+CFence,NA = 0•”Una cerca nueva cuesta entre
+$20 y$60 por pie lineal” (Grupa,
+2025).”
+”Para las cercas de privacidad, las dos
+alturas est´ andar son 6 pies y 8 pies.”
+(Moore, 2025).
+•GdPrv: ”$6,300 por una cerca de
+8 pies de altura” (Moore, 2025).
+•MnPrv: ”Para una cerca de
+privacidad de 150 pies lineales,
+espera pagar aproximadamente
+$4,700 por una cerca de 6 pies de
+altura” (Moore, 2025).
+•GdWo: ”Una cerca de madera
+cuesta entre$10 y$14 por pie”
+(Grupa, 2025).
+•MnWw: ”La cerca m´ as
+econ´ omica que puede insta-
+lar es una de alambre, con un
+precio promedio de$2 por pie”
+(Grupa, 2025).
+12 Bibliograf´ ıa
+https://homeguide.com/costs/tar-and-gravel-roof-cost?
+https://roofing.promatcher.com/cost/
+https://homeguide.com/costs/roll-roofing-cost?
+https://howmuchdoessidingcost.com/iowa-siding-cost/
+https://homeguide.com/costs/siding-cost?
+https://howmuch.net/costs/hvac-heating-furnace-gas-floor-install
+https://kssupply.com/cozy-gas-floor-furnaces/
+https://www.homeadvisor.com/cost/basements/
+https://www.angi.com/articles/primary-bedroom-bath-cost.htm
+https://www.blockrenovation.com/guides/how-much-does-it-cost-to-add-a-bathroom-
+to-a-house: :text=Un
+https://www.angi.com/articles/wood-foundation.htm
+https://remoteestimation.us/concrete-slab-foundation-cost/: :text=What
+https://www.homeadvisor.com/cost/foundations/install-a-foundation/
+https://www.thekitchn.com/average-kitchen-remodel-cost-23636232
+59
+--- Page 60 ---
+https://bighow.com/news/utility-installation-costs-for-new-land?
+https://homeguide.com/costs/brick-veneer-cost?
+https://www.angi.com/articles/how-much-does-brick-veneer-cost.htm
+https://www.angi.com/articles/stone-siding-cost.htm
+https://www.angi.com/articles/cost-to-replace-asbestos-siding.htm
+https://www.weitzlux.com/blog/is-asbestos-banned-in-the-us/
+https://www.rapidrestoreny.com/blog/roof-replacement/roofing-shingles-prices/
+https://www.certainteed.com/inspiration/how-tos/types-asphalt-roofing-shingles: :text=Also
+https://www.lawnstarter.com/blog/cost/gravel-driveway-price/: :text=Gravel
+https://www.angi.com/articles/how-much-does-it-cost-pave-driveway.htm
+https://homeguide.com/costs/fencing-prices: :text=New
+https://homeguide.com/costs/fence-installation-cost: :text=Obtener
+https://www.angi.com/articles/how-much-does-privacy-fence-cost.htm https://www.homeadvisor.com/cost/kitchens/
+http://angi.com/articles/how-much-does-privacy-fence-cost.htm
+https://www.angi.com/articles/wood-burning-stove-installation-cost.htm
+https://www.angi.com/articles/how-much-does-it-cost-remodel-garage.htm?
+https://homeguide.com/costs/cost-to-build-a-house
+https://todayshomeowner.com/roofing/cost/clay-roof-cost/
+https://www.thespruce.com/basic-types-and-cost-of-roofing-materials-1822016: :text=
+https://homeguide.com/costs/cedar-shake-roof-cost?
+https://www.angi.com/articles/how-much-does-it-cost-install-stucco-siding.htm
+https://www.vintagecast.com/how-much-does-precast-concrete-cost-per-sf/
+https://planner5d.com/costs/hardboard-siding-cost?
+https://homeguide.com/costs/cost-to-build-a-garage?utm source=chatgpt.comcalc
+https://www.coohom.com/in/article/current−plywood−rates−per−square−
+foot?
+https://homeguide.com/costs/cinder−block−wall−cost: :text=in
+https://www.angi.com/articles/how−much−does−it−cost−replace−
+vinyl−fiber−cement−siding.htm
+https://estimators.us/foundation−cost−per−square−foot/
+https://homeguide.com/costs/brick−prices: :text=Red
+https://nuanceenergy.com/solar−blog/stone−foundations−for−solar−
+arrays−cost−pros−cons?
+https://cutterconstructionllc.com/unveiling−the−cost−implications−
+of−adding−a−garage−to−your−home−a−comprehensive−guide/
+References
+60
