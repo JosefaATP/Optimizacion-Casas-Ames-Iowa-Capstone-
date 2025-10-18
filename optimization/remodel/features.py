@@ -19,7 +19,6 @@ MODIFIABLE = [
     FeatureSpec("Bedroom AbvGr", 0, 6, "I"),
     FeatureSpec("Full Bath", 0, 4, "I"),
     FeatureSpec("Garage Cars", 0, 4, "I"),
-    FeatureSpec("Wood Deck SF", 0.0, 120.0, "C"),
     FeatureSpec("Total Bsmt SF", 0.0, 300.0, "C"),
     FeatureSpec("Gr Liv Area", 0.0, 10000.0, "C"),
     FeatureSpec("1st Flr SF", 0.0, 5000.0, "C"),
@@ -29,7 +28,7 @@ MODIFIABLE = [
     FeatureSpec("mvt_is_BrkCmn", lb=0, ub=1, vartype="B"),
     FeatureSpec("mvt_is_BrkFace", lb=0, ub=1, vartype="B"),
     FeatureSpec("mvt_is_CBlock", lb=0, ub=1, vartype="B"),
-    FeatureSpec("mvt_is_None", lb=0, ub=1, vartype="B"),
+    FeatureSpec("mvt_is_No aplica", lb=0, ub=1, vartype="B"),
     FeatureSpec("mvt_is_Stone", lb=0, ub=1, vartype="B"),
 
 ]
@@ -70,19 +69,21 @@ for _nm in ["Flat","Gable","Gambrel","Hip","Mansard","Shed"]:
 for _nm in ["ClyTile","CompShg","Membran","Metal","Roll","Tar&Grv","WdShake","WdShngl"]:
     MODIFIABLE.append(FeatureSpec(name=f"roof_matl_is_{_nm}", lb=0, ub=1, vartype="B"))
 
+#-----ELECTRICAL-------
+for _nm in ["SBrkr","FuseA","FuseF","FuseP","Mix"]:
+    MODIFIABLE.append(FeatureSpec(name=f"elect_is_{_nm}", lb=0, ub=1, vartype="B"))
 
-# ... imports y tu definición Feature(...)
 
     # === MATERIALES EXTERIORES ===
-    EXT_MATS = [
-        "AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard","ImStucc",
-        "MetalSd","Other","Plywood","PreCast","Stone","Stucco","VinylSd","Wd Sdng","WdShngl",
-    ]
+EXT_MATS = [
+    "AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard","ImStucc",
+    "MetalSd","Other","Plywood","PreCast","Stone","Stucco","VinylSd","Wd Sdng","WdShngl",
+]
 
-    for nm in EXT_MATS:
-        MODIFIABLE.append(FeatureSpec(f"ex1_is_{nm}", lb=0, ub=1, vartype="B"))
-    for nm in EXT_MATS:
-        MODIFIABLE.append(FeatureSpec(f"ex2_is_{nm}", lb=0, ub=1, vartype="B"))
+for nm in EXT_MATS:
+    MODIFIABLE.append(FeatureSpec(f"ex1_is_{nm}", lb=0, ub=1, vartype="B"))
+for nm in EXT_MATS:
+    MODIFIABLE.append(FeatureSpec(f"ex2_is_{nm}", lb=0, ub=1, vartype="B"))
 
 # Asegúrate de que Exter Qual y Exter Cond estén en MODIFIABLE como enteras 0..4:
 # (si ya estaban, no dupliques)

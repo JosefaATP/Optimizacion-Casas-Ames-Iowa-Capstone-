@@ -80,17 +80,6 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         name="R9_kitchen_upgrade_link"
     )
 
-    # Upgrade-only + costo por nivel para Exter Qual / Cond
-    if "Exter Qual" in x:
-        exq_base = _q_to_ord(base_row.get("Exter Qual", "TA"))
-        m.addConstr(x["Exter Qual"] >= exq_base, name="R_EXQ_upgrade_only")
-        lin_cost += pos(x["Exter Qual"] - exq_base) * ct.exter_qual_upgrade_per_level
-
-    if "Exter Cond" in x:
-        exc_base = _q_to_ord(base_row.get("Exter Cond", "TA"))
-        m.addConstr(x["Exter Cond"] >= exc_base, name="R_EXC_upgrade_only")
-        lin_cost += pos(x["Exter Cond"] - exc_base) * ct.exter_cond_upgrade_per_level
-
     # ================== (EXTERIOR) ==================
 
     # === Exter Qual / Exter Cond → upgrade-only + costo por nivel ===
@@ -189,25 +178,13 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # ================== FIN (EXTERIOR) ==================
 
     # ================== (MAS VNR: tipo + área) ==================
-    MV_TYPES = ["BrkCmn", "BrkFace", "CBlock", "None", "Stone"]
+    MV_TYPES = ["BrkCmn", "BrkFace", "CBlock", "No aplica", "Stone"]  # <-- sin "None"
 
-    # Binarios (de features.py)
     mvt = {nm: x[f"mvt_is_{nm}"] for nm in MV_TYPES if f"mvt_is_{nm}" in x}
 
-    # Elegir exactamente 1
     if mvt:
         m.addConstr(gp.quicksum(mvt.values()) == 1, name="MVT_pick_one")
 
-    # Identifica el tipo base y restringe a "upgrade-only"
-    mvt_base = str(base_row.get("Mas Vnr Type", "None"))
-    base_c = ct.mas_vnr_cost(mvt_base)
-    allowed = [nm for nm in MV_TYPES if ct.mas_vnr_cost(nm) >= base_c]
-
-    for nm in MV_TYPES:
-        if nm in mvt and nm not in allowed:
-            mvt[nm].UB = 0  # no permitir degradar a más barato
-
-    # Inyecta dummies al X_input si el modelo las tiene (OHE horneado)
     def _put_var(df: pd.DataFrame, col: str, var: gp.Var):
         if col in df.columns:
             if df[col].dtype != "O":
@@ -219,20 +196,40 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         if col in X_input.columns and nm in mvt:
             _put_var(X_input, col, mvt[nm])
 
-    # Costo: $/ft² * Mas Vnr Area * (1 si cambias a nm distinto del base)
-    # Usa la var de decisión si Mas Vnr Area es modificable; si no, el valor base.
-    if "Mas Vnr Area" in x:
-        mv_area = x["Mas Vnr Area"]
-    else:
-        try:
-            mv_area = float(pd.to_numeric(base_row.get("Mas Vnr Area"), errors="coerce") or 0.0)
-        except Exception:
-            mv_area = 0.0
+    mvt_base = str(base_row.get("Mas Vnr Type", "No aplica")).strip()
+    try:
+        mv_area_base = float(pd.to_numeric(base_row.get("Mas Vnr Area"), errors="coerce") or 0.0)
+    except Exception:
+        mv_area_base = 0.0
 
+    base_cost = ct.mas_vnr_cost(mvt_base)
+    mv_area = x["Mas Vnr Area"] if "Mas Vnr Area" in x else mv_area_base
+
+    # política: si base es "No aplica" o área=0 → no se puede agregar
+    no_base_veneer = (mv_area_base <= 1e-9) or (mvt_base == "No aplica")
+    if no_base_veneer:
+        if "No aplica" in mvt:
+            m.addConstr(mvt["No aplica"] == 1, name="MVT_stay_noaplica")
+        for nm in MV_TYPES:
+            if nm != "No aplica" and nm in mvt:
+                mvt[nm].UB = 0
+        if isinstance(mv_area, gp.Var):
+            mv_area.LB = 0.0
+            mv_area.UB = 0.0
+    else:
+        for nm in MV_TYPES:
+            if nm in mvt and ct.mas_vnr_cost(nm) < base_cost:
+                mvt[nm].UB = 0
+        if isinstance(mv_area, gp.Var):
+            m.addConstr(mv_area >= mv_area_base, name="MVT_area_no_decrease")
+
+    area_term = mv_area if isinstance(mv_area, gp.Var) else float(mv_area)
     for nm in MV_TYPES:
         if nm in mvt and nm != mvt_base:
-            lin_cost += ct.mas_vnr_cost(nm) * mv_area * mvt[nm]
+            lin_cost += ct.mas_vnr_cost(nm) * area_term * mvt[nm]
     # ================== FIN (MAS VNR) ==================
+
+
 
     # -------------------
     # 4) ROOF: estilo/material con dummies "horneadas" y compatibilidad
@@ -269,19 +266,96 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             _put_var(X_input, col, m_bin[nm])
 
 
-    # Compatibilidad (0 = prohibido)
-    A = {sn: {mn: 1 for mn in matl_names} for sn in style_names}
-    # Ajusta con tu tabla:
+    # Compatibilidad (0 = prohibido) usando labels del dataset
     for sn, forbids in {
         "Gable":   ["Membran"],
         "Hip":     ["Membran"],
-        "Flat":    ["WoodShingle", "Slate", "ClayTile", "AsphaltShingle"],
+        "Flat":    ["WdShngl", "ClyTile", "CompShg"],   # techo plano: sin tejas ni asfalto tradicional
         "Mansard": ["Membran"],
-        "Shed":    ["ClayTile", "Slate"],
+        "Shed":    ["ClyTile"],                         # ej: evitar teja pesada en shed muy inclinado
     }.items():
         for mn in forbids:
-            if sn in s_bin and mn in m_bin:
-                m.addConstr(s_bin[sn] + m_bin[mn] <= 1, name=f"ROOF_compat_{sn}_{mn}")
+            if (f"roof_style_is_{sn}" in x) and (f"roof_matl_is_{mn}" in x):
+                m.addConstr(x[f"roof_style_is_{sn}"] + x[f"roof_matl_is_{mn}"] <= 1,
+                            name=f"ROOF_compat_{sn}_{mn}")
+
+
+# ================== FIN (ROOF) ==================
+
+    # ================== (CENTRAL AIR) ==================
+    base_air_raw = str(base_row.get("Central Air", "N")).strip()
+    base_is_Y = base_air_raw in {"Y", "Yes", "1", "True"}
+
+    col_Y = "Central Air_Y"
+    col_N = "Central Air_N"
+
+    has_Y = col_Y in X_input.columns
+    has_N = col_N in X_input.columns
+
+    if has_Y or has_N:
+        # 1 binaria de decisión
+        air_yes = m.addVar(vtype=gp.GRB.BINARY, name="central_air_yes")
+
+        # Si la base ya tiene aire, no se puede quitar
+        if base_is_Y:
+            air_yes.LB = 1.0
+            air_yes.UB = 1.0
+        else:
+            # costo al agregar
+            lin_cost += ct.central_air_install * air_yes
+
+        # Proxy para el dummy "_N" (en vez de meter 1 - air_yes directo en el DF)
+        air_no = None
+        if has_N:
+            air_no = m.addVar(vtype=gp.GRB.BINARY, name="central_air_no")
+            m.addConstr(air_yes + air_no == 1, name="CentralAir_onehot")
+
+        # Inyectar a X_input
+        if has_Y:
+            if X_input[col_Y].dtype != "O":
+                X_input[col_Y] = X_input[col_Y].astype("object")
+            X_input.loc[0, col_Y] = air_yes
+
+        if has_N:
+            if X_input[col_N].dtype != "O":
+                X_input[col_N] = X_input[col_N].astype("object")
+            X_input.loc[0, col_N] = air_no
+
+
+    # ================== FIN (CENTRAL AIR) ==================
+
+
+    # ================== (ELECTRICAL) ==================
+    ELECT_TYPES = ["SBrkr", "FuseA", "FuseF", "FuseP", "Mix"]
+
+    # binarios de decisión (de features.py)
+    e_bin = {nm: x[f"elect_is_{nm}"] for nm in ELECT_TYPES if f"elect_is_{nm}" in x}
+
+    # (El1) elegir exactamente uno
+    if e_bin:
+        m.addConstr(gp.quicksum(e_bin.values()) == 1, name="ELEC_pick_one")
+
+    # (El2) inyectar dummies a X_input (pipeline entrenado con OHE de Electrical)
+    for nm, vb in e_bin.items():
+        col = f"Electrical_{nm}"
+        if col in X_input.columns:
+            _put_var(X_input, col, vb)
+
+    # (El3) upgrade-only por costo: solo permitir tipos con costo >= costo del base
+    elec_base_name = str(base_row.get("Electrical", "SBrkr"))
+    base_cost = ct.electrical_cost(elec_base_name)
+    for nm, vb in e_bin.items():
+        if ct.electrical_cost(nm) < base_cost:
+            vb.UB = 0  # no puedes elegir algo "más barato/peor" que el base
+
+    # (El4) costo: si cambias, pagas demolición pequeña + costo del nuevo tipo
+    # Detectar la base para evitar cobrar si te quedas igual
+    for nm, vb in e_bin.items():
+        if nm != elec_base_name:
+            lin_cost += ct.electrical_demo_small * vb
+            lin_cost += ct.electrical_cost(nm) * vb
+    # ================== FIN (ELECTRICAL) ==================
+
 
     # -------------------
     # 5) Enlazar predictor (pre -> XGB) y pasar de log a precio

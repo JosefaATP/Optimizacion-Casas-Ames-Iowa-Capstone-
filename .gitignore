@@ -23,7 +23,6 @@ datasets/
 *.xlsx
 
 # modelos y resultados pesados
-models/
 checkpoints/
 outputs/
 logs/
