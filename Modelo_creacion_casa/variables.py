@@ -1,6 +1,120 @@
 import gurobipy as gp
 from gurobipy import GRB
 
+
+# Presupuesto global por defecto (ajústalo a tu caso)
+PRESUPUESTO = 12_000_000  # CLP
+
+# DEFAULTS: fila base con TODOS los campos que tu XGB espera.
+# Usa tu ejemplo real como base. Ajusta si alguna clave difiere.
+DEFAULTS = {
+    "MS SubClass": 20,
+    "MS Zoning": "RL",
+    "Lot Frontage": 141.0,
+    "Lot Area": 31770,
+    "Street": "Pave",
+    "Alley": "No aplica",
+    "Lot Shape": "IR1",
+    "Land Contour": "Lvl",
+    "Utilities": "AllPub",
+    "Lot Config": "Corner",
+    "Land Slope": "Gtl",
+    "Neighborhood": "No aplicames",
+    "Condition 1": "Norm",
+    "Condition 2": "Norm",
+    "Bldg Type": "1Fam",
+    "House Style": "1Story",
+    "Overall Qual": 6,
+    "Overall Cond": 5,
+    "Year Built": 1960,
+    "Year Remod/Add": 1960,
+    "Roof Style": "Hip",
+    "Roof Matl": "CompShg",
+    "Exterior 1st": "BrkFace",
+    "Exterior 2nd": "Plywood",
+    "Mas Vnr Type": "Stone",
+    "Mas Vnr Area": 112.0,
+    "Exter Qual": "TA",
+    "Exter Cond": "TA",
+    "Foundation": "CBlock",
+    "Bsmt Qual": "TA",
+    "Bsmt Cond": "Gd",
+    "Bsmt Exposure": "Gd",
+    "BsmtFin Type 1": "BLQ",
+    "BsmtFin SF 1": 639.0,
+    "BsmtFin Type 2": "Unf",
+    "BsmtFin SF 2": 0.0,
+    "Bsmt Unf SF": 441.0,
+    "Total Bsmt SF": 1080.0,
+    "Heating": "GasA",
+    "Heating QC": "Fa",
+    "Central Air": "Y",
+    "Electrical": "SBrkr",
+    "1st Flr SF": 1656,
+    "2nd Flr SF": 0,
+    "Low Qual Fin SF": 0,
+    "Gr Liv Area": 1656,
+    "Bsmt Full Bath": 1.0,
+    "Bsmt Half Bath": 0.0,
+    "Full Bath": 1,
+    "Half Bath": 0,
+    "Bedroom AbvGr": 3,
+    "Kitchen AbvGr": 1,
+    "Kitchen Qual": "TA",
+    "TotRms AbvGrd": 7,
+    "FunctioNo aplical": "Typ",
+    "Fireplaces": 2,
+    "Fireplace Qu": "Gd",
+    "Garage Type": "Attchd",
+    "Garage Yr Blt": 1960.0,
+    "Garage Finish": "Fin",
+    "Garage Cars": 2.0,
+    "Garage Area": 528.0,
+    "Garage Qual": "TA",
+    "Garage Cond": "TA",
+    "Paved Drive": "P",
+    "Wood Deck SF": 210,
+    "Open Porch SF": 62,
+    "Enclosed Porch": 0,
+    "3Ssn Porch": 0,
+    "Screen Porch": 0,
+    "Pool Area": 0,
+    "Pool QC": "No aplica",
+    "Fence": "No aplica",
+    "Misc Feature": "No aplica",
+    "Misc Val": 0,
+    "Mo Sold": 5,
+    "Yr Sold": 2010,
+    "Sale Type": "WD",
+    "Sale Condition": "Normal"
+}
+
+# Ejemplo: valores que NO se pueden cambiar
+FIXED = {
+    "Neighborhood": "OldTown",
+    "MS Zoning": "RL",
+    "Lot Area": 8000,
+    "Lot Frontage": 60.0,
+    "Street": "Pave",
+    # agrega lo que venga “dado por el lote”
+}
+VARIABLES = {
+    # numéricas (rangos orientativos)
+    "Bedroom AbvGr": (1, 6),
+    "Full Bath": (1, 3),
+    "Half Bath": (0, 2),
+    "Gr Liv Area": (700, 2600),
+    "1st Flr SF": (600, 2000),
+
+    # categóricas (dominios; podrías tomarlo de DOMINIOS si ya lo tienes)
+    "Roof Matl": ["CompShg", "Metal", "WdShngl", "TarGrv"],
+    "Heating": ["GasA", "GasW", "Floor", "Grav"],
+    "Central Air": ["Y", "N"],
+    "Exterior 1st": ["VinylSd", "BrkFace", "MetalSd", "Wd Sdng"],
+    "Bldg Type": ["1Fam", "TwnhsE", "TwnhsI"],
+    "House Style": ["1Story", "2Story", "SLvl"],
+}
+
 def definir_variables(m):
     # Variables binarias para variables categóricas
     MSSubClass = m.addVars([20,30,40,45,50,60,70,75,80,85,90,120,150,160,180,190], vtype=GRB.BINARY, name="MSSubClass")

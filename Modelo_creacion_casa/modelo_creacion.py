@@ -1,7 +1,21 @@
 import gurobipy as gp
 from gurobipy import GRB
 from costos import COSTOS
-from variables import definir_variables
+from variables import definir_variables, FIXED, VARIABLES 
+from variables import definir_variables  # solo esto es obligatorio
+
+# Fallbacks si no existen en variables.py
+try:
+    from variables import DEFAULTS
+except Exception:
+    DEFAULTS = {}  # inicia vacío; idealmente lo definimos bien en Opción B
+
+
+import joblib
+import pandas as pd
+import itertools
+import random
+
 
 # Parámetros del proyecto
 presupuesto = 120000
@@ -22,6 +36,7 @@ m = gp.Model("diseno_casa")
     HeatingQC, BasementCond, KitchenQual, FireplaceQu, PoolQC, GarageQu, GarageCarsCat, Fence
 ) = definir_variables(m)
 
+
 for grupo, dicc in COSTOS.items():
     if isinstance(dicc, dict):
         # Detecta si hay desajuste entre COSTOS y variables
@@ -31,6 +46,91 @@ for grupo, dicc in COSTOS.items():
             missing = [k for k in var.keys() if k not in dicc and k.upper() not in dicc]
             if missing:
                 print(f"⚠️  En {grupo} faltan costos para: {missing}")
+
+
+
+
+############# DEFINICIONES #######################
+
+def costo_total_expr(vars_dict):
+    """
+    Construye una expresión lineal de Gurobi con el costo total
+    consistente con COSTOS y con lo que hiciste en costo_total_de_diseno().
+    """
+    # Desempaqueta lo que definiste en definir_variables(m)
+    # (nombres típicos; ajusta si tus claves son distintas)
+    FirstFlrSF = vars_dict.get("FirstFlrSF") or vars_dict.get("1st Flr SF")  # a veces lo nombramos distinto
+    GrLivArea  = vars_dict.get("GrLivArea")  or vars_dict.get("Gr Liv Area")
+
+    Utilities  = vars_dict.get("Utilities", {})
+    Heating    = vars_dict.get("Heating", {})
+    HeatingQC  = vars_dict.get("HeatingQC", {}) or vars_dict.get("Heating QC", {})
+    CentralAir = vars_dict.get("CentralAir", {}) or vars_dict.get("Central Air", {})
+    RoofMatl   = vars_dict.get("RoofMatl", {})
+    Exterior1  = vars_dict.get("Exterior1st", {}) or vars_dict.get("Exterior 1st", {})
+    MasVnrType = vars_dict.get("MasVnrType", {}) or vars_dict.get("Mas Vnr Type", {})
+    MasVnrArea = vars_dict.get("MasVnrArea")  or vars_dict.get("Mas Vnr Area")
+    MiscFeat   = vars_dict.get("MiscFeature", {}) or vars_dict.get("Misc Feature", {})
+
+    expr = gp.LinExpr(0.0)
+
+    # UTILITIES (costo fijo por categoría)
+    if isinstance(Utilities, dict) and "UTILITIES" in COSTOS:
+        for k, var in Utilities.items():
+            if k in COSTOS["UTILITIES"]:
+                expr += COSTOS["UTILITIES"][k] * var
+
+    # HEATING (costo fijo por categoría)
+    if isinstance(Heating, dict) and "HEATING" in COSTOS:
+        for k, var in Heating.items():
+            if k in COSTOS["HEATING"]:
+                expr += COSTOS["HEATING"][k] * var
+
+    # HEATING_QC (costo fijo por categoría)
+    if isinstance(HeatingQC, dict) and "HEATING_QC" in COSTOS:
+        for k, var in HeatingQC.items():
+            if k in COSTOS["HEATING_QC"]:
+                expr += COSTOS["HEATING_QC"][k] * var
+
+    # CENTRAL AIR (costo fijo por categoría)
+    if isinstance(CentralAir, dict) and "CENTRALAIR" in COSTOS:
+        for k, var in CentralAir.items():
+            if k in COSTOS["CENTRALAIR"]:
+                expr += COSTOS["CENTRALAIR"][k] * var
+
+    # ROOF MATL (costo por pie2 de 1stFlrSF)
+    if isinstance(RoofMatl, dict) and "ROOFMATL_PSF" in COSTOS and FirstFlrSF is not None:
+        for k, var in RoofMatl.items():
+            if k in COSTOS["ROOFMATL_PSF"]:
+                expr += COSTOS["ROOFMATL_PSF"][k] * var * FirstFlrSF
+
+    # EXTERIOR 1st (costo por pie2 de GrLivArea)
+    if isinstance(Exterior1, dict) and "EXTERIOR_PSF" in COSTOS and GrLivArea is not None:
+        for k, var in Exterior1.items():
+            if k in COSTOS["EXTERIOR_PSF"]:
+                expr += COSTOS["EXTERIOR_PSF"][k] * var * GrLivArea
+
+    # MASONRY VENEER (costo por pie2 de MasVnrArea)
+    if isinstance(MasVnrType, dict) and "MASVNRTYPE_PSF" in COSTOS and MasVnrArea is not None:
+        for k, var in MasVnrType.items():
+            if k in COSTOS["MASVNRTYPE_PSF"]:
+                expr += COSTOS["MASVNRTYPE_PSF"][k] * var * MasVnrArea
+
+    # MISC FEATURE (costo fijo por categoría)
+    if isinstance(MiscFeat, dict) and "MISCFEATURE" in COSTOS:
+        for k, var in MiscFeat.items():
+            if k in COSTOS["MISCFEATURE"]:
+                expr += COSTOS["MISCFEATURE"][k] * var
+
+    # Si ocupas ampliaciones/demoliciones (opcional):
+    # AreaAmpliacionFt2 = vars_dict.get("AreaAmpliacionFt2")
+    # AreaDemolicionFt2 = vars_dict.get("AreaDemolicionFt2")
+    # if AreaAmpliacionFt2 is not None and "AMPLIACION_PSF" in COSTOS:
+    #     expr += COSTOS["AMPLIACION_PSF"] * AreaAmpliacionFt2
+    # if AreaDemolicionFt2 is not None and "DEMOLICION_PSF" in COSTOS:
+    #     expr += COSTOS["DEMOLICION_PSF"] * AreaDemolicionFt2
+
+    return expr
 
 # ---- Helper para costos categóricos (dict de costos x tupledict de vars) ----
 def costo_cat(nombre_costos, var_tupledict):
@@ -43,6 +143,550 @@ def costo_cat(nombre_costos, var_tupledict):
     return gp.quicksum(tabla.get(k, 0.0) * var_tupledict[k] for k in var_tupledict.keys())
 
 
+
+# Cargar modelo XGBoost entrenado
+MODEL_PATH = "models/xgb/Caso_bayesiano_top/model_xgb.joblib"
+xgb_model = joblib.load(MODEL_PATH)
+
+def evaluar_solution_pool(m, vars_dict, max_solutions=100):
+    """
+    Recorre el Solution Pool de Gurobi, construye la 'decision' para cada solución
+    y la evalúa con XGBoost + costos. Devuelve (mejor_fila_df, df_resultados).
+    """
+    import pandas as pd
+
+    solcount = int(m.SolCount)
+    if solcount == 0:
+        print("⚠️ No hay soluciones en el pool.")
+        return None, pd.DataFrame()
+
+    solcount = min(solcount, max_solutions)
+    resultados = []
+
+    # Helper para extraer una decision pero para la solución k (usando Xn en vez de X)
+    def extraer_decision_k(vars_dict, k):
+        decision = dict(DEFAULTS)
+
+        def argmax_cat_k(d):
+            if not isinstance(d, dict) or not d:
+                return None
+            best_k, best_v = None, -1
+            for kk, var in d.items():
+                val = var.Xn  # valor en la solución k
+                if val > best_v:
+                    best_k, best_v = kk, val
+            return best_k
+
+        cat_map = {
+            "MS Zoning": vars_dict.get("MSZoning", {}),
+            "Street": vars_dict.get("Street", {}),
+            "Alley": vars_dict.get("Alley", {}),
+            "Lot Shape": vars_dict.get("LotShape", {}),
+            "Land Contour": vars_dict.get("LandContour", {}),
+            "Utilities": vars_dict.get("Utilities", {}),
+            "Lot Config": vars_dict.get("LotConfig", {}),
+            "Land Slope": vars_dict.get("LandSlope", {}),
+            "Neighborhood": vars_dict.get("Neighborhood", {}),
+            "Condition 1": vars_dict.get("Condition1", {}),
+            "Condition 2": vars_dict.get("Condition2", {}),
+            "Bldg Type": vars_dict.get("BldgType", {}),
+            "House Style": vars_dict.get("HouseStyle", {}),
+            "Roof Style": vars_dict.get("RoofStyle", {}),
+            "Roof Matl": vars_dict.get("RoofMatl", {}),
+            "Exterior 1st": vars_dict.get("Exterior1st", {}),
+            "Exterior 2nd": vars_dict.get("Exterior2nd", {}),
+            "Mas Vnr Type": vars_dict.get("MasVnrType", {}),
+            "Exter Qual": vars_dict.get("ExterQual", {}),
+            "Exter Cond": vars_dict.get("ExterCond", {}),
+            "Foundation": vars_dict.get("Foundation", {}),
+            "Bsmt Qual": vars_dict.get("BsmtQual", {}),
+            "Bsmt Cond": vars_dict.get("BsmtCond", {}),
+            "Bsmt Exposure": vars_dict.get("BsmtExposure", {}),
+            "BsmtFin Type 1": vars_dict.get("BsmtFinType1", {}),
+            "BsmtFin Type 2": vars_dict.get("BsmtFinType2", {}),
+            "Heating": vars_dict.get("Heating", {}),
+            "Heating QC": vars_dict.get("HeatingQC", {}) or vars_dict.get("Heating QC", {}),
+            "Central Air": vars_dict.get("CentralAir", {}) or vars_dict.get("Central Air", {}),
+            "Electrical": vars_dict.get("Electrical", {}),
+            "Kitchen Qual": vars_dict.get("KitchenQual", {}),
+            "FunctioNo aplical": vars_dict.get("Functional", {}) or vars_dict.get("FunctioNo aplical", {}),
+            "Fireplace Qu": vars_dict.get("FireplaceQu", {}),
+            "Garage Type": vars_dict.get("GarageType", {}),
+            "Garage Finish": vars_dict.get("GarageFinish", {}),
+            "Garage Qual": vars_dict.get("GarageQual", {}),
+            "Garage Cond": vars_dict.get("GarageCond", {}),
+            "Paved Drive": vars_dict.get("PavedDrive", {}),
+            "Pool QC": vars_dict.get("PoolQC", {}),
+            "Fence": vars_dict.get("Fence", {}),
+            "Misc Feature": vars_dict.get("MiscFeature", {}),
+            "Sale Type": vars_dict.get("SaleType", {}),
+            "Sale Condition": vars_dict.get("SaleCondition", {}),
+        }
+
+        for col, d in cat_map.items():
+            val = argmax_cat_k(d)
+            if val is not None:
+                decision[col] = val
+
+        num_map = {
+            "MS SubClass": vars_dict.get("MSSubClass"),
+            "Lot Frontage": vars_dict.get("LotFrontage"),
+            "Lot Area": vars_dict.get("LotArea"),
+            "Overall Qual": vars_dict.get("OverallQual"),
+            "Overall Cond": vars_dict.get("OverallCond"),
+            "Year Built": vars_dict.get("YearBuilt"),
+            "Year Remod/Add": vars_dict.get("YearRemodAdd"),
+            "Mas Vnr Area": vars_dict.get("MasVnrArea"),
+            "BsmtFin SF 1": vars_dict.get("BsmtFinSF1"),
+            "BsmtFin SF 2": vars_dict.get("BsmtFinSF2"),
+            "Bsmt Unf SF": vars_dict.get("BsmtUnfSF"),
+            "Total Bsmt SF": vars_dict.get("TotalBsmtSF"),
+            "1st Flr SF": vars_dict.get("FirstFlrSF") or vars_dict.get("1st Flr SF"),
+            "2nd Flr SF": vars_dict.get("SecondFlrSF") or vars_dict.get("2nd Flr SF"),
+            "Low Qual Fin SF": vars_dict.get("LowQualFinSF"),
+            "Gr Liv Area": vars_dict.get("GrLivArea") or vars_dict.get("Gr Liv Area"),
+            "Bsmt Full Bath": vars_dict.get("BsmtFullBath"),
+            "Bsmt Half Bath": vars_dict.get("BsmtHalfBath"),
+            "Full Bath": vars_dict.get("FullBath"),
+            "Half Bath": vars_dict.get("HalfBath"),
+            "Bedroom AbvGr": vars_dict.get("BedroomAbvGr"),
+            "Kitchen AbvGr": vars_dict.get("KitchenAbvGr"),
+            "TotRms AbvGrd": vars_dict.get("TotRmsAbvGrd"),
+            "Fireplaces": vars_dict.get("Fireplaces"),
+            "Garage Yr Blt": vars_dict.get("GarageYrBlt"),
+            "Garage Cars": vars_dict.get("GarageCars"),
+            "Garage Area": vars_dict.get("GarageArea"),
+            "Wood Deck SF": vars_dict.get("WoodDeckSF"),
+            "Open Porch SF": vars_dict.get("OpenPorchSF"),
+            "Enclosed Porch": vars_dict.get("EnclosedPorch"),
+            "3Ssn Porch": vars_dict.get("ThreeSsnPorch") or vars_dict.get("3Ssn Porch"),
+            "Screen Porch": vars_dict.get("ScreenPorch"),
+            "Pool Area": vars_dict.get("PoolArea"),
+            "Misc Val": vars_dict.get("MiscVal"),
+            "Mo Sold": vars_dict.get("MoSold"),
+            "Yr Sold": vars_dict.get("YrSold"),
+        }
+        for col, var in num_map.items():
+            if var is not None:
+                decision[col] = var.Xn  # valor en solución k
+
+        # Por seguridad, reimpone FIXED si usas ese esquema:
+        try:
+            from variables import FIXED
+            for k_fixed, v_fixed in FIXED.items():
+                decision[k_fixed] = v_fixed
+        except Exception:
+            pass
+
+        return decision
+
+    # Recorremos el pool
+    for k in range(solcount):
+        m.Params.SolutionNumber = k  # activamos solución k
+        decision_k = extraer_decision_k(vars_dict, k)
+        precio, costo = evaluar_casa(decision_k)
+        resultados.append({
+            **{kk: decision_k.get(kk) for kk in decision_k.keys()},
+            "Precio Predicho": precio,
+            "Costo Total": costo,
+            "Rentabilidad": precio - costo
+        })
+
+    df = pd.DataFrame(resultados)
+    mejor = df.iloc[df["Rentabilidad"].idxmax()]
+    print("\n🏆 Mejor del pool por rentabilidad:")
+    print(mejor[["Precio Predicho", "Costo Total", "Rentabilidad"]])
+
+    return mejor, df
+
+
+def costo_total_de_diseno(decision: dict) -> float:
+    """
+    Calcula el costo total de construcción/remodelación según el diccionario COSTOS.
+    """
+    costo_total = 0.0
+
+    # Ejemplo: costo por tipo de calefacción
+    heating = decision.get("Heating")
+    if heating in COSTOS["HEATING"]:
+        costo_total += COSTOS["HEATING"][heating]
+
+    # Ejemplo: costo por tipo de techo
+    roofmatl = decision.get("Roof Matl")
+    if roofmatl in COSTOS["ROOFMATL_PSF"]:
+        area = decision.get("1st Flr SF", 0)
+        costo_total += COSTOS["ROOFMATL_PSF"][roofmatl] * area
+
+    # Ejemplo: costo por material exterior
+    exterior = decision.get("Exterior 1st")
+    if exterior in COSTOS["EXTERIOR_PSF"]:
+        area = decision.get("Gr Liv Area", 0)
+        costo_total += COSTOS["EXTERIOR_PSF"][exterior] * area
+
+    # Ejemplo: costo por central air
+    central_air = decision.get("Central Air")
+    if central_air in COSTOS["CENTRALAIR"]:
+        costo_total += COSTOS["CENTRALAIR"][central_air]
+
+    # (Aquí se pueden seguir agregando más componentes si se desea)
+    return costo_total
+
+def construir_modelo_con_restricciones(presupuesto=None):
+    """
+    Crea el modelo de Gurobi, define variables, añade tus restricciones (las que ya existen en tu archivo)
+    y agrega la restricción de presupuesto basada en COSTOS.
+    Devuelve: (m, vars_dict, expr_costo_total)
+    """
+    m = gp.Model("diseno_casa_hibrido")
+
+
+
+    # 1) variables
+    vars_out = definir_variables(m)      # <- lo que sea que retorne…
+    vars_dict = _vars_as_dict(vars_out)  # <- …lo normalizamos a dict
+  # esta función es tuya (en variables.py)
+    if not vars_dict:
+        raise RuntimeError(
+            "definir_variables(m) no retorna un dict ni (dict, ...). "
+            "Revisa variables.py o ajusta _vars_as_dict para el formato real."
+        )
+
+    # 2) AQUÍ: asegúrate de que en tu archivo ya agregaste TODAS las restricciones físicas.
+    #    Si ya las tenías codificadas (áreas, ocupación del terreno, relaciones lógicas, etc.),
+    #    déjalas tal cual. Este bloque no las reescribe; solo añadimos el presupuesto.
+    #
+    #    Ejemplo clásico que ya vi en tu código (no repitas si ya lo tienes):
+    #    m.addConstr(vars_dict["FirstFlrSF"] + vars_dict["TotalPorchSF"] + vars_dict["PoolArea"] <= vars_dict["LotArea"],
+    #                name="OcupacionTerreno")
+
+    # 3) costo total expresado para Gurobi
+    expr_costo = costo_total_expr(vars_dict)
+
+    # 4) restricción de presupuesto
+    if presupuesto is None:
+        presupuesto = presupuesto  # si lo tienes en variables.py
+    m.addConstr(expr_costo <= presupuesto, name="RestriccionPresupuesto")
+
+    # 5) objetivo neutro, solo queremos factibilidad por ahora
+    m.setObjective(0.0, GRB.MINIMIZE)
+
+    # algunos parámetros suaves para encontrar factibles rápido
+    m.setParam("OutputFlag", 1)
+    m.setParam("MIPFocus", 1)       # foco en factibilidad
+    m.setParam("Heuristics", 0.2)
+    m.setParam("PoolSearchMode", 2)   # busca diversas soluciones
+    m.setParam("PoolSolutions", 200)  # cuántas queremos guardar (ajusta)
+
+    return m, vars_dict, expr_costo
+
+def extraer_decision(vars_dict):
+    """
+    Convierte los valores de las variables de Gurobi en un dict 'decision'
+    con los NOMBRES EXACTOS que espera tu XGBoost.
+    - Para categóricas one-hot: toma la categoría con valor 1 (o la mayor).
+    - Para numéricas: toma .X
+    Completa con DEFAULTS cuando falte.
+    """
+    decision = dict(DEFAULTS)  # punto de partida
+
+    # helper para categóricas binarias
+    def argmax_cat(d):
+        if not isinstance(d, dict) or not d:
+            return None
+        best_k, best_v = None, -1
+        for k, var in d.items():
+            val = var.X if hasattr(var, "X") else 0.0
+            if val > best_v:
+                best_k, best_v = k, val
+        return best_k
+
+    # mapea lo más común (ajusta nombres si en definir_variables usaste otros)
+    cat_map = {
+        "MS Zoning": vars_dict.get("MSZoning", {}),
+        "Street": vars_dict.get("Street", {}),
+        "Alley": vars_dict.get("Alley", {}),
+        "Lot Shape": vars_dict.get("LotShape", {}),
+        "Land Contour": vars_dict.get("LandContour", {}),
+        "Utilities": vars_dict.get("Utilities", {}),
+        "Lot Config": vars_dict.get("LotConfig", {}),
+        "Land Slope": vars_dict.get("LandSlope", {}),
+        "Neighborhood": vars_dict.get("Neighborhood", {}),
+        "Condition 1": vars_dict.get("Condition1", {}),
+        "Condition 2": vars_dict.get("Condition2", {}),
+        "Bldg Type": vars_dict.get("BldgType", {}),
+        "House Style": vars_dict.get("HouseStyle", {}),
+        "Roof Style": vars_dict.get("RoofStyle", {}),
+        "Roof Matl": vars_dict.get("RoofMatl", {}),
+        "Exterior 1st": vars_dict.get("Exterior1st", {}),
+        "Exterior 2nd": vars_dict.get("Exterior2nd", {}),
+        "Mas Vnr Type": vars_dict.get("MasVnrType", {}),
+        "Exter Qual": vars_dict.get("ExterQual", {}),
+        "Exter Cond": vars_dict.get("ExterCond", {}),
+        "Foundation": vars_dict.get("Foundation", {}),
+        "Bsmt Qual": vars_dict.get("BsmtQual", {}),
+        "Bsmt Cond": vars_dict.get("BsmtCond", {}),
+        "Bsmt Exposure": vars_dict.get("BsmtExposure", {}),
+        "BsmtFin Type 1": vars_dict.get("BsmtFinType1", {}),
+        "BsmtFin Type 2": vars_dict.get("BsmtFinType2", {}),
+        "Heating": vars_dict.get("Heating", {}),
+        "Heating QC": vars_dict.get("HeatingQC", {}),
+        "Central Air": vars_dict.get("CentralAir", {}),
+        "Electrical": vars_dict.get("Electrical", {}),
+        "Kitchen Qual": vars_dict.get("KitchenQual", {}),
+        "FunctioNo aplical": vars_dict.get("Functional", {}) or vars_dict.get("FunctioNo aplical", {}),
+        "Fireplace Qu": vars_dict.get("FireplaceQu", {}),
+        "Garage Type": vars_dict.get("GarageType", {}),
+        "Garage Finish": vars_dict.get("GarageFinish", {}),
+        "Garage Qual": vars_dict.get("GarageQual", {}),
+        "Garage Cond": vars_dict.get("GarageCond", {}),
+        "Paved Drive": vars_dict.get("PavedDrive", {}),
+        "Pool QC": vars_dict.get("PoolQC", {}),
+        "Fence": vars_dict.get("Fence", {}),
+        "Misc Feature": vars_dict.get("MiscFeature", {}),
+        "Sale Type": vars_dict.get("SaleType", {}),
+        "Sale Condition": vars_dict.get("SaleCondition", {}),
+    }
+
+    for col, d in cat_map.items():
+        val = argmax_cat(d)
+        if val is not None:
+            decision[col] = val
+
+    # numéricas directas (ajusta los nombres si difieren)
+    num_map = {
+        "MS SubClass": vars_dict.get("MSSubClass"),
+        "Lot Frontage": vars_dict.get("LotFrontage"),
+        "Lot Area": vars_dict.get("LotArea"),
+        "Overall Qual": vars_dict.get("OverallQual"),
+        "Overall Cond": vars_dict.get("OverallCond"),
+        "Year Built": vars_dict.get("YearBuilt"),
+        "Year Remod/Add": vars_dict.get("YearRemodAdd"),
+        "Mas Vnr Area": vars_dict.get("MasVnrArea"),
+        "BsmtFin SF 1": vars_dict.get("BsmtFinSF1"),
+        "BsmtFin SF 2": vars_dict.get("BsmtFinSF2"),
+        "Bsmt Unf SF": vars_dict.get("BsmtUnfSF"),
+        "Total Bsmt SF": vars_dict.get("TotalBsmtSF"),
+        "1st Flr SF": vars_dict.get("FirstFlrSF") or vars_dict.get("1st Flr SF"),
+        "2nd Flr SF": vars_dict.get("SecondFlrSF") or vars_dict.get("2nd Flr SF"),
+        "Low Qual Fin SF": vars_dict.get("LowQualFinSF"),
+        "Gr Liv Area": vars_dict.get("GrLivArea") or vars_dict.get("Gr Liv Area"),
+        "Bsmt Full Bath": vars_dict.get("BsmtFullBath"),
+        "Bsmt Half Bath": vars_dict.get("BsmtHalfBath"),
+        "Full Bath": vars_dict.get("FullBath"),
+        "Half Bath": vars_dict.get("HalfBath"),
+        "Bedroom AbvGr": vars_dict.get("BedroomAbvGr"),
+        "Kitchen AbvGr": vars_dict.get("KitchenAbvGr"),
+        "TotRms AbvGrd": vars_dict.get("TotRmsAbvGrd"),
+        "Fireplaces": vars_dict.get("Fireplaces"),
+        "Garage Yr Blt": vars_dict.get("GarageYrBlt"),
+        "Garage Cars": vars_dict.get("GarageCars"),
+        "Garage Area": vars_dict.get("GarageArea"),
+        "Wood Deck SF": vars_dict.get("WoodDeckSF"),
+        "Open Porch SF": vars_dict.get("OpenPorchSF"),
+        "Enclosed Porch": vars_dict.get("EnclosedPorch"),
+        "3Ssn Porch": vars_dict.get("ThreeSsnPorch") or vars_dict.get("3Ssn Porch"),
+        "Screen Porch": vars_dict.get("ScreenPorch"),
+        "Pool Area": vars_dict.get("PoolArea"),
+        "Misc Val": vars_dict.get("MiscVal"),
+        "Mo Sold": vars_dict.get("MoSold"),
+        "Yr Sold": vars_dict.get("YrSold"),
+    }
+    for col, var in num_map.items():
+        if var is not None:
+            decision[col] = var.X
+
+    return decision
+
+def costo_total_de_diseno(decision: dict) -> float:
+    """
+    Calcula el costo total estimado de construcción según las características del diseño.
+    """
+    costo_total = 0.0
+
+    # ---- Ejemplo de costos por categoría ----
+    # Tipo de calefacción
+    heating = decision.get("Heating")
+    if heating in COSTOS["HEATING"]:
+        costo_total += COSTOS["HEATING"][heating]
+
+    # Calidad de calefacción
+    heating_qc = decision.get("Heating QC")
+    if heating_qc in COSTOS["HEATING_QC"]:
+        costo_total += COSTOS["HEATING_QC"][heating_qc]
+
+    # Aire acondicionado central
+    central_air = decision.get("Central Air")
+    if central_air in COSTOS["CENTRALAIR"]:
+        costo_total += COSTOS["CENTRALAIR"][central_air]
+
+    # Material del techo
+    roof_matl = decision.get("Roof Matl")
+    area_techo = decision.get("1st Flr SF", 0)
+    if roof_matl in COSTOS["ROOFMATL_PSF"]:
+        costo_total += COSTOS["ROOFMATL_PSF"][roof_matl] * area_techo
+
+    # Revestimiento exterior principal
+    exterior1 = decision.get("Exterior 1st")
+    area_exterior = decision.get("Gr Liv Area", 0)
+    if exterior1 in COSTOS["EXTERIOR_PSF"]:
+        costo_total += COSTOS["EXTERIOR_PSF"][exterior1] * area_exterior
+
+    # Tipo de mampostería
+    masvnr = decision.get("Mas Vnr Type")
+    area_masvnr = decision.get("Mas Vnr Area", 0)
+    if masvnr in COSTOS["MASVNRTYPE_PSF"]:
+        costo_total += COSTOS["MASVNRTYPE_PSF"][masvnr] * area_masvnr
+
+    # Servicios básicos
+    utilities = decision.get("Utilities")
+    if utilities in COSTOS["UTILITIES"]:
+        costo_total += COSTOS["UTILITIES"][utilities]
+
+    # Características misceláneas
+    misc = decision.get("Misc Feature")
+    if misc in COSTOS["MISCFEATURE"]:
+        costo_total += COSTOS["MISCFEATURE"][misc]
+
+    return costo_total
+
+def fijar_campos_en_modelo(m, vars_dict, fixed):
+    # Categóricas one-hot
+    def fijar_cat(nombre_cat_modelo, valor_objetivo):
+        d = vars_dict.get(nombre_cat_modelo, {})
+        # forzamos a 1 la categoría objetivo, y 0 el resto
+        for k, var in d.items():
+            m.addConstr(var == (1.0 if k == valor_objetivo else 0.0),
+                        name=f"fix_{nombre_cat_modelo}_{k}")
+
+    # Numéricas directas
+    def fijar_num(nombre_var_modelo, valor):
+        v = vars_dict.get(nombre_var_modelo)
+        if v is not None:
+            m.addConstr(v == valor, name=f"fix_{nombre_var_modelo}")
+
+    # Mapea nombres “humanos” → nombres de variables del modelo
+    # (ajusta según tus nombres reales en definir_variables)
+    mapa_cat = {
+        "MS Zoning": "MSZoning",
+        "Street": "Street",
+        "Neighborhood": "Neighborhood",
+    }
+    mapa_num = {
+        "Lot Area": "LotArea",
+        "Lot Frontage": "LotFrontage",
+    }
+
+    for k, v in fixed.items():
+        if k in mapa_cat:
+            fijar_cat(mapa_cat[k], v)
+        elif k in mapa_num:
+            fijar_num(mapa_num[k], v)
+        else:
+            # si el fijo es otro campo, lo puedes ampliar aquí
+            pass
+
+def buscar_mejor_combinacion(presupuesto: float, base: dict, n_iteraciones: int = 2000, semilla: int = 42):
+
+    """
+    Búsqueda aleatoria (heurística) de combinaciones dentro del presupuesto.
+    """
+    random.seed(semilla)
+
+    opciones = {
+        "Bldg Type": ["1Fam", "TwnhsE", "TwnhsI"],
+        "House Style": ["1Story", "2Story", "SLvl"],
+        "Roof Matl": ["CompShg", "Metal", "WdShngl", "TarGrv"],
+        "Heating": ["GasA", "GasW", "Floor", "Grav"],
+        "Central Air": ["Y", "N"],
+        "Exterior 1st": ["VinylSd", "BrkFace", "MetalSd", "Wd Sdng"],
+        "Exterior 2nd": ["VinylSd", "Plywood", "Wd Sdng", "MetalSd"],
+        "Mas Vnr Type": ["None", "BrkFace", "Stone"],
+        "Kitchen Qual": ["Ex", "Gd", "TA", "Fa"],
+        "Garage Type": ["Attchd", "BuiltIn", "Detchd"],
+        "Roof Style": ["Gable", "Hip", "Flat"],
+        "Sale Condition": ["Normal", "Partial", "Abnorml"],
+    }
+
+    resultados = []
+    mejor = None
+    mejor_valor = -float("inf")
+
+    print(f"🎲 Explorando {n_iteraciones} combinaciones aleatorias...")
+
+    for i in range(n_iteraciones):
+        decision = base.copy()
+
+        # Asignar un valor aleatorio a cada variable
+        for k, v in opciones.items():
+            decision[k] = random.choice(v)
+
+        # Evaluar casa
+        precio, costo = evaluar_casa(decision)
+
+        if costo <= presupuesto:
+            rentabilidad = precio - costo
+            resultados.append({
+                **{k: decision[k] for k in opciones},
+                "Precio Predicho": precio,
+                "Costo Total": costo,
+                "Rentabilidad": rentabilidad,
+            })
+
+            # Actualizar mejor combinación
+            if rentabilidad > mejor_valor:
+                mejor_valor = rentabilidad
+                mejor = decision.copy()
+
+        # Log ocasional
+        if (i + 1) % 500 == 0:
+            print(f"  → Iteración {i+1}/{n_iteraciones}")
+
+    if not resultados:
+        print("⚠️  No se encontró ninguna combinación dentro del presupuesto.")
+        return None, pd.DataFrame()
+
+    df = pd.DataFrame(resultados)
+    mejor_df = df.loc[df["Rentabilidad"].idxmax()]
+
+    print("\n✅ Mejor combinación encontrada:")
+    print(mejor_df)
+
+    return mejor_df, df
+
+def _vars_as_dict(vars_out):
+    """
+    Normaliza la salida de definir_variables(m).
+    - Si ya es dict, lo retorna tal cual.
+    - Si es tuple/list, intenta usar el primer elemento como dict.
+    - Si falla, devuelve {}.
+    """
+    if isinstance(vars_out, dict):
+        return vars_out
+    if isinstance(vars_out, (list, tuple)) and len(vars_out) > 0 and isinstance(vars_out[0], dict):
+        return vars_out[0]
+    return {}
+
+
+# =============================================
+# Función principal de evaluación
+# =============================================
+def evaluar_casa(decision: dict) -> tuple:
+    """
+    Evalúa una casa con las características dadas.
+    Devuelve:
+        - precio_predicho (float)
+        - costo_total (float)
+    """
+    # Convertir en DataFrame
+    df_input = pd.DataFrame([decision])
+
+    # Predecir precio con el modelo XGB
+    precio_predicho = float(xgb_model.predict(df_input)[0])
+
+    # Calcular costo total
+    costo_total = costo_total_de_diseno(decision)
+
+    return precio_predicho, costo_total
 # ============================================================
 # 8  Restricciones de Construcción
 # ============================================================
@@ -840,8 +1484,10 @@ m.setObjective(costo_total, GRB.MINIMIZE)
 
 m.Params.InfUnbdInfo = 1
 
-
+m, vars_dict, expr_costo = construir_modelo_con_restricciones(presupuesto=presupuesto)
+fijar_campos_en_modelo(m, vars_dict, FIXED)
 m.optimize()
+
 
 # === RESUMEN FINAL DEL MODELO ===
 # ==================== MANEJO DE ESTADO + REPORTE ====================
@@ -960,3 +1606,132 @@ elif status == GRB.UNBOUNDED:
 else:
     print(Fore.RED + f"⚠️ Estado del solver: {status}. No hay solución para imprimir." + Style.RESET_ALL)
     m.write(os.path.join(OUT_DIR, f"modelo_{timestamp}.lp"))
+
+
+# =============================================
+# PRUEBA BÁSICA
+# =============================================
+#if __name__ == "__main__":
+    presupuesto = 12000000  # o el valor que quieras
+
+    # Casa base (la misma que usaste)
+    base = {
+        "MS SubClass": 20,
+        "MS Zoning": "RL",
+        "Lot Frontage": 141.0,
+        "Lot Area": 31770,
+        "Street": "Pave",
+        "Alley": "No aplica",
+        "Lot Shape": "IR1",
+        "Land Contour": "Lvl",
+        "Utilities": "AllPub",
+        "Lot Config": "Corner",
+        "Land Slope": "Gtl",
+        "Neighborhood": "No aplicames",
+        "Condition 1": "Norm",
+        "Condition 2": "Norm",
+        "Bldg Type": "1Fam",
+        "House Style": "1Story",
+        "Overall Qual": 6,
+        "Overall Cond": 5,
+        "Year Built": 1960,
+        "Year Remod/Add": 1960,
+        "Roof Style": "Hip",
+        "Roof Matl": "CompShg",
+        "Exterior 1st": "BrkFace",
+        "Exterior 2nd": "Plywood",
+        "Mas Vnr Type": "Stone",
+        "Mas Vnr Area": 112.0,
+        "Exter Qual": "TA",
+        "Exter Cond": "TA",
+        "Foundation": "CBlock",
+        "Bsmt Qual": "TA",
+        "Bsmt Cond": "Gd",
+        "Bsmt Exposure": "Gd",
+        "BsmtFin Type 1": "BLQ",
+        "BsmtFin SF 1": 639.0,
+        "BsmtFin Type 2": "Unf",
+        "BsmtFin SF 2": 0.0,
+        "Bsmt Unf SF": 441.0,
+        "Total Bsmt SF": 1080.0,
+        "Heating": "GasA",
+        "Heating QC": "Fa",
+        "Central Air": "Y",
+        "Electrical": "SBrkr",
+        "1st Flr SF": 1656,
+        "2nd Flr SF": 0,
+        "Low Qual Fin SF": 0,
+        "Gr Liv Area": 1656,
+        "Bsmt Full Bath": 1.0,
+        "Bsmt Half Bath": 0.0,
+        "Full Bath": 1,
+        "Half Bath": 0,
+        "Bedroom AbvGr": 3,
+        "Kitchen AbvGr": 1,
+        "Kitchen Qual": "TA",
+        "TotRms AbvGrd": 7,
+        "FunctioNo aplical": "Typ",
+        "Fireplaces": 2,
+        "Fireplace Qu": "Gd",
+        "Garage Type": "Attchd",
+        "Garage Yr Blt": 1960.0,
+        "Garage Finish": "Fin",
+        "Garage Cars": 2.0,
+        "Garage Area": 528.0,
+        "Garage Qual": "TA",
+        "Garage Cond": "TA",
+        "Paved Drive": "P",
+        "Wood Deck SF": 210,
+        "Open Porch SF": 62,
+        "Enclosed Porch": 0,
+        "3Ssn Porch": 0,
+        "Screen Porch": 0,
+        "Pool Area": 0,
+        "Pool QC": "No aplica",
+        "Fence": "No aplica",
+        "Misc Feature": "No aplica",
+        "Misc Val": 0,
+        "Mo Sold": 5,
+        "Yr Sold": 2010,
+        "Sale Type": "WD",
+        "Sale Condition": "Normal"
+    }
+
+    mejor, todas = buscar_mejor_combinacion(presupuesto, base)
+
+
+#if __name__ == "__main__":
+    # 1) construye el modelo con TODAS TUS RESTRICCIONES + presupuesto
+    m, vars_dict, expr_costo = construir_modelo_con_restricciones(presupuesto=presupuesto)
+
+    # 2) optimiza buscando factible (objetivo = 0)
+    m.optimize()
+
+    if m.status not in [GRB.OPTIMAL, GRB.SUBOPTIMAL]:
+        print("⚠️  No se encontró solución factible con las restricciones actuales.")
+    else:
+        # 3) extrae la solución en el formato EXACTO que espera el XGB
+        decision = extraer_decision(vars_dict)
+
+        # 4) evalúa con tu pipeline (XGB + costo)
+        precio, costo = evaluar_casa(decision)
+
+        print("\n✅ Solución factible evaluada por XGB:")
+        print(f"💰 Precio predicho: {precio:,.0f}")
+        print(f"🏗️  Costo total  : {costo:,.0f}")
+        print(f"📉 Gap presupuesto: {presupuesto - costo:,.0f}")
+
+
+if __name__ == "__main__":
+    m, vars_dict, expr_costo = construir_modelo_con_restricciones(presupuesto=presupuesto)
+
+    # pool!
+    m.setParam("PoolSearchMode", 2)
+    m.setParam("PoolSolutions", 200)
+
+    m.optimize()
+
+    if m.SolCount > 0:
+        mejor_pool, df_pool = evaluar_solution_pool(m, vars_dict, max_solutions=200)
+    else:
+        print("⚠️ El pool no devolvió soluciones.")
