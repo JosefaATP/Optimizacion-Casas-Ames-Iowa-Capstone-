@@ -85,9 +85,11 @@ for _nm in ["SBrkr","FuseA","FuseF","FuseP","Mix"]:
 
 # ==== GARAGE FINISH (Ga = {Fin, RFn, Unf, No aplica}) ====
 for _nm in ["Fin", "RFn", "Unf", "No aplica"]:
-    MODIFIABLE.append(FeatureSpec(name=f"gfin_is_{_nm}", lb=0, ub=1, vartype="B"))
+    MODIFIABLE.append(FeatureSpec(name=f"garage_finish_is_{_nm}", lb=0, ub=1, vartype="B"))
 
-MODIFIABLE.append(FeatureSpec(name="upg_garage_finish", lb=0, ub=1, vartype="B"))
+MODIFIABLE.append(FeatureSpec(name="UpgGarage", lb=0, ub=1, vartype="B"))
+
+
 
 # ==== POOL QC (P = {Ex, Gd, TA, Fa, Po, No aplica}) ====
 for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]:
@@ -101,17 +103,30 @@ MODIFIABLE.append(FeatureSpec(name="upg_pool_qc", lb=0, ub=1, vartype="B"))
 for nm in ["AddFull", "AddHalf", "AddKitch", "AddBed"]:
     MODIFIABLE.append(FeatureSpec(name=nm, lb=0, ub=1, vartype="B"))
 
-# Binarias de ampliación por componente y escala (10/20/30 %)
-COMPONENTES = ["GarageArea", "WoodDeckSF", "OpenPorchSF", "EnclosedPorch",
-               "3SsnPorch", "ScreenPorch", "PoolArea"]
-for c in COMPONENTES:
-    for scale in [10, 20, 30]:
-        MODIFIABLE.append(FeatureSpec(name=f"z{scale}_{c}", lb=0, ub=1, vartype="B"))
+# áreas que pueden ampliarse (aparecen en el PDF)
+MODIFIABLE += [
+    FeatureSpec("Garage Area",   0.0, 100000.0, "C"),
+    FeatureSpec("Wood Deck SF",  0.0, 100000.0, "C"),
+    FeatureSpec("Open Porch SF", 0.0, 100000.0, "C"),
+    FeatureSpec("Enclosed Porch",0.0, 100000.0, "C"),
+    FeatureSpec("3Ssn Porch",    0.0, 100000.0, "C"),
+    FeatureSpec("Screen Porch",  0.0, 100000.0, "C"),
+    FeatureSpec("Pool Area",     0.0, 100000.0, "C"),
+]
+
+
+# contadores de ambientes (si van al XGB)
+MODIFIABLE += [
+    FeatureSpec("Half Bath",   0, 5, "I"),
+    FeatureSpec("Kitchen AbvGr", 0, 3, "I"),
+]
+
 
 # ==== GARAGE QUAL / COND (G = {Ex, Gd, TA, Fa, Po, NA}) ====
-for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "NA"]:
+for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]:
     MODIFIABLE.append(FeatureSpec(name=f"garage_qual_is_{_nm}", lb=0, ub=1, vartype="B"))
     MODIFIABLE.append(FeatureSpec(name=f"garage_cond_is_{_nm}", lb=0, ub=1, vartype="B"))
+
 
 # Variable de activación (común para ambos)
 MODIFIABLE.append(FeatureSpec(name="UpgGarage", lb=0, ub=1, vartype="B"))
@@ -121,8 +136,8 @@ for _nm in ["Y", "P", "N"]:
     MODIFIABLE.append(FeatureSpec(name=f"paved_drive_is_{_nm}", lb=0, ub=1, vartype="B"))
 
     
-# ==== FENCE (F = {GdPrv, MnPrv, GdWo, MnWw, NA}) ====
-for _nm in ["GdPrv", "MnPrv", "GdWo", "MnWw", "NA"]:
+# ==== FENCE (F = {GdPrv, MnPrv, GdWo, MnWw, No aplica}) ====
+for _nm in ["GdPrv", "MnPrv", "GdWo", "MnWw", "No aplica"]:
     MODIFIABLE.append(FeatureSpec(name=f"fence_is_{_nm}", lb=0, ub=1, vartype="B"))
 
 
@@ -154,16 +169,22 @@ for _nm in _BSMT_TYPES:
 for _nm in _BSMT_TYPES:
     MODIFIABLE.append(FeatureSpec(name=f"b2_is_{_nm}", lb=0, ub=1, vartype="B"))
 
+# ==== AMPLIACIONES (binarias por componente y escala) ====
+COMPONENTES = ["GarageArea", "WoodDeckSF", "OpenPorchSF", "EnclosedPorch",
+               "3SsnPorch", "ScreenPorch", "PoolArea"]
 
-# Asegúrate de que Exter Qual y Exter Cond estén en MODIFIABLE como enteras 0..4:
-# (si ya estaban, no dupliques)
-# MODIFIABLE.append(Feature("Exter Qual", lb=0, ub=4, vartype="I"))
-# MODIFIABLE.append(Feature("Exter Cond", lb=0, ub=4, vartype="I"))
+for c in COMPONENTES:
+    for s in [10, 20, 30]:
+        MODIFIABLE.append(FeatureSpec(name=f"z{s}_{c}", lb=0, ub=1, vartype="B"))
+
 
 # features fijas que el modelo necesita pero no se modifican (tomadas de la casa base)
 IMMUTABLE: List[str] = [
     "MSSubClass", "Neighborhood", "OverallQual", "OverallCond",
-    "YearBuilt", "YearRemodAdd", "CentralAir", "Functional"
+    "YearBuilt", "YearRemodAdd", "Functional", "LotArea", "Lot Shape",
+    "LandContour", "LotConfig", "LandSlope", "BldgType", "HouseStyle","Basement Exposure",
+      "condition_1", "condition_2", "MSZoning", "Street", "Alley", "LotFrontage", "Fondation", "Month Sold", 
+      "Year Sold", "Sale Type", "Sale Condition"
 ]
 
 # mapeo ordinal (ejemplo). Ajusta a tu encoding de entrenamiento

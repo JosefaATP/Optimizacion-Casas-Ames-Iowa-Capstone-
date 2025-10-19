@@ -307,6 +307,7 @@ def main():
 
 
             # === DEBUG Ampliaciones → precio: barrido +10%, +20%, +30% ===
+
     try:
         AMPL_COMPONENTES = [
             "Garage Area", "Wood Deck SF", "Open Porch SF", "Enclosed Porch",
@@ -324,7 +325,9 @@ def main():
             X_dbg = X_base.copy()
             vals = []
             for pct in [10, 20, 30]:
-                X_dbg.loc[0, comp] = base_val * (1 + pct / 100)
+                X_dbg.loc[:, comp] = X_dbg[comp].astype(float)       
+                X_dbg.loc[0, comp] = float(base_val) * (1 + pct/100)
+
                 y_pred = float(bundle.predict(X_dbg).iloc[0])
                 vals.append((pct, y_pred))
                 X_dbg.loc[0, comp] = base_val  # restaurar
@@ -765,61 +768,117 @@ def main():
     except Exception:
         pass
 
-    # ---- Garage Finish (reporte + costo + debug) ----
+    # ---- Garage Finish (reporte + costo) ----
+    garage_finish_cost_report = 0.0
     try:
-        base_gf = {nm: float(base.row.get(f"Garage Finish_{nm}", 0.0)) for nm in ["Fin", "RFn", "Unf", "No aplica"]}
-        sol_gf = {nm: m.getVarByName(f"x_garage_finish_is_{nm}").X if m.getVarByName(f"x_garage_finish_is_{nm}") else 0.0
-                for nm in ["Fin", "RFn", "Unf", "No aplica"]}
-        upg_val = m.getVarByName("x_UpgGarageFinish").X if m.getVarByName("x_UpgGarageFinish") else 0.0
+        gf_names = ["Fin", "RFn", "Unf", "No aplica"]
 
-        # detectar categorías (si no hay ninguna activa, usar "No aplica")
-        gf_before = next((k for k, v in base_gf.items() if v == 1), "No aplica")
+        # base: dummies y fallback textual
+        def _base_gf(tag: str) -> float:
+            # intenta dummies con "No aplica" o "NA"
+            for lab in ["No aplica", "NA"]:
+                col = f"Garage Finish_{lab if tag=='No aplica' else tag}"
+                if col in base.row:
+                    return float(pd.to_numeric(base.row.get(col), errors="coerce") or 0.0)
+            # fallback a columna textual
+            if "Garage Finish" in base.row:
+                txt = str(base.row.get("Garage Finish")).strip()
+                if txt in {"NA", "No aplica"} and tag == "No aplica": return 1.0
+                if txt == tag: return 1.0
+            return 0.0
+
+        base_gf = {nm: _base_gf(nm) for nm in gf_names}
+
+        # óptimo: leo las binarias si existen
+        sol_gf = {}
+        for nm in gf_names:
+            v = m.getVarByName(f"x_garage_finish_is_{nm}")
+            sol_gf[nm] = float(v.X) if v is not None else 0.0
+
+        v_upg = m.getVarByName("x_UpgGarage")
+        upg_val = float(v_upg.X) if v_upg is not None else 1.0  # si no existe, no condiciona
+
+        gf_before = next((k for k, v in base_gf.items() if v == 1.0), "No aplica")
         gf_after = max(sol_gf, key=sol_gf.get) if sol_gf else "No aplica"
 
+        costo_gf = 0.0
         if gf_before != gf_after:
-            # si hay cambio, obtener costo
-            costo_gf = ct.garage_finish_cost(gf_after)
+            costo_gf = float(ct.garage_finish_cost(gf_after)) * (1.0 if upg_val >= 0.5 else 0.0)
             cambios_costos.append(("Garage Finish", gf_before, gf_after, costo_gf))
-            print(f"Cambio en acabado de garage: {gf_before} → {gf_after} ({money(costo_gf)})")
+            print(f"Cambio en Garage Finish: {gf_before} -> {gf_after} ({money(costo_gf)})")
         else:
-            print(f"Sin cambio en acabado de garage (sigue en {gf_before})")
+            print(f"Sin cambio en Garage Finish, sigue en {gf_before}")
+
+        garage_finish_cost_report = float(costo_gf)
 
     except Exception as e:
-        print("⚠️ (aviso, no crítico) error leyendo resultado de GarageFinish:", e)
+        print("⚠️ aviso no crítico, Garage Finish:", e)
 
 
-        # ---- Pool QC (reporte + costo + debug) ----
+    # ---- Pool QC (reporte + costo) ----
+    pool_qc_cost_report = 0.0
     try:
         pool_area = float(pd.to_numeric(base.row.get("Pool Area"), errors="coerce") or 0.0)
 
-        # si es ordinal (0–4) en lugar de dummies:
-        if "Pool QC" in base.row.index:
-            MAP = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
-            revMAP = {v: k for k, v in MAP.items()}
+        # mapeos
+        ORD = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
+        INV = {v: k for k, v in ORD.items()}
+        CATS = ["Po", "Fa", "TA", "Gd", "Ex", "No aplica"]
 
-            pq_before_val = MAP.get(str(base.row.get("Pool QC", "No aplica")), None)
-            v_pool = m.getVarByName("x_Pool QC")
+        # ---- base (acepta dummy o textual/ordinal) ----
+        def _base_pq_cat() -> str:
+            # dummies primero
+            for tag in ["Po","Fa","TA","Gd","Ex","No aplica","NA"]:
+                col = f"Pool QC_{tag}"
+                if col in base.row and float(pd.to_numeric(base.row.get(col), errors="coerce") or 0.0) == 1.0:
+                    return "No aplica" if tag == "NA" else tag
+            # textual/ordinal
+            if "Pool QC" in base.row:
+                raw = base.row.get("Pool QC")
+                try:
+                    iv = int(pd.to_numeric(raw, errors="coerce"))
+                    return INV.get(iv, "No aplica")
+                except Exception:
+                    s = str(raw).strip()
+                    return "No aplica" if s in {"NA", "No aplica"} else (s if s in ORD else "No aplica")
+            return "No aplica"
 
-            if v_pool is not None:
-                pq_after_val = int(round(v_pool.X))
-                pq_before = revMAP.get(pq_before_val, "No aplica")
-                pq_after = revMAP.get(pq_after_val, "No aplica")
+        pq_before = _base_pq_cat()
 
-                if pq_before != pq_after:
-                    costo_pq = ct.poolqc_costs.get(pq_after, 0.0) + ct.pool_area_cost * pool_area
-                    cambios_costos.append(("Pool QC", pq_before, pq_after, costo_pq))
-                    print(f"Cambio en calidad de piscina: {pq_before} → {pq_after} ({money(costo_pq)})")
-                else:
-                    print(f"Sin cambio en calidad de piscina (sigue en {pq_before})")
-            else:
-                print("(info) variable x_Pool QC no presente en modelo")
+        # ---- óptimo (prefiere ordinal x_Pool QC; si no, binarias x_pool_qc_is_*) ----
+        v_ord = m.getVarByName("x_Pool QC")
+        if v_ord is not None:
+            pq_after = INV.get(int(round(v_ord.X)), "No aplica")
         else:
-            print("(info) columna Pool QC no está en base.row")
+            # busca alguna de las binarias
+            pq_after = "No aplica"
+            for tag in ["Po","Fa","TA","Gd","Ex","No aplica","NA"]:
+                v = m.getVarByName(f"x_pool_qc_is_{tag}")
+                if v is not None and v.X > 0.5:
+                    pq_after = "No aplica" if tag == "NA" else tag
+                    break
+
+        # ---- costo ----
+        costo_pq = 0.0
+        if pq_after != pq_before:
+            # costo por categoría + costo por área (si tu política así lo define)
+            cat_cost = float(getattr(ct, "poolqc_costs", {}).get(pq_after, 0.0))
+            area_cost = float(getattr(ct, "pool_area_cost", 0.0)) * pool_area
+            costo_pq = cat_cost + area_cost
+            cambios_costos.append(("Pool QC", pq_before, pq_after, costo_pq))
+            print(f"Cambio en calidad de piscina: {pq_before} → {pq_after} ({money(costo_pq)})")
+        else:
+            print(f"Sin cambio en calidad de piscina (sigue en {pq_before})")
+
+        pool_qc_cost_report = float(costo_pq)
+
     except Exception as e:
-        print(f"⚠️ (aviso, no crítico) error leyendo resultado de Pool QC:", e)
+        print(f"⚠️ (aviso, no crítico) error leyendo resultado de Pool QC: {e}")
 
 
-        # ========== AMPLIACIONES Y AGREGADOS (post-solve) ==========
+   # ========== AMPLIACIONES Y AGREGADOS (post-solve) ==========
+    ampl_cost_report = 0.0
+    agregados_cost_report = 0.0
     try:
         # --- Parámetros fijos ---
         A_Full, A_Half, A_Kitch, A_Bed = 40.0, 20.0, 75.0, 70.0
@@ -859,68 +918,72 @@ def main():
                     cambios_costos.append((f"{comp} (+{pct}%)", base_val, base_val + delta, costo))
                     print(f"ampliación: {comp} +{pct}% (+{delta:.1f} ft²) → costo {money(costo)}")
                     break  # sólo una por componente
+        costo_total = costo_unit * area
+        agregados_cost_report += float(costo_total)   # <-- NUEVO
+
 
     except Exception as e:
         print(f"⚠️ error leyendo ampliaciones/agregados: {e}")
-
-    
-        # ========== GARAGE QUAL / COND (post-solve) ==========
+# ================== FIN AMPLIACIONES Y AGREGADOS ==========
+  
+    # ========== GARAGE QUAL / COND (post-solve) ==========
     try:
-        G_CATS = ["Ex", "Gd", "TA", "Fa", "Po", "NA"]
+        G_CATS = ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]
+        garage_qc_cost_report = 0.0
+
+        def _na2noaplica(v):
+            s = str(v).strip()
+            return "No aplica" if s in {"NA", "No aplica"} else s
+
+        def _qtxt(v):
+            """Devuelve etiqueta ('Po'..'Ex' o 'No aplica') aceptando texto o 0..4."""
+            M = {0: "Po", 1: "Fa", 2: "TA", 3: "Gd", 4: "Ex"}
+            try:
+                iv = int(pd.to_numeric(v, errors="coerce"))
+                if iv in M:
+                    return M[iv]
+            except Exception:
+                pass
+            return _na2noaplica(v)
+
         base_row = base.row
+        base_qual = _qtxt(base_row.get("Garage Qual", "No aplica"))
+        base_cond = _qtxt(base_row.get("Garage Cond", "No aplica"))
 
-        # --- funciones auxiliares ---
-        def _get_base(attr, g):
-            return float(base_row.get(f"{attr}_{g}", 0.0) or 0.0)
-
-        def _get_new_val(varname):
-            v = m.getVarByName(varname)
-            return v.X if v else 0.0
-
-        def _find_selected(attr_prefix):
+        def _find_selected(prefix: str) -> str:
             for g in G_CATS:
-                v = m.getVarByName(f"x_{attr_prefix}_is_{g}")
+                v = m.getVarByName(f"x_{prefix}_is_{g}")
                 if v and v.X > 0.5:
                     return g
             return "No aplica"
 
-        # --- leer categorías base ---
-        base_qual = next((g for g in G_CATS if _get_base("Garage Qual", g) == 1), "No aplica")
-        base_cond = next((g for g in G_CATS if _get_base("Garage Cond", g) == 1), "No aplica")
-
-        # --- categorías nuevas ---
         new_qual = _find_selected("garage_qual")
         new_cond = _find_selected("garage_cond")
 
-        # --- costos ---
-        def _cost(g):
-            return ct.garage_qc_costs.get(g, 0.0)
+        def _cost(name: str) -> float:
+            return ct.garage_qc_costs.get(name, 0.0)
 
         cost_qual = _cost(new_qual) if new_qual != base_qual else 0.0
         cost_cond = _cost(new_cond) if new_cond != base_cond else 0.0
+        garage_qc_cost_report = cost_qual + cost_cond
 
-        # --- impresión por consola ---
         print("\nCambios en GarageQual / GarageCond:")
         print(f"  GarageQual: {base_qual} → {new_qual}  "
-              f"({'sin cambio' if base_qual == new_qual else f'costo ${cost_qual:,.0f}'})")
+            f"({'sin cambio' if cost_qual == 0.0 else f'costo ${cost_qual:,.0f}'})")
         print(f"  GarageCond: {base_cond} → {new_cond}  "
-              f"({'sin cambio' if base_cond == new_cond else f'costo ${cost_cond:,.0f}'})")
+            f"({'sin cambio' if cost_cond == 0.0 else f'costo ${cost_cond:,.0f}'})")
 
-        # --- registrar en resumen final ---
         if base_qual != new_qual:
-            cambios_costos.append(
-                ("GarageQual", base_qual, new_qual, cost_qual)
-            )
+            cambios_costos.append(("GarageQual", base_qual, new_qual, cost_qual))
         if base_cond != new_cond:
-            cambios_costos.append(
-                ("GarageCond", base_cond, new_cond, cost_cond)
-            )
+            cambios_costos.append(("GarageCond", base_cond, new_cond, cost_cond))
 
     except Exception as e:
         print(f"(post-solve garage qual/cond omitido: {e})")
-    # ================== FIN AMPLIACIONES Y AGREGADOS ==========
+    # ========== FIN GARAGE QUAL / COND ==========
 
         # ========== PAVED DRIVE (post-solve) ==========
+
     try:
         PAVED_CATS = ["Y", "P", "N"]
 
@@ -948,37 +1011,45 @@ def main():
 
     # ================== FIN PAVED DRIVE ==========
 
-        # ========== FENCE (post-solve) ==========
+  # ========== FENCE (post-solve) ==========
+    fence_cost_report = 0.0   # <--- añade esta línea ANTES del try
     try:
-        FENCE_CATS = ["GdPrv", "MnPrv", "GdWo", "MnWw", "NA"]
+        FENCE_CATS = ["GdPrv", "MnPrv", "GdWo", "MnWw", "No aplica"]
+
+        def _na2noaplica(v):
+            s = str(v).strip()
+            return "No aplica" if s in {"NA", "No aplica"} else s
 
         def _find_selected_fence():
             for f in FENCE_CATS:
                 v = m.getVarByName(f"x_fence_is_{f}")
                 if v and v.X > 0.5:
                     return f
-            return "NA"
+            return "No aplica"
 
-        base_f = str(base.row.get("Fence", "NA")).strip()
+        base_f = _na2noaplica(base.row.get("Fence", "No aplica"))
         new_f = _find_selected_fence()
         lot_front = float(pd.to_numeric(base.row.get("Lot Frontage"), errors="coerce") or 0.0)
 
         cost_f = 0.0
-        if base_f == "NA" and new_f in ["MnPrv", "GdPrv"]:
+        if base_f == "No aplica" and new_f in ["MnPrv", "GdPrv"]:
             cost_f = ct.fence_build_cost_per_ft * lot_front
         elif new_f != base_f:
             cost_f = ct.fence_category_cost(new_f)
 
+        fence_cost_report = cost_f  # <--- importante
+
         print("\nCambio en Fence:")
         print(f"  {base_f} → {new_f}  "
-              f"({'sin cambio' if base_f == new_f else f'costo ${cost_f:,.0f}'})")
+            f"({'sin cambio' if cost_f == 0.0 else f'costo ${cost_f:,.0f}'})")
 
-        if base_f != new_f:
+        if new_f != base_f:
             cambios_costos.append(("Fence", base_f, new_f, cost_f))
 
     except Exception as e:
         print(f"(post-solve fence omitido: {e})")
-    # ================== FIN FENCE ==========
+    # ================== FIN FENCE ==================
+
 
 
     # ---- Mas Vnr Type ----
@@ -1072,7 +1143,7 @@ def main():
     except Exception as e:
         print("[HEAT-DEBUG] Error en reporte:", e)
 
-    # ---- BsmtFin: reconstrucción de valores + costo ----
+ # ---- BsmtFin: reconstrucción de valores + costo ----
     bsmt_finish_cost_report = 0.0
     try:
         v_fin = m.getVarByName("bsmt_finish")
@@ -1242,6 +1313,13 @@ def main():
         + float(bsmt_finish_cost_report)
         + float(bsmt_type_cost_report) 
         + float(fp_cost_report)
+        + float(fence_cost_report)
+        + float(garage_qc_cost_report)     
+        + float(ampl_cost_report)          
+        + float(agregados_cost_report)     
+        + float(pool_qc_cost_report)  
+        + float(garage_finish_cost_report)
+
     )
 
     # ===== métricas =====
@@ -1250,6 +1328,59 @@ def main():
     print("\n===== RESULTADOS DE LA OPTIMIZACIÓN =====")
 
     # ===== impresión =====
+
+    # ===== DIAGNÓSTICO DURO DEL MODELO =====
+    def _exists_var(name): 
+        return m.getVarByName(name) is not None
+
+    delta_price = precio_remodelada - precio_base
+    num_cambios = len(cambios_costos)
+
+    # Objetivo y restricción de presupuesto
+    obj_val = None
+    try:
+        obj_val = float(m.ObjVal)
+    except Exception:
+        pass
+
+    bud_constr = next((c for c in m.getConstrs() if c.ConstrName == "BUDGET"), None)
+    budget_slack = None
+    try:
+        if bud_constr is not None:
+            budget_slack = float(bud_constr.Slack)
+    except Exception:
+        pass
+
+    # ¿Se movió algo en las binarias? (independiente del reporte)
+    changed_bin_vars = []
+    for v in m.getVars():
+        try:
+            # binaria detectada por bounds
+            if abs(v.LB) <= 1e-9 and abs(v.UB - 1.0) <= 1e-9:
+                x = float(v.X)
+                if x > 1e-6 and x < 1.0 - 1e-6:
+                    # fraccionales → raro, pero lo contamos
+                    changed_bin_vars.append((v.VarName, x))
+                elif x > 0.5:
+                    changed_bin_vars.append((v.VarName, x))
+        except Exception:
+            pass
+
+    print("\n===== CHEQUEOS =====")
+    print(f"y_price: {money(precio_remodelada)}   (base: {money(precio_base)})")
+    print(f"Δprecio: {money(delta_price)}")
+    print(f"Costos totales (reporte): {money(total_cost)}")
+    print(f"Utilidad reportada: {money(delta_price - total_cost)}")
+    print(f"Vars binarias activas: {len(changed_bin_vars)} (ejemplos: {[nm for nm,_ in changed_bin_vars[:10]]})")
+    if obj_val is not None:
+        print(f"Valor de objetivo (Gurobi): {obj_val:,.2f}")
+    else:
+        print("Valor de objetivo no disponible")
+    if bud_constr is None:
+        print("⚠️  No encontré la restricción 'BUDGET' en el modelo.")
+    else:
+        print(f"Slack de 'BUDGET': {budget_slack}")
+
 
     if aumento_utilidad <= 0:
         print("tu casa ya esta en su punto optimo para tu presupuesto")
@@ -1266,7 +1397,8 @@ def main():
         CAT_FIELDS = {
             "Mas Vnr Type","Roof Style","Roof Matl","Utilities",
             "Electrical","Exterior 1st","Exterior 2nd","Central Air","Heating (tipo)",
-            "Heating (reconstruir tipo)", "Heating QC"
+            "Heating (reconstruir tipo)", "Heating QC",
+            "Fence"  # <<-- para que lo formatee como categórica (sin frmt_num)
         }
 
         for nombre, b, n, c in cambios_costos:

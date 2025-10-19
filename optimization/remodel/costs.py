@@ -122,6 +122,8 @@ class CostTables:
         "N": 1800.0,   # entrada de grava / tierra
     })
 
+    def paved_drive_cost(self, name: str) -> float:
+        return float(self.paved_drive_costs.get(str(name), 0.0))
     # ====== FENCE ======
     # costos por categoría (USD)
     fence_category_costs: Dict[str, float] = field(default_factory=lambda: {
@@ -129,7 +131,7 @@ class CostTables:
         "MnPrv": 4700.0,    # privacidad media (6 pies de altura)
         "GdWo": 1500.0,     # madera buena ($10–$14/ft aprox.)
         "MnWw": 300.0,      # alambrada económica ($2/ft × 150ft)
-        "NA": 0.0,          # sin cerca
+        "No aplica": 0.0,          # sin cerca
     })
 
     # costo por pie lineal de construcción nueva (USD/ft)
