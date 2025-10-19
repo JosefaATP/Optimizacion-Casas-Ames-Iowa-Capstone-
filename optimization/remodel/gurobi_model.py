@@ -56,29 +56,38 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # (mantén el _align_ohe_dtypes(...) tal como ya lo tienes)
 
 
-    # -------------------
-    # 3) Kitchen Qual (paquetes TA/EX)  [solo constraints aquí]
-    # -------------------
-    def _q_to_ord(v):
-        mapping = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
-        try:
-            return int(v)
-        except Exception:
-            return mapping.get(str(v), 2)
+    # ========= KITCHEN QUAL (simple, sin 'eligible') =========
+    KITCH_LEVELS = ["Po","Fa","TA","Gd","Ex"]
+    ORD = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
 
-    kq_base = _q_to_ord(base_row.get("Kitchen Qual", "TA"))
-    dTA = x["delta_KitchenQual_TA"]
-    dEX = x["delta_KitchenQual_EX"]
-    m.addConstr(dTA + dEX <= 1, name="R9_kitchen_at_most_one_pkg")
-    if kq_base >= 2: dTA.UB = 0
-    if kq_base >= 4: dEX.UB = 0
-    q_TA = max(kq_base, 2)
-    q_EX = max(kq_base, 4)
-    q_new = x["Kitchen Qual"]
-    m.addConstr(
-        q_new == kq_base + (q_TA - kq_base) * dTA + (q_EX - kq_base) * dEX,
-        name="R9_kitchen_upgrade_link"
-    )
+    kq_base_txt = str(base_row.get("Kitchen Qual","TA")).strip()
+    kq_base = ORD.get(kq_base_txt, 2)
+
+    # one-hot
+    kit_bins = {nm: m.addVar(vtype=gp.GRB.BINARY, name=f"kit_is_{nm}") for nm in KITCH_LEVELS}
+    m.addConstr(gp.quicksum(kit_bins.values()) == 1, name="KIT_onehot")
+
+    # no-empeorar
+    for nm, v in kit_bins.items():
+        if ORD[nm] < kq_base:
+            v.UB = 0.0
+
+    # (opcional) link al entero si tu XGB lo usa ordinal
+    if "Kitchen Qual" in x:
+        m.addConstr(
+            x["Kitchen Qual"] ==
+            0*kit_bins["Po"] + 1*kit_bins["Fa"] + 2*kit_bins["TA"] + 3*kit_bins["Gd"] + 4*kit_bins["Ex"],
+            name="KIT_link_int"
+        )
+
+    kit_cost = gp.LinExpr(0.0)
+    for nm, vb in kit_bins.items():
+        if ORD[nm] > kq_base:
+            kit_cost += ct.kitchen_level_cost(nm) * vb
+    lin_cost += kit_cost
+
+    # ========= FIN =========
+
 
     # ================== (EXTERIOR) ==================
 
@@ -356,6 +365,214 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             lin_cost += ct.electrical_cost(nm) * vb
     # ================== FIN (ELECTRICAL) ==================
 
+    # ================== (HEATING + HEATINGQC) ==================
+    HEAT_TYPES = ["Floor","GasA","GasW","Grav","OthW","Wall"]
+    heat_bin = {nm: x[f"heat_is_{nm}"] for nm in HEAT_TYPES if f"heat_is_{nm}" in x}
+
+    # --- Parámetro de política ---
+    qc_threshold = 2  # 2=TA; si quieres exigir EX usa 4
+
+    # Base (tipo y QC)
+    heat_base = str(base_row.get("Heating", "GasA")).strip()
+    q_map = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
+    try:
+        qc_base = int(pd.to_numeric(base_row.get("Heating QC"), errors="coerce"))
+        if qc_base not in (0,1,2,3,4):
+            qc_base = q_map.get(str(base_row.get("Heating QC")).strip(), 2)
+    except Exception:
+        qc_base = q_map.get(str(base_row.get("Heating QC")).strip(), 2)
+
+    # (H1) elegir exactamente un tipo
+    if heat_bin:
+        m.addConstr(gp.quicksum(heat_bin.values()) == 1, name="HEAT_pick_one_type")
+
+    # Inyectar dummies Heating_* al X_input si el XGB las tiene
+    def _put_var(df, col, var):
+        if col in df.columns:
+            if df[col].dtype != "O":
+                df[col] = df[col].astype("object")
+            df.loc[0, col] = var
+
+    for nm, vb in heat_bin.items():
+        _put_var(X_input, f"Heating_{nm}", vb)
+
+    # Binarias de caminos (deben existir en MODIFIABLE)
+    upg_type = x.get("heat_upg_type")
+    upg_qc   = x.get("heat_upg_qc")
+
+    # Elegibilidad: solo si QC_base <= TA
+    eligible = 1 if qc_base <= 2 else 0
+    if (upg_type is not None) and (upg_qc is not None):
+        # Exclusión + gating por elegibilidad
+        m.addConstr(upg_type + upg_qc <= eligible, name="HEAT_paths_exclusive")
+
+    # No empeorar calidad (del PDF)
+    if "Heating QC" in x:
+        m.addConstr(x["Heating QC"] >= qc_base, name="HEAT_qc_upgrade_only")
+
+    # “Cualquier intervención” = OR(upg_type, upg_qc)
+    any_rebuild = m.addVar(vtype=gp.GRB.BINARY, name="HEAT_any_rebuild")
+    if (upg_type is not None) and (upg_qc is not None):
+        m.addConstr(any_rebuild >= upg_type, name="HEAT_any_ge_type")
+        m.addConstr(any_rebuild >= upg_qc,   name="HEAT_any_ge_qc")
+        m.addConstr(any_rebuild <= upg_type + upg_qc, name="HEAT_any_le_sum")
+    else:
+        m.addConstr(any_rebuild == 0, name="HEAT_any_no_vars")
+
+    # Piso de calidad si hay intervención
+    if "Heating QC" in x:
+        m.addConstr(x["Heating QC"] >= qc_threshold * any_rebuild,
+                    name="HEAT_qc_min_if_any_rebuild")
+
+    # (H3) upgrade-only de tipo por costo: prohibir tipos más baratos que el base
+    base_type_cost = ct.heating_type_cost(heat_base)
+    for nm, vb in heat_bin.items():
+        if ct.heating_type_cost(nm) < base_type_cost:
+            vb.UB = 0  # no bajar de categoría/costo
+
+    # Si NO es elegible: fijar tipo y calidad a base
+    if eligible == 0:
+        for nm, vb in heat_bin.items():
+            vb.UB = 1 if nm == heat_base else 0
+        if "Heating QC" in x:
+            x["Heating QC"].LB = qc_base
+            x["Heating QC"].UB = qc_base
+
+    # (H4) ChangeType = 1 - I_base
+    change_type = None
+    if heat_bin:
+        change_type = m.addVar(vtype=gp.GRB.BINARY, name="heat_change_type")
+        if heat_base in heat_bin:
+            m.addConstr(change_type == 1 - heat_bin[heat_base], name="HEAT_change_def")
+        else:
+            m.addConstr(change_type >= 0, name="HEAT_change_def_guard")
+
+    # (H5) Dummies de QC (para costos y, si aplica, inyectar al XGB)
+    qc_bins = {}
+    if "Heating QC" in x:
+        for lvl, nm in enumerate(["Po","Fa","TA","Gd","Ex"]):
+            qb = m.addVar(vtype=gp.GRB.BINARY, name=f"heat_qc_is_{nm}")
+            qc_bins[nm] = qb
+        m.addConstr(gp.quicksum(qc_bins.values()) == 1, name="HEAT_qc_onehot")
+        m.addConstr(x["Heating QC"] == 0*qc_bins["Po"] + 1*qc_bins["Fa"] + 2*qc_bins["TA"]
+                                    + 3*qc_bins["Gd"] + 4*qc_bins["Ex"], name="HEAT_qc_link")
+        for nm, qb in qc_bins.items():
+            _put_var(X_input, f"Heating QC_{nm}", qb)
+
+    # (H6) Costos (tal como el PDF)
+    cost_heat = gp.LinExpr(0.0)
+
+    # Reconstruir mismo tipo: C_base * (UpgType - ChangeType)
+    if (upg_type is not None) and (change_type is not None):
+        cost_heat += base_type_cost * (upg_type - change_type)
+
+    # Cambiar a tipo más caro
+    for nm, vb in heat_bin.items():
+        if nm != heat_base:
+            cost_heat += ct.heating_type_cost(nm) * vb
+
+    # Cambiar calidad
+    if qc_bins:
+        for nm, qb in qc_bins.items():
+            if q_map[nm] != qc_base:
+                cost_heat += ct.heating_qc_cost(nm) * qb
+
+    # Añadir a la función de costo
+    lin_cost += cost_heat
+    # ================== FIN HEATING ==================
+
+    # ================== BSMT (Fin1, Fin2, Unf, Total) ==================
+    # Variables (deben existir en MODIFIABLE)
+    b1_var = x.get("BsmtFin SF 1")
+    b2_var = x.get("BsmtFin SF 2")
+    bu_var = x.get("Bsmt Unf SF")
+
+    if (b1_var is None) or (b2_var is None) or (bu_var is None):
+        raise RuntimeError(
+            "Faltan variables de sótano en MODIFIABLE: "
+            "asegúrate de tener 'BsmtFin SF 1', 'BsmtFin SF 2', 'Bsmt Unf SF'."
+        )
+
+    # Total Bsmt SF base (no hacemos x_Total para que el total quede F I J O)
+    try:
+        tb_base = float(pd.to_numeric(base_row.get("Total Bsmt SF"), errors="coerce") or 0.0)
+    except Exception:
+        tb_base = 0.0
+
+    # (B1) Conservación de área: Fin1 + Fin2 + Unf = Total (base)
+    m.addConstr(b1_var + b2_var + bu_var == tb_base, name="BSMT_conservation_sum")
+
+    # (B2) No-negatividad ya la tienes por lb=0 en features.py
+
+    # (B3) (Opcional) Limitar transferencias grandes entre zonas acabadas
+    #      Si NO quieres transferencias, comenta este bloque
+    bsmt_tr1 = m.addVar(lb=0.0, name="bsmt_tr1")  # de Fin1 hacia Unf
+    bsmt_tr2 = m.addVar(lb=0.0, name="bsmt_tr2")  # de Fin2 hacia Unf
+    # Mantener como mínimo lo terminado “base” (si quieres piso por zona):
+    try:
+        b1_base = float(pd.to_numeric(base_row.get("BsmtFin SF 1"), errors="coerce") or 0.0)
+        b2_base = float(pd.to_numeric(base_row.get("BsmtFin SF 2"), errors="coerce") or 0.0)
+        bu_base = float(pd.to_numeric(base_row.get("Bsmt Unf SF"),  errors="coerce") or 0.0)
+    except Exception:
+        b1_base = b2_base = bu_base = 0.0
+
+    # Ejemplo: no permitir que Fin1 baje más de 20% de su base; ajusta a gusto
+    alpha = 0.20
+    m.addConstr(b1_var >= (1.0 - alpha) * b1_base, name="BSMT_min_keep_fin1")
+    m.addConstr(b2_var >= (1.0 - alpha) * b2_base, name="BSMT_min_keep_fin2")
+
+    # (B4) Costos de terminar sótano (si quieres cobrarlos aquí):
+    #      Si ya los cobras en otro lugar, deja comentado.
+    # lin_cost += ct.finish_basement_per_f2 * (gp.max_(0, b1_var - b1_base) + gp.max_(0, b2_var - b2_base))
+    # Para linealidad pura: usa variables "pos" como en tu helper pos()
+    lin_cost += pos(b1_var - b1_base) * ct.finish_basement_per_f2
+    lin_cost += pos(b2_var - b2_base) * ct.finish_basement_per_f2
+    # Unfinished no cobra (o incluso podría dar un crédito; normalmente 0)
+    # ================== FIN BSMT (Fin1, Fin2, Unf, Total) ==================
+ 
+    # ================== (BSMT COND: ordinal upgrade-only) ==================
+    BC_LEVELS = ["Po","Fa","TA","Gd","Ex"]
+    BC_ORD = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
+
+    bc_base_txt = str(base_row.get("Bsmt Cond", "TA")).strip()
+    bc_base = BC_ORD.get(bc_base_txt, 2)
+
+    # binarios one-hot de estado final
+    bc_bin = {nm: m.addVar(vtype=gp.GRB.BINARY, name=f"bsmtcond_is_{nm}") for nm in BC_LEVELS}
+    m.addConstr(gp.quicksum(bc_bin.values()) == 1, name="BSMTCOND_onehot")
+
+    # no empeorar: niveles por debajo de la base quedan prohibidos
+    for nm, vb in bc_bin.items():
+        if BC_ORD[nm] < bc_base:
+            vb.UB = 0.0
+
+    # si tu XGB usa la columna ordinal "Bsmt Cond", enlázala
+    if "Bsmt Cond" in x:
+        m.addConstr(
+            x["Bsmt Cond"] ==
+            0*bc_bin["Po"] + 1*bc_bin["Fa"] + 2*bc_bin["TA"] + 3*bc_bin["Gd"] + 4*bc_bin["Ex"],
+            name="BSMTCOND_link_int"
+        )
+
+    # si tu pipeline trae OHE de Bsmt Cond, inyecta dummies
+    for nm in BC_LEVELS:
+        col = f"Bsmt Cond_{nm}"
+        if col in X_input.columns:
+            if X_input[col].dtype != "O":
+                X_input[col] = X_input[col].astype("object")
+            X_input.loc[0, col] = bc_bin[nm]
+
+    # costos: solo si subes por sobre la base y únicamente los niveles finales
+    for nm, vb in bc_bin.items():
+        if BC_ORD[nm] > bc_base:
+            # el PDF cobra el costo del nivel elegido (no incremental por salto)
+            lin_cost += ct.bsmt_cond_cost(nm) * vb
+
+    # si la base ya es Gd/Ex, implícitamente quedas fijado a la base por el "no empeorar"
+    # ================== FIN (BSMT COND) ==================
+
+
+
 
     # -------------------
     # 5) Enlazar predictor (pre -> XGB) y pasar de log a precio
@@ -397,12 +614,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         lin_cost += pos(x["Wood Deck SF"] - base_vals["Wood Deck SF"]) * ct.deck_per_m2
     if "Garage Cars" in x:
         lin_cost += pos(x["Garage Cars"] - base_vals["Garage Cars"]) * ct.garage_per_car
-    if "Total Bsmt SF" in x:
-        lin_cost += pos(x["Total Bsmt SF"] - base_vals["Total Bsmt SF"]) * ct.finish_basement_per_f2
 
-    # Cocina (paquetes) — ahora sí sumamos costo
-    lin_cost += dTA * ct.kitchenQual_upgrade_TA
-    lin_cost += dEX * ct.kitchenQual_upgrade_EX
 
     # Utilities (upgrade-only; costo solo si cambias)
     if "Utilities" in x:
