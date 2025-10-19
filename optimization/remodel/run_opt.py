@@ -302,6 +302,37 @@ def main():
             Xd.loc[:, "Total Bsmt SF"] = tb
             p_up = price(Xd)
             print(f"DEBUG Bsmt: +100 ft² terminados → Δprecio = {p_up - precio_base:,.2f}")
+        
+        # --- DEBUG: BsmtFin Type 1 -> precio ---
+    B1_TYPES = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","No aplica"]
+    if any(c.startswith("BsmtFin Type 1_") for c in X_base.columns):
+        Xd = X_base.copy()
+        for c in [c for c in Xd.columns if c.startswith("BsmtFin Type 1_")]:
+            Xd[c] = 0.0
+        vals = []
+        for nm in B1_TYPES:
+            col = f"BsmtFin Type 1_{nm}"
+            if col in Xd.columns:
+                Xd[col] = 1.0
+                vals.append((nm, float(bundle.predict(Xd).iloc[0])))
+                Xd[col] = 0.0
+        print("DEBUG BsmtFin Type 1 -> precio:", [(nm, round(p, 2)) for nm, p in vals])
+
+    # --- DEBUG: BsmtFin Type 2 -> precio ---
+    B2_TYPES = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","No aplica"]
+    if any(c.startswith("BsmtFin Type 2_") for c in X_base.columns):
+        Xd = X_base.copy()
+        for c in [c for c in Xd.columns if c.startswith("BsmtFin Type 2_")]:
+            Xd[c] = 0.0
+        vals = []
+        for nm in B2_TYPES:
+            col = f"BsmtFin Type 2_{nm}"
+            if col in Xd.columns:
+                Xd[col] = 1.0
+                vals.append((nm, float(bundle.predict(Xd).iloc[0])))
+                Xd[col] = 0.0
+        print("DEBUG BsmtFin Type 2 -> precio:", [(nm, round(p, 2)) for nm, p in vals])
+
 
     # ============ FIN DEBUGS ============
 
@@ -673,7 +704,6 @@ def main():
         bu_var = m.getVarByName("bsmt_unf")
 
         if all(v is not None for v in [v_fin, v_tr1, v_tr2, b1_var, b2_var, bu_var]):
-            fin = int(round(v_fin.X))
             tr1 = float(v_tr1.X)
             tr2 = float(v_tr2.X)
 
@@ -683,7 +713,7 @@ def main():
             bub = float(pd.to_numeric(base.row.get("Bsmt Unf SF"),   errors="coerce") or 0.0)
             tbb = float(pd.to_numeric(base.row.get("Total Bsmt SF"), errors="coerce") or (b1b+b2b+bub))
 
-            # nuevos desde variables (coherentes con conservación)
+            # nuevos desde variables (conservación)
             b1n = float(b1_var.X)
             b2n = float(b2_var.X)
             bun = float(bu_var.X)
@@ -694,7 +724,7 @@ def main():
             if added > 1e-9:
                 bsmt_finish_cost_report = ct.finish_basement_per_f2 * added
 
-            # cambios para imprimir
+            # cambios para imprimir (cobrando solo lo que corresponde)
             if abs(b1n - b1b) > 1e-9:
                 cambios_costos.append(("BsmtFin SF 1", b1b, b1n, ct.finish_basement_per_f2 * tr1))
             if abs(b2n - b2b) > 1e-9:
@@ -706,22 +736,23 @@ def main():
     except Exception as e:
         print("[BSMT-DEBUG] error construyendo reporte:", e)
 
-    # Fallback por si no pudimos leer tr1/tr2 (usamos delta de b1/b2)
-    try:
-        b1_base = float(pd.to_numeric(base.row.get("BsmtFin SF 1"), errors="coerce") or 0.0)
-        b2_base = float(pd.to_numeric(base.row.get("BsmtFin SF 2"), errors="coerce") or 0.0)
-        b1_new  = _to_float_safe(opt.get("BsmtFin SF 1", b1_base))
-        b2_new  = _to_float_safe(opt.get("BsmtFin SF 2", b2_base))
-        c_b1 = max(0.0, b1_new - b1_base) * ct.finish_basement_per_f2
-        c_b2 = max(0.0, b2_new - b2_base) * ct.finish_basement_per_f2
-        if c_b1 > 0:
-            cambios_costos.append(("BsmtFin SF 1", b1_base, b1_new, c_b1))
-        if c_b2 > 0:
-            cambios_costos.append(("BsmtFin SF 2", b2_base, b2_new, c_b2))
-        if bsmt_finish_cost_report == 0.0:
+    # Fallback (si no existían tr1/tr2/vars de conservación): usar solo delta positivo
+    if bsmt_finish_cost_report == 0.0:
+        try:
+            b1_base = float(pd.to_numeric(base.row.get("BsmtFin SF 1"), errors="coerce") or 0.0)
+            b2_base = float(pd.to_numeric(base.row.get("BsmtFin SF 2"), errors="coerce") or 0.0)
+            b1_new  = _to_float_safe(opt.get("BsmtFin SF 1", b1_base))
+            b2_new  = _to_float_safe(opt.get("BsmtFin SF 2", b2_base))
+            c_b1 = max(0.0, b1_new - b1_base) * ct.finish_basement_per_f2
+            c_b2 = max(0.0, b2_new - b2_base) * ct.finish_basement_per_f2
+            if c_b1 > 0:
+                cambios_costos.append(("BsmtFin SF 1", b1_base, b1_new, c_b1))
+            if c_b2 > 0:
+                cambios_costos.append(("BsmtFin SF 2", b2_base, b2_new, c_b2))
             bsmt_finish_cost_report = c_b1 + c_b2
-    except Exception:
-        pass
+        except Exception:
+            pass
+
 
     # ---- Bsmt Cond (reporte + costo) ----
     bsmt_cond_cost_report = 0.0
@@ -738,16 +769,61 @@ def main():
             if bc_new > bc_base:
                 bc_new_txt  = inv_map[bc_new]
                 bc_base_txt = inv_map[bc_base]
-                # define en costs.py si usas nivel → costo fijo Gd/Ex o por nivel
+                # si definiste ct.bsmt_cond_cost(nivel), úsalo; si no, costo por nivel:
                 try:
-                    c_bc = ct.bsmt_cond_cost(bc_new_txt)  # si implementaste bsmt_cond_cost(...)
+                    c_bc = ct.bsmt_cond_cost(bc_new_txt)
                 except Exception:
-                    # fallback por nivel: $2,000 c/u (puedes ajustar)
                     c_bc = (bc_new - bc_base) * 2000.0
                 bsmt_cond_cost_report += c_bc
                 cambios_costos.append(("Bsmt Cond", bc_base_txt, bc_new_txt, c_bc))
     except Exception:
         pass
+
+    # ---- BsmtFin Type 1/2 (reporte + costo) ----
+    bsmt_type_cost_report = 0.0
+    TYPES = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","No aplica"]
+
+    def _pick_cat(prefix: str) -> str | None:
+        # intenta con y sin 'x_' por si difieren los nombres
+        for nm in TYPES:
+            v = _getv(m, f"x_{prefix}{nm}", f"{prefix}{nm}")
+            if v is not None and v.X > 0.5:
+                return nm
+        return None
+
+    # Base (desde la casa)
+    b1_base = str(base.row.get("BsmtFin Type 1", "No aplica")).strip()
+    b2_base = str(base.row.get("BsmtFin Type 2", "No aplica")).strip()
+
+    # Nuevo (desde el modelo)
+    b1_new = _pick_cat("b1_is_") or b1_base
+    b2_new = _pick_cat("b2_is_") or b2_base
+
+    # Costo por tipología (ajusta tu CostTables.bsmt_type_cost)
+    def _bsmt_type_cost(nm: str) -> float:
+        try:
+            return float(ct.bsmt_type_cost(nm))
+        except Exception:
+            return 0.0
+
+    if b1_new != b1_base:
+        c = _bsmt_type_cost(b1_new)
+        cambios_costos.append(("BsmtFin Type 1", b1_base, b1_new, c))
+        bsmt_type_cost_report += c
+
+    # En Ames, Type 2 puede no existir; cobra solo si la base tenía algo
+    if b2_base != "No aplica" and b2_new != b2_base:
+        c = _bsmt_type_cost(b2_new)
+        cambios_costos.append(("BsmtFin Type 2", b2_base, b2_new, c))
+        bsmt_type_cost_report += c
+
+    # reflejar en snapshot SOLO si opt_dict ya existe en ese punto
+    if 'opt_dict' in locals():
+        opt_dict["BsmtFin Type 1"] = b1_new
+        opt_dict["BsmtFin Type 2"] = b2_new
+
+
+
 
     # === total final de costos para reporte ===
     total_cost = (
@@ -766,6 +842,7 @@ def main():
         + float(heating_cost_report)
         + float(bsmt_cond_cost_report)
         + float(bsmt_finish_cost_report)
+        + float(bsmt_type_cost_report) 
     )
 
     # ===== métricas =====

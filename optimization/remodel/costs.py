@@ -147,6 +147,21 @@ class CostTables:
     def bsmt_cond_cost(self, name: str) -> float:
         return float(self.bsmt_cond_upgrade_costs.get(str(name), 0.0))
 
+    # ====== BSMT FIN TYPE (costos por categoría) ======
+    bsmt_type_costs: Dict[str, float] = field(default_factory=lambda: {
+        # Valores del cuadro (ALQ/Rec interpolados)
+        "GLQ": 75000.0,
+        "ALQ": 53500.0,
+        "BLQ": 32000.0,
+        "Rec": 23500.0,
+        "LwQ": 15000.0,
+        "Unf": 11250.0,
+        "No aplica": 0.0,
+    })
+    def bsmt_type_cost(self, name: str) -> float:
+        return float(self.bsmt_type_costs.get(str(name), 0.0))
+
+
     # ====== COSTO FIJO Y COSTO INICIAL ======
     project_fixed: float = 0.0
     def initial_cost(self, base_row) -> float:

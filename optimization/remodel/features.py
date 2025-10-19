@@ -97,6 +97,14 @@ MODIFIABLE += [
     FeatureSpec("heat_upg_qc",   0, 1, "B"),
 ]
 
+# ----- BSMT FIN TYPES (Type1 y Type2) -----
+_BSMT_TYPES = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","No aplica"]
+for _nm in _BSMT_TYPES:
+    MODIFIABLE.append(FeatureSpec(name=f"b1_is_{_nm}", lb=0, ub=1, vartype="B"))
+for _nm in _BSMT_TYPES:
+    MODIFIABLE.append(FeatureSpec(name=f"b2_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+
 # Asegúrate de que Exter Qual y Exter Cond estén en MODIFIABLE como enteras 0..4:
 # (si ya estaban, no dupliques)
 # MODIFIABLE.append(Feature("Exter Qual", lb=0, ub=4, vartype="I"))

@@ -482,53 +482,51 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # ================== FIN HEATING ==================
 
     # ================== BSMT (Fin1, Fin2, Unf, Total) ==================
-    # Variables (deben existir en MODIFIABLE)
+    # Variables existentes (deben estar en MODIFIABLE)
     b1_var = x.get("BsmtFin SF 1")
     b2_var = x.get("BsmtFin SF 2")
     bu_var = x.get("Bsmt Unf SF")
-
     if (b1_var is None) or (b2_var is None) or (bu_var is None):
         raise RuntimeError(
             "Faltan variables de sótano en MODIFIABLE: "
             "asegúrate de tener 'BsmtFin SF 1', 'BsmtFin SF 2', 'Bsmt Unf SF'."
         )
 
-    # Total Bsmt SF base (no hacemos x_Total para que el total quede F I J O)
-    try:
-        tb_base = float(pd.to_numeric(base_row.get("Total Bsmt SF"), errors="coerce") or 0.0)
-    except Exception:
-        tb_base = 0.0
+    # Bases (constantes de la casa)
+    def _num(v): 
+        import pandas as pd
+        try: return float(pd.to_numeric(v, errors="coerce") or 0.0)
+        except: return 0.0
 
-    # (B1) Conservación de área: Fin1 + Fin2 + Unf = Total (base)
+    b1_base = _num(base_row.get("BsmtFin SF 1"))
+    b2_base = _num(base_row.get("BsmtFin SF 2"))
+    bu_base = _num(base_row.get("Bsmt Unf SF"))
+    tb_base = _num(base_row.get("Total Bsmt SF"))
+    if tb_base <= 0.0:
+        tb_base = b1_base + b2_base + bu_base
+
+    # Transferencias SOLO desde Unf → Fin1/Fin2 (no hay demoliciones)
+    tr1 = m.addVar(lb=0.0, name="bsmt_tr1")  # pies² que pasan de Unf a Fin1
+    tr2 = m.addVar(lb=0.0, name="bsmt_tr2")  # pies² que pasan de Unf a Fin2
+
+    # Enlaces sin demoler:
+    #   Fin1 = Fin1_base + tr1
+    #   Fin2 = Fin2_base + tr2
+    #   Unf  = Unf_base  - tr1 - tr2
+    m.addConstr(b1_var == b1_base + tr1, name="BSMT_link_fin1")
+    m.addConstr(b2_var == b2_base + tr2, name="BSMT_link_fin2")
+    m.addConstr(bu_var == bu_base - tr1 - tr2, name="BSMT_link_unf")
+
+    # No se puede terminar más de lo que había sin terminar
+    m.addConstr(tr1 + tr2 <= bu_base + 1e-6, name="BSMT_no_more_than_unf_base")
+
+    # Conservación del total (seguridad)
     m.addConstr(b1_var + b2_var + bu_var == tb_base, name="BSMT_conservation_sum")
 
-    # (B2) No-negatividad ya la tienes por lb=0 en features.py
+    # Costos: solo cobramos lo que efectivamente se terminó
+    lin_cost += ct.finish_basement_per_f2 * (tr1 + tr2)
+    # ================== FIN BSMT ==================
 
-    # (B3) (Opcional) Limitar transferencias grandes entre zonas acabadas
-    #      Si NO quieres transferencias, comenta este bloque
-    bsmt_tr1 = m.addVar(lb=0.0, name="bsmt_tr1")  # de Fin1 hacia Unf
-    bsmt_tr2 = m.addVar(lb=0.0, name="bsmt_tr2")  # de Fin2 hacia Unf
-    # Mantener como mínimo lo terminado “base” (si quieres piso por zona):
-    try:
-        b1_base = float(pd.to_numeric(base_row.get("BsmtFin SF 1"), errors="coerce") or 0.0)
-        b2_base = float(pd.to_numeric(base_row.get("BsmtFin SF 2"), errors="coerce") or 0.0)
-        bu_base = float(pd.to_numeric(base_row.get("Bsmt Unf SF"),  errors="coerce") or 0.0)
-    except Exception:
-        b1_base = b2_base = bu_base = 0.0
-
-    # Ejemplo: no permitir que Fin1 baje más de 20% de su base; ajusta a gusto
-    alpha = 0.20
-    m.addConstr(b1_var >= (1.0 - alpha) * b1_base, name="BSMT_min_keep_fin1")
-    m.addConstr(b2_var >= (1.0 - alpha) * b2_base, name="BSMT_min_keep_fin2")
-
-    # (B4) Costos de terminar sótano (si quieres cobrarlos aquí):
-    #      Si ya los cobras en otro lugar, deja comentado.
-    # lin_cost += ct.finish_basement_per_f2 * (gp.max_(0, b1_var - b1_base) + gp.max_(0, b2_var - b2_base))
-    # Para linealidad pura: usa variables "pos" como en tu helper pos()
-    lin_cost += pos(b1_var - b1_base) * ct.finish_basement_per_f2
-    lin_cost += pos(b2_var - b2_base) * ct.finish_basement_per_f2
-    # Unfinished no cobra (o incluso podría dar un crédito; normalmente 0)
-    # ================== FIN BSMT (Fin1, Fin2, Unf, Total) ==================
  
     # ================== (BSMT COND: ordinal upgrade-only) ==================
     BC_LEVELS = ["Po","Fa","TA","Gd","Ex"]
@@ -571,6 +569,123 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # si la base ya es Gd/Ex, implícitamente quedas fijado a la base por el "no empeorar"
     # ================== FIN (BSMT COND) ==================
 
+    # ================== (BSMT FIN TYPE1 / TYPE2) ==================
+    BS_TYPES = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","NA"]
+
+    # dummies de decisión desde features.py
+    b1 = {nm: x.get(f"b1_is_{nm}") for nm in BS_TYPES}
+    b2 = {nm: x.get(f"b2_is_{nm}") for nm in BS_TYPES}
+
+    # helper para poner gp.Var en DataFrame
+    def _put_var(df, col, var):
+        if col in df.columns:
+            if df[col].dtype != "O":
+                df[col] = df[col].astype("object")
+            df.loc[0, col] = var
+
+    # base
+    b1_base = str(base_row.get("BsmtFin Type 1", "NA")).strip()
+    b2_base = str(base_row.get("BsmtFin Type 2", "NA")).strip()
+    has_b2  = 0 if b2_base in ["NA", "None", "nan", "NaN"] else 1
+
+    # (T1) selección única
+    if all(v is not None for v in b1.values()):
+        m.addConstr(gp.quicksum(b1.values()) == 1, name="B1_pick_one")
+
+    # (T2) selección según existencia
+    if all(v is not None for v in b2.values()):
+        m.addConstr(gp.quicksum(b2.values()) == has_b2, name="B2_pick_hasB2")
+
+    # Inyectar a X_input si tu XGB trae OHE "BsmtFin Type 1_*" y "BsmtFin Type 2_*"
+    for nm, vb in b1.items():
+        if vb is not None:
+            _put_var(X_input, f"BsmtFin Type 1_{nm}", vb)
+    for nm, vb in b2.items():
+        if vb is not None:
+            _put_var(X_input, f"BsmtFin Type 2_{nm}", vb)
+
+    # Conjunto “Rec o peor”
+    BAD = {"Rec","LwQ","Unf"}
+
+    # Flags UpgB1 / UpgB2 (activas sólo si base ∈ BAD)
+    upgB1 = m.addVar(vtype=gp.GRB.BINARY, name="B1_upg_flag")
+    upgB2 = m.addVar(vtype=gp.GRB.BINARY, name="B2_upg_flag")
+
+    is_bad1 = 1 if b1_base in BAD else 0
+    is_bad2 = 1 if (has_b2 == 1 and b2_base in BAD) else 0
+
+    # Fijo estas flags a la constante (equivalen a las activaciones del PDF)
+    upgB1.LB = upgB1.UB = is_bad1
+    upgB2.LB = upgB2.UB = is_bad2
+
+    # Máscaras para “distinto de la base” M = 1 - Base
+    M1 = {}
+    M2 = {}
+    for nm in BS_TYPES:
+        M1[nm] = 0 if nm == b1_base else 1
+        M2[nm] = 0 if nm == b2_base else 1
+
+    # “Sólo puedes CAMBIAR si upg=1”  (sum_{b≠base} b1_is_b <= upgB1)
+    if all(v is not None for v in b1.values()):
+        m.addConstr(gp.quicksum(M1[nm]*b1[nm] for nm in BS_TYPES) <= upgB1, name="B1_change_if_upg")
+    if has_b2 and all(v is not None for v in b2.values()):
+        m.addConstr(gp.quicksum(M2[nm]*b2[nm] for nm in BS_TYPES) <= upgB2, name="B2_change_if_upg")
+
+    # Dominio permitido (si NO upg → forzar base; si upg → prohibir categorías más baratas que la base)
+    def _apply_allowed(bvars, b_base, upg_flag):
+        if not bvars:
+            return
+        base_cost = ct.bsmt_type_cost(b_base)
+        if upg_flag == 0:
+            # sólo base
+            for nm, vb in bvars.items():
+                if vb is None: continue
+                if nm == b_base:
+                    vb.LB = 1.0; vb.UB = 1.0
+                else:
+                    vb.UB = 0.0
+        else:
+            # permitir mantener base o mejorar (>= costo base); nunca bajar
+            for nm, vb in bvars.items():
+                if vb is None: continue
+                if ct.bsmt_type_cost(nm) < base_cost:
+                    vb.UB = 0.0
+
+    # Casos especiales NA
+    if b1_base == "NA":
+        # se mantiene NA sí o sí
+        for nm, vb in b1.items():
+            if vb is None: continue
+            if nm == "NA": vb.LB = vb.UB = 1.0
+            else: vb.UB = 0.0
+    else:
+        _apply_allowed(b1, b1_base, is_bad1)
+
+    if has_b2 == 0:
+        # Type2 no existe → todos 0
+        for nm, vb in b2.items():
+            if vb is None: continue
+            vb.UB = 0.0
+    elif b2_base == "NA":
+        for nm, vb in b2.items():
+            if vb is None: continue
+            if nm == "NA": vb.LB = vb.UB = 1.0
+            else: vb.UB = 0.0
+    else:
+        _apply_allowed(b2, b2_base, is_bad2)
+
+    # Costos (sólo si cambias; usa máscara 1{b ≠ base})
+    cost_b1 = gp.LinExpr(0.0)
+    cost_b2 = gp.LinExpr(0.0)
+    for nm, vb in b1.items():
+        if vb is not None and M1[nm] == 1:
+            cost_b1 += ct.bsmt_type_cost(nm) * vb
+    for nm, vb in b2.items():
+        if vb is not None and M2[nm] == 1:
+            cost_b2 += ct.bsmt_type_cost(nm) * vb
+
+    lin_cost += cost_b1 + cost_b2
+    # ================== FIN (BSMT FIN TYPE1/2) ==================
 
 
 
