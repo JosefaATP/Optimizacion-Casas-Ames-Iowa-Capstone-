@@ -257,6 +257,31 @@ def main():
     except Exception as e:
         print(f"(debug garage finish omitido: {e})")
 
+
+    # === DEBUG Pool QC → precio: barrido ordinal (0–4 o Po–Ex) ===
+    try:
+        if "Pool QC" in X_base.columns:
+            print("\nDEBUG Pool QC → precio (ordinal):")
+            Xd = X_base.copy()
+
+            # probar distintos niveles de calidad
+            niveles = [0, 1, 2, 3, 4]
+            etiquetas = {0: "Po", 1: "Fa", 2: "TA", 3: "Gd", 4: "Ex"}
+
+            vals = []
+            for q in niveles:
+                Xd.loc[:, "Pool QC"] = q
+                y_pred = float(bundle.predict(Xd).iloc[0])
+                vals.append((q, etiquetas[q], y_pred))
+                print(f"   {etiquetas[q]:>10}: {y_pred:,.0f}")
+        else:
+            print("(debug pool qc omitido: columna Pool QC no encontrada en X_base)")
+    except Exception as e:
+        print(f"(debug pool qc omitido: {e})")
+
+
+
+
     # ============ FIN DEBUGS ============
 
 
@@ -577,6 +602,39 @@ def main():
 
     except Exception as e:
         print("⚠️ (aviso, no crítico) error leyendo resultado de GarageFinish:", e)
+        
+
+        # ---- Pool QC (reporte + costo + debug) ----
+    try:
+        pool_area = float(pd.to_numeric(base.row.get("Pool Area"), errors="coerce") or 0.0)
+
+        # si es ordinal (0–4) en lugar de dummies:
+        if "Pool QC" in base.row.index:
+            MAP = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
+            revMAP = {v: k for k, v in MAP.items()}
+
+            pq_before_val = MAP.get(str(base.row.get("Pool QC", "No aplica")), None)
+            v_pool = m.getVarByName("x_Pool QC")
+
+            if v_pool is not None:
+                pq_after_val = int(round(v_pool.X))
+                pq_before = revMAP.get(pq_before_val, "No aplica")
+                pq_after = revMAP.get(pq_after_val, "No aplica")
+
+                if pq_before != pq_after:
+                    costo_pq = ct.poolqc_costs.get(pq_after, 0.0) + ct.pool_area_cost * pool_area
+                    cambios_costos.append(("Pool QC", pq_before, pq_after, costo_pq))
+                    print(f"Cambio en calidad de piscina: {pq_before} → {pq_after} ({money(costo_pq)})")
+                else:
+                    print(f"Sin cambio en calidad de piscina (sigue en {pq_before})")
+            else:
+                print("(info) variable x_Pool QC no presente en modelo")
+        else:
+            print("(info) columna Pool QC no está en base.row")
+    except Exception as e:
+        print(f"⚠️ (aviso, no crítico) error leyendo resultado de Pool QC:", e)
+
+
 
     # ---- Mas Vnr Type ----
     MVT_NAMES = ["BrkCmn", "BrkFace", "CBlock", "Stone", "No aplica", "None"]  # soporta ambos labels

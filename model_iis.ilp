@@ -1,9 +1,16 @@
 \ Model remodel_embed_copy
 \ LP format - for model browsing. Use MPS format to capture full model detail.
-\ Signature: 0xaadcf52eed01091c
+\ Signature: 0x58f942b5e50ccf83
 Maximize
  
 Subject To
- GF_pick_one: = 1
+ POOLQC_pick_one: x_poolqc_is_Ex + x_poolqc_is_Gd + x_poolqc_is_TA
+   + x_poolqc_is_Fa + x_poolqc_is_Po + x_poolqc_is_No_aplica = 1
+ POOL_no_upgrade_applicable: x_poolqc_is_Ex + x_poolqc_is_Gd
+   + x_poolqc_is_TA + x_poolqc_is_Fa + x_poolqc_is_Po
+   + x_poolqc_is_No_aplica = 0
 Bounds
+Binaries
+ x_poolqc_is_Ex x_poolqc_is_Gd x_poolqc_is_TA x_poolqc_is_Fa x_poolqc_is_Po
+ x_poolqc_is_No_aplica
 End

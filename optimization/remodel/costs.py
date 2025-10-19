@@ -59,6 +59,19 @@ class CostTables:
         "Fin": 24038.0,
     })
 
+        # ====== POOL QUALITY ======
+    pool_area_cost: float = 88.0  # USD por ft²
+
+    # costos totales por categoría (USD)
+    poolqc_costs: Dict[str, float] = field(default_factory=lambda: {
+        "No aplica": 0.0,
+        "Fa": 19000.0,
+        "TA": 57667.0,
+        "Gd": 96333.0,
+        "Po": 115000.0, #Inventado
+        "Ex": 135000.0,
+    })
+
     def garage_finish_cost(self, name: str) -> float:
         return float(self.garage_finish_costs_sqft.get(str(name), 0.0))
 

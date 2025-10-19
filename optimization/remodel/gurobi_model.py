@@ -429,6 +429,112 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # ================== FIN (CENTRAL AIR) ==================
 
 
+    # ========== POOL QUALITY (upgrade si TA/Fa/Po o peor) ==========
+    POOL_QC_CATS = ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]
+    POOL_QC_LEQ_AV = ["TA", "Fa", "Po"]
+
+    pq = {nm: x.get(f"poolqc_is_{nm}") for nm in POOL_QC_CATS}
+    upgPQ = x.get("upg_pool_qc")
+
+    # 0. Si falta "No aplica" pero existe "NA", sincronizar
+    if "poolqc_is_No aplica" not in x and "poolqc_is_NA" in x:
+        pq["No aplica"] = x["poolqc_is_NA"]
+
+    # Si todas las categorías son None → crear dummy
+    if all(v is None for v in pq.values()):
+        dummy_pq = m.addVar(vtype=gp.GRB.BINARY, name="poolqc_dummy")
+        m.addConstr(dummy_pq == 1, name="POOL_dummy")
+        pq["dummy"] = dummy_pq
+
+    # 1. Selección única
+    m.addConstr(
+        gp.quicksum(v for v in pq.values() if v is not None) == 1,
+        name="POOLQC_pick_one"
+    )
+
+    # 2. Inyección al pipeline
+    for nm, v in pq.items():
+        col = f"Pool QC_{nm}"
+        if v is not None and col in feature_order:
+            _put_var(X_input, col, v)
+
+    # 3. Datos base limpios
+    base_pq = {}
+    for nm in POOL_QC_CATS:
+        val = base_row.get(f"Pool QC_{nm}", 0.0)
+        if val is None or (isinstance(val, float) and np.isnan(val)):
+            val = 0.0
+        try:
+            base_pq[nm] = float(val)
+        except Exception:
+            base_pq[nm] = 0.0
+
+    mask = {nm: 1 - base_pq[nm] for nm in base_pq}
+
+    # 4. Restricciones de activación (solo si existe variable)
+    if upgPQ is not None:
+        for nm in POOL_QC_LEQ_AV:
+            m.addConstr(upgPQ >= base_pq.get(nm, 0.0), name=f"POOL_upg_ge_{nm}")
+        m.addConstr(
+            upgPQ <= gp.quicksum(base_pq.get(nm, 0.0) for nm in POOL_QC_LEQ_AV),
+            name="POOL_upg_le_sum"
+        )
+
+    # 5. Casos especiales / fijaciones
+    if base_pq.get("No aplica", 0.0) == 1.0:
+        # No hay piscina → fijar "No aplica"=1, resto=0
+        for nm, v in pq.items():
+            if v is None:
+                continue
+            if nm == "No aplica":
+                m.addConstr(v == 1, name="POOL_fix_NA_1")
+            else:
+                m.addConstr(v == 0, name=f"POOL_fix_NA_0_{nm}")
+
+    elif base_pq.get("Ex", 0.0) == 1.0 or base_pq.get("Gd", 0.0) == 1.0:
+        # Ya está buena/excelente → mantener igual
+        active = next((k for k, v in base_pq.items() if v == 1), None)
+        for nm, v in pq.items():
+            if v is None:
+                continue
+            if nm == active:
+                m.addConstr(v == 1, name=f"POOL_fix_{active}_1")
+            else:
+                m.addConstr(v == 0, name=f"POOL_fix_{active}_0_{nm}")
+
+    elif any(base_pq.get(nm, 0.0) == 1.0 for nm in ["TA", "Fa", "Po"]):
+        # Puede mejorar solo si upgPQ=1
+        if pq.get("Gd") is not None and upgPQ is not None:
+            m.addConstr(pq["Gd"] <= upgPQ, name="POOL_upgrade_if_active")
+        if upgPQ is not None:
+            m.addConstr(
+                gp.quicksum(v for k, v in pq.items()
+                            if k in ["TA", "Fa", "Po"] and v is not None)
+                <= 1 - upgPQ,
+                name="POOL_no_TAFaPo_if_upg"
+            )
+        m.addConstr(
+            gp.quicksum(v for v in pq.values() if v is not None) == 1,
+            name="POOL_sum_1"
+        )
+
+    # 6. Costo lineal (solo si cambia)
+    try:
+        pool_area = float(pd.to_numeric(base_row.get("Pool Area"), errors="coerce") or 0.0)
+    except Exception:
+        pool_area = 0.0
+
+    lin_cost += gp.quicksum(
+        (ct.poolqc_costs.get(nm, 0.0) + ct.pool_area_cost * pool_area)
+        * mask.get(nm, 0.0) * v
+        for nm, v in pq.items()
+        if v is not None and nm != "dummy"
+    )
+    # ================== FIN (POOL QC) ==================
+
+
+
+
     # ================== (ELECTRICAL) ==================
     ELECT_TYPES = ["SBrkr", "FuseA", "FuseF", "FuseP", "Mix"]
 

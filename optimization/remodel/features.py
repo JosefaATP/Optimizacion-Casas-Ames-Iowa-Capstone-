@@ -78,7 +78,13 @@ for _nm in ["SBrkr","FuseA","FuseF","FuseP","Mix"]:
 for _nm in ["Fin", "RFn", "Unf", "No aplica"]:
     MODIFIABLE.append(FeatureSpec(name=f"gfin_is_{_nm}", lb=0, ub=1, vartype="B"))
 
-    MODIFIABLE.append(FeatureSpec(name="upg_garage_finish", lb=0, ub=1, vartype="B"))
+MODIFIABLE.append(FeatureSpec(name="upg_garage_finish", lb=0, ub=1, vartype="B"))
+
+# ==== POOL QC (P = {Ex, Gd, TA, Fa, Po, No aplica}) ====
+for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]:
+    MODIFIABLE.append(FeatureSpec(name=f"poolqc_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+MODIFIABLE.append(FeatureSpec(name="upg_pool_qc", lb=0, ub=1, vartype="B"))
 
     # === MATERIALES EXTERIORES ===
 EXT_MATS = [
