@@ -92,6 +92,32 @@ class CostTables:
         "Ex": 135000.0,  # excellent
     })
 
+    # ====== PAVED DRIVE ======
+# costos por categoría (USD, desde el PDF)
+    paved_drive_costs: Dict[str, float] = field(default_factory=lambda: {
+        "Y": 4908.0,   # entrada totalmente pavimentada
+        "P": 3354.0,   # entrada parcialmente pavimentada (promedio)
+        "N": 1800.0,   # entrada de grava / tierra
+    })
+
+    # ====== FENCE ======
+    # costos por categoría (USD)
+    fence_category_costs: Dict[str, float] = field(default_factory=lambda: {
+        "GdPrv": 6300.0,    # buena privacidad (8 pies de altura)
+        "MnPrv": 4700.0,    # privacidad media (6 pies de altura)
+        "GdWo": 1500.0,     # madera buena ($10–$14/ft aprox.)
+        "MnWw": 300.0,      # alambrada económica ($2/ft × 150ft)
+        "NA": 0.0,          # sin cerca
+    })
+
+    # costo por pie lineal de construcción nueva (USD/ft)
+    fence_build_cost_per_ft: float = 40.0
+
+    def fence_category_cost(self, f: str) -> float:
+        """Costo por categoría de cerca (remodelación)"""
+        return self.fence_category_costs.get(f, 0.0)
+
+
     # ====== EXTERIOR ======
     exterior_demo_face1: float = 1.65
     exterior_demo_face2: float = 1.65

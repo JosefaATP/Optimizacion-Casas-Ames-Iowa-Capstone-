@@ -107,6 +107,14 @@ for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "NA"]:
 # Variable de activación (común para ambos)
 MODIFIABLE.append(FeatureSpec(name="UpgGarage", lb=0, ub=1, vartype="B"))
 
+# ==== PAVED DRIVE (D = {Y, P, N}) ====
+for _nm in ["Y", "P", "N"]:
+    MODIFIABLE.append(FeatureSpec(name=f"paved_drive_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+    
+# ==== FENCE (F = {GdPrv, MnPrv, GdWo, MnWw, NA}) ====
+for _nm in ["GdPrv", "MnPrv", "GdWo", "MnWw", "NA"]:
+    MODIFIABLE.append(FeatureSpec(name=f"fence_is_{_nm}", lb=0, ub=1, vartype="B"))
 
 
     # === MATERIALES EXTERIORES ===

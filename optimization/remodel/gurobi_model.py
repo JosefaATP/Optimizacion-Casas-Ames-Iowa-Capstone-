@@ -282,14 +282,14 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
 # ================== FIN (ROOF) ==================
 
-# ========== GARAGE FINISH (upgrade a Fin si era RFn o Unf) ==========
+# ========== GARAGE FINISH (solo mejora terminaciones, no construye garage) ==========
     GF_CATS = ["Fin", "RFn", "Unf", "No aplica"]
     gf = {nm: x.get(f"garage_finish_is_{nm}") for nm in GF_CATS}
     upgGF = x.get("UpgGarageFinish")
 
     # Sincronizar si hay NA vs "No aplica"
     if "garage_finish_is_NA" not in x and "garage_finish_is_No aplica" in x:
-        gf["NA"] = x["garage_finish_is_No aplica"]
+        gf["No aplica"] = x["garage_finish_is_No aplica"]
 
     # Dummy si faltan todas
     if all(v is None for v in gf.values()):
@@ -315,48 +315,59 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         base[nm] = float(val)
     mask = {nm: 1 - base[nm] for nm in base}
 
-    # --- Lógica condicional ---
-    if upgGF is not None:
-        m.addConstr(upgGF >= base.get("RFn", 0.0), name="GF_upg_ge_RFn")
-        m.addConstr(upgGF >= base.get("Unf", 0.0), name="GF_upg_ge_Unf")
-        m.addConstr(upgGF <= base.get("RFn", 0.0) + base.get("Unf", 0.0), name="GF_upg_le_sum")
-
+    # ========== CASOS ==========
     if base.get("No aplica", 0.0) == 1.0:
-        # Sin garage → mantener fijo
+        # 🔒 Sin garage: se fija "No aplica" y se bloquea mejora
         for nm, v in gf.items():
             if v is None:
                 continue
             m.addConstr(v == (1.0 if nm == "No aplica" else 0.0), name=f"GF_fix_NA_{nm}")
-    elif base.get("Fin", 0.0) == 1.0:
-        # Ya está Fin
-        for nm, v in gf.items():
-            if v is None:
-                continue
-            m.addConstr(v == (1.0 if nm == "Fin" else 0.0), name=f"GF_fix_Fin_{nm}")
-    elif base.get("RFn", 0.0) == 1.0 or base.get("Unf", 0.0) == 1.0:
-        # Puede pasar a Fin si UpgGF=1
-        if gf.get("Fin") is not None and upgGF is not None:
-            m.addConstr(gf["Fin"] <= upgGF, name="GF_upgrade_if_active")
+        if upgGF is not None:
+            m.addConstr(upgGF == 0, name="GF_no_upgrade_if_no_garage")
+
+    else:
+        # 🔧 Sí hay garage: permitir mejorar calidad (Unf/RFn → Fin)
+        if upgGF is not None:
+            m.addConstr(upgGF >= base.get("RFn", 0.0), name="GF_upg_ge_RFn")
+            m.addConstr(upgGF >= base.get("Unf", 0.0), name="GF_upg_ge_Unf")
+            m.addConstr(upgGF <= base.get("RFn", 0.0) + base.get("Unf", 0.0), name="GF_upg_le_sum")
+
+        if base.get("Fin", 0.0) == 1.0:
+            # Ya está Fin → mantener igual
+            for nm, v in gf.items():
+                if v is None:
+                    continue
+                m.addConstr(v == (1.0 if nm == "Fin" else 0.0), name=f"GF_fix_Fin_{nm}")
+
+        elif base.get("RFn", 0.0) == 1.0 or base.get("Unf", 0.0) == 1.0:
+            # Puede pasar a Fin si UpgGF=1
+            if gf.get("Fin") is not None and upgGF is not None:
+                m.addConstr(gf["Fin"] <= upgGF, name="GF_upgrade_if_active")
+            if upgGF is not None:
+                m.addConstr(
+                    gp.quicksum(v for k, v in gf.items() if k in ["RFn", "Unf"] and v is not None)
+                    <= 1 - upgGF,
+                    name="GF_no_RF_Unf_if_upg"
+                )
+            m.addConstr(gp.quicksum(v for v in gf.values() if v is not None) == 1, name="GF_sum_1")
+
+        # Cambio solo si era RFn/Unf
         if upgGF is not None:
             m.addConstr(
-                gp.quicksum(v for k, v in gf.items() if k in ["RFn", "Unf"] and v is not None)
-                <= 1 - upgGF,
-                name="GF_no_RF_Unf_if_upg"
+                gp.quicksum(mask[nm] * v for nm, v in gf.items() if v is not None) <= upgGF,
+                name="GF_mask_le_upg"
             )
-        m.addConstr(gp.quicksum(v for v in gf.values() if v is not None) == 1, name="GF_sum_1")
 
-    # Cambio sólo si era RFn/Unf
-    if upgGF is not None:
-        m.addConstr(gp.quicksum(mask[nm] * v for nm, v in gf.items() if v is not None) <= upgGF,
-                    name="GF_mask_le_upg")
+    # ========== COSTO ==========
+    # Solo cobra costo si efectivamente hay garage
+    if base.get("No aplica", 0.0) < 1.0:
+        lin_cost += gp.quicksum(
+            ct.garage_finish_cost(nm) * mask.get(nm, 0.0) * v
+            for nm, v in gf.items() if v is not None and nm != "dummy"
+        )
+    else:
+        lin_cost += 0.0
 
-    # Costo lineal
-    lin_cost += gp.quicksum(
-        ct.garage_finish_cost(nm) * mask.get(nm, 0.0) * v
-        for nm, v in gf.items() if v is not None and nm != "dummy"
-    )
-
-# ================== FIN (GARAGE FINISH) ==================
 
 
 
@@ -404,28 +415,24 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # ================== FIN (CENTRAL AIR) ==================
 
 
-# ========== POOL QC (upgrade si TA/Fa/Po o peor) ==========
+# ========== POOL QC (solo mejora calidad, no construye piscina) ==========
     POOL_QC_CATS = ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]
     POOL_QC_LEQ_AV = ["TA", "Fa", "Po"]
 
     pq = {nm: x.get(f"poolqc_is_{nm}") for nm in POOL_QC_CATS}
     upgPQ = x.get("upg_pool_qc")
 
+    # Sincronizar NA → No aplica
     if "poolqc_is_No aplica" not in x and "poolqc_is_NA" in x:
         pq["No aplica"] = x["poolqc_is_NA"]
 
+    # Si todas las categorías son None → dummy
     if all(v is None for v in pq.values()):
         dummy_pq = m.addVar(vtype=gp.GRB.BINARY, name="poolqc_dummy")
         m.addConstr(dummy_pq == 1, name="POOL_dummy")
         pq["dummy"] = dummy_pq
 
-    m.addConstr(gp.quicksum(v for v in pq.values() if v is not None) == 1, name="POOLQC_pick_one")
-
-    for nm, v in pq.items():
-        col = f"Pool QC_{nm}"
-        if v is not None and col in feature_order:
-            _put_var(X_input, col, v)
-
+    # ================== BASE Y MÁSCARAS ==================
     base_pq = {}
     for nm in POOL_QC_CATS:
         val = base_row.get(f"Pool QC_{nm}", 0.0)
@@ -434,43 +441,79 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         base_pq[nm] = float(val)
     mask = {nm: 1 - base_pq[nm] for nm in base_pq}
 
-    if upgPQ is not None:
-        for nm in POOL_QC_LEQ_AV:
-            m.addConstr(upgPQ >= base_pq.get(nm, 0.0), name=f"POOL_upg_ge_{nm}")
-        m.addConstr(upgPQ <= gp.quicksum(base_pq.get(nm, 0.0) for nm in POOL_QC_LEQ_AV),
-                    name="POOL_upg_le_sum")
-
+    # ================== CASO 1: SIN PISCINA ==================
     if base_pq.get("No aplica", 0.0) == 1.0:
+        # 🔒 Sin piscina → bloquear absolutamente todo
         for nm, v in pq.items():
             if v is None:
                 continue
-            m.addConstr(v == (1.0 if nm == "No aplica" else 0.0), name=f"POOL_fix_NA_{nm}")
-    elif base_pq.get("Ex", 0.0) == 1.0 or base_pq.get("Gd", 0.0) == 1.0:
-        active = next((k for k, v in base_pq.items() if v == 1), None)
-        for nm, v in pq.items():
-            if v is None:
-                continue
-            m.addConstr(v == (1.0 if nm == active else 0.0), name=f"POOL_fix_{active}_{nm}")
-    elif any(base_pq.get(nm, 0.0) == 1.0 for nm in ["TA", "Fa", "Po"]):
-        if pq.get("Gd") is not None and upgPQ is not None:
-            m.addConstr(pq["Gd"] <= upgPQ, name="POOL_upgrade_if_active")
-        if upgPQ is not None:
-            m.addConstr(
-                gp.quicksum(v for k, v in pq.items() if k in ["TA", "Fa", "Po"] and v is not None)
-                <= 1 - upgPQ,
-                name="POOL_no_TAFaPo_if_upg"
-            )
-        m.addConstr(gp.quicksum(v for v in pq.values() if v is not None) == 1, name="POOL_sum_1")
+            if nm == "No aplica":
+                m.addConstr(v == 1, name="POOL_fix_NA_1")
+            else:
+                m.addConstr(v == 0, name=f"POOL_fix_NA_0_{nm}")
 
-    # Costo lineal
-    pool_area = float(pd.to_numeric(base_row.get("Pool Area"), errors="coerce") or 0.0)
-    lin_cost += gp.quicksum(
-        (ct.poolqc_costs.get(nm, 0.0) + ct.pool_area_cost * pool_area)
-        * mask.get(nm, 0.0) * v
-        for nm, v in pq.items() if v is not None and nm != "dummy"
-    )
+        if upgPQ is not None:
+            m.addConstr(upgPQ == 0, name="POOL_no_upgrade_if_no_pool")
+
+        # No inyectar columnas ni calcular costo
+        pool_area = 0.0
+        lin_cost += 0.0
+
+    # ================== CASO 2: HAY PISCINA ==================
+    else:
+        # Selección única
+        m.addConstr(
+            gp.quicksum(v for v in pq.values() if v is not None) == 1,
+            name="POOLQC_pick_one"
+        )
+
+        # Inyección al pipeline
+        for nm, v in pq.items():
+            col = f"Pool QC_{nm}"
+            if v is not None and col in feature_order:
+                _put_var(X_input, col, v)
+
+        # Restricciones de mejora
+        if upgPQ is not None:
+            for nm in POOL_QC_LEQ_AV:
+                m.addConstr(upgPQ >= base_pq.get(nm, 0.0), name=f"POOL_upg_ge_{nm}")
+            m.addConstr(
+                upgPQ <= gp.quicksum(base_pq.get(nm, 0.0) for nm in POOL_QC_LEQ_AV),
+                name="POOL_upg_le_sum"
+            )
+
+        if base_pq.get("Ex", 0.0) == 1.0 or base_pq.get("Gd", 0.0) == 1.0:
+            active = next((k for k, v in base_pq.items() if v == 1), None)
+            for nm, v in pq.items():
+                if v is None:
+                    continue
+                m.addConstr(v == (1.0 if nm == active else 0.0), name=f"POOL_fix_{active}_{nm}")
+
+        elif any(base_pq.get(nm, 0.0) == 1.0 for nm in ["TA", "Fa", "Po"]):
+            if pq.get("Gd") is not None and upgPQ is not None:
+                m.addConstr(pq["Gd"] <= upgPQ, name="POOL_upgrade_if_active")
+            if upgPQ is not None:
+                m.addConstr(
+                    gp.quicksum(v for k, v in pq.items()
+                                if k in ["TA", "Fa", "Po"] and v is not None)
+                    <= 1 - upgPQ,
+                    name="POOL_no_TAFaPo_if_upg"
+                )
+            m.addConstr(
+                gp.quicksum(v for v in pq.values() if v is not None) == 1,
+                name="POOL_sum_1"
+            )
+
+        # Costo lineal solo si hay piscina
+        pool_area = float(pd.to_numeric(base_row.get("Pool Area"), errors="coerce") or 0.0)
+        lin_cost += gp.quicksum(
+            (ct.poolqc_costs.get(nm, 0.0) + ct.pool_area_cost * pool_area)
+            * mask.get(nm, 0.0) * v
+            for nm, v in pq.items() if v is not None and nm != "dummy"
+        )
 
 # ================== FIN (POOL QC) ==================
+
 
 # ========== ÁREA LIBRE Y DECISIONES DE AMPLIACIÓN / AGREGADO ==========
     A_Full, A_Half, A_Kitch, A_Bed = 40.0, 20.0, 75.0, 70.0  # ft²
@@ -527,57 +570,140 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
                     ct.ampl30_cost * delta[c][30] * z[c][30])
     # ================== FIN (ÁREA LIBRE Y AMPLIACIONES) ==================
 
-    # ========== GARAGE QUAL / COND (TA o peor puede subir) ==========
+# ========== GARAGE QUAL / COND (solo mejora calidad, no construye garage) ==========
     G_CATS = ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]
     G_LEQ_AV = {"TA", "Fa", "Po"}
 
     # --- Variables de decisión ---
-    gq = {g: x.get(f"Garage Qual_{g}") for g in G_CATS if f"Garage Qual_{g}" in x}
-    gc = {g: x.get(f"Garage Cond_{g}") for g in G_CATS if f"Garage Cond_{g}" in x}
+    gq = {g: x.get(f"garage_qual_is_{g}") for g in G_CATS if f"garage_qual_is_{g}" in x}
+    gc = {g: x.get(f"garage_cond_is_{g}") for g in G_CATS if f"garage_cond_is_{g}" in x}
     upgG = x.get("UpgGarage")
 
-    # --- Limpieza base ---
+    # --- Datos base ---
     baseGQ = {g: float(base_row.get(f"Garage Qual_{g}", 0.0) or 0.0) for g in G_CATS}
     baseGC = {g: float(base_row.get(f"Garage Cond_{g}", 0.0) or 0.0) for g in G_CATS}
-
     maskQ = {g: 1 - baseGQ[g] for g in G_CATS}
     maskC = {g: 1 - baseGC[g] for g in G_CATS}
 
-    # --- Solo aplicar si el garage existe (no NA) ---
-    if upgG is not None and baseGQ["No aplica"] == 0 and baseGC["No aplica"] == 0:
+    # ================== CASO 1: SIN GARAGE ==================
+    if baseGQ["No aplica"] == 1.0 or baseGC["No aplica"] == 1.0:
+        # 🔒 No hay garage → fijar todo en “No aplica” y desactivar mejoras
+        for g, v in gq.items():
+            if v is not None:
+                m.addConstr(v == (1.0 if g == "No aplica" else 0.0), name=f"GQ_fix_NA_{g}")
+        for g, v in gc.items():
+            if v is not None:
+                m.addConstr(v == (1.0 if g == "No aplica" else 0.0), name=f"GC_fix_NA_{g}")
+        if upgG is not None:
+            m.addConstr(upgG == 0, name="UpgGarage_disabled_for_NA")
 
-        # Activación solo si el garage es TA/Fa/Po
-        m.addConstrs((upgG >= baseGQ[g] for g in G_LEQ_AV), name="GARAGE_upg_ge_GQ_AV")
-        m.addConstrs((upgG >= baseGC[g] for g in G_LEQ_AV), name="GARAGE_upg_ge_GC_AV")
-        m.addConstr(
-            upgG <= gp.quicksum(baseGQ[g] + baseGC[g] for g in G_LEQ_AV),
-            name="GARAGE_upg_le_sum_AV"
-        )
+        lin_cost += 0.0  # sin costo
 
+    # ================== CASO 2: HAY GARAGE ==================
+    else:
         # Selección única
         if gq:
-            m.addConstr(gp.quicksum(gq.values()) == 1, name="GQ_pick_one")
+            m.addConstr(gp.quicksum(v for v in gq.values() if v is not None) == 1, name="GQ_pick_one")
         if gc:
-            m.addConstr(gp.quicksum(gc.values()) == 1, name="GC_pick_one")
+            m.addConstr(gp.quicksum(v for v in gc.values() if v is not None) == 1, name="GC_pick_one")
 
-        # Cambio solo si corresponde
-        m.addConstr(gp.quicksum(maskQ[g] * gq[g] for g in gq) <= upgG, name="GQ_mask_le_upg")
-        m.addConstr(gp.quicksum(maskC[g] * gc[g] for g in gc) <= upgG, name="GC_mask_le_upg")
+        # Solo permite mejoras de calidad
+        if upgG is not None:
+            m.addConstrs((upgG >= baseGQ[g] for g in G_LEQ_AV), name="GARAGE_upg_ge_GQ_AV")
+            m.addConstrs((upgG >= baseGC[g] for g in G_LEQ_AV), name="GARAGE_upg_ge_GC_AV")
+            m.addConstr(
+                upgG <= gp.quicksum(baseGQ[g] + baseGC[g] for g in G_LEQ_AV),
+                name="GARAGE_upg_le_sum_AV"
+            )
 
-        # Costos (solo si hay cambio)
+            m.addConstr(gp.quicksum(maskQ[g] * gq[g] for g in gq) <= upgG, name="GQ_mask_le_upg")
+            m.addConstr(gp.quicksum(maskC[g] * gc[g] for g in gc) <= upgG, name="GC_mask_le_upg")
+
+        # Costos (solo si hay cambio real)
         def _cost(name): return ct.garage_qc_costs.get(name, 0.0)
         lin_cost += gp.quicksum(_cost(g) * maskQ[g] * gq[g] for g in gq)
         lin_cost += gp.quicksum(_cost(g) * maskC[g] * gc[g] for g in gc)
 
-    else:
-        # Si no hay garage (NA), se mantiene fijo
-        if gq:
-            m.addConstr(gp.quicksum(gq.values()) == baseGQ["No aplica"], name="GQ_pick_one_NA")
-        if gc:
-            m.addConstr(gp.quicksum(gc.values()) == baseGC["No aplica"], name="GC_pick_one_NA")
-        if upgG is not None:
-            m.addConstr(upgG == 0, name="UpgGarage_disabled_for_NA")
+# ================== FIN (GARAGE QUAL / COND) ==================
 
+
+
+# ========== PAVED DRIVE ==========
+    PAVED_CATS = ["Y", "P", "N"]
+
+    # Variables binarias
+    paved = {d: x[f"paved_drive_is_{d}"] for d in PAVED_CATS if f"paved_drive_is_{d}" in x}
+
+    # Restricción: selección única
+    if paved:
+        m.addConstr(gp.quicksum(paved.values()) == 1, name="PAVED_pick_one")
+
+    # Determinar categoría base
+    base_pd = str(base_row.get("Paved Drive", "N")).strip()
+    if base_pd not in PAVED_CATS:
+        base_pd = "N"
+
+    # Conjuntos permitidos según base
+    if base_pd == "Y":
+        allowed = ["Y"]
+    elif base_pd == "P":
+        allowed = ["P", "Y"]
+    else:  # base N
+        allowed = ["N", "P", "Y"]
+
+    # Bloquear categorías no permitidas
+    for d in PAVED_CATS:
+        if d not in allowed and d in paved:
+            paved[d].UB = 0
+
+    # Agregar costo solo si hay cambio
+    # Agregar costo solo si hay cambio
+    lin_cost += gp.quicksum(
+        ct.paved_drive_costs[d] * paved[d]
+        for d in PAVED_CATS
+        if d != base_pd and d in paved
+    )
+
+# ================== FIN (PAVED DRIVE) ==================
+
+
+# ========== FENCE ==========
+    FENCE_CATS = ["GdPrv", "MnPrv", "GdWo", "MnWw", "NA"]
+
+    fn = {f: x[f"fence_is_{f}"] for f in FENCE_CATS if f"fence_is_{f}" in x}
+
+    if fn:
+        m.addConstr(gp.quicksum(fn.values()) == 1, name="FENCE_pick_one")
+
+    base_f = str(base_row.get("Fence", "NA")).strip()
+    if base_f not in FENCE_CATS:
+        base_f = "NA"
+
+    # conjuntos permitidos
+    if base_f == "NA":
+        allowed = ["NA", "MnPrv", "GdPrv"]
+    elif base_f in ["GdWo", "MnWw"]:
+        allowed = [base_f, "MnPrv", "GdPrv"]
+    else:
+        allowed = [base_f]
+
+    for f in FENCE_CATS:
+        if f not in allowed and f in fn:
+            fn[f].UB = 0
+
+    # costo por cambio de categoría
+    lin_cost += gp.quicksum(
+        ct.fence_category_cost(f) * fn[f]
+        for f in FENCE_CATS if f != base_f and f in fn
+    )
+
+    # costo por construcción nueva
+    lot_front = float(pd.to_numeric(base_row.get("Lot Frontage"), errors="coerce") or 0.0)
+    if base_f == "NA":
+        for f in ["MnPrv", "GdPrv"]:
+            if f in fn:
+                lin_cost += ct.fence_build_cost_per_ft * lot_front * fn[f]
+# ================== FIN (FENCE) ==================
 
     # ================== (ELECTRICAL) ==================
     ELECT_TYPES = ["SBrkr", "FuseA", "FuseF", "FuseP", "Mix"]

@@ -338,6 +338,49 @@ def main():
     except Exception as e:
         print(f"(debug garage qual/cond omitido: {e})")
 
+        # === DEBUG PavedDrive → precio: barrido N, P, Y ===
+    try:
+        cols_pd = ["Paved Drive_N", "Paved Drive_P", "Paved Drive_Y"]
+
+        if any(col in X_base.columns for col in cols_pd):
+            print("\nDEBUG PavedDrive → precio:")
+            for pd_cat in ["N", "P", "Y"]:
+                df_test = X_base.copy()
+
+                # apagar todas las dummies
+                for c in cols_pd:
+                    if c in df_test.columns:
+                        df_test.loc[:, c] = 0
+
+                # activar solo una categoría
+                col = f"Paved Drive_{pd_cat}"
+                if col in df_test.columns:
+                    df_test.loc[:, col] = 1
+
+                y_pred = float(bundle.predict(df_test).iloc[0])
+                print(f"   {pd_cat:>2}: {y_pred:,.0f}")
+    except Exception as e:
+        print(f"(debug paved drive omitido: {e})")
+
+        # === DEBUG Fence → precio: barrido de categorías ===
+    try:
+        cols_fence = [f"Fence_{f}" for f in ["GdPrv", "MnPrv", "GdWo", "MnWw", "NA"]]
+        if any(col in X_base.columns for col in cols_fence):
+            print("\nDEBUG Fence → precio:")
+            for f in ["GdPrv", "MnPrv", "GdWo", "MnWw", "NA"]:
+                df_test = X_base.copy()
+                for c in cols_fence:
+                    if c in df_test.columns:
+                        df_test.loc[:, c] = 0
+                col = f"Fence_{f}"
+                if col in df_test.columns:
+                    df_test.loc[:, col] = 1
+                y_pred = float(bundle.predict(df_test).iloc[0])
+                print(f"   {f:>5}: {y_pred:,.0f}")
+    except Exception as e:
+        print(f"(debug fence omitido: {e})")
+
+
 
 
     # ============ FIN DEBUGS ============
@@ -741,6 +784,7 @@ def main():
         # ========== GARAGE QUAL / COND (post-solve) ==========
     try:
         G_CATS = ["Ex", "Gd", "TA", "Fa", "Po", "NA"]
+        base_row = base.row
 
         # --- funciones auxiliares ---
         def _get_base(attr, g):
@@ -793,7 +837,65 @@ def main():
         print(f"(post-solve garage qual/cond omitido: {e})")
     # ================== FIN AMPLIACIONES Y AGREGADOS ==========
 
+        # ========== PAVED DRIVE (post-solve) ==========
+    try:
+        PAVED_CATS = ["Y", "P", "N"]
 
+        def _find_selected_pd():
+            for d in PAVED_CATS:
+                v = m.getVarByName(f"x_paved_drive_is_{d}")
+                if v and v.X > 0.5:
+                    return d
+            return "N"
+
+        base_pd = str(base.row.get("Paved Drive", "N")).strip()
+        new_pd = _find_selected_pd()
+
+        cost_pd = ct.paved_drive_cost(new_pd) if new_pd != base_pd else 0.0
+
+        print("\nCambio en PavedDrive:")
+        print(f"  {base_pd} → {new_pd}  "
+              f"({'sin cambio' if base_pd == new_pd else f'costo ${cost_pd:,.0f}'})")
+
+        if base_pd != new_pd:
+            cambios_costos.append(("Paved Drive", base_pd, new_pd, cost_pd))
+
+    except Exception as e:
+        print(f"(post-solve paved drive omitido: {e})")
+
+    # ================== FIN PAVED DRIVE ==========
+
+        # ========== FENCE (post-solve) ==========
+    try:
+        FENCE_CATS = ["GdPrv", "MnPrv", "GdWo", "MnWw", "NA"]
+
+        def _find_selected_fence():
+            for f in FENCE_CATS:
+                v = m.getVarByName(f"x_fence_is_{f}")
+                if v and v.X > 0.5:
+                    return f
+            return "NA"
+
+        base_f = str(base.row.get("Fence", "NA")).strip()
+        new_f = _find_selected_fence()
+        lot_front = float(pd.to_numeric(base.row.get("Lot Frontage"), errors="coerce") or 0.0)
+
+        cost_f = 0.0
+        if base_f == "NA" and new_f in ["MnPrv", "GdPrv"]:
+            cost_f = ct.fence_build_cost_per_ft * lot_front
+        elif new_f != base_f:
+            cost_f = ct.fence_category_cost(new_f)
+
+        print("\nCambio en Fence:")
+        print(f"  {base_f} → {new_f}  "
+              f"({'sin cambio' if base_f == new_f else f'costo ${cost_f:,.0f}'})")
+
+        if base_f != new_f:
+            cambios_costos.append(("Fence", base_f, new_f, cost_f))
+
+    except Exception as e:
+        print(f"(post-solve fence omitido: {e})")
+    # ================== FIN FENCE ==========
 
 
     # ---- Mas Vnr Type ----
