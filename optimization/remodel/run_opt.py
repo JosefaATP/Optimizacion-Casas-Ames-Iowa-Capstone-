@@ -98,14 +98,15 @@ def _row_with_dummies(base_row: pd.Series, feat_order: list[str]) -> dict[str, f
     return vals
 
 # =============================
-# main
+# main ACÁ CAMBIE!
 # =============================
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--pid", type=int, required=True)
-    ap.add_argument("--budget", type=float, required=True)
-    ap.add_argument("--basecsv", type=str, default=None, help="ruta alternativa al CSV base")
-    args = ap.parse_args()
+def main_with_args(args):
+    # ap = argparse.ArgumentParser()
+    # ap.add_argument("--pid", type=int, required=True)
+    # ap.add_argument("--budget", type=float, required=True)
+    # ap.add_argument("--basecsv", type=str, default=None, help="ruta alternativa al CSV base")
+    # args = ap.parse_args()
+# ============================ HASTA ACA, SOLO COMENTE==================
 
     # Datos base, costos y modelo
     base = get_base_house(args.pid, base_csv=args.basecsv)
@@ -1384,7 +1385,29 @@ def main():
     except Exception as e:
         print(f"(no se pudo calcular métricas de rendimiento: {e})")
 
-
+    #===================== AGREGADOOOOOOO =====================
+    # --- Retornar resultados como diccionario para análisis externo ---
+    result_dict = {
+        "pid": getattr(base, "pid", None),
+        "precio_base": float(precio_base),
+        "precio_remodelada": float(precio_remodelada),
+        "aumento_utilidad": float(aumento_utilidad),
+        "total_cost": float(total_cost),
+    }
+    # Retornar para scripts externos
+    return result_dict
+#======================  =====================
 
 if __name__ == "__main__":
-    main()
+    #======== CAMBIADOOOOOO===========
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--pid", type=int, required=True)
+    ap.add_argument("--budget", type=float, required=True)
+    ap.add_argument("--basecsv", type=str, default=None, help="ruta alternativa al CSV base")
+    args = ap.parse_args()
+    main_with_args(args)
+
+def ejecutar_modelo(pid: int, budget: float, basecsv: str | None = None) -> dict:
+    import types
+    args = types.SimpleNamespace(pid=pid, budget=budget, basecsv=basecsv)
+    return main_with_args(args)

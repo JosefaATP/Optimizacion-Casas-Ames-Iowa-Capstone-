@@ -1,17 +1,87 @@
 \ Model remodel_embed_copy
 \ LP format - for model browsing. Use MPS format to capture full model detail.
-\ Signature: 0xf7d64e93b7b1b6a6
+\ Signature: 0x5cec493ee711c018
 Maximize
  
 Subject To
  GQ_pick_one: x_garage_qual_is_Ex + x_garage_qual_is_Gd
    + x_garage_qual_is_TA + x_garage_qual_is_Fa + x_garage_qual_is_Po = 1
- GARAGE_upg_le_sum_AV: x_UpgGarage <= 0
- GQ_mask_le_upg: x_garage_qual_is_Ex + x_garage_qual_is_Gd
-   + x_garage_qual_is_TA + x_garage_qual_is_Fa + x_garage_qual_is_Po
-   - x_UpgGarage <= 0
+ GC_pick_one: x_garage_cond_is_Ex + x_garage_cond_is_Gd
+   + x_garage_cond_is_TA + x_garage_cond_is_Fa + x_garage_cond_is_Po = 1
+ budget: 3500 x_roof_style_is_Flat + 4500 x_roof_style_is_Gambrel
+   + 4000 x_roof_style_is_Hip + 6000 x_roof_style_is_Mansard
+   + 2000 x_roof_style_is_Shed + 14315.56 x_roof_matl_is_ClyTile
+   + 7224 x_roof_matl_is_Membran + 10823.96 x_roof_matl_is_Metal
+   + 4515 x_roof_matl_is_Roll + 6622 x_roof_matl_is_Tar&Grv
+   + 13244 x_roof_matl_is_WdShake + 7645.4 x_roof_matl_is_WdShngl
+   + 3300 x_elect_is_FuseA + 2800 x_elect_is_FuseF + 2600 x_elect_is_FuseP
+   + 3800 x_elect_is_Mix + 9200 x_AddFull + 4600 x_AddHalf
+   + 17250 x_AddKitch + 16100 x_AddBed + 3793.108 x_z10_GarageArea
+   + 9818.378000000001 x_z20_GarageArea + 18075.81 x_z30_GarageArea
+   + 987.36 x_z10_WoodDeckSF + 2555.76 x_z20_WoodDeckSF
+   + 4705.2 x_z30_WoodDeckSF + 575.96 x_z10_OpenPorchSF
+   + 1490.86 x_z20_OpenPorchSF + 2744.7 x_z30_OpenPorchSF
+   + 135000 x_garage_qual_is_Ex + 135000 x_garage_cond_is_Ex
+   + 96333 x_garage_qual_is_Gd + 96333 x_garage_cond_is_Gd
+   + 57667 x_garage_qual_is_TA + 57667 x_garage_cond_is_TA
+   + 19000 x_garage_qual_is_Fa + 19000 x_garage_cond_is_Fa
+   + 13000 x_garage_qual_is_Po + 13000 x_garage_cond_is_Po
+   + 3354 x_paved_drive_is_P + 1800 x_paved_drive_is_N
+   + 7500 x_fence_is_GdPrv + 5900 x_fence_is_MnPrv + 1500 x_fence_is_GdWo
+   + 300 x_fence_is_MnWw + 12666.08 x_ex1_is_AsbShng
+   + 3034.08 x_ex1_is_AsphShn + 2754.752 x_ex1_is_BrkComm
+   + 16037.28 x_ex1_is_BrkFace + 23261.28 x_ex1_is_CBlock
+   + 13629.28 x_ex1_is_CemntBd + 9776.48 x_ex1_is_ImStucc
+   + 6867.616 x_ex1_is_MetalSd + 12723.872 x_ex1_is_Other
+   + 3515.68 x_ex1_is_Plywood + 37709.28 x_ex1_is_PreCast
+   + 28077.28 x_ex1_is_Stone + 13147.68 x_ex1_is_Stucco
+   + 8774.752 x_ex1_is_VinylSd + 5095.328 x_ex1_is_Wd_Sdng
+   + 13629.28 x_ex1_is_WdShngl + 12666.08 x_ex2_is_AsbShng
+   + 3034.08 x_ex2_is_AsphShn + 2754.752 x_ex2_is_BrkComm
+   + 16037.28 x_ex2_is_BrkFace + 23261.28 x_ex2_is_CBlock
+   + 13629.28 x_ex2_is_CemntBd + 9776.48 x_ex2_is_ImStucc
+   + 6867.616 x_ex2_is_MetalSd + 12723.872 x_ex2_is_Other
+   + 3515.68 x_ex2_is_Plywood + 37709.28 x_ex2_is_PreCast
+   + 28077.28 x_ex2_is_Stone + 13147.68 x_ex2_is_Stucco
+   + 8774.752 x_ex2_is_VinylSd + 5095.328 x_ex2_is_Wd_Sdng
+   + 13629.28 x_ex2_is_WdShngl + 1773 x_heat_is_Floor + 8500 x_heat_is_GasW
+   + 6300 x_heat_is_Grav + 4900 x_heat_is_OthW + 3700 x_heat_is_Wall
+   + 5750 x_heat_upg_type + 75000 x_b1_is_GLQ + 53500 x_b1_is_ALQ
+   + 32000 x_b1_is_BLQ + 23500 x_b1_is_Rec + 15000 x_b1_is_LwQ
+   + 75000 x_b2_is_GLQ + 53500 x_b2_is_ALQ + 32000 x_b2_is_BLQ
+   + 23500 x_b2_is_Rec + 15000 x_b2_is_LwQ + 42000 kit_is_Gd
+   + 180000 kit_is_Ex + 3000 pos_167 + 2500 pos_167 - 5750 heat_change_type
+   + 3750 heat_qc_is_Po + 5000 heat_qc_is_Fa + 8000 heat_qc_is_Gd
+   + 10000 heat_qc_is_Ex + 15 bsmt_tr1 + 15 bsmt_tr2 + 50000 bsmtcond_is_Gd
+   + 62500 bsmtcond_is_Ex + 8000 pos_29773 + 1.2e+06 pos_29773
+   + 900000 pos_29773 + 20000 util_ELO + 22000 util_NoSeWa
+   + 39500 util_NoSewr <= 15000
 Bounds
 Binaries
- x_garage_qual_is_Ex x_garage_qual_is_Gd x_garage_qual_is_TA
- x_garage_qual_is_Fa x_garage_qual_is_Po x_UpgGarage
+ x_roof_style_is_Flat x_roof_style_is_Gambrel x_roof_style_is_Hip
+ x_roof_style_is_Mansard x_roof_style_is_Shed x_roof_matl_is_ClyTile
+ x_roof_matl_is_Membran x_roof_matl_is_Metal x_roof_matl_is_Roll
+ x_roof_matl_is_Tar&Grv x_roof_matl_is_WdShake x_roof_matl_is_WdShngl
+ x_elect_is_FuseA x_elect_is_FuseF x_elect_is_FuseP x_elect_is_Mix
+ x_AddFull x_AddHalf x_AddKitch x_AddBed x_z10_GarageArea x_z20_GarageArea
+ x_z30_GarageArea x_z10_WoodDeckSF x_z20_WoodDeckSF x_z30_WoodDeckSF
+ x_z10_OpenPorchSF x_z20_OpenPorchSF x_z30_OpenPorchSF x_garage_qual_is_Ex
+ x_garage_cond_is_Ex x_garage_qual_is_Gd x_garage_cond_is_Gd
+ x_garage_qual_is_TA x_garage_cond_is_TA x_garage_qual_is_Fa
+ x_garage_cond_is_Fa x_garage_qual_is_Po x_garage_cond_is_Po
+ x_paved_drive_is_P x_paved_drive_is_N x_fence_is_GdPrv x_fence_is_MnPrv
+ x_fence_is_GdWo x_fence_is_MnWw x_ex1_is_AsbShng x_ex1_is_AsphShn
+ x_ex1_is_BrkComm x_ex1_is_BrkFace x_ex1_is_CBlock x_ex1_is_CemntBd
+ x_ex1_is_ImStucc x_ex1_is_MetalSd x_ex1_is_Other x_ex1_is_Plywood
+ x_ex1_is_PreCast x_ex1_is_Stone x_ex1_is_Stucco x_ex1_is_VinylSd
+ x_ex1_is_Wd_Sdng x_ex1_is_WdShngl x_ex2_is_AsbShng x_ex2_is_AsphShn
+ x_ex2_is_BrkComm x_ex2_is_BrkFace x_ex2_is_CBlock x_ex2_is_CemntBd
+ x_ex2_is_ImStucc x_ex2_is_MetalSd x_ex2_is_Other x_ex2_is_Plywood
+ x_ex2_is_PreCast x_ex2_is_Stone x_ex2_is_Stucco x_ex2_is_VinylSd
+ x_ex2_is_Wd_Sdng x_ex2_is_WdShngl x_heat_is_Floor x_heat_is_GasW
+ x_heat_is_Grav x_heat_is_OthW x_heat_is_Wall x_heat_upg_type x_b1_is_GLQ
+ x_b1_is_ALQ x_b1_is_BLQ x_b1_is_Rec x_b1_is_LwQ x_b2_is_GLQ x_b2_is_ALQ
+ x_b2_is_BLQ x_b2_is_Rec x_b2_is_LwQ kit_is_Gd kit_is_Ex heat_change_type
+ heat_qc_is_Po heat_qc_is_Fa heat_qc_is_Gd heat_qc_is_Ex bsmtcond_is_Gd
+ bsmtcond_is_Ex util_ELO util_NoSeWa util_NoSewr
 End
