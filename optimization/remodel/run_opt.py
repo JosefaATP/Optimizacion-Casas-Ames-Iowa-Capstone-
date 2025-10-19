@@ -280,6 +280,35 @@ def main():
         print(f"(debug pool qc omitido: {e})")
 
 
+            # === DEBUG Ampliaciones → precio: barrido +10%, +20%, +30% ===
+    try:
+        AMPL_COMPONENTES = [
+            "Garage Area", "Wood Deck SF", "Open Porch SF", "Enclosed Porch",
+            "3Ssn Porch", "Screen Porch", "Pool Area"
+        ]
+
+        print("\nDEBUG Ampliaciones → precio:")
+        for comp in AMPL_COMPONENTES:
+            if comp not in X_base.columns:
+                continue
+            base_val = float(pd.to_numeric(X_base.loc[0, comp], errors="coerce") or 0.0)
+            if base_val <= 0:
+                continue
+
+            X_dbg = X_base.copy()
+            vals = []
+            for pct in [10, 20, 30]:
+                X_dbg.loc[0, comp] = base_val * (1 + pct / 100)
+                y_pred = float(bundle.predict(X_dbg).iloc[0])
+                vals.append((pct, y_pred))
+                X_dbg.loc[0, comp] = base_val  # restaurar
+
+            print(f"  {comp:>15}: base={base_val:,.0f} → "
+                  + ", ".join([f"+{p}%={v:,.0f}" for p, v in vals]))
+    except Exception as e:
+        print(f"(debug ampliaciones omitido: {e})")
+
+
 
 
     # ============ FIN DEBUGS ============
@@ -602,7 +631,7 @@ def main():
 
     except Exception as e:
         print("⚠️ (aviso, no crítico) error leyendo resultado de GarageFinish:", e)
-        
+
 
         # ---- Pool QC (reporte + costo + debug) ----
     try:
@@ -633,6 +662,52 @@ def main():
             print("(info) columna Pool QC no está en base.row")
     except Exception as e:
         print(f"⚠️ (aviso, no crítico) error leyendo resultado de Pool QC:", e)
+        
+
+        # ========== AMPLIACIONES Y AGREGADOS (post-solve) ==========
+    try:
+        # --- Parámetros fijos ---
+        A_Full, A_Half, A_Kitch, A_Bed = 40.0, 20.0, 75.0, 70.0
+
+        # --- Binarios de agregados ---
+        agregados = {
+            "AddFull": ("Full Bath", A_Full, ct.construction_cost),
+            "AddHalf": ("Half Bath", A_Half, ct.construction_cost),
+            "AddKitch": ("Kitchen", A_Kitch, ct.construction_cost),
+            "AddBed": ("Bedroom", A_Bed, ct.construction_cost),
+        }
+
+        for key, (nombre, area, costo_unit) in agregados.items():
+            var = m.getVarByName(f"x_{key}")
+            if var and var.X > 0.5:
+                costo_total = costo_unit * area
+                cambios_costos.append((nombre, "sin", "agregado", costo_total))
+                print(f"agregado: {nombre} (+{area:.0f} ft²) → costo {money(costo_total)}")
+
+        # --- Ampliaciones ---
+        AMPL_COMPONENTES = [
+            "Garage Area", "Wood Deck SF", "Open Porch SF", "Enclosed Porch",
+            "3Ssn Porch", "Screen Porch", "Pool Area"
+        ]
+        COSTOS = {10: ct.ampl10_cost, 20: ct.ampl20_cost, 30: ct.ampl30_cost}
+
+        for comp in AMPL_COMPONENTES:
+            base_val = float(pd.to_numeric(base.row.get(comp), errors="coerce") or 0.0)
+            if base_val <= 0:
+                continue
+
+            for pct in [10, 20, 30]:
+                v = m.getVarByName(f"x_z{pct}_{comp.replace(' ', '')}")
+                if v and v.X > 0.5:
+                    delta = base_val * pct / 100
+                    costo = COSTOS[pct] * delta
+                    cambios_costos.append((f"{comp} (+{pct}%)", base_val, base_val + delta, costo))
+                    print(f"ampliación: {comp} +{pct}% (+{delta:.1f} ft²) → costo {money(costo)}")
+                    break  # sólo una por componente
+
+    except Exception as e:
+        print(f"⚠️ error leyendo ampliaciones/agregados: {e}")
+
 
 
 

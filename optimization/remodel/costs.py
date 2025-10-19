@@ -72,6 +72,15 @@ class CostTables:
         "Ex": 135000.0,
     })
 
+    # ====== COSTOS DE CONSTRUCCIÓN Y AMPLIACIÓN ======
+    construction_cost: float = 230.0  # USD/ft²
+
+    ampl10_cost: float = 82.28   # ampliación pequeña
+    ampl20_cost: float = 106.49  # ampliación moderada
+    ampl30_cost: float = 130.70  # ampliación grande
+    
+
+
     def garage_finish_cost(self, name: str) -> float:
         return float(self.garage_finish_costs_sqft.get(str(name), 0.0))
 

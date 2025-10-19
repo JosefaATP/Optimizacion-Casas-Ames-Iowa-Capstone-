@@ -532,7 +532,84 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     )
     # ================== FIN (POOL QC) ==================
 
+        # ========== ÁREA LIBRE Y DECISIONES DE AMPLIACIÓN / AGREGADO ==========
 
+    # --- PARÁMETROS FIJOS ---
+    A_Full, A_Half, A_Kitch, A_Bed = 40.0, 20.0, 75.0, 70.0  # ft²
+
+    # --- BINARIAS DE AGREGADOS ---
+    AddFull = x["AddFull"]
+    AddHalf = x["AddHalf"]
+    AddKitch = x["AddKitch"]
+    AddBed = x["AddBed"]
+
+    # --- BINARIAS DE AMPLIACIÓN ---
+    COMPONENTES = ["GarageArea", "WoodDeckSF", "OpenPorchSF", "EnclosedPorch",
+                "3SsnPorch", "ScreenPorch", "PoolArea"]
+    z = {c: {s: x[f"z{s}_{c}"] for s in [10, 20, 30]} for c in COMPONENTES}
+
+    # --- PARÁMETROS BASE ---
+    def _val(col):
+        try:
+            return float(pd.to_numeric(base_row.get(col), errors="coerce") or 0.0)
+        except Exception:
+            return 0.0
+
+    lot_area = _val("Lot Area")
+    first_flr = _val("1st Flr SF")
+    garage = _val("Garage Area")
+    wooddeck = _val("Wood Deck SF")
+    openporch = _val("Open Porch SF")
+    enclosed = _val("Enclosed Porch")
+    ssn3 = _val("3Ssn Porch")
+    screen = _val("Screen Porch")
+    pool = _val("Pool Area")
+
+    # --- ÁREA LIBRE BASE ---
+    area_libre_base = lot_area - (first_flr + garage + wooddeck + openporch +
+                                enclosed + ssn3 + screen + pool)
+    if area_libre_base < 0:
+        area_libre_base = 0.0
+
+    # --- LIMITES: sólo una ampliación por componente ---
+    for c in COMPONENTES:
+        m.addConstr(sum(z[c][s] for s in [10,20,30]) <= 1, name=f"AMPL_one_scale_{c}")
+
+    # --- ÁREA FINAL TRAS AMPLIACIONES ---
+    # Δ_i,c = (0.10 * base, 0.20 * base, 0.30 * base)
+    delta = {}
+    for c in COMPONENTES:
+        base_val = _val(c)
+        if pd.isna(base_val) or np.isinf(base_val):
+            base_val = 0.0
+        delta[c] = {
+            10: round(0.10 * base_val, 3),
+            20: round(0.20 * base_val, 3),
+            30: round(0.30 * base_val, 3)
+    }
+
+    # --- RESTRICCIÓN DE ÁREA LIBRE ---
+    m.addConstr(
+        (area_libre_base
+        - (A_Full * AddFull + A_Half * AddHalf + A_Kitch * AddKitch + A_Bed * AddBed)
+        - gp.quicksum(delta[c][10]*z[c][10] + delta[c][20]*z[c][20] + delta[c][30]*z[c][30]
+                    for c in COMPONENTES))
+        >= 0,
+        name="AREA_libre_no_negativa"
+    )
+
+    # --- COSTO DE CONSTRUCCIÓN ---
+    lin_cost += ct.construction_cost * (
+        A_Full * AddFull + A_Half * AddHalf + A_Kitch * AddKitch + A_Bed * AddBed
+    )
+
+    # --- COSTO DE AMPLIACIÓN ---
+    for c in COMPONENTES:
+        lin_cost += (
+            ct.ampl10_cost * delta[c][10] * z[c][10] +
+            ct.ampl20_cost * delta[c][20] * z[c][20] +
+            ct.ampl30_cost * delta[c][30] * z[c][30]
+        )
 
 
     # ================== (ELECTRICAL) ==================
@@ -659,6 +736,18 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # -------------------
     # 7) Presupuesto y objetivo
     # -------------------
+
+    # --- DEBUG de NaN en función objetivo ---
+    try:
+        print("\n[DEBUG OBJ] Revisión de componentes del objetivo:")
+        print(f"  lin_cost = {lin_cost}")
+        print(f"  budget = {budget}")
+        print(f"  ct.cost_tables -> ampl10={ct.ampl10_cost}, ampl20={ct.ampl20_cost}, ampl30={ct.ampl30_cost}")
+        print(f"  total_cost (si existe) = {locals().get('total_cost', 'NO DEFINIDO')}")
+        print(f"  y_price (predicción del modelo) = {locals().get('y_price', 'NO DEFINIDO')}")
+    except Exception as e:
+        print(f"[DEBUG OBJ] error al revisar componentes: {e}")
+
     total_cost = lin_cost
     m.addConstr(total_cost <= budget, name="budget")
     m.setObjective(y_price - total_cost, gp.GRB.MAXIMIZE)

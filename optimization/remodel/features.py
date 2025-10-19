@@ -86,6 +86,20 @@ for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]:
 
 MODIFIABLE.append(FeatureSpec(name="upg_pool_qc", lb=0, ub=1, vartype="B"))
 
+
+# ==== AGREGADOS / AMPLIACIONES ====
+# Binarias para nuevos ambientes
+for nm in ["AddFull", "AddHalf", "AddKitch", "AddBed"]:
+    MODIFIABLE.append(FeatureSpec(name=nm, lb=0, ub=1, vartype="B"))
+
+# Binarias de ampliación por componente y escala (10/20/30 %)
+COMPONENTES = ["GarageArea", "WoodDeckSF", "OpenPorchSF", "EnclosedPorch",
+               "3SsnPorch", "ScreenPorch", "PoolArea"]
+for c in COMPONENTES:
+    for scale in [10, 20, 30]:
+        MODIFIABLE.append(FeatureSpec(name=f"z{scale}_{c}", lb=0, ub=1, vartype="B"))
+
+
     # === MATERIALES EXTERIORES ===
 EXT_MATS = [
     "AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard","ImStucc",
