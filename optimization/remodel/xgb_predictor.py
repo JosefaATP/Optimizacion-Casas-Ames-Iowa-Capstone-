@@ -155,12 +155,12 @@ class XGBBundle:
                     bst = Booster(); bst.load_model(str(bj)); self.reg._Booster = bst
                 else:
                     raise FileNotFoundError("No Booster ni booster.json; reentrena guardando Booster.")
-
         try:
             _ = self.reg.get_booster()
         except NotFittedError:
             bj = self.model_path.parent / "booster.json"
             self.reg.load_model(str(bj))
+        
 
         self.pipe_for_embed: SKPipeline = SKPipeline(steps=[
             ("pre", self.pre),

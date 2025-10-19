@@ -1,0 +1,17 @@
+\ Model remodel_embed_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+\ Signature: 0xf7d64e93b7b1b6a6
+Maximize
+ 
+Subject To
+ GQ_pick_one: x_garage_qual_is_Ex + x_garage_qual_is_Gd
+   + x_garage_qual_is_TA + x_garage_qual_is_Fa + x_garage_qual_is_Po = 1
+ GARAGE_upg_le_sum_AV: x_UpgGarage <= 0
+ GQ_mask_le_upg: x_garage_qual_is_Ex + x_garage_qual_is_Gd
+   + x_garage_qual_is_TA + x_garage_qual_is_Fa + x_garage_qual_is_Po
+   - x_UpgGarage <= 0
+Bounds
+Binaries
+ x_garage_qual_is_Ex x_garage_qual_is_Gd x_garage_qual_is_TA
+ x_garage_qual_is_Fa x_garage_qual_is_Po x_UpgGarage
+End

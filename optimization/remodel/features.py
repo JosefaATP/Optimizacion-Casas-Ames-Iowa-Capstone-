@@ -83,6 +83,49 @@ for _nm in ["SBrkr","FuseA","FuseF","FuseP","Mix"]:
     MODIFIABLE.append(FeatureSpec(name=f"elect_is_{_nm}", lb=0, ub=1, vartype="B"))
 
 
+# ==== GARAGE FINISH (Ga = {Fin, RFn, Unf, No aplica}) ====
+for _nm in ["Fin", "RFn", "Unf", "No aplica"]:
+    MODIFIABLE.append(FeatureSpec(name=f"gfin_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+MODIFIABLE.append(FeatureSpec(name="upg_garage_finish", lb=0, ub=1, vartype="B"))
+
+# ==== POOL QC (P = {Ex, Gd, TA, Fa, Po, No aplica}) ====
+for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]:
+    MODIFIABLE.append(FeatureSpec(name=f"poolqc_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+MODIFIABLE.append(FeatureSpec(name="upg_pool_qc", lb=0, ub=1, vartype="B"))
+
+
+# ==== AGREGADOS / AMPLIACIONES ====
+# Binarias para nuevos ambientes
+for nm in ["AddFull", "AddHalf", "AddKitch", "AddBed"]:
+    MODIFIABLE.append(FeatureSpec(name=nm, lb=0, ub=1, vartype="B"))
+
+# Binarias de ampliación por componente y escala (10/20/30 %)
+COMPONENTES = ["GarageArea", "WoodDeckSF", "OpenPorchSF", "EnclosedPorch",
+               "3SsnPorch", "ScreenPorch", "PoolArea"]
+for c in COMPONENTES:
+    for scale in [10, 20, 30]:
+        MODIFIABLE.append(FeatureSpec(name=f"z{scale}_{c}", lb=0, ub=1, vartype="B"))
+
+# ==== GARAGE QUAL / COND (G = {Ex, Gd, TA, Fa, Po, NA}) ====
+for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "NA"]:
+    MODIFIABLE.append(FeatureSpec(name=f"garage_qual_is_{_nm}", lb=0, ub=1, vartype="B"))
+    MODIFIABLE.append(FeatureSpec(name=f"garage_cond_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+# Variable de activación (común para ambos)
+MODIFIABLE.append(FeatureSpec(name="UpgGarage", lb=0, ub=1, vartype="B"))
+
+# ==== PAVED DRIVE (D = {Y, P, N}) ====
+for _nm in ["Y", "P", "N"]:
+    MODIFIABLE.append(FeatureSpec(name=f"paved_drive_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+    
+# ==== FENCE (F = {GdPrv, MnPrv, GdWo, MnWw, NA}) ====
+for _nm in ["GdPrv", "MnPrv", "GdWo", "MnWw", "NA"]:
+    MODIFIABLE.append(FeatureSpec(name=f"fence_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+
     # === MATERIALES EXTERIORES ===
 EXT_MATS = [
     "AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard","ImStucc",

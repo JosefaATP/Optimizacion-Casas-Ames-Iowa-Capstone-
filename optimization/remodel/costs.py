@@ -71,6 +71,74 @@ class CostTables:
     })
     def mas_vnr_cost(self, name: str) -> float:
         return float(self.mas_vnr_costs_sqft.get(str(name), 0.0))
+    
+    # ====== GARAGE FINISH ======
+    # costos totales por categoría (USD)
+    garage_finish_costs_sqft: Dict[str, float] = field(default_factory=lambda: {
+        "No aplica": 0.0,
+        "Unf": 17500.0,
+        "RFn": 17500.0,
+        "Fin": 24038.0,
+    })
+    def garage_finish_cost(self, name: str) -> float:
+        return float(self.garage_finish_costs_sqft.get(str(name), 0.0))
+
+        # ====== POOL QUALITY ======
+    pool_area_cost: float = 88.0  # USD por ft²
+
+    # costos totales por categoría (USD)
+    poolqc_costs: Dict[str, float] = field(default_factory=lambda: {
+        "No aplica": 0.0,
+        "Fa": 19000.0,
+        "TA": 57667.0,
+        "Gd": 96333.0,
+        "Po": 115000.0, #Inventado
+        "Ex": 135000.0,
+    })
+
+    # ====== COSTOS DE CONSTRUCCIÓN Y AMPLIACIÓN ======
+    construction_cost: float = 230.0  # USD/ft²
+
+    ampl10_cost: float = 82.28   # ampliación pequeña
+    ampl20_cost: float = 106.49  # ampliación moderada
+    ampl30_cost: float = 130.70  # ampliación grande
+    
+
+    # ====== GARAGE QUALITY / CONDITION ======
+    garage_qc_costs: Dict[str, float] = field(default_factory=lambda: {
+        "No aplica": 0.0,
+        "Po": 13000.0,   # muy mala calidad
+        "Fa": 19000.0,   # fair
+        "TA": 57667.0,   # typical/average
+        "Gd": 96333.0,   # good
+        "Ex": 135000.0,  # excellent
+    })
+
+    # ====== PAVED DRIVE ======
+# costos por categoría (USD, desde el PDF)
+    paved_drive_costs: Dict[str, float] = field(default_factory=lambda: {
+        "Y": 4908.0,   # entrada totalmente pavimentada
+        "P": 3354.0,   # entrada parcialmente pavimentada (promedio)
+        "N": 1800.0,   # entrada de grava / tierra
+    })
+
+    # ====== FENCE ======
+    # costos por categoría (USD)
+    fence_category_costs: Dict[str, float] = field(default_factory=lambda: {
+        "GdPrv": 6300.0,    # buena privacidad (8 pies de altura)
+        "MnPrv": 4700.0,    # privacidad media (6 pies de altura)
+        "GdWo": 1500.0,     # madera buena ($10–$14/ft aprox.)
+        "MnWw": 300.0,      # alambrada económica ($2/ft × 150ft)
+        "NA": 0.0,          # sin cerca
+    })
+
+    # costo por pie lineal de construcción nueva (USD/ft)
+    fence_build_cost_per_ft: float = 40.0
+
+    def fence_category_cost(self, f: str) -> float:
+        """Costo por categoría de cerca (remodelación)"""
+        return self.fence_category_costs.get(f, 0.0)
+
 
     # ====== EXTERIOR ======
     exterior_demo_face1: float = 1.65
