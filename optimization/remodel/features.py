@@ -35,27 +35,25 @@ MODIFIABLE = [
 
 ]
 
-QUALITY_COLS = [
-    "Kitchen Qual", "Exter Qual", "Exter Cond",
-    "Heating QC",
+# features.py (solo muestra el patrón; no dupliques si ya existen)
+MODIFIABLE += [
+    FeatureSpec("Kitchen Qual",   lb=-1, ub=4, vartype="I"),
+    FeatureSpec("Exter Qual",     lb=-1, ub=4, vartype="I"),
+    FeatureSpec("Exter Cond",     lb=-1, ub=4, vartype="I"),
+    FeatureSpec("Heating QC",     lb=-1, ub=4, vartype="I"),
+    FeatureSpec("Fireplace Qu",   lb=-1, ub=4, vartype="I"),
+    FeatureSpec("Bsmt Qual",      lb=-1, ub=4, vartype="I"),
+    FeatureSpec("Bsmt Cond",      lb=-1, ub=4, vartype="I"),
+    FeatureSpec("Garage Qual",    lb=-1, ub=4, vartype="I"),
+    FeatureSpec("Garage Cond",    lb=-1, ub=4, vartype="I"),
+    FeatureSpec("Pool QC",        lb=-1, ub=4, vartype="I"),
 ]
 
-# === Calidades OHE (con "No aplica") ===
-OHE_QUALS = [
-    "Fireplace Qu", "Bsmt Qual", "Bsmt Cond",
-    "Garage Qual", "Garage Cond", "Pool QC",
-]
+
+
 
 OHE_CATS = ["No aplica", "Po", "Fa", "TA", "Gd", "Ex"]
 
-for base in OHE_QUALS:
-    for cat in OHE_CATS:
-        MODIFIABLE.append(FeatureSpec(name=f"{base}_{cat}", lb=0, ub=1, vartype="B"))
-
-
-# cada calidad: entero 0..4
-for _q in QUALITY_COLS:
-    MODIFIABLE.append(FeatureSpec(name=_q, lb=0, ub=4, vartype="I"))
 
 MODIFIABLE.append(FeatureSpec("delta_KitchenQual_TA", lb=0, ub=1, vartype="B"))
 MODIFIABLE.append(FeatureSpec("delta_KitchenQual_EX", lb=0, ub=1, vartype="B"))

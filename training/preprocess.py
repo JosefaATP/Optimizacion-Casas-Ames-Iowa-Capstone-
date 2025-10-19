@@ -1,3 +1,4 @@
+# training/preprocess.py
 import pandas as pd
 import numpy as np
 from typing import Tuple, List, Optional
@@ -5,16 +6,12 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline as SKPipeline
 
 # === Calidades ===
-# Ordinales (0..4): se quedan como enteros
+# Ordinales (0..4), con “No aplica” = -1; se quedan como enteros
 QUAL_ORD: List[str] = [
-    "Kitchen Qual",   # TA..Ex, etc.
+    "Kitchen Qual",
     "Exter Qual",
     "Exter Cond",
     "Heating QC",
-]
-
-# One-hot con categoría "No aplica"
-QUAL_OHE: List[str] = [
     "Fireplace Qu",
     "Bsmt Qual",
     "Bsmt Cond",

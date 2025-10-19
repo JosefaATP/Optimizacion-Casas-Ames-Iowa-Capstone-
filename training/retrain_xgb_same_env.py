@@ -1,3 +1,4 @@
+# training/retrain_xgb_same_env.py
 from optimization.remodel.compat_xgboost import patch_get_booster
 patch_get_booster()
 
@@ -14,27 +15,24 @@ from .config import Config
 from .preprocess import (
     infer_feature_types,
     build_preprocessor,
-    QUAL_ORD,       # ordinales 0..4
-    QUAL_OHE,       # OHE con "No aplica"
-    UTIL_TO_ORD,    # Utilities → ordinal
+    QUAL_ORD,      # columnas de calidad que quedarán ordinales (-1..4)
+    UTIL_TO_ORD,   # Utilities ordinal
 )
-
 from .metrics import regression_report
 
 def _to_ord_series(s: pd.Series) -> pd.Series:
     """
-    Convierte Po..Ex a 0..4. Si ya viene 0..4, respeta; todo lo raro queda como -1.
+    Convierte Po..Ex a 0..4; si ya viene 0..4 lo respeta; “No aplica” y raros -> -1.
     """
-    MAP_Q_ORD = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
+    MAP_Q_ORD = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4, "No aplica": -1}
     as_num = pd.to_numeric(s, errors="coerce")
-    mask_ok = as_num.isin([0, 1, 2, 3, 4])
-    out = as_num.where(mask_ok, s.map(MAP_Q_ORD)).fillna(-1).astype(int)
-    return out
+    mask_ok = as_num.isin([-1, 0, 1, 2, 3, 4])
+    return as_num.where(mask_ok, s.map(MAP_Q_ORD)).fillna(-1).astype(int)
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--csv", required=True, help="ruta al CSV limpio (ej: data/processed/base_completa_sin_nulos.csv)")
-    p.add_argument("--outdir", default="models/xgb/completa_present_log_p2_1800_OHE_qual_na", help="carpeta destino")
+    p.add_argument("--outdir", default="models/xgb/ordinal_p2_1800", help="carpeta destino")
     args = p.parse_args()
 
     cfg = Config()
@@ -48,30 +46,28 @@ def main():
         if col in df.columns:
             df[col] = df[col].astype("category")
 
-    # 2) Target numérico
+    # 2) Target numérico y sin NA en target
     df[cfg.target] = pd.to_numeric(df[cfg.target], errors="coerce")
     df = df.dropna(subset=[cfg.target])
 
-    # 3) Ordinales (solo QUAL_ORD) → 0..4 / -1
+    # 3) Quality → ordinal (-1..4)
     qual_ord_present = [c for c in QUAL_ORD if c in df.columns]
     for col in qual_ord_present:
         df[col] = _to_ord_series(df[col])
 
-    # 4) Utilities → ordinal (0..3 / -1)
+    # 4) Utilities → ordinal (0..3; raros -> -1)
     if "Utilities" in df.columns:
         df["Utilities"] = df["Utilities"].map(UTIL_TO_ORD).fillna(-1).astype(int)
 
     # 5) OHE horneado:
-    #    - incluir QUAL_OHE y todas las categóricas (object/category) EXCEPTO las ya convertidas a ordinal
+    #    Incluir todas las categóricas (object/category) EXCEPTO las ya convertidas a ordinal (quality) y Utilities
     cats_in_df = df.select_dtypes(include=["object", "category"]).columns.tolist()
     ohe_bases = [c for c in cats_in_df if c not in qual_ord_present and c != "Utilities"]
 
-    # get_dummies con drop_first=False para conservar "No aplica"
     df = pd.get_dummies(df, columns=ohe_bases, drop_first=False, dtype=float)
-
     dummy_cols = [c for c in df.columns if any(c.startswith(f"{base}_") for base in ohe_bases)]
 
-    # 6) Inferir numéricas (tras OHE todo lo útil será numérico)
+    # 6) Inferir numéricas (tras OHE casi todo es numérico)
     numeric_cols, categorical_cols = infer_feature_types(
         df, target=cfg.target, drop_cols=cfg.drop_cols,
         numeric_cols=cfg.numeric_cols, categorical_cols=cfg.categorical_cols
@@ -88,7 +84,6 @@ def main():
     y = df[cfg.target].values
 
     Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=cfg.test_size, random_state=cfg.random_state)
-
     pipe = Pipeline(steps=[("pre", pre), ("xgb", reg)])
     pipe.fit(Xtr, ytr)
 
@@ -137,13 +132,12 @@ def main():
         "xgb_params": cfg.xgb_params,
         "log_target": True,
 
-        # IMPORTANTE para gurobi_model/run_opt:
-        "quality_cols": qual_ord_present,     # SOLO las ordinales (0..4)
+        # IMPORTANTE para inferencia/MIP:
+        "quality_cols": qual_ord_present,                   # ordinales -1..4
         "utilities_cols": ["Utilities"] if "Utilities" in df.columns else [],
 
-        # Dummies realmente presentes (incluye QUAL_OHE con “No aplica”)
-        "dummy_cols": dummy_cols,
-        "ohe_baked_bases": ohe_bases,         # bases para reconstruir si hace falta
+        "dummy_cols": dummy_cols,                           # OHE reales
+        "ohe_baked_bases": ohe_bases,                       # bases OHE usadas
     }
     with open(outdir / "meta.json", "w") as f:
         json.dump(meta, f, indent=2)
