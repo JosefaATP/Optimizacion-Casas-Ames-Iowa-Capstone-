@@ -325,8 +325,9 @@ def main():
             X_dbg = X_base.copy()
             vals = []
             for pct in [10, 20, 30]:
-                X_dbg.loc[:, comp] = X_dbg[comp].astype(float)       
-                X_dbg.loc[0, comp] = float(base_val) * (1 + pct/100)
+                X_dbg.loc[:, comp] = pd.to_numeric(X_dbg[comp], errors="coerce").astype(float)
+                X_dbg.loc[0, comp] = float(base_val) * (1 + pct/100.0)
+
 
                 y_pred = float(bundle.predict(X_dbg).iloc[0])
                 vals.append((pct, y_pred))
@@ -876,7 +877,7 @@ def main():
         print(f"⚠️ (aviso, no crítico) error leyendo resultado de Pool QC: {e}")
 
 
-   # ========== AMPLIACIONES Y AGREGADOS (post-solve) ==========
+    # ========== AMPLIACIONES Y AGREGADOS (post-solve) ==========
     ampl_cost_report = 0.0
     agregados_cost_report = 0.0
     try:
@@ -894,7 +895,8 @@ def main():
         for key, (nombre, area, costo_unit) in agregados.items():
             var = m.getVarByName(f"x_{key}")
             if var and var.X > 0.5:
-                costo_total = costo_unit * area
+                costo_total = float(costo_unit) * float(area)
+                agregados_cost_report += costo_total
                 cambios_costos.append((nombre, "sin", "agregado", costo_total))
                 print(f"agregado: {nombre} (+{area:.0f} ft²) → costo {money(costo_total)}")
 
@@ -913,18 +915,18 @@ def main():
             for pct in [10, 20, 30]:
                 v = m.getVarByName(f"x_z{pct}_{comp.replace(' ', '')}")
                 if v and v.X > 0.5:
-                    delta = base_val * pct / 100
-                    costo = COSTOS[pct] * delta
+                    delta = base_val * pct / 100.0
+                    costo_unit = float(COSTOS[pct])
+                    costo = costo_unit * delta
+                    ampl_cost_report += costo
                     cambios_costos.append((f"{comp} (+{pct}%)", base_val, base_val + delta, costo))
                     print(f"ampliación: {comp} +{pct}% (+{delta:.1f} ft²) → costo {money(costo)}")
                     break  # sólo una por componente
-        costo_total = costo_unit * area
-        agregados_cost_report += float(costo_total)   # <-- NUEVO
-
 
     except Exception as e:
         print(f"⚠️ error leyendo ampliaciones/agregados: {e}")
-# ================== FIN AMPLIACIONES Y AGREGADOS ==========
+    # ================== FIN AMPLIACIONES Y AGREGADOS ==========
+
   
     # ========== GARAGE QUAL / COND (post-solve) ==========
     try:
@@ -1324,10 +1326,20 @@ def main():
 
     # ===== métricas =====
     aumento_utilidad = (precio_remodelada - precio_base) - total_cost
+# Evitar que el reporte se imprima más de una vez
+    if globals().get("_REPORTE_IMPRESO", False):
+        return
+    globals()["_REPORTE_IMPRESO"] = True
 
     print("\n===== RESULTADOS DE LA OPTIMIZACIÓN =====")
 
     # ===== impresión =====
+    try:
+        
+        cost_model_val = float(m.getVarByName("cost_model").X)
+        print(f"[DBG] cost_model (MIP): {money(cost_model_val)}")
+    except Exception:
+        pass
 
     # ===== DIAGNÓSTICO DURO DEL MODELO =====
     def _exists_var(name): 
@@ -1343,7 +1355,7 @@ def main():
     except Exception:
         pass
 
-    bud_constr = next((c for c in m.getConstrs() if c.ConstrName == "BUDGET"), None)
+    bud_constr = next((c for c in m.getConstrs() if c.ConstrName == "budget"), None)
     budget_slack = None
     try:
         if bud_constr is not None:
@@ -1466,6 +1478,19 @@ def main():
         except Exception:
             pass
 
+        # 5.1) Paved Drive (snapshot)
+        try:
+            sel_pd = None
+            for d in ["Y", "P", "N"]:
+                v = m.getVarByName(f"x_paved_drive_is_{d}")
+                if v is not None and v.X > 0.5:
+                    sel_pd = d
+                    break
+            if sel_pd is not None:
+                opt_dict["Paved Drive"] = sel_pd
+        except Exception:
+            pass
+
         # 7) Roof resultado final
         if style_new is not None:
             opt_dict["Roof Style"] = style_new
@@ -1477,6 +1502,33 @@ def main():
             opt_dict["Exterior 1st"] = ex1_new
         if ex2_new is not None:
             opt_dict["Exterior 2nd"] = ex2_new
+        
+        # 8.1) Garage Finish (snapshot)
+        try:
+            for nm in ["Fin", "RFn", "Unf", "No aplica"]:
+                v = m.getVarByName(f"x_garage_finish_is_{nm}")
+                if v is not None and v.X > 0.5:
+                    opt_dict["Garage Finish"] = nm
+                    break
+        except Exception:
+            pass
+
+        # 8.2) Pool QC (snapshot)
+        try:
+            MAP_INV = { -1:"No aplica", 0:"Po", 1:"Fa", 2:"TA", 3:"Gd", 4:"Ex" }
+            v_pq = m.getVarByName("x_Pool QC")
+            if v_pq is not None:
+                opt_dict["Pool QC"] = MAP_INV.get(int(round(v_pq.X)), "No aplica")
+            else:
+                for tag in ["Po","Fa","TA","Gd","Ex","No aplica","NA"]:
+                    v = m.getVarByName(f"x_pool_qc_is_{tag}")
+                    if v is not None and v.X > 0.5:
+                        opt_dict["Pool QC"] = "No aplica" if tag == "NA" else tag
+                        break
+        except Exception:
+            pass
+
+
 
         # 10) Imprimir snapshot
         keys = sorted(set(base_dict.keys()) | set(opt_dict.keys()))
