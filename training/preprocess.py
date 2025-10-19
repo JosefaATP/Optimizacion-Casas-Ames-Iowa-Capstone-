@@ -1,30 +1,35 @@
-# src/preprocess.py
 import pandas as pd
 import numpy as np
 from typing import Tuple, List, Optional
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline as SKPipeline
 
-QUALITY_CANDIDATE_NAMES: List[str] = [
-    "Kitchen Qual", "Exter Qual", "Exter Cond",
-    "Bsmt Qual", "Bsmt Cond",
+# === Calidades ===
+# Ordinales (0..4): se quedan como enteros
+QUAL_ORD: List[str] = [
+    "Kitchen Qual",   # TA..Ex, etc.
+    "Exter Qual",
+    "Exter Cond",
     "Heating QC",
+]
+
+# One-hot con categoría "No aplica"
+QUAL_OHE: List[str] = [
     "Fireplace Qu",
-    "Garage Qual", "Garage Cond",
+    "Bsmt Qual",
+    "Bsmt Cond",
+    "Garage Qual",
+    "Garage Cond",
     "Pool QC",
 ]
 
 # Utilities ordinal
 UTIL_ORDER = ["ELO", "NoSeWa", "NoSewr", "AllPub"]
-UTIL_TO_ORD = {u:i for i,u in enumerate(UTIL_ORDER)}
+UTIL_TO_ORD = {u: i for i, u in enumerate(UTIL_ORDER)}
 
-# RoofStyle / RoofMatl (usamos las categorías del Ames “estándar”)
+# (referencia de techos si alguna vez vuelves a tratarlos ordinales)
 ROOF_STYLE_ORDER = ["Flat", "Gable", "Gambrel", "Hip", "Mansard", "Shed"]
-ROOF_STYLE_TO_ORD = {u:i for i,u in enumerate(ROOF_STYLE_ORDER)}
-
 ROOF_MATL_ORDER  = ["ClyTile", "CompShg", "Membran", "Metal", "Roll", "Tar&Grv", "WdShake", "WdShngl"]
-ROOF_MATL_TO_ORD = {u:i for i,u in enumerate(ROOF_MATL_ORDER)}
 
 def infer_feature_types(
     df: pd.DataFrame,
@@ -33,6 +38,9 @@ def infer_feature_types(
     numeric_cols: Optional[List[str]] = None,
     categorical_cols: Optional[List[str]] = None,
 ) -> Tuple[List[str], List[str]]:
+    """
+    Tras get_dummies, casi todo será numérico. Esta función solo consolida listas.
+    """
     X = df.drop(columns=[target] + [c for c in drop_cols if c in df.columns], errors="ignore")
     if numeric_cols is None or categorical_cols is None:
         num_auto = X.select_dtypes(include=[np.number]).columns.tolist()
@@ -45,23 +53,13 @@ def infer_feature_types(
 
 def build_preprocessor(
     numeric_cols: List[str],
-    categorical_cols: List[str],
-    quality_cols: List[str] | None = None,
-    utilities_cols: List[str] | None = None,
-    roof_cols: List[str] | None = None,
 ) -> ColumnTransformer:
-    # TODO: el OHE ya estará horneado en el DataFrame, aquí solo pasamos numéricas
-    quality_cols   = quality_cols or []
-    utilities_cols = utilities_cols or []
-    roof_cols      = roof_cols or []
-
-    # tras get_dummies, todo es numérico; por seguridad consolida:
-    all_numeric = sorted(list(set(numeric_cols + quality_cols + utilities_cols + roof_cols)))
-
+    """
+    Con OHE ya horneado en el DataFrame, el preprocesador solo debe pasar numéricas.
+    """
     num_pipe = SKPipeline(steps=[("passthrough", "passthrough")])
-
     pre = ColumnTransformer(
-        transformers=[("num", num_pipe, all_numeric)],
+        transformers=[("num", num_pipe, numeric_cols)],
         remainder="drop",
         n_jobs=None,
     )

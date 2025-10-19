@@ -37,12 +37,21 @@ MODIFIABLE = [
 
 QUALITY_COLS = [
     "Kitchen Qual", "Exter Qual", "Exter Cond",
-    "Bsmt Qual", "Bsmt Cond",
     "Heating QC",
-    "Fireplace Qu",
-    "Garage Qual", "Garage Cond",
-    "Pool QC",
 ]
+
+# === Calidades OHE (con "No aplica") ===
+OHE_QUALS = [
+    "Fireplace Qu", "Bsmt Qual", "Bsmt Cond",
+    "Garage Qual", "Garage Cond", "Pool QC",
+]
+
+OHE_CATS = ["No aplica", "Po", "Fa", "TA", "Gd", "Ex"]
+
+for base in OHE_QUALS:
+    for cat in OHE_CATS:
+        MODIFIABLE.append(FeatureSpec(name=f"{base}_{cat}", lb=0, ub=1, vartype="B"))
+
 
 # cada calidad: entero 0..4
 for _q in QUALITY_COLS:

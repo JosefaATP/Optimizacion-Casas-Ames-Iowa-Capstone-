@@ -1,3 +1,4 @@
+#optimization/remodel/gurobi_model.py
 from typing import Dict, Any
 import pandas as pd
 import gurobipy as gp
@@ -23,6 +24,107 @@ from .xgb_predictor import XGBBundle
 def _vtype(code: str):
     return gp.GRB.CONTINUOUS if code == "C" else (gp.GRB.BINARY if code == "B" else gp.GRB.INTEGER)
 
+# --- helper: getVarByName seguro (hace m.update() si hace falta) ---
+def _get_by_name_safe(m: gp.Model, *names: str):
+    """
+    Intenta devolver la primera variable cuyo nombre coincide con alguno
+    de los pasados. Si el índice de nombres aún no existe, hace m.update()
+    y vuelve a intentar.
+    """
+    for nm in names:
+        try:
+            v = m.getVarByName(nm)
+        except gp.GurobiError:
+            m.update()  # construye el índice de nombres
+            v = m.getVarByName(nm)
+        if v is not None:
+            return v
+    return None
+
+
+def add_ohe_quality_block(
+    m, X_input, base_row, feature_name: str,
+    cats=("No aplica","Po","Fa","TA","Gd","Ex"),
+    forbid_build_when_na=True,
+    upgrade_only=True,
+):
+    """
+    Crea binarios one-hot para 'feature_name' con categorías 'cats',
+    los inyecta a X_input y aplica reglas de política:
+      - if forbid_build_when_na: si la base es 'No aplica', se fija a 'No aplica'
+        (no permitimos crear el ítem).
+      - if upgrade_only: prohíbe 'degradar' calidad (usando orden ordinal
+        No aplica < Po < Fa < TA < Gd < Ex). Si la base es 'No aplica',
+        ya está fijo por la regla anterior.
+    Devuelve: dict {cat: var_bin}, cat_base, cat_pick
+    """
+    # 1) crear binarios (deben existir en features.py como MODIFIABLE)
+    z = {}
+    for cat in cats:
+        varname = f"{feature_name}_{cat}"
+                # buscar variables ya creadas (prefiere "x_..."); si no existen, créalas
+        v = _get_by_name_safe(m, f"x_{varname}", varname)
+        if v is None:
+            v = m.addVar(vtype=gp.GRB.BINARY, name=f"x_{varname}")
+
+        if v is None:
+            v = _get_by_name_safe(m, f"x_{varname}", varname)
+            if v is None:
+                v = m.addVar(vtype=gp.GRB.BINARY, name=f"x_{varname}")
+
+        if v is None:
+            # si no existe, créalo (fallback). Mejor si siempre viene de features.py.
+            v = m.addVar(vtype=gp.GRB.BINARY, name=f"x_{varname}")
+        z[cat] = v
+
+    # 2) one-hot
+    m.addConstr(gp.quicksum(z.values()) == 1, name=f"OHE_{feature_name}_onehot")
+
+    # 3) inyectar a X_input (si el pipeline tiene esas columnas)
+    for cat, v in z.items():
+        col = f"{feature_name}_{cat}"
+        if col in X_input.columns:
+            if X_input[col].dtype != "O":
+                X_input[col] = X_input[col].astype("object")
+            X_input.loc[0, col] = v
+
+    # 4) política: no construir si base es "No aplica"
+    base_txt = str(base_row.get(feature_name, "No aplica")).strip()
+    if forbid_build_when_na and base_txt == "No aplica":
+        # fijar 'No aplica' = 1, resto 0
+        for cat, v in z.items():
+            if cat == "No aplica":
+                v.LB = 1.0
+                v.UB = 1.0
+            else:
+                v.UB = 0.0
+        return z, base_txt, "No aplica"
+
+    # 5) upgrade-only (si aplica)
+    if upgrade_only:
+        ORD = {"No aplica": -1, "Po":0, "Fa":1, "TA":2, "Gd":3, "Ex":4}
+        base_ord = ORD.get(base_txt, 0)  # si no mapea, trata como Po
+
+        # crea una variable entera ordinal ligada al one-hot (para comparar >=)
+        q_int = m.addVar(lb=-1, ub=4, vtype=gp.GRB.INTEGER, name=f"{feature_name}_ord")
+        m.addConstr(
+            q_int
+            == (-1)*z["No aplica"] + 0*z["Po"] + 1*z["Fa"] + 2*z["TA"] + 3*z["Gd"] + 4*z["Ex"],
+            name=f"{feature_name}_ord_link"
+        )
+        # no empeorar (mantener o subir)
+        m.addConstr(q_int >= base_ord, name=f"{feature_name}_upgrade_only")
+
+    # 6) devolver también cuál queda escogida (útil para reporte)
+    pick_var = None
+    for cat, v in z.items():
+        if v.X > 0.5 if m.Status in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT) else False:
+            pick_var = cat
+            break
+
+    return z, base_txt, pick_var
+
+
 def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: XGBBundle) -> gp.Model:
     m = gp.Model("remodel_embed")
 
@@ -40,6 +142,9 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         m.addConstr(v >= expr)
         return v
 
+    # >>> MUY IMPORTANTE: construir el índice de nombres antes de cualquier getVarByName
+    m.update()
+
     # -------------------
     # 2) Armar X_input (fila 1xN en el ORDEN que espera el modelo)
     # -------------------
@@ -54,6 +159,18 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # ... arriba: X_input = pd.DataFrame([row_vals], columns=feature_order)
     X_input = pd.DataFrame([row_vals], columns=feature_order, dtype=object)
     # (mantén el _align_ohe_dtypes(...) tal como ya lo tienes)
+
+
+    # ==== OHE de calidades con "No aplica" explícito ====
+    for fname in ["Fireplace Qu","Bsmt Qual","Bsmt Cond","Garage Qual","Garage Cond","Pool QC"]:
+        add_ohe_quality_block(
+            m, X_input, base_row,
+            feature_name=fname,
+            cats=("No aplica","Po","Fa","TA","Gd","Ex"),
+            forbid_build_when_na=True,   # <— no construir si base es No aplica
+            upgrade_only=True            # <— no degradar calidades existentes
+        )
+
 
 
     # ========= KITCHEN QUAL (simple, sin 'eligible') =========
@@ -480,6 +597,64 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # Añadir a la función de costo
     lin_cost += cost_heat
     # ================== FIN HEATING ==================
+
+    # ================== FIREPLACE QU ==================
+    if "Fireplace Qu" in x:
+        fp_levels_cost = ["Po","Fa","TA","Gd","Ex"]   # niveles con costo (sin "No aplica")
+        fp_all = fp_levels_cost + ["No aplica"]
+
+        fp_base_txt = str(base_row.get("Fireplace Qu", "No aplica")).strip()
+        has_fp = 0 if fp_base_txt in ["No aplica","NA"] else 1
+
+        if has_fp == 0:
+            # --- Sin chimenea en base: NO se puede construir una ---
+            # Fijar el ordinal del predictor a un valor neutro (TA=2) para el XGB
+            x["Fireplace Qu"].LB = 2
+            x["Fireplace Qu"].UB = 2
+            # No creamos binarios ni el vínculo FP_link_int
+            # (y costo = 0 por definición)
+        else:
+            # --- Con chimenea en base: crear one-hot y linkear al ordinal ---
+            fp_bins = {nm: m.addVar(vtype=gp.GRB.BINARY, name=f"fp_is_{nm}") for nm in fp_levels_cost}
+            m.addConstr(gp.quicksum(fp_bins.values()) == 1, name="FP_onehot")
+
+            # vínculo al entero 0..4
+            m.addConstr(
+                x["Fireplace Qu"] ==
+                0*fp_bins["Po"] + 1*fp_bins["Fa"] + 2*fp_bins["TA"] + 3*fp_bins["Gd"] + 4*fp_bins["Ex"],
+                name="FP_link_int"
+            )
+
+            # habilitar según política
+            for nm in fp_levels_cost:
+                fp_bins[nm].UB = 0  # parte bloqueado
+
+            if fp_base_txt == "Po":
+                fp_bins["Po"].UB = 1
+                fp_bins["Fa"].UB = 1
+            elif fp_base_txt == "TA":
+                fp_bins["TA"].UB = 1
+                fp_bins["Gd"].UB = 1
+                fp_bins["Ex"].UB = 1
+            elif fp_base_txt in {"Fa","Gd","Ex"}:
+                fp_bins[fp_base_txt].UB = 1   # mantener
+            else:
+                # fallback defensivo
+                fp_bins["TA"].UB = 1
+
+            # costos si cambias a otro nivel
+            def _fp_cost(nm: str) -> float:
+                try:
+                    return float(ct.fireplace_cost(nm))
+                except Exception:
+                    return 0.0
+
+            for nm in fp_levels_cost:
+                if nm != fp_base_txt:
+                    lin_cost += _fp_cost(nm) * fp_bins[nm]
+    # ================== FIN FIREPLACE QU ==================
+
+
 
     # ================== BSMT (Fin1, Fin2, Unf, Total) ==================
     # Variables existentes (deben estar en MODIFIABLE)

@@ -161,6 +161,18 @@ class CostTables:
     def bsmt_type_cost(self, name: str) -> float:
         return float(self.bsmt_type_costs.get(str(name), 0.0))
 
+    # ====== FIREPLACE ======
+    fireplace_costs: Dict[str, float] = field(default_factory=lambda: {
+        "Po": 1500.0,   # Royster (rangos 1–2k)
+        "Fa": 2000.0,   # interpolada (TA/Po)
+        "TA": 2500.0,   # 2–3k
+        "Gd": 3525.0,   # interpolada (Ex/TA)
+        "Ex": 4550.0,   # 3.5–5.6k (Grupa)
+        "No aplica": 0.0,
+    })
+    def fireplace_cost(self, name: str) -> float:
+        return float(self.fireplace_costs.get(str(name), 0.0))
+
 
     # ====== COSTO FIJO Y COSTO INICIAL ======
     project_fixed: float = 0.0

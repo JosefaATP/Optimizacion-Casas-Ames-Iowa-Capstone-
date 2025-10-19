@@ -286,7 +286,7 @@ def main():
         vals = []
         for q in [0,1,2,3,4]:
             Xd.loc[:, "Bsmt Cond"] = q
-            vals.append((q, float(bundle.predict(X_dbg).iloc[0])))
+            vals.append((q, float(bundle.predict(Xd).iloc[0])))
         print("DEBUG Bsmt Cond -> precio:", vals)
 
     # DEBUG: terminar 100 ft² vs no terminar (manteniendo total constante)
@@ -332,6 +332,56 @@ def main():
                 vals.append((nm, float(bundle.predict(Xd).iloc[0])))
                 Xd[col] = 0.0
         print("DEBUG BsmtFin Type 2 -> precio:", [(nm, round(p, 2)) for nm, p in vals])
+
+    # --- DEBUG: Fireplace Qu -> precio ---
+    if "Fireplace Qu" in X_base.columns:
+        vals = []
+        for q in [0,1,2,3,4]:
+            Xd = X_base.copy()
+            Xd.loc[:, "Fireplace Qu"] = q
+            vals.append((q, float(bundle.predict(Xd).iloc[0])))
+        print("DEBUG Fireplace Qu -> precio:", vals)
+
+    # --- DEBUG helper para columnas de calidad (ordinal u OHE) ---
+    def _debug_quality_feature(col_name: str):
+        """
+        Si el modelo trae la calidad como ordinal (0..4), prueba esos niveles.
+        Si viene como OHE (col_name_Po/Fa/TA/Gd/Ex), activa cada dummy.
+        Si no está en el modelo, lo indica.
+        """
+        if col_name in X_base.columns:
+            # ordinal
+            vals = []
+            for q in [0, 1, 2, 3, 4]:
+                Xd = X_base.copy()
+                Xd.loc[:, col_name] = q
+                vals.append((q, float(bundle.predict(Xd).iloc[0])))
+            print(f"DEBUG {col_name} -> precio:", [(q, round(p, 2)) for (q, p) in vals])
+            return
+
+        # OHE fallback
+        onehots = [c for c in X_base.columns if c.startswith(f"{col_name}_")]
+        if onehots:
+            Xd = X_base.copy()
+            for c in onehots:
+                Xd[c] = 0.0
+            order = ["Po","Fa","TA","Gd","Ex"]
+            vals = []
+            for nm in order:
+                col = f"{col_name}_{nm}"
+                if col in Xd.columns:
+                    Xd[col] = 1.0
+                    vals.append((nm, float(bundle.predict(Xd).iloc[0])))
+                    Xd[col] = 0.0
+            print(f"DEBUG {col_name} (OHE) -> precio:", [(nm, round(p, 2)) for (nm, p) in vals])
+        else:
+            print(f"DEBUG {col_name} -> precio: [no está en el modelo]")
+
+    # --- DEBUG: Fireplace / Bsmt Qual / Bsmt Cond ---
+    _debug_quality_feature("Fireplace Qu")
+    _debug_quality_feature("Bsmt Qual")
+    _debug_quality_feature("Bsmt Cond")
+
 
 
     # ============ FIN DEBUGS ============
@@ -822,6 +872,31 @@ def main():
         opt_dict["BsmtFin Type 1"] = b1_new
         opt_dict["BsmtFin Type 2"] = b2_new
 
+    # ---- Fireplace Qu (reporte + costo) ----
+    fp_cost_report = 0.0
+    try:
+        fp_base = str(base.row.get("Fireplace Qu", "No aplica")).strip()
+        has_fp_base = 0 if fp_base in ["No aplica","NA"] else 1
+
+        def _pick_fp() -> str | None:
+            for nm in ["Po","Fa","TA","Gd","Ex"]:
+                v = _getv(m, f"x_fp_is_{nm}", f"fp_is_{nm}")
+                if v is not None and v.X > 0.5:
+                    return nm
+            # si no hay binarios (NA), mantenemos base
+            return "No aplica" if has_fp_base == 0 else fp_base
+
+        fp_new = _pick_fp()
+
+        if has_fp_base == 1 and (fp_new != fp_base):
+            c = ct.fireplace_cost(fp_new)
+            cambios_costos.append(("Fireplace Qu", fp_base, fp_new, c))
+            fp_cost_report += c
+
+        if 'opt_dict' in locals():
+            opt_dict["Fireplace Qu"] = fp_new
+    except Exception:
+        pass
 
 
 
@@ -843,6 +918,7 @@ def main():
         + float(bsmt_cond_cost_report)
         + float(bsmt_finish_cost_report)
         + float(bsmt_type_cost_report) 
+        + float(fp_cost_report)
     )
 
     # ===== métricas =====
