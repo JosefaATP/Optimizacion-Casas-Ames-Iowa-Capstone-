@@ -17,6 +17,28 @@ class CostTables:
     kitchenQual_upgrade_TA: float = 42000.0
     kitchenQual_upgrade_EX: float = 180000.0
 
+    # dentro de class CostTables:
+
+    def kitchen_level_cost(self, level) -> float:
+
+        name_to_ord = {"Po":0, "Fa":1, "TA":2, "Gd":3, "Ex":4}
+        if isinstance(level, str):
+            lvl = name_to_ord.get(level.strip(), None)
+        else:
+            try:
+                lvl = int(level)
+            except Exception:
+                lvl = None
+
+        if lvl is None:
+            return 0.0
+        if lvl >= 4:  # Ex
+            return float(self.kitchenQual_upgrade_EX)
+        if lvl >= 2:  # TA o Gd
+            return float(self.kitchenQual_upgrade_TA)
+        return 0.0    # Po/Fa
+
+
     # ====== UTILITIES ======
     utilities_costs: Dict[str, float] = field(default_factory=lambda: {
         "AllPub": 31750.0,
@@ -160,6 +182,64 @@ class CostTables:
     
         # ====== CENTRAL AIR ======
     central_air_install: float = 5362.0  # <-- puedes ajustar este costo
+
+    # ====== HEATING ======
+    heating_type_costs: Dict[str, float] = field(default_factory=lambda: {
+        "Floor": 1773.0,
+        "GasA":  5750.0,
+        "GasW":  8500.0,
+        "Grav":  6300.0,
+        "OthW":  4900.0,
+        "Wall":  3700.0,
+    })
+    def heating_type_cost(self, name: str) -> float:
+        return float(self.heating_type_costs.get(str(name), 0.0))
+
+    # Calidad (valores del cuadro; Gd y Fa interpoladas como dice la nota)
+    heating_qc_costs: Dict[str, float] = field(default_factory=lambda: {
+        "Ex": 10000.0,
+        "Gd":  8000.0,   # interpolado (entre TA y Ex)
+        "TA":  6500.0,
+        "Fa":  5000.0,   # interpolado (entre Po y TA)
+        "Po":  3750.0,
+    })
+    def heating_qc_cost(self, name: str) -> float:
+        return float(self.heating_qc_costs.get(str(name), 0.0))
+
+    # ====== BSMT COND ======
+    bsmt_cond_upgrade_costs: Dict[str, float] = field(default_factory=lambda: {
+        # costo de elegir este nivel como final cuando la base es TA/Fa/Po
+        "Gd": 50000.0,
+        "Ex": 62500.0,
+    })
+    def bsmt_cond_cost(self, name: str) -> float:
+        return float(self.bsmt_cond_upgrade_costs.get(str(name), 0.0))
+
+    # ====== BSMT FIN TYPE (costos por categoría) ======
+    bsmt_type_costs: Dict[str, float] = field(default_factory=lambda: {
+        # Valores del cuadro (ALQ/Rec interpolados)
+        "GLQ": 75000.0,
+        "ALQ": 53500.0,
+        "BLQ": 32000.0,
+        "Rec": 23500.0,
+        "LwQ": 15000.0,
+        "Unf": 11250.0,
+        "No aplica": 0.0,
+    })
+    def bsmt_type_cost(self, name: str) -> float:
+        return float(self.bsmt_type_costs.get(str(name), 0.0))
+
+    # ====== FIREPLACE ======
+    fireplace_costs: Dict[str, float] = field(default_factory=lambda: {
+        "Po": 1500.0,   # Royster (rangos 1–2k)
+        "Fa": 2000.0,   # interpolada (TA/Po)
+        "TA": 2500.0,   # 2–3k
+        "Gd": 3525.0,   # interpolada (Ex/TA)
+        "Ex": 4550.0,   # 3.5–5.6k (Grupa)
+        "No aplica": 0.0,
+    })
+    def fireplace_cost(self, name: str) -> float:
+        return float(self.fireplace_costs.get(str(name), 0.0))
 
 
     # ====== COSTO FIJO Y COSTO INICIAL ======

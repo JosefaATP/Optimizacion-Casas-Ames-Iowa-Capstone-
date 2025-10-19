@@ -1,3 +1,4 @@
+#optimization/remodel/gurobi_model.py
 from typing import Dict, Any
 import pandas as pd
 import gurobipy as gp
@@ -23,6 +24,59 @@ from .xgb_predictor import XGBBundle
 def _vtype(code: str):
     return gp.GRB.CONTINUOUS if code == "C" else (gp.GRB.BINARY if code == "B" else gp.GRB.INTEGER)
 
+# --- helper: getVarByName seguro (hace m.update() si hace falta) ---
+def _get_by_name_safe(m: gp.Model, *names: str):
+    """
+    Intenta devolver la primera variable cuyo nombre coincide con alguno
+    de los pasados. Si el índice de nombres aún no existe, hace m.update()
+    y vuelve a intentar.
+    """
+    for nm in names:
+        try:
+            v = m.getVarByName(nm)
+        except gp.GurobiError:
+            m.update()  # construye el índice de nombres
+            v = m.getVarByName(nm)
+        if v is not None:
+            return v
+    return None
+
+
+def _qual_base_ord(base_row, col: str) -> int:
+    MAP = {"No aplica": -1, "Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
+    val = str(base_row.get(col, "No aplica")).strip()
+    try:
+        nv = int(pd.to_numeric(val, errors="coerce"))
+        if nv in (-1, 0, 1, 2, 3, 4):
+            return nv
+    except Exception:
+        pass
+    return MAP.get(val, -1)
+
+FORBID_BUILD_WHEN_NA = {"Fireplace Qu","Bsmt Qual","Bsmt Cond","Garage Qual","Garage Cond","Pool QC"}
+
+def apply_quality_policy_ordinal(m, x: dict, base_row: pd.Series, col: str):
+    """Enlaza política para variable ordinal x[col] (−1..4):
+       - Si base = 'No aplica' y col ∈ FORBID_BUILD_WHEN_NA: fija a −1 (no construir).
+       - Si base >= 0: no degradar (x[col] >= base).
+    """
+    q = x.get(col)
+    if q is None:
+        return
+    base_ord = _qual_base_ord(base_row, col)
+    base_txt = str(base_row.get(col, "No aplica")).strip()
+
+    if base_txt == "No aplica" and col in FORBID_BUILD_WHEN_NA:
+        q.LB = -1
+        q.UB = -1
+        return
+
+    # si existe (>=0), no permitir empeorar
+    if base_ord >= 0:
+        m.addConstr(q >= base_ord, name=f"{col.replace(' ','_')}_upgrade_only")
+
+
+
 def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: XGBBundle) -> gp.Model:
     m = gp.Model("remodel_embed")
 
@@ -40,6 +94,9 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         m.addConstr(v >= expr)
         return v
 
+    # >>> MUY IMPORTANTE: construir el índice de nombres antes de cualquier getVarByName
+    m.update()
+
     # -------------------
     # 2) Armar X_input (fila 1xN en el ORDEN que espera el modelo)
     # -------------------
@@ -55,30 +112,43 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     X_input = pd.DataFrame([row_vals], columns=feature_order, dtype=object)
     # (mantén el _align_ohe_dtypes(...) tal como ya lo tienes)
 
+    for col in ["Kitchen Qual","Exter Qual","Exter Cond","Heating QC",
+                "Fireplace Qu","Bsmt Qual","Bsmt Cond","Garage Qual","Garage Cond","Pool QC"]:
+        apply_quality_policy_ordinal(m, x, base_row, col)
 
-    # -------------------
-    # 3) Kitchen Qual (paquetes TA/EX)  [solo constraints aquí]
-    # -------------------
-    def _q_to_ord(v):
-        mapping = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
-        try:
-            return int(v)
-        except Exception:
-            return mapping.get(str(v), 2)
 
-    kq_base = _q_to_ord(base_row.get("Kitchen Qual", "TA"))
-    dTA = x["delta_KitchenQual_TA"]
-    dEX = x["delta_KitchenQual_EX"]
-    m.addConstr(dTA + dEX <= 1, name="R9_kitchen_at_most_one_pkg")
-    if kq_base >= 2: dTA.UB = 0
-    if kq_base >= 4: dEX.UB = 0
-    q_TA = max(kq_base, 2)
-    q_EX = max(kq_base, 4)
-    q_new = x["Kitchen Qual"]
-    m.addConstr(
-        q_new == kq_base + (q_TA - kq_base) * dTA + (q_EX - kq_base) * dEX,
-        name="R9_kitchen_upgrade_link"
-    )
+    # ========= KITCHEN QUAL (simple, sin 'eligible') =========
+    KITCH_LEVELS = ["Po","Fa","TA","Gd","Ex"]
+    ORD = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
+
+    kq_base_txt = str(base_row.get("Kitchen Qual","TA")).strip()
+    kq_base = ORD.get(kq_base_txt, 2)
+
+    # one-hot
+    kit_bins = {nm: m.addVar(vtype=gp.GRB.BINARY, name=f"kit_is_{nm}") for nm in KITCH_LEVELS}
+    m.addConstr(gp.quicksum(kit_bins.values()) == 1, name="KIT_onehot")
+
+    # no-empeorar
+    for nm, v in kit_bins.items():
+        if ORD[nm] < kq_base:
+            v.UB = 0.0
+
+    # (opcional) link al entero si tu XGB lo usa ordinal
+    if "Kitchen Qual" in x:
+        m.addConstr(
+            x["Kitchen Qual"] ==
+            0*kit_bins["Po"] + 1*kit_bins["Fa"] + 2*kit_bins["TA"] + 3*kit_bins["Gd"] + 4*kit_bins["Ex"],
+            name="KIT_link_int"
+        )
+
+    kit_cost = gp.LinExpr(0.0)
+    for nm, vb in kit_bins.items():
+        if ORD[nm] > kq_base:
+            kit_cost += ct.kitchen_level_cost(nm) * vb
+    lin_cost += kit_cost
+
+    # ========= FIN =========
+
 
     # ================== (EXTERIOR) ==================
 
@@ -625,6 +695,401 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             lin_cost += ct.electrical_cost(nm) * vb
     # ================== FIN (ELECTRICAL) ==================
 
+    # ================== (HEATING + HEATINGQC) ==================
+    HEAT_TYPES = ["Floor","GasA","GasW","Grav","OthW","Wall"]
+    heat_bin = {nm: x[f"heat_is_{nm}"] for nm in HEAT_TYPES if f"heat_is_{nm}" in x}
+
+    # --- Parámetro de política ---
+    qc_threshold = 2  # 2=TA; si quieres exigir EX usa 4
+
+    # Base (tipo y QC)
+    heat_base = str(base_row.get("Heating", "GasA")).strip()
+    q_map = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
+    try:
+        qc_base = int(pd.to_numeric(base_row.get("Heating QC"), errors="coerce"))
+        if qc_base not in (0,1,2,3,4):
+            qc_base = q_map.get(str(base_row.get("Heating QC")).strip(), 2)
+    except Exception:
+        qc_base = q_map.get(str(base_row.get("Heating QC")).strip(), 2)
+
+    # (H1) elegir exactamente un tipo
+    if heat_bin:
+        m.addConstr(gp.quicksum(heat_bin.values()) == 1, name="HEAT_pick_one_type")
+
+    # Inyectar dummies Heating_* al X_input si el XGB las tiene
+    def _put_var(df, col, var):
+        if col in df.columns:
+            if df[col].dtype != "O":
+                df[col] = df[col].astype("object")
+            df.loc[0, col] = var
+
+    for nm, vb in heat_bin.items():
+        _put_var(X_input, f"Heating_{nm}", vb)
+
+    # Binarias de caminos (deben existir en MODIFIABLE)
+    upg_type = x.get("heat_upg_type")
+    upg_qc   = x.get("heat_upg_qc")
+
+    # Elegibilidad: solo si QC_base <= TA
+    eligible = 1 if qc_base <= 2 else 0
+    if (upg_type is not None) and (upg_qc is not None):
+        # Exclusión + gating por elegibilidad
+        m.addConstr(upg_type + upg_qc <= eligible, name="HEAT_paths_exclusive")
+
+    # No empeorar calidad (del PDF)
+    if "Heating QC" in x:
+        m.addConstr(x["Heating QC"] >= qc_base, name="HEAT_qc_upgrade_only")
+
+    # “Cualquier intervención” = OR(upg_type, upg_qc)
+    any_rebuild = m.addVar(vtype=gp.GRB.BINARY, name="HEAT_any_rebuild")
+    if (upg_type is not None) and (upg_qc is not None):
+        m.addConstr(any_rebuild >= upg_type, name="HEAT_any_ge_type")
+        m.addConstr(any_rebuild >= upg_qc,   name="HEAT_any_ge_qc")
+        m.addConstr(any_rebuild <= upg_type + upg_qc, name="HEAT_any_le_sum")
+    else:
+        m.addConstr(any_rebuild == 0, name="HEAT_any_no_vars")
+
+    # Piso de calidad si hay intervención
+    if "Heating QC" in x:
+        m.addConstr(x["Heating QC"] >= qc_threshold * any_rebuild,
+                    name="HEAT_qc_min_if_any_rebuild")
+
+    # (H3) upgrade-only de tipo por costo: prohibir tipos más baratos que el base
+    base_type_cost = ct.heating_type_cost(heat_base)
+    for nm, vb in heat_bin.items():
+        if ct.heating_type_cost(nm) < base_type_cost:
+            vb.UB = 0  # no bajar de categoría/costo
+
+    # Si NO es elegible: fijar tipo y calidad a base
+    if eligible == 0:
+        for nm, vb in heat_bin.items():
+            vb.UB = 1 if nm == heat_base else 0
+        if "Heating QC" in x:
+            x["Heating QC"].LB = qc_base
+            x["Heating QC"].UB = qc_base
+
+    # (H4) ChangeType = 1 - I_base
+    change_type = None
+    if heat_bin:
+        change_type = m.addVar(vtype=gp.GRB.BINARY, name="heat_change_type")
+        if heat_base in heat_bin:
+            m.addConstr(change_type == 1 - heat_bin[heat_base], name="HEAT_change_def")
+        else:
+            m.addConstr(change_type >= 0, name="HEAT_change_def_guard")
+
+    # (H5) Dummies de QC (para costos y, si aplica, inyectar al XGB)
+    qc_bins = {}
+    if "Heating QC" in x:
+        for lvl, nm in enumerate(["Po","Fa","TA","Gd","Ex"]):
+            qb = m.addVar(vtype=gp.GRB.BINARY, name=f"heat_qc_is_{nm}")
+            qc_bins[nm] = qb
+        m.addConstr(gp.quicksum(qc_bins.values()) == 1, name="HEAT_qc_onehot")
+        m.addConstr(x["Heating QC"] == 0*qc_bins["Po"] + 1*qc_bins["Fa"] + 2*qc_bins["TA"]
+                                    + 3*qc_bins["Gd"] + 4*qc_bins["Ex"], name="HEAT_qc_link")
+        for nm, qb in qc_bins.items():
+            _put_var(X_input, f"Heating QC_{nm}", qb)
+
+    # (H6) Costos (tal como el PDF)
+    cost_heat = gp.LinExpr(0.0)
+
+    # Reconstruir mismo tipo: C_base * (UpgType - ChangeType)
+    if (upg_type is not None) and (change_type is not None):
+        cost_heat += base_type_cost * (upg_type - change_type)
+
+    # Cambiar a tipo más caro
+    for nm, vb in heat_bin.items():
+        if nm != heat_base:
+            cost_heat += ct.heating_type_cost(nm) * vb
+
+    # Cambiar calidad
+    if qc_bins:
+        for nm, qb in qc_bins.items():
+            if q_map[nm] != qc_base:
+                cost_heat += ct.heating_qc_cost(nm) * qb
+
+    # Añadir a la función de costo
+    lin_cost += cost_heat
+    # ================== FIN HEATING ==================
+
+
+     # ================== FIREPLACE QU ==================
+    if True:
+        fp_base_txt = str(base_row.get("Fireplace Qu", "No aplica")).strip()
+        has_fp = 0 if fp_base_txt in {"No aplica", "NA"} else 1
+
+        # ¿tu XGB tiene la columna ordinal?
+        has_ordinal = ("Fireplace Qu" in X_input.columns)
+        # ¿o viene como OHE?
+        fp_ohe_cols = [c for c in X_input.columns if c.startswith("Fireplace Qu_")]
+
+        if has_ordinal:
+            # ORDENAL esperado: -1..4
+            # mapa defensivo por si en base viene 0..4 o texto
+            MAP = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4,"No aplica":-1,"NA":-1}
+            if "Fireplace Qu" in x:
+                if has_fp == 0:
+                    # base sin chimenea: fijar -1 (no 2)
+                    x["Fireplace Qu"].LB = -1
+                    x["Fireplace Qu"].UB = -1
+                else:
+                    # con chimenea: permitir mantener o mejorar (no degradar)
+                    try:
+                        base_ord = int(pd.to_numeric(base_row.get("Fireplace Qu"), errors="coerce"))
+                    except Exception:
+                        base_ord = MAP.get(fp_base_txt, 2)
+                    # cotas de dominio
+                    x["Fireplace Qu"].LB = base_ord
+                    x["Fireplace Qu"].UB = 4
+            # sin costos si no hay cambio; si quieres costo por subir nivel, lo puedes mapear aquí
+
+        elif fp_ohe_cols:
+            # OHE: usa dummy explícito "No aplica"
+            # crea una binaria por nivel que exista en el modelo
+            levels_present = []
+            for nm in ["Po","Fa","TA","Gd","Ex","No aplica"]:
+                col = f"Fireplace Qu_{nm}"
+                if col in X_input.columns:
+                    v = m.addVar(vtype=gp.GRB.BINARY, name=f"fp_is_{nm}")
+                    X_input.loc[0, col] = v  # inyecta al DF
+                    levels_present.append((nm, v))
+            if levels_present:
+                m.addConstr(gp.quicksum(v for _, v in levels_present) == 1, name="FP_onehot")
+
+                if has_fp == 0:
+                    # base sin chimenea: forzar 'No aplica'
+                    for nm, v in levels_present:
+                        if nm == "No aplica":
+                            v.LB = v.UB = 1.0
+                        else:
+                            v.UB = 0.0
+                else:
+                    # con chimenea: permitir mantener o mejorar (no degradar)
+                    ORD = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
+                    base_ord = ORD.get(fp_base_txt, 2)
+                    for nm, v in levels_present:
+                        if nm == "No aplica":
+                            v.UB = 0.0  # no puedes desaparecerla
+                        elif ORD.get(nm, -99) < base_ord:
+                            v.UB = 0.0  # no degradar
+
+                    # si quieres costo por cambiar nivel:
+                    # for nm, v in levels_present:
+                    #     if nm != fp_base_txt and nm in {"Po","Fa","TA","Gd","Ex"}:
+                    #         lin_cost += ct.fireplace_cost(nm) * v
+        else:
+            # el modelo no usa Fireplace Qu: no hacemos nada, ni costos
+            pass
+    # ================== FIN FIREPLACE QU ==================
+
+
+
+    # ================== BSMT (Fin1, Fin2, Unf, Total) ==================
+    # Variables existentes (deben estar en MODIFIABLE)
+    b1_var = x.get("BsmtFin SF 1")
+    b2_var = x.get("BsmtFin SF 2")
+    bu_var = x.get("Bsmt Unf SF")
+    if (b1_var is None) or (b2_var is None) or (bu_var is None):
+        raise RuntimeError(
+            "Faltan variables de sótano en MODIFIABLE: "
+            "asegúrate de tener 'BsmtFin SF 1', 'BsmtFin SF 2', 'Bsmt Unf SF'."
+        )
+
+    # Bases (constantes de la casa)
+    def _num(v): 
+        import pandas as pd
+        try: return float(pd.to_numeric(v, errors="coerce") or 0.0)
+        except: return 0.0
+
+    b1_base = _num(base_row.get("BsmtFin SF 1"))
+    b2_base = _num(base_row.get("BsmtFin SF 2"))
+    bu_base = _num(base_row.get("Bsmt Unf SF"))
+    tb_base = _num(base_row.get("Total Bsmt SF"))
+    if tb_base <= 0.0:
+        tb_base = b1_base + b2_base + bu_base
+
+    # Transferencias SOLO desde Unf → Fin1/Fin2 (no hay demoliciones)
+    tr1 = m.addVar(lb=0.0, name="bsmt_tr1")  # pies² que pasan de Unf a Fin1
+    tr2 = m.addVar(lb=0.0, name="bsmt_tr2")  # pies² que pasan de Unf a Fin2
+
+    # Enlaces sin demoler:
+    #   Fin1 = Fin1_base + tr1
+    #   Fin2 = Fin2_base + tr2
+    #   Unf  = Unf_base  - tr1 - tr2
+    m.addConstr(b1_var == b1_base + tr1, name="BSMT_link_fin1")
+    m.addConstr(b2_var == b2_base + tr2, name="BSMT_link_fin2")
+    m.addConstr(bu_var == bu_base - tr1 - tr2, name="BSMT_link_unf")
+
+    # No se puede terminar más de lo que había sin terminar
+    m.addConstr(tr1 + tr2 <= bu_base + 1e-6, name="BSMT_no_more_than_unf_base")
+
+    # Conservación del total (seguridad)
+    m.addConstr(b1_var + b2_var + bu_var == tb_base, name="BSMT_conservation_sum")
+
+    # Costos: solo cobramos lo que efectivamente se terminó
+    lin_cost += ct.finish_basement_per_f2 * (tr1 + tr2)
+    # ================== FIN BSMT ==================
+
+ 
+    # ================== (BSMT COND: ordinal upgrade-only) ==================
+    BC_LEVELS = ["Po","Fa","TA","Gd","Ex"]
+    BC_ORD = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
+
+    bc_base_txt = str(base_row.get("Bsmt Cond", "TA")).strip()
+    bc_base = BC_ORD.get(bc_base_txt, 2)
+
+    # binarios one-hot de estado final
+    bc_bin = {nm: m.addVar(vtype=gp.GRB.BINARY, name=f"bsmtcond_is_{nm}") for nm in BC_LEVELS}
+    m.addConstr(gp.quicksum(bc_bin.values()) == 1, name="BSMTCOND_onehot")
+
+    # no empeorar: niveles por debajo de la base quedan prohibidos
+    for nm, vb in bc_bin.items():
+        if BC_ORD[nm] < bc_base:
+            vb.UB = 0.0
+
+    # si tu XGB usa la columna ordinal "Bsmt Cond", enlázala
+    if "Bsmt Cond" in x:
+        m.addConstr(
+            x["Bsmt Cond"] ==
+            0*bc_bin["Po"] + 1*bc_bin["Fa"] + 2*bc_bin["TA"] + 3*bc_bin["Gd"] + 4*bc_bin["Ex"],
+            name="BSMTCOND_link_int"
+        )
+
+    # si tu pipeline trae OHE de Bsmt Cond, inyecta dummies
+    for nm in BC_LEVELS:
+        col = f"Bsmt Cond_{nm}"
+        if col in X_input.columns:
+            if X_input[col].dtype != "O":
+                X_input[col] = X_input[col].astype("object")
+            X_input.loc[0, col] = bc_bin[nm]
+
+    # costos: solo si subes por sobre la base y únicamente los niveles finales
+    for nm, vb in bc_bin.items():
+        if BC_ORD[nm] > bc_base:
+            # el PDF cobra el costo del nivel elegido (no incremental por salto)
+            lin_cost += ct.bsmt_cond_cost(nm) * vb
+
+    # si la base ya es Gd/Ex, implícitamente quedas fijado a la base por el "no empeorar"
+    # ================== FIN (BSMT COND) ==================
+
+    # ================== (BSMT FIN TYPE1 / TYPE2) ==================
+    BS_TYPES = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","NA"]
+
+    # dummies de decisión desde features.py
+    b1 = {nm: x.get(f"b1_is_{nm}") for nm in BS_TYPES}
+    b2 = {nm: x.get(f"b2_is_{nm}") for nm in BS_TYPES}
+
+    # helper para poner gp.Var en DataFrame
+    def _put_var(df, col, var):
+        if col in df.columns:
+            if df[col].dtype != "O":
+                df[col] = df[col].astype("object")
+            df.loc[0, col] = var
+
+    # base
+    b1_base = str(base_row.get("BsmtFin Type 1", "NA")).strip()
+    b2_base = str(base_row.get("BsmtFin Type 2", "NA")).strip()
+    has_b2  = 0 if b2_base in ["NA", "None", "nan", "NaN"] else 1
+
+    # (T1) selección única
+    if all(v is not None for v in b1.values()):
+        m.addConstr(gp.quicksum(b1.values()) == 1, name="B1_pick_one")
+
+    # (T2) selección según existencia
+    if all(v is not None for v in b2.values()):
+        m.addConstr(gp.quicksum(b2.values()) == has_b2, name="B2_pick_hasB2")
+
+    # Inyectar a X_input si tu XGB trae OHE "BsmtFin Type 1_*" y "BsmtFin Type 2_*"
+    for nm, vb in b1.items():
+        if vb is not None:
+            _put_var(X_input, f"BsmtFin Type 1_{nm}", vb)
+    for nm, vb in b2.items():
+        if vb is not None:
+            _put_var(X_input, f"BsmtFin Type 2_{nm}", vb)
+
+    # Conjunto “Rec o peor”
+    BAD = {"Rec","LwQ","Unf"}
+
+    # Flags UpgB1 / UpgB2 (activas sólo si base ∈ BAD)
+    upgB1 = m.addVar(vtype=gp.GRB.BINARY, name="B1_upg_flag")
+    upgB2 = m.addVar(vtype=gp.GRB.BINARY, name="B2_upg_flag")
+
+    is_bad1 = 1 if b1_base in BAD else 0
+    is_bad2 = 1 if (has_b2 == 1 and b2_base in BAD) else 0
+
+    # Fijo estas flags a la constante (equivalen a las activaciones del PDF)
+    upgB1.LB = upgB1.UB = is_bad1
+    upgB2.LB = upgB2.UB = is_bad2
+
+    # Máscaras para “distinto de la base” M = 1 - Base
+    M1 = {}
+    M2 = {}
+    for nm in BS_TYPES:
+        M1[nm] = 0 if nm == b1_base else 1
+        M2[nm] = 0 if nm == b2_base else 1
+
+    # “Sólo puedes CAMBIAR si upg=1”  (sum_{b≠base} b1_is_b <= upgB1)
+    if all(v is not None for v in b1.values()):
+        m.addConstr(gp.quicksum(M1[nm]*b1[nm] for nm in BS_TYPES) <= upgB1, name="B1_change_if_upg")
+    if has_b2 and all(v is not None for v in b2.values()):
+        m.addConstr(gp.quicksum(M2[nm]*b2[nm] for nm in BS_TYPES) <= upgB2, name="B2_change_if_upg")
+
+    # Dominio permitido (si NO upg → forzar base; si upg → prohibir categorías más baratas que la base)
+    def _apply_allowed(bvars, b_base, upg_flag):
+        if not bvars:
+            return
+        base_cost = ct.bsmt_type_cost(b_base)
+        if upg_flag == 0:
+            # sólo base
+            for nm, vb in bvars.items():
+                if vb is None: continue
+                if nm == b_base:
+                    vb.LB = 1.0; vb.UB = 1.0
+                else:
+                    vb.UB = 0.0
+        else:
+            # permitir mantener base o mejorar (>= costo base); nunca bajar
+            for nm, vb in bvars.items():
+                if vb is None: continue
+                if ct.bsmt_type_cost(nm) < base_cost:
+                    vb.UB = 0.0
+
+    # Casos especiales NA
+    if b1_base == "NA":
+        # se mantiene NA sí o sí
+        for nm, vb in b1.items():
+            if vb is None: continue
+            if nm == "NA": vb.LB = vb.UB = 1.0
+            else: vb.UB = 0.0
+    else:
+        _apply_allowed(b1, b1_base, is_bad1)
+
+    if has_b2 == 0:
+        # Type2 no existe → todos 0
+        for nm, vb in b2.items():
+            if vb is None: continue
+            vb.UB = 0.0
+    elif b2_base == "NA":
+        for nm, vb in b2.items():
+            if vb is None: continue
+            if nm == "NA": vb.LB = vb.UB = 1.0
+            else: vb.UB = 0.0
+    else:
+        _apply_allowed(b2, b2_base, is_bad2)
+
+    # Costos (sólo si cambias; usa máscara 1{b ≠ base})
+    cost_b1 = gp.LinExpr(0.0)
+    cost_b2 = gp.LinExpr(0.0)
+    for nm, vb in b1.items():
+        if vb is not None and M1[nm] == 1:
+            cost_b1 += ct.bsmt_type_cost(nm) * vb
+    for nm, vb in b2.items():
+        if vb is not None and M2[nm] == 1:
+            cost_b2 += ct.bsmt_type_cost(nm) * vb
+
+    lin_cost += cost_b1 + cost_b2
+    # ================== FIN (BSMT FIN TYPE1/2) ==================
+
+
 
     # -------------------
     # 5) Enlazar predictor (pre -> XGB) y pasar de log a precio
@@ -666,12 +1131,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         lin_cost += pos(x["Wood Deck SF"] - base_vals["Wood Deck SF"]) * ct.deck_per_m2
     if "Garage Cars" in x:
         lin_cost += pos(x["Garage Cars"] - base_vals["Garage Cars"]) * ct.garage_per_car
-    if "Total Bsmt SF" in x:
-        lin_cost += pos(x["Total Bsmt SF"] - base_vals["Total Bsmt SF"]) * ct.finish_basement_per_f2
 
-    # Cocina (paquetes) — ahora sí sumamos costo
-    lin_cost += dTA * ct.kitchenQual_upgrade_TA
-    lin_cost += dEX * ct.kitchenQual_upgrade_EX
 
     # Utilities (upgrade-only; costo solo si cambias)
     if "Utilities" in x:
