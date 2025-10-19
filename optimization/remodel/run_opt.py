@@ -1410,7 +1410,7 @@ def main():
             "Mas Vnr Type","Roof Style","Roof Matl","Utilities",
             "Electrical","Exterior 1st","Exterior 2nd","Central Air","Heating (tipo)",
             "Heating (reconstruir tipo)", "Heating QC",
-            "Fence"  # <<-- para que lo formatee como categórica (sin frmt_num)
+            "Fence" , "Paved Drive", "Garage Qual" , "Garage Cond", "Pool QC"
         }
 
         for nombre, b, n, c in cambios_costos:
@@ -1454,7 +1454,7 @@ def main():
 
         # 3) calidades (si existen)
         for nm in ["Kitchen Qual","Exter Qual","Exter Cond","Bsmt Qual","Bsmt Cond",
-                   "Heating QC","Fireplace Qu","Garage Qual","Garage Cond","Pool QC"]:
+                   "Heating QC","Fireplace Qu","GarageQual","GarageCond","Pool QC"]:
             if nm in base_dict:
                 if f"x_{nm}" in [v.VarName for v in m.getVars()]:
                     try:
