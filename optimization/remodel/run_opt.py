@@ -308,6 +308,35 @@ def main():
     except Exception as e:
         print(f"(debug ampliaciones omitido: {e})")
 
+    
+# === DEBUG Garage Qual / Garage Cond → precio (ordinal 0–4 o Po–Ex) ===
+    try:
+        if "Garage Qual" in X_base.columns and "Garage Cond" in X_base.columns:
+            print("\nDEBUG GarageQual / GarageCond → precio:")
+
+            # Copia base
+            Xd = X_base.copy()
+
+            # Definición de niveles
+            niveles = [0, 1, 2, 3, 4]
+            etiquetas = {0: "Po", 1: "Fa", 2: "TA", 3: "Gd", 4: "Ex"}
+
+            # Resultados individuales
+            print("   → Garage Qual:")
+            for q in niveles:
+                Xd.loc[:, "Garage Qual"] = q
+                y_pred = float(bundle.predict(Xd).iloc[0])
+                print(f"      {etiquetas[q]:>8}: {y_pred:,.0f}")
+
+            print("   → Garage Cond:")
+            for q in niveles:
+                Xd.loc[:, "Garage Cond"] = q
+                y_pred = float(bundle.predict(Xd).iloc[0])
+                print(f"      {etiquetas[q]:>8}: {y_pred:,.0f}")
+        else:
+            print("(debug garage qual/cond omitido: columnas no encontradas en X_base)")
+    except Exception as e:
+        print(f"(debug garage qual/cond omitido: {e})")
 
 
 
@@ -662,7 +691,7 @@ def main():
             print("(info) columna Pool QC no está en base.row")
     except Exception as e:
         print(f"⚠️ (aviso, no crítico) error leyendo resultado de Pool QC:", e)
-        
+
 
         # ========== AMPLIACIONES Y AGREGADOS (post-solve) ==========
     try:
@@ -707,6 +736,62 @@ def main():
 
     except Exception as e:
         print(f"⚠️ error leyendo ampliaciones/agregados: {e}")
+
+    
+        # ========== GARAGE QUAL / COND (post-solve) ==========
+    try:
+        G_CATS = ["Ex", "Gd", "TA", "Fa", "Po", "NA"]
+
+        # --- funciones auxiliares ---
+        def _get_base(attr, g):
+            return float(base_row.get(f"{attr}_{g}", 0.0) or 0.0)
+
+        def _get_new_val(varname):
+            v = m.getVarByName(varname)
+            return v.X if v else 0.0
+
+        def _find_selected(attr_prefix):
+            for g in G_CATS:
+                v = m.getVarByName(f"x_{attr_prefix}_is_{g}")
+                if v and v.X > 0.5:
+                    return g
+            return "No aplica"
+
+        # --- leer categorías base ---
+        base_qual = next((g for g in G_CATS if _get_base("Garage Qual", g) == 1), "No aplica")
+        base_cond = next((g for g in G_CATS if _get_base("Garage Cond", g) == 1), "No aplica")
+
+        # --- categorías nuevas ---
+        new_qual = _find_selected("garage_qual")
+        new_cond = _find_selected("garage_cond")
+
+        # --- costos ---
+        def _cost(g):
+            return ct.garage_qc_costs.get(g, 0.0)
+
+        cost_qual = _cost(new_qual) if new_qual != base_qual else 0.0
+        cost_cond = _cost(new_cond) if new_cond != base_cond else 0.0
+
+        # --- impresión por consola ---
+        print("\nCambios en GarageQual / GarageCond:")
+        print(f"  GarageQual: {base_qual} → {new_qual}  "
+              f"({'sin cambio' if base_qual == new_qual else f'costo ${cost_qual:,.0f}'})")
+        print(f"  GarageCond: {base_cond} → {new_cond}  "
+              f"({'sin cambio' if base_cond == new_cond else f'costo ${cost_cond:,.0f}'})")
+
+        # --- registrar en resumen final ---
+        if base_qual != new_qual:
+            cambios_costos.append(
+                ("GarageQual", base_qual, new_qual, cost_qual)
+            )
+        if base_cond != new_cond:
+            cambios_costos.append(
+                ("GarageCond", base_cond, new_cond, cost_cond)
+            )
+
+    except Exception as e:
+        print(f"(post-solve garage qual/cond omitido: {e})")
+    # ================== FIN AMPLIACIONES Y AGREGADOS ==========
 
 
 

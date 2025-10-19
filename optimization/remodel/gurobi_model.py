@@ -282,78 +282,59 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
 # ================== FIN (ROOF) ==================
 
-    # ========== GARAGE FINISH (upgrade Fin si era RFn o Unf) ==========
-    gf = {nm: x.get(f"garage_finish_is_{nm}") for nm in ["Fin", "RFn", "Unf", "NA"]}
+# ========== GARAGE FINISH (upgrade a Fin si era RFn o Unf) ==========
+    GF_CATS = ["Fin", "RFn", "Unf", "No aplica"]
+    gf = {nm: x.get(f"garage_finish_is_{nm}") for nm in GF_CATS}
     upgGF = x.get("UpgGarageFinish")
 
-     # Si la casa no tiene garage y "NA" no está en el modelo, lo reemplazamos por "No aplica"
+    # Sincronizar si hay NA vs "No aplica"
     if "garage_finish_is_NA" not in x and "garage_finish_is_No aplica" in x:
         gf["NA"] = x["garage_finish_is_No aplica"]
 
-    # Si ninguna categoría está definida, forzamos un fallback (dummy)
+    # Dummy si faltan todas
     if all(v is None for v in gf.values()):
         dummy_gf = m.addVar(vtype=gp.GRB.BINARY, name="garage_finish_dummy")
         m.addConstr(dummy_gf == 1, name="GF_dummy")
         gf["dummy"] = dummy_gf
 
-    # 1. Selección única
-    m.addConstr(
-        gp.quicksum(v for v in gf.values() if v is not None) == 1,
-        name="GF_pick_one"
-    )
+    # Selección única
+    m.addConstr(gp.quicksum(v for v in gf.values() if v is not None) == 1, name="GF_pick_one")
 
-    # 2. Inyección al pipeline (usa las columnas dummy ya one-hotteadas)
+    # Inyección al pipeline
     for nm, v in gf.items():
         col = f"Garage Finish_{nm}"
         if v is not None and col in feature_order:
             _put_var(X_input, col, v)
 
-    # 3. Datos base y limpieza de valores nulos
+    # Base y máscaras
     base = {}
-    for nm in ["Fin", "RFn", "Unf", "NA"]:
+    for nm in GF_CATS:
         val = base_row.get(f"Garage Finish_{nm}", 0.0)
-        # Si está como None, NaN o texto raro → reemplazar por 0.0
         if val is None or (isinstance(val, float) and np.isnan(val)):
             val = 0.0
-        try:
-            base[nm] = float(val)
-        except Exception:
-            base[nm] = 0.0
+        base[nm] = float(val)
+    mask = {nm: 1 - base[nm] for nm in base}
 
-    mask = {nm: 1 - base[nm] for nm in base}  # M_Ga_i,ga = 1 - BaseGai,ga
-
-    # 4. Restricciones de activación (solo si existen las variables)
+    # --- Lógica condicional ---
     if upgGF is not None:
         m.addConstr(upgGF >= base.get("RFn", 0.0), name="GF_upg_ge_RFn")
         m.addConstr(upgGF >= base.get("Unf", 0.0), name="GF_upg_ge_Unf")
-        m.addConstr(
-            upgGF <= base.get("RFn", 0.0) + base.get("Unf", 0.0),
-            name="GF_upg_le_sum"
-        )
+        m.addConstr(upgGF <= base.get("RFn", 0.0) + base.get("Unf", 0.0), name="GF_upg_le_sum")
 
-    # 5. Conjuntos permitidos / fijaciones
-    if base.get("NA", 0.0) == 1.0:
-        # NA: no aplica → fijar todo
+    if base.get("No aplica", 0.0) == 1.0:
+        # Sin garage → mantener fijo
         for nm, v in gf.items():
             if v is None:
                 continue
-            if nm == "NA":
-                m.addConstr(v == 1, name="GF_fix_NA_1")
-            else:
-                m.addConstr(v == 0, name=f"GF_fix_NA_0_{nm}")
-
+            m.addConstr(v == (1.0 if nm == "No aplica" else 0.0), name=f"GF_fix_NA_{nm}")
     elif base.get("Fin", 0.0) == 1.0:
-        # Ya está Fin: mantener igual
+        # Ya está Fin
         for nm, v in gf.items():
             if v is None:
                 continue
-            if nm == "Fin":
-                m.addConstr(v == 1, name="GF_fix_Fin_1")
-            else:
-                m.addConstr(v == 0, name=f"GF_fix_Fin_0_{nm}")
-
+            m.addConstr(v == (1.0 if nm == "Fin" else 0.0), name=f"GF_fix_Fin_{nm}")
     elif base.get("RFn", 0.0) == 1.0 or base.get("Unf", 0.0) == 1.0:
-        # Solo puede pasar a Fin si UpgGF=1
+        # Puede pasar a Fin si UpgGF=1
         if gf.get("Fin") is not None and upgGF is not None:
             m.addConstr(gf["Fin"] <= upgGF, name="GF_upgrade_if_active")
         if upgGF is not None:
@@ -362,26 +343,20 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
                 <= 1 - upgGF,
                 name="GF_no_RF_Unf_if_upg"
             )
-        m.addConstr(
-            gp.quicksum(v for v in gf.values() if v is not None) == 1,
-            name="GF_sum_1"
-        )
+        m.addConstr(gp.quicksum(v for v in gf.values() if v is not None) == 1, name="GF_sum_1")
 
-    # 6. Restricción de máscara (solo cambia si era RFn/Unf)
+    # Cambio sólo si era RFn/Unf
     if upgGF is not None:
-        m.addConstr(
-            gp.quicksum(mask[nm] * v for nm, v in gf.items() if v is not None) <= upgGF,
-            name="GF_mask_le_upg"
-        )
+        m.addConstr(gp.quicksum(mask[nm] * v for nm, v in gf.items() if v is not None) <= upgGF,
+                    name="GF_mask_le_upg")
 
-    # 7. Costo si se realiza cambio (FO)
+    # Costo lineal
     lin_cost += gp.quicksum(
-    ct.garage_finish_cost(nm) * mask.get(nm, 0.0) * v
-    for nm, v in gf.items()
-    if v is not None and nm != "dummy"
+        ct.garage_finish_cost(nm) * mask.get(nm, 0.0) * v
+        for nm, v in gf.items() if v is not None and nm != "dummy"
     )
 
-    # ================== FIN (GARAGE FINISH) ==================
+# ================== FIN (GARAGE FINISH) ==================
 
 
 
@@ -429,126 +404,83 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # ================== FIN (CENTRAL AIR) ==================
 
 
-    # ========== POOL QUALITY (upgrade si TA/Fa/Po o peor) ==========
+# ========== POOL QC (upgrade si TA/Fa/Po o peor) ==========
     POOL_QC_CATS = ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]
     POOL_QC_LEQ_AV = ["TA", "Fa", "Po"]
 
     pq = {nm: x.get(f"poolqc_is_{nm}") for nm in POOL_QC_CATS}
     upgPQ = x.get("upg_pool_qc")
 
-    # 0. Si falta "No aplica" pero existe "NA", sincronizar
     if "poolqc_is_No aplica" not in x and "poolqc_is_NA" in x:
         pq["No aplica"] = x["poolqc_is_NA"]
 
-    # Si todas las categorías son None → crear dummy
     if all(v is None for v in pq.values()):
         dummy_pq = m.addVar(vtype=gp.GRB.BINARY, name="poolqc_dummy")
         m.addConstr(dummy_pq == 1, name="POOL_dummy")
         pq["dummy"] = dummy_pq
 
-    # 1. Selección única
-    m.addConstr(
-        gp.quicksum(v for v in pq.values() if v is not None) == 1,
-        name="POOLQC_pick_one"
-    )
+    m.addConstr(gp.quicksum(v for v in pq.values() if v is not None) == 1, name="POOLQC_pick_one")
 
-    # 2. Inyección al pipeline
     for nm, v in pq.items():
         col = f"Pool QC_{nm}"
         if v is not None and col in feature_order:
             _put_var(X_input, col, v)
 
-    # 3. Datos base limpios
     base_pq = {}
     for nm in POOL_QC_CATS:
         val = base_row.get(f"Pool QC_{nm}", 0.0)
         if val is None or (isinstance(val, float) and np.isnan(val)):
             val = 0.0
-        try:
-            base_pq[nm] = float(val)
-        except Exception:
-            base_pq[nm] = 0.0
-
+        base_pq[nm] = float(val)
     mask = {nm: 1 - base_pq[nm] for nm in base_pq}
 
-    # 4. Restricciones de activación (solo si existe variable)
     if upgPQ is not None:
         for nm in POOL_QC_LEQ_AV:
             m.addConstr(upgPQ >= base_pq.get(nm, 0.0), name=f"POOL_upg_ge_{nm}")
-        m.addConstr(
-            upgPQ <= gp.quicksum(base_pq.get(nm, 0.0) for nm in POOL_QC_LEQ_AV),
-            name="POOL_upg_le_sum"
-        )
+        m.addConstr(upgPQ <= gp.quicksum(base_pq.get(nm, 0.0) for nm in POOL_QC_LEQ_AV),
+                    name="POOL_upg_le_sum")
 
-    # 5. Casos especiales / fijaciones
     if base_pq.get("No aplica", 0.0) == 1.0:
-        # No hay piscina → fijar "No aplica"=1, resto=0
         for nm, v in pq.items():
             if v is None:
                 continue
-            if nm == "No aplica":
-                m.addConstr(v == 1, name="POOL_fix_NA_1")
-            else:
-                m.addConstr(v == 0, name=f"POOL_fix_NA_0_{nm}")
-
+            m.addConstr(v == (1.0 if nm == "No aplica" else 0.0), name=f"POOL_fix_NA_{nm}")
     elif base_pq.get("Ex", 0.0) == 1.0 or base_pq.get("Gd", 0.0) == 1.0:
-        # Ya está buena/excelente → mantener igual
         active = next((k for k, v in base_pq.items() if v == 1), None)
         for nm, v in pq.items():
             if v is None:
                 continue
-            if nm == active:
-                m.addConstr(v == 1, name=f"POOL_fix_{active}_1")
-            else:
-                m.addConstr(v == 0, name=f"POOL_fix_{active}_0_{nm}")
-
+            m.addConstr(v == (1.0 if nm == active else 0.0), name=f"POOL_fix_{active}_{nm}")
     elif any(base_pq.get(nm, 0.0) == 1.0 for nm in ["TA", "Fa", "Po"]):
-        # Puede mejorar solo si upgPQ=1
         if pq.get("Gd") is not None and upgPQ is not None:
             m.addConstr(pq["Gd"] <= upgPQ, name="POOL_upgrade_if_active")
         if upgPQ is not None:
             m.addConstr(
-                gp.quicksum(v for k, v in pq.items()
-                            if k in ["TA", "Fa", "Po"] and v is not None)
+                gp.quicksum(v for k, v in pq.items() if k in ["TA", "Fa", "Po"] and v is not None)
                 <= 1 - upgPQ,
                 name="POOL_no_TAFaPo_if_upg"
             )
-        m.addConstr(
-            gp.quicksum(v for v in pq.values() if v is not None) == 1,
-            name="POOL_sum_1"
-        )
+        m.addConstr(gp.quicksum(v for v in pq.values() if v is not None) == 1, name="POOL_sum_1")
 
-    # 6. Costo lineal (solo si cambia)
-    try:
-        pool_area = float(pd.to_numeric(base_row.get("Pool Area"), errors="coerce") or 0.0)
-    except Exception:
-        pool_area = 0.0
-
+    # Costo lineal
+    pool_area = float(pd.to_numeric(base_row.get("Pool Area"), errors="coerce") or 0.0)
     lin_cost += gp.quicksum(
         (ct.poolqc_costs.get(nm, 0.0) + ct.pool_area_cost * pool_area)
         * mask.get(nm, 0.0) * v
-        for nm, v in pq.items()
-        if v is not None and nm != "dummy"
+        for nm, v in pq.items() if v is not None and nm != "dummy"
     )
-    # ================== FIN (POOL QC) ==================
 
-        # ========== ÁREA LIBRE Y DECISIONES DE AMPLIACIÓN / AGREGADO ==========
+# ================== FIN (POOL QC) ==================
 
-    # --- PARÁMETROS FIJOS ---
+# ========== ÁREA LIBRE Y DECISIONES DE AMPLIACIÓN / AGREGADO ==========
     A_Full, A_Half, A_Kitch, A_Bed = 40.0, 20.0, 75.0, 70.0  # ft²
 
-    # --- BINARIAS DE AGREGADOS ---
-    AddFull = x["AddFull"]
-    AddHalf = x["AddHalf"]
-    AddKitch = x["AddKitch"]
-    AddBed = x["AddBed"]
+    AddFull, AddHalf, AddKitch, AddBed = x["AddFull"], x["AddHalf"], x["AddKitch"], x["AddBed"]
 
-    # --- BINARIAS DE AMPLIACIÓN ---
-    COMPONENTES = ["GarageArea", "WoodDeckSF", "OpenPorchSF", "EnclosedPorch",
-                "3SsnPorch", "ScreenPorch", "PoolArea"]
-    z = {c: {s: x[f"z{s}_{c}"] for s in [10, 20, 30]} for c in COMPONENTES}
+    COMPONENTES = ["Garage Area", "Wood Deck SF", "Open Porch SF", "Enclosed Porch",
+                "3Ssn Porch", "Screen Porch", "Pool Area"]
+    z = {c: {s: x[f"z{s}_{c.replace(' ', '')}"] for s in [10, 20, 30]} for c in COMPONENTES}
 
-    # --- PARÁMETROS BASE ---
     def _val(col):
         try:
             return float(pd.to_numeric(base_row.get(col), errors="coerce") or 0.0)
@@ -565,51 +497,86 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     screen = _val("Screen Porch")
     pool = _val("Pool Area")
 
-    # --- ÁREA LIBRE BASE ---
     area_libre_base = lot_area - (first_flr + garage + wooddeck + openporch +
                                 enclosed + ssn3 + screen + pool)
     if area_libre_base < 0:
         area_libre_base = 0.0
 
-    # --- LIMITES: sólo una ampliación por componente ---
     for c in COMPONENTES:
-        m.addConstr(sum(z[c][s] for s in [10,20,30]) <= 1, name=f"AMPL_one_scale_{c}")
+        m.addConstr(sum(z[c][s] for s in [10, 20, 30]) <= 1, name=f"AMPL_one_scale_{c.replace(' ', '')}")
 
-    # --- ÁREA FINAL TRAS AMPLIACIONES ---
-    # Δ_i,c = (0.10 * base, 0.20 * base, 0.30 * base)
     delta = {}
     for c in COMPONENTES:
         base_val = _val(c)
         if pd.isna(base_val) or np.isinf(base_val):
             base_val = 0.0
-        delta[c] = {
-            10: round(0.10 * base_val, 3),
-            20: round(0.20 * base_val, 3),
-            30: round(0.30 * base_val, 3)
-    }
+        delta[c] = {s: round(base_val * s / 100, 3) for s in [10, 20, 30]}
 
-    # --- RESTRICCIÓN DE ÁREA LIBRE ---
     m.addConstr(
         (area_libre_base
         - (A_Full * AddFull + A_Half * AddHalf + A_Kitch * AddKitch + A_Bed * AddBed)
-        - gp.quicksum(delta[c][10]*z[c][10] + delta[c][20]*z[c][20] + delta[c][30]*z[c][30]
-                    for c in COMPONENTES))
-        >= 0,
-        name="AREA_libre_no_negativa"
+        - gp.quicksum(delta[c][s] * z[c][s] for c in COMPONENTES for s in [10, 20, 30]))
+        >= 0, name="AREA_libre_no_negativa"
     )
 
-    # --- COSTO DE CONSTRUCCIÓN ---
-    lin_cost += ct.construction_cost * (
-        A_Full * AddFull + A_Half * AddHalf + A_Kitch * AddKitch + A_Bed * AddBed
-    )
+    lin_cost += ct.construction_cost * (A_Full * AddFull + A_Half * AddHalf + A_Kitch * AddKitch + A_Bed * AddBed)
 
-    # --- COSTO DE AMPLIACIÓN ---
     for c in COMPONENTES:
-        lin_cost += (
-            ct.ampl10_cost * delta[c][10] * z[c][10] +
-            ct.ampl20_cost * delta[c][20] * z[c][20] +
-            ct.ampl30_cost * delta[c][30] * z[c][30]
+        lin_cost += (ct.ampl10_cost * delta[c][10] * z[c][10] +
+                    ct.ampl20_cost * delta[c][20] * z[c][20] +
+                    ct.ampl30_cost * delta[c][30] * z[c][30])
+    # ================== FIN (ÁREA LIBRE Y AMPLIACIONES) ==================
+
+    # ========== GARAGE QUAL / COND (TA o peor puede subir) ==========
+    G_CATS = ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]
+    G_LEQ_AV = {"TA", "Fa", "Po"}
+
+    # --- Variables de decisión ---
+    gq = {g: x.get(f"Garage Qual_{g}") for g in G_CATS if f"Garage Qual_{g}" in x}
+    gc = {g: x.get(f"Garage Cond_{g}") for g in G_CATS if f"Garage Cond_{g}" in x}
+    upgG = x.get("UpgGarage")
+
+    # --- Limpieza base ---
+    baseGQ = {g: float(base_row.get(f"Garage Qual_{g}", 0.0) or 0.0) for g in G_CATS}
+    baseGC = {g: float(base_row.get(f"Garage Cond_{g}", 0.0) or 0.0) for g in G_CATS}
+
+    maskQ = {g: 1 - baseGQ[g] for g in G_CATS}
+    maskC = {g: 1 - baseGC[g] for g in G_CATS}
+
+    # --- Solo aplicar si el garage existe (no NA) ---
+    if upgG is not None and baseGQ["No aplica"] == 0 and baseGC["No aplica"] == 0:
+
+        # Activación solo si el garage es TA/Fa/Po
+        m.addConstrs((upgG >= baseGQ[g] for g in G_LEQ_AV), name="GARAGE_upg_ge_GQ_AV")
+        m.addConstrs((upgG >= baseGC[g] for g in G_LEQ_AV), name="GARAGE_upg_ge_GC_AV")
+        m.addConstr(
+            upgG <= gp.quicksum(baseGQ[g] + baseGC[g] for g in G_LEQ_AV),
+            name="GARAGE_upg_le_sum_AV"
         )
+
+        # Selección única
+        if gq:
+            m.addConstr(gp.quicksum(gq.values()) == 1, name="GQ_pick_one")
+        if gc:
+            m.addConstr(gp.quicksum(gc.values()) == 1, name="GC_pick_one")
+
+        # Cambio solo si corresponde
+        m.addConstr(gp.quicksum(maskQ[g] * gq[g] for g in gq) <= upgG, name="GQ_mask_le_upg")
+        m.addConstr(gp.quicksum(maskC[g] * gc[g] for g in gc) <= upgG, name="GC_mask_le_upg")
+
+        # Costos (solo si hay cambio)
+        def _cost(name): return ct.garage_qc_costs.get(name, 0.0)
+        lin_cost += gp.quicksum(_cost(g) * maskQ[g] * gq[g] for g in gq)
+        lin_cost += gp.quicksum(_cost(g) * maskC[g] * gc[g] for g in gc)
+
+    else:
+        # Si no hay garage (NA), se mantiene fijo
+        if gq:
+            m.addConstr(gp.quicksum(gq.values()) == baseGQ["No aplica"], name="GQ_pick_one_NA")
+        if gc:
+            m.addConstr(gp.quicksum(gc.values()) == baseGC["No aplica"], name="GC_pick_one_NA")
+        if upgG is not None:
+            m.addConstr(upgG == 0, name="UpgGarage_disabled_for_NA")
 
 
     # ================== (ELECTRICAL) ==================
@@ -736,18 +703,6 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # -------------------
     # 7) Presupuesto y objetivo
     # -------------------
-
-    # --- DEBUG de NaN en función objetivo ---
-    try:
-        print("\n[DEBUG OBJ] Revisión de componentes del objetivo:")
-        print(f"  lin_cost = {lin_cost}")
-        print(f"  budget = {budget}")
-        print(f"  ct.cost_tables -> ampl10={ct.ampl10_cost}, ampl20={ct.ampl20_cost}, ampl30={ct.ampl30_cost}")
-        print(f"  total_cost (si existe) = {locals().get('total_cost', 'NO DEFINIDO')}")
-        print(f"  y_price (predicción del modelo) = {locals().get('y_price', 'NO DEFINIDO')}")
-    except Exception as e:
-        print(f"[DEBUG OBJ] error al revisar componentes: {e}")
-
     total_cost = lin_cost
     m.addConstr(total_cost <= budget, name="budget")
     m.setObjective(y_price - total_cost, gp.GRB.MAXIMIZE)

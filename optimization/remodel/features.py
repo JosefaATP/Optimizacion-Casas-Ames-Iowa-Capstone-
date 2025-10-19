@@ -99,6 +99,15 @@ for c in COMPONENTES:
     for scale in [10, 20, 30]:
         MODIFIABLE.append(FeatureSpec(name=f"z{scale}_{c}", lb=0, ub=1, vartype="B"))
 
+# ==== GARAGE QUAL / COND (G = {Ex, Gd, TA, Fa, Po, NA}) ====
+for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "NA"]:
+    MODIFIABLE.append(FeatureSpec(name=f"garage_qual_is_{_nm}", lb=0, ub=1, vartype="B"))
+    MODIFIABLE.append(FeatureSpec(name=f"garage_cond_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+# Variable de activación (común para ambos)
+MODIFIABLE.append(FeatureSpec(name="UpgGarage", lb=0, ub=1, vartype="B"))
+
+
 
     # === MATERIALES EXTERIORES ===
 EXT_MATS = [

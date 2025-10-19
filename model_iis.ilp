@@ -1,16 +1,18 @@
 \ Model remodel_embed_copy
 \ LP format - for model browsing. Use MPS format to capture full model detail.
-\ Signature: 0x58f942b5e50ccf83
+\ Signature: 0x8ee88fb9cf7076c5
 Maximize
  
 Subject To
- POOLQC_pick_one: x_poolqc_is_Ex + x_poolqc_is_Gd + x_poolqc_is_TA
-   + x_poolqc_is_Fa + x_poolqc_is_Po + x_poolqc_is_No_aplica = 1
- POOL_no_upgrade_applicable: x_poolqc_is_Ex + x_poolqc_is_Gd
-   + x_poolqc_is_TA + x_poolqc_is_Fa + x_poolqc_is_Po
-   + x_poolqc_is_No_aplica = 0
+ GARAGE_upg_le_sum_AV: x_UpgGarage <= 0
+ GQ_pick_one: x_garage_qual_is_Ex + x_garage_qual_is_Gd
+   + x_garage_qual_is_TA + x_garage_qual_is_Fa + x_garage_qual_is_Po
+   + x_garage_qual_is_NA = 1
+ GQ_mask_le_upg: x_garage_qual_is_Ex + x_garage_qual_is_Gd
+   + x_garage_qual_is_TA + x_garage_qual_is_Fa + x_garage_qual_is_Po
+   + x_garage_qual_is_NA - x_UpgGarage <= 0
 Bounds
 Binaries
- x_poolqc_is_Ex x_poolqc_is_Gd x_poolqc_is_TA x_poolqc_is_Fa x_poolqc_is_Po
- x_poolqc_is_No_aplica
+ x_garage_qual_is_Ex x_garage_qual_is_Gd x_garage_qual_is_TA
+ x_garage_qual_is_Fa x_garage_qual_is_Po x_garage_qual_is_NA x_UpgGarage
 End

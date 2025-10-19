@@ -58,6 +58,8 @@ class CostTables:
         "RFn": 17500.0,
         "Fin": 24038.0,
     })
+    def garage_finish_cost(self, name: str) -> float:
+        return float(self.garage_finish_costs_sqft.get(str(name), 0.0))
 
         # ====== POOL QUALITY ======
     pool_area_cost: float = 88.0  # USD por ft²
@@ -80,9 +82,15 @@ class CostTables:
     ampl30_cost: float = 130.70  # ampliación grande
     
 
-
-    def garage_finish_cost(self, name: str) -> float:
-        return float(self.garage_finish_costs_sqft.get(str(name), 0.0))
+    # ====== GARAGE QUALITY / CONDITION ======
+    garage_qc_costs: Dict[str, float] = field(default_factory=lambda: {
+        "No aplica": 0.0,
+        "Po": 13000.0,   # muy mala calidad
+        "Fa": 19000.0,   # fair
+        "TA": 57667.0,   # typical/average
+        "Gd": 96333.0,   # good
+        "Ex": 135000.0,  # excellent
+    })
 
     # ====== EXTERIOR ======
     exterior_demo_face1: float = 1.65
