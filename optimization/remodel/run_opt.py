@@ -1138,6 +1138,22 @@ def main():
 
     print("\n===== FIN RESULTADOS DE LA OPTIMIZACIÓN =====")
 
+        # ===== MÉTRICAS DE RENDIMIENTO (tiempo y gap) =====
+    try:
+        tiempo_total = m.Runtime  # tiempo total en segundos
+        gap_final = getattr(m, "MIPGap", None)
+
+        print("\n===== MÉTRICAS DEL OPTIMIZADOR =====")
+        print(f"⏱️  Tiempo total de ejecución: {tiempo_total:,.2f} segundos "
+              f"({tiempo_total/60:.2f} min)")
+        if gap_final is not None and gap_final < gp.GRB.INFINITY:
+            print(f"📉 MIP Gap final: {gap_final*100:.2f}%")
+        else:
+            print("📉 MIP Gap final: no disponible (modelo sin convergencia)")
+    except Exception as e:
+        print(f"(no se pudo calcular métricas de rendimiento: {e})")
+
+
 
 if __name__ == "__main__":
     main()
