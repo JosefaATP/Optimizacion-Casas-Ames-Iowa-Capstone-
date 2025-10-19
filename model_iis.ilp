@@ -1,0 +1,9 @@
+\ Model remodel_embed_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+\ Signature: 0xaadcf52eed01091c
+Maximize
+ 
+Subject To
+ GF_pick_one: = 1
+Bounds
+End

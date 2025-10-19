@@ -230,6 +230,33 @@ def main():
             print("DEBUG Central Air -> precio: []")
     except Exception:
         pass
+
+
+        # === DEBUG Garage Finish → precio: barrido Fin, RFn, Unf, No aplica ===
+    try:
+        cols_gf = ["Garage Finish_Fin", "Garage Finish_RFn", "Garage Finish_Unf", "Garage Finish_No aplica"]
+
+        if any(col in X_base.columns for col in cols_gf):
+            print("\nDEBUG Garage Finish → precio:")
+            for gf in cols_gf:
+                # copio la base
+                df_test = X_base.copy()
+
+                # apago todas las dummies de Garage Finish
+                for c in cols_gf:
+                    if c in df_test.columns:
+                        df_test.loc[:, c] = 0
+
+                # activo solo una
+                if gf in df_test.columns:
+                    df_test.loc[:, gf] = 1
+
+                # predigo con el bundle del pipeline embebido
+                y_pred = bundle.predict(df_test)[0]
+                print(f"   {gf.replace('Garage Finish_', ''):>10}: {y_pred:,.0f}")
+    except Exception as e:
+        print(f"(debug garage finish omitido: {e})")
+
     # ============ FIN DEBUGS ============
 
 
@@ -528,6 +555,28 @@ def main():
             cambios_costos.append(("Electrical", base_elec, picked, elec_extra))
     except Exception:
         pass
+
+    # ---- Garage Finish (reporte + costo + debug) ----
+    try:
+        base_gf = {nm: float(base.row.get(f"Garage Finish_{nm}", 0.0)) for nm in ["Fin", "RFn", "Unf", "No aplica"]}
+        sol_gf = {nm: m.getVarByName(f"x_garage_finish_is_{nm}").X if m.getVarByName(f"x_garage_finish_is_{nm}") else 0.0
+                for nm in ["Fin", "RFn", "Unf", "No aplica"]}
+        upg_val = m.getVarByName("x_UpgGarageFinish").X if m.getVarByName("x_UpgGarageFinish") else 0.0
+
+        # detectar categorías (si no hay ninguna activa, usar "No aplica")
+        gf_before = next((k for k, v in base_gf.items() if v == 1), "No aplica")
+        gf_after = max(sol_gf, key=sol_gf.get) if sol_gf else "No aplica"
+
+        if gf_before != gf_after:
+            # si hay cambio, obtener costo
+            costo_gf = ct.garage_finish_cost(gf_after)
+            cambios_costos.append(("Garage Finish", gf_before, gf_after, costo_gf))
+            print(f"Cambio en acabado de garage: {gf_before} → {gf_after} ({money(costo_gf)})")
+        else:
+            print(f"Sin cambio en acabado de garage (sigue en {gf_before})")
+
+    except Exception as e:
+        print("⚠️ (aviso, no crítico) error leyendo resultado de GarageFinish:", e)
 
     # ---- Mas Vnr Type ----
     MVT_NAMES = ["BrkCmn", "BrkFace", "CBlock", "Stone", "No aplica", "None"]  # soporta ambos labels

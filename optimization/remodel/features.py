@@ -74,6 +74,12 @@ for _nm in ["SBrkr","FuseA","FuseF","FuseP","Mix"]:
     MODIFIABLE.append(FeatureSpec(name=f"elect_is_{_nm}", lb=0, ub=1, vartype="B"))
 
 
+# ==== GARAGE FINISH (Ga = {Fin, RFn, Unf, No aplica}) ====
+for _nm in ["Fin", "RFn", "Unf", "No aplica"]:
+    MODIFIABLE.append(FeatureSpec(name=f"gfin_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+    MODIFIABLE.append(FeatureSpec(name="upg_garage_finish", lb=0, ub=1, vartype="B"))
+
     # === MATERIALES EXTERIORES ===
 EXT_MATS = [
     "AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard","ImStucc",

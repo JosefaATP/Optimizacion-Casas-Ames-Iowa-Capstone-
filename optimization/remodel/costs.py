@@ -49,6 +49,18 @@ class CostTables:
     })
     def mas_vnr_cost(self, name: str) -> float:
         return float(self.mas_vnr_costs_sqft.get(str(name), 0.0))
+    
+    # ====== GARAGE FINISH ======
+    # costos totales por categoría (USD)
+    garage_finish_costs_sqft: Dict[str, float] = field(default_factory=lambda: {
+        "No aplica": 0.0,
+        "Unf": 17500.0,
+        "RFn": 17500.0,
+        "Fin": 24038.0,
+    })
+
+    def garage_finish_cost(self, name: str) -> float:
+        return float(self.garage_finish_costs_sqft.get(str(name), 0.0))
 
     # ====== EXTERIOR ======
     exterior_demo_face1: float = 1.65

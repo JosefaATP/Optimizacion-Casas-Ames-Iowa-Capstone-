@@ -282,6 +282,110 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
 # ================== FIN (ROOF) ==================
 
+    # ========== GARAGE FINISH (upgrade Fin si era RFn o Unf) ==========
+    gf = {nm: x.get(f"garage_finish_is_{nm}") for nm in ["Fin", "RFn", "Unf", "NA"]}
+    upgGF = x.get("UpgGarageFinish")
+
+     # Si la casa no tiene garage y "NA" no está en el modelo, lo reemplazamos por "No aplica"
+    if "garage_finish_is_NA" not in x and "garage_finish_is_No aplica" in x:
+        gf["NA"] = x["garage_finish_is_No aplica"]
+
+    # Si ninguna categoría está definida, forzamos un fallback (dummy)
+    if all(v is None for v in gf.values()):
+        dummy_gf = m.addVar(vtype=gp.GRB.BINARY, name="garage_finish_dummy")
+        m.addConstr(dummy_gf == 1, name="GF_dummy")
+        gf["dummy"] = dummy_gf
+
+    # 1. Selección única
+    m.addConstr(
+        gp.quicksum(v for v in gf.values() if v is not None) == 1,
+        name="GF_pick_one"
+    )
+
+    # 2. Inyección al pipeline (usa las columnas dummy ya one-hotteadas)
+    for nm, v in gf.items():
+        col = f"Garage Finish_{nm}"
+        if v is not None and col in feature_order:
+            _put_var(X_input, col, v)
+
+    # 3. Datos base y limpieza de valores nulos
+    base = {}
+    for nm in ["Fin", "RFn", "Unf", "NA"]:
+        val = base_row.get(f"Garage Finish_{nm}", 0.0)
+        # Si está como None, NaN o texto raro → reemplazar por 0.0
+        if val is None or (isinstance(val, float) and np.isnan(val)):
+            val = 0.0
+        try:
+            base[nm] = float(val)
+        except Exception:
+            base[nm] = 0.0
+
+    mask = {nm: 1 - base[nm] for nm in base}  # M_Ga_i,ga = 1 - BaseGai,ga
+
+    # 4. Restricciones de activación (solo si existen las variables)
+    if upgGF is not None:
+        m.addConstr(upgGF >= base.get("RFn", 0.0), name="GF_upg_ge_RFn")
+        m.addConstr(upgGF >= base.get("Unf", 0.0), name="GF_upg_ge_Unf")
+        m.addConstr(
+            upgGF <= base.get("RFn", 0.0) + base.get("Unf", 0.0),
+            name="GF_upg_le_sum"
+        )
+
+    # 5. Conjuntos permitidos / fijaciones
+    if base.get("NA", 0.0) == 1.0:
+        # NA: no aplica → fijar todo
+        for nm, v in gf.items():
+            if v is None:
+                continue
+            if nm == "NA":
+                m.addConstr(v == 1, name="GF_fix_NA_1")
+            else:
+                m.addConstr(v == 0, name=f"GF_fix_NA_0_{nm}")
+
+    elif base.get("Fin", 0.0) == 1.0:
+        # Ya está Fin: mantener igual
+        for nm, v in gf.items():
+            if v is None:
+                continue
+            if nm == "Fin":
+                m.addConstr(v == 1, name="GF_fix_Fin_1")
+            else:
+                m.addConstr(v == 0, name=f"GF_fix_Fin_0_{nm}")
+
+    elif base.get("RFn", 0.0) == 1.0 or base.get("Unf", 0.0) == 1.0:
+        # Solo puede pasar a Fin si UpgGF=1
+        if gf.get("Fin") is not None and upgGF is not None:
+            m.addConstr(gf["Fin"] <= upgGF, name="GF_upgrade_if_active")
+        if upgGF is not None:
+            m.addConstr(
+                gp.quicksum(v for k, v in gf.items() if k in ["RFn", "Unf"] and v is not None)
+                <= 1 - upgGF,
+                name="GF_no_RF_Unf_if_upg"
+            )
+        m.addConstr(
+            gp.quicksum(v for v in gf.values() if v is not None) == 1,
+            name="GF_sum_1"
+        )
+
+    # 6. Restricción de máscara (solo cambia si era RFn/Unf)
+    if upgGF is not None:
+        m.addConstr(
+            gp.quicksum(mask[nm] * v for nm, v in gf.items() if v is not None) <= upgGF,
+            name="GF_mask_le_upg"
+        )
+
+    # 7. Costo si se realiza cambio (FO)
+    lin_cost += gp.quicksum(
+    ct.garage_finish_cost(nm) * mask.get(nm, 0.0) * v
+    for nm, v in gf.items()
+    if v is not None and nm != "dummy"
+    )
+
+    # ================== FIN (GARAGE FINISH) ==================
+
+
+
+
     # ================== (CENTRAL AIR) ==================
     base_air_raw = str(base_row.get("Central Air", "N")).strip()
     base_is_Y = base_air_raw in {"Y", "Yes", "1", "True"}
