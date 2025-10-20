@@ -124,6 +124,23 @@ def main_with_args(args):
     _coerce_quality_ordinals_inplace(X_base, getattr(bundle, "quality_cols", []))
     _coerce_utilities_ordinal_inplace(X_base)
 
+    #============================
+ # === Armonizar columnas del input con las del modelo XGBoost ===
+    if hasattr(bundle, "feature_names_in_"):
+        modelo_cols = list(bundle.feature_names_in_)
+        faltantes = set(modelo_cols) - set(X_base.columns)
+        if faltantes:
+            print(f"🧩 Corrigiendo {len(faltantes)} columnas faltantes para el modelo XGBoost...")
+            for c in faltantes:
+                X_base[c] = 0
+        extra = set(X_base.columns) - set(modelo_cols)
+        if extra:
+            X_base = X_base.drop(columns=list(extra))
+        X_base = X_base[modelo_cols]
+
+    #=========================
+
+    # finalmente se predice el precio base
     precio_base = float(bundle.predict(X_base).iloc[0])
 
     # ============== DEBUGS (opcionales) ==============
