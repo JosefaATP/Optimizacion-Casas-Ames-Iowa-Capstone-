@@ -13,7 +13,6 @@ class CostTables:
     finish_basement_per_f2: float = 15.0
 
     # ====== COCINA (paquetes) ======
-
     kitchenQual_upgrade_TA: float = 42000.0
     kitchenQual_upgrade_EX: float = 180000.0
 
