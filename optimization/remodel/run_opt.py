@@ -1058,15 +1058,16 @@ def main():
             MIN_KQ = 3  # Gd
             def _kitchen_finish_cost(level_txt: str) -> float:
                 """
-                Costo del paquete/terminaciones de cocina para un nivel destino.
+                Costo de terminaciones/paquete de cocina para el nivel destino.
                 'Gd' hereda el costo de TA si no hay tabla específica.
                 """
                 level_txt = str(level_txt).strip()
                 if level_txt == "Ex":
-                    return float(self.kitchenQual_upgrade_EX)
+                    return float(getattr(ct, "kitchenQual_upgrade_EX", 0.0))
                 if level_txt in {"Gd", "TA"}:
-                    return float(self.kitchenQual_upgrade_TA)
+                    return float(getattr(ct, "kitchenQual_upgrade_TA", 0.0))
                 return 0.0
+
             
             # 3.a) Si se añadió cocina sin x_AddKitch (fallback), cobra obra+fijo
             if (k_new - k_base) > 0.5 and not addk_bin:
@@ -1762,7 +1763,7 @@ def main():
     else:
         print("  (No se detectaron cambios)")
 
-    '''# ------------------ 4) Snapshot completo Base vs Óptimo ------------------
+    # ------------------ 4) Snapshot completo Base vs Óptimo ------------------
     print("\n🧾 **Snapshot: atributos Base vs Óptimo (completo)**")
     try:
         base_dict = dict(base.row.items())
@@ -1815,7 +1816,7 @@ def main():
         else:
             print("  📉 MIP Gap final: N/D")
     except Exception as e:
-        print(f"  ⚠️  No se pudieron calcular métricas: {e}")'''
+        print(f"  ⚠️  No se pudieron calcular métricas: {e}")
 
     print("\n" + "="*60)
     print("            FIN RESULTADOS DE LA OPTIMIZACIÓN")
