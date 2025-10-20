@@ -6,15 +6,14 @@ import pandas as pd
 @dataclass
 class CostTables:
     # ====== COSTOS BASE (numéricos) ======
-    add_bedroom: float = 230.0
-    add_bathroom: float = 850.0
-    deck_per_m2: float = 200.0
-    garage_per_car: float = 9000.0
+    add_bedroom: float = 0.0
+    add_bathroom: float = 0.0
+    deck_per_m2: float = 0.0
     finish_basement_per_f2: float = 15.0
 
     # ====== COCINA (paquetes) ======
 
-    kitchenQual_upgrade_TA: float = 42000.0
+    kitchenQual_upgrade_TA: float = 42500.0
     kitchenQual_upgrade_EX: float = 180000.0
 
     # dentro de class CostTables:
@@ -53,7 +52,7 @@ class CostTables:
     roof_style_costs: Dict[str, float] = field(default_factory=lambda: {
         "Flat": 3500.0, "Gable": 3000.0, "Gambrel": 4500.0,
         "Hip": 4000.0, "Mansard": 6000.0, "Shed": 2000.0,
-    })
+    }) # <- NO VA
     def roof_style_cost(self, name: str) -> float:
         return float(self.roof_style_costs.get(str(name), 0.0))
 
@@ -77,7 +76,7 @@ class CostTables:
     garage_finish_costs_sqft: Dict[str, float] = field(default_factory=lambda: {
         "No aplica": 0.0,
         "Unf": 17500.0,
-        "RFn": 17500.0,
+        "RFn": 20769.0,
         "Fin": 24038.0,
     })
     def garage_finish_cost(self, name: str) -> float:
@@ -107,11 +106,11 @@ class CostTables:
     # ====== GARAGE QUALITY / CONDITION ======
     garage_qc_costs: Dict[str, float] = field(default_factory=lambda: {
         "No aplica": 0.0,
-        "Po": 13000.0,   # muy mala calidad
-        "Fa": 19000.0,   # fair
-        "TA": 57667.0,   # typical/average
-        "Gd": 96333.0,   # good
-        "Ex": 135000.0,  # excellent
+        "Po": 4188.0,   # muy mala calidad
+        "Fa": 14113.0,   # fair
+        "TA": 24038.0,   # typical/average
+        "Gd": 37849.0,   # good
+        "Ex": 51659.0,  # excellent
     })
 
     # ====== PAVED DRIVE ======
@@ -135,7 +134,7 @@ class CostTables:
     })
 
     # costo por pie lineal de construcción nueva (USD/ft)
-    fence_build_cost_per_ft: float = 40.0
+    fence_build_cost_per_ft: float = 40.0 #ARREGLAR ESTO 
 
     def fence_category_cost(self, f: str) -> float:
         """Costo por categoría de cerca (remodelación)"""
@@ -152,12 +151,12 @@ class CostTables:
         "MetalSd": 5.48, "Other": 11.56, "Plywood": 2.00, "PreCast": 37.50,
         "Stone": 27.50, "Stucco": 12.00, "VinylSd": 7.46, "Wd Sdng": 3.64,
         "WdShngl": 12.50,
-    })
+    })  #ARREGLAR
     def ext_mat_cost(self, name: str) -> float:
         return float(self.exterior_matl_costs.get(str(name), 0.0))
 
-    exter_qual_upgrade_per_level: float = 3000.0
-    exter_cond_upgrade_per_level: float = 2500.0
+    exter_qual_upgrade_per_level: float = 17000.0  #ARREGLARLO
+    exter_cond_upgrade_per_level: float = 17000.0  #ARREGLARLO
 
     @staticmethod
     def exterior_area_proxy(base_row: pd.Series) -> float:
@@ -173,11 +172,11 @@ class CostTables:
     electrical_demo_small: float = 800.0
     electrical_type_costs: Dict[str, float] = field(default_factory=lambda: {
         # Ames: SBrkr, FuseA, FuseF, FuseP, Mix (peor→mejor ~ más caro)
-        "FuseP": 1800.0,
-        "FuseF": 2000.0,
+        "FuseP": 850.0,
+        "FuseF": 1675.0,
         "FuseA": 2500.0,
-        "Mix":   3000.0,
-        "SBrkr": 3500.0,
+        "Mix":   1075.0,
+        "SBrkr": 1587.5,
     })
     def electrical_cost(self, name: str) -> float:
         return float(self.electrical_type_costs.get(str(name), 0.0))
@@ -211,7 +210,7 @@ class CostTables:
     # ====== BSMT COND ======
     bsmt_cond_upgrade_costs: Dict[str, float] = field(default_factory=lambda: {
         # costo de elegir este nivel como final cuando la base es TA/Fa/Po
-        "Gd": 50000.0,
+        "Gd": 51750.0,
         "Ex": 62500.0,
     })
     def bsmt_cond_cost(self, name: str) -> float:

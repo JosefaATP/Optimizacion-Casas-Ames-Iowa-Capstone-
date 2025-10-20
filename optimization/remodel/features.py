@@ -184,7 +184,7 @@ IMMUTABLE: List[str] = [
     "YearBuilt", "YearRemodAdd", "Functional", "LotArea", "Lot Shape",
     "LandContour", "LotConfig", "LandSlope", "BldgType", "HouseStyle","Bsmt Exposure",
       "Condition 1", "Condition 2", "MSZoning", "Street", "Alley", "LotFrontage", "Foundation", "Month Sold", 
-      "Year Sold", "Sale Type", "Sale Condition", "2nd Flr SF"
+      "Year Sold", "Sale Type", "Sale Condition", "2nd Flr SF", "Roof Style"
 ]
 
 # mapeo ordinal (ejemplo). Ajusta a tu encoding de entrenamiento

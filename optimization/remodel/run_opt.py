@@ -14,6 +14,88 @@ from .xgb_predictor import (
 from .gurobi_model import build_mip_embed
 from .features import MODIFIABLE
 
+from shutil import get_terminal_size
+
+def _termw(default=100):
+    try:
+        return max(default, get_terminal_size().columns)
+    except Exception:
+        return default
+
+def box_title(title: str, width: int | None = None):
+    w = width or _termw()
+    t = f" {title} "
+    line = "═" * max(0, w - 2)
+    print(f"╔{line}╗")
+    mid = (w - 2 - len(t)) // 2
+    print(f"║{(' ' * max(0, mid))}{t}{(' ' * max(0, w-2-len(t)-mid))}║")
+
+def box_end(width: int | None = None):
+    w = width or _termw()
+    print(f"╚{'═' * (w - 2)}╝")
+
+def print_kv(rows: list[tuple[str, str | float | int | None]], pad_left=2, key_w=26, width=None):
+    """Imprime pares clave-valor alineados."""
+    w = width or _termw()
+    for k, v in rows:
+        if v is None:
+            vtxt = "N/A"
+        elif isinstance(v, (int, float)):
+            vtxt = f"{v:,.2f}" if abs(v - round(v)) > 1e-6 else f"{int(round(v)):,}"
+        else:
+            vtxt = str(v)
+        print("║ " + " " * pad_left + f"{k:<{key_w}} : {vtxt}".ljust(w - 4) + " ║")
+
+def print_changes_table(cambios: list[tuple[str, object, object, float | None]], width=None):
+    """Tabla compacta: Nombre | Base → Nuevo | Costo"""
+    if not cambios:
+        print("║   (No se detectaron cambios)".ljust((width or _termw()) - 2) + "║")
+        return
+    w = width or _termw()
+    name_w = 28
+    val_w  = 22
+    head = f"{'Cambio':<{name_w}} | {'Base → Nuevo':<{val_w}} | {'Costo':>12}"
+    print("║   " + head.ljust(w - 6) + " ║")
+    print("║   " + ("-" * len(head)).ljust(w - 6) + " ║")
+    for nombre, base_val, new_val, cost_val in cambios:
+        base_txt = f"{base_val}"
+        new_txt  = f"{new_val}"
+        costo    = "-" if (cost_val is None or abs(cost_val) < 1e-9) else f"${cost_val:,.0f}"
+        line = f"{nombre:<{name_w}} | {base_txt} → {new_txt:<{val_w - len(base_txt) - 3}} | {costo:>12}"
+        print("║   " + line.ljust(w - 6) + " ║")
+
+def print_snapshot_table(base_row: dict, opt_row: dict | None = None, width=None, max_rows=60):
+    """Snapshot base vs óptimo en tabla compacta (limita filas para no inundar la consola)."""
+    w = width or _termw()
+    keys = sorted(set(base_row.keys()) | set((opt_row or {}).keys()))
+    name_w = 28
+    val_w  = (w - 8 - name_w) // 2  # espacio para dos columnas de valores
+    head = f"{'Atributo':<{name_w}} | {'Base':<{val_w}} | {'Óptimo':<{val_w}}"
+    print("║   " + head.ljust(w - 6) + " ║")
+    print("║   " + ("-" * len(head)).ljust(w - 6) + " ║")
+
+    def _fmt(v):
+        import pandas as _pd
+        try:
+            fv = float(_pd.to_numeric(v, errors="coerce"))
+            if _pd.isna(fv):
+                return str(v)
+            return f"{fv:,.0f}"
+        except Exception:
+            s = str(v)
+            return s if len(s) <= val_w else s[:val_w-1] + "…"
+
+    shown = 0
+    for k in keys:
+        if shown >= max_rows:
+            print("║   … (más filas ocultas)".ljust(w - 4) + " ║")
+            break
+        b = _fmt(base_row.get(k, ""))
+        n = _fmt((opt_row or {}).get(k, ""))
+        line = f"{k:<{name_w}} | {b:<{val_w}} | {n:<{val_w}}"
+        print("║   " + line.ljust(w - 6) + " ║")
+        shown += 1
+
 # -----------------------------
 # Mapeos Utilities (ordinales)
 # -----------------------------
@@ -1554,6 +1636,11 @@ def main():
         "budget_slack": budget_slack,
     }
 
+    print("\n" + "="*60)
+    print("               RESULTADOS DE LA OPTIMIZACIÓN")
+    ...
+    print("="*60 + "\n")
+
     # ============================================================
     #              RESULTADOS DE LA OPTIMIZACIÓN
     # ============================================================
@@ -1581,7 +1668,8 @@ def main():
     print(f"BUDGET declarado en modelo: {getattr(m, '_budget_usd', 0.0):,.2f}")
     print(f"LHS (costos totales): {total_cost_model:,.2f}")
     print(f"RHS (presupuesto):    {getattr(m, '_budget_usd', 0.0):,.2f}")
-    print(f"Slack:                {budget_slack:,.2f}")
+    
+
 
     if precio_opt is not None:
         print(f"[DBG] y_price (predicho): {precio_opt:,.2f}")
@@ -1607,6 +1695,7 @@ def main():
     if precio_base is not None and precio_opt is not None:
         delta_precio = precio_opt - precio_base
         utilidad_incremental = (precio_opt - total_cost_model) - precio_base
+        margen = ((precio_opt - precio_base)/precio_opt)*100
 
     # ============================================================
     #                RESULTADOS IMPRESOS
@@ -1641,7 +1730,9 @@ def main():
         obj_recalc = (precio_opt or 0) - total_cost
         print(f"  Valor objetivo (MIP):    ${obj_recalc:,.2f}   (recalculado)")
     if utilidad_incremental is not None:
-        print(f"  Utilidad vs. base:       ${utilidad_incremental:,.0f}   (=(y_price - cost) - y_base)")
+        print(f"ROI:       ${utilidad_incremental:,.0f}   (=(y_price - cost) - y_base)")
+    if margen is not None:
+        print(f"Porcentaje Neto de Mejoras:       ${margen:,.0f}%   (=(y_price - y_base)/y_price")
     if budget_slack is not None:
         print(f"  Slack presupuesto:       ${budget_slack:,.2f}")
 
@@ -1671,7 +1762,7 @@ def main():
     else:
         print("  (No se detectaron cambios)")
 
-    # ------------------ 4) Snapshot completo Base vs Óptimo ------------------
+    '''# ------------------ 4) Snapshot completo Base vs Óptimo ------------------
     print("\n🧾 **Snapshot: atributos Base vs Óptimo (completo)**")
     try:
         base_dict = dict(base.row.items())
@@ -1724,7 +1815,7 @@ def main():
         else:
             print("  📉 MIP Gap final: N/D")
     except Exception as e:
-        print(f"  ⚠️  No se pudieron calcular métricas: {e}")
+        print(f"  ⚠️  No se pudieron calcular métricas: {e}")'''
 
     print("\n" + "="*60)
     print("            FIN RESULTADOS DE LA OPTIMIZACIÓN")
