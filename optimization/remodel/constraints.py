@@ -1,4 +1,4 @@
-import gurobipy as gp
+'''import gurobipy as gp
 from typing import Dict
 
 # En este archivo agrega las restricciones especificas de tu PDF de modelo matematico.
@@ -19,4 +19,4 @@ def add_kitchen_upgrade_logic(m: gp.Model, x: Dict[str, gp.Var], base: Dict[str,
 
 def add_garage_integrity(m: gp.Model, x: Dict[str, gp.Var], base: Dict[str, float]):
     """GarageCars entero y dentro de rangos logicos (ya cubierto por bounds)."""
-    pass
+    pass'''
