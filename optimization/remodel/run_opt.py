@@ -1245,8 +1245,7 @@ def main_with_args(args):
         + float(fp_cost_report)
     )
 
-    # ===== métricas =====
-    aumento_utilidad = (precio_remodelada - precio_base) - total_cost
+    # ===== métricas ====
 
     print("\n===== RESULTADOS DE LA OPTIMIZACIÓN =====")
 
