@@ -802,15 +802,16 @@ def main():
     # ---- Roof elegido + costos ----
     style_names = ["Flat","Gable","Gambrel","Hip","Mansard","Shed"]
     matl_names  = ["ClyTile","CompShg","Membran","Metal","Roll","Tar&Grv","WdShake","WdShngl"]
+
     style_new = None
     matl_new  = None
     for nm in style_names:
-        v = m.getVarByName(f"roof_style_is_{nm}")
+        v = _getv(m, f"x_roof_style_is_{nm}", f"roof_style_is_{nm}")
         if v is not None and v.X > 0.5:
             style_new = nm
             break
     for nm in matl_names:
-        v = m.getVarByName(f"roof_matl_is_{nm}")
+        v = _getv(m, f"x_roof_matl_is_{nm}", f"roof_matl_is_{nm}")
         if v is not None and v.X > 0.5:
             matl_new = nm
             break
@@ -822,11 +823,12 @@ def main():
     style_cost = 0.0
     matl_cost  = 0.0
     if style_new and style_new != style_base:
-        style_cost = ct.roof_style_cost(style_new)
+        style_cost = float(ct.roof_style_cost(style_new))
         cambios_costos.append(("Roof Style", style_base, style_new, style_cost))
     if matl_new and matl_new != matl_base:
-        matl_cost = ct.roof_matl_cost(matl_new) * roof_area
+        matl_cost = float(ct.roof_matl_cost(matl_new)) * roof_area
         cambios_costos.append(("Roof Matl", matl_base, matl_new, matl_cost))
+
 
     # ---- Exterior 1st/2nd ----
     ext_names = ["AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard",
@@ -834,11 +836,19 @@ def main():
                  "Wd Sdng","WdShngl"]
 
     def _pick_ext(prefix: str, names: list[str]) -> str | None:
+        # prefix esperado: "ex1_" o "ex2_"
         for nm in names:
-            v = m.getVarByName(f"{prefix}{nm}")
+            v = _getv(
+                m,
+                f"x_{prefix}is_{nm}",   # x_ex1_is_AsbShng
+                f"{prefix}is_{nm}",     # ex1_is_AsbShng
+                f"x_{prefix}{nm}",      # x_ex1_AsbShng (por si acaso)
+                f"{prefix}{nm}"         # ex1_AsbShng  (por si acaso)
+            )
             if v is not None and v.X > 0.5:
                 return nm
         return None
+
 
     ex1_new = _pick_ext("ex1_", ext_names)
     ex2_new = _pick_ext("ex2_", ext_names)
@@ -1030,72 +1040,6 @@ def main():
             else:
                 # Todo el aumento del 1st Flr viene de Add*, ya reportados aparte → no cobrar de nuevo
                 pass
-
-
-        # ===== PAQUETE DE COCINA – calidad mínima Gd =====
-        # Detecta aumento de cocinas y/o baja calidad y cobra paquete/upgrade
-        try:
-            # 1) ¿se añadió una cocina?
-            k_base = _to_float_safe(base.row.get("Kitchen AbvGr"))
-            k_new  = _to_float_safe(opt.get("Kitchen AbvGr", k_base))
-            addk_var  = m.getVarByName("x_AddKitch")
-            addk_bin  = (addk_var is not None and addk_var.X > 0.5)
-
-            # 2) Lectura de calidad antes/después
-            def _kq_to_ord(v, default=2):
-                MP = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
-                try:
-                    iv = int(pd.to_numeric(v, errors="coerce"))
-                    return iv if iv in (0,1,2,3,4) else default
-                except Exception:
-                    return MP.get(str(v).strip(), default)
-
-            kq_base = _kq_to_ord(base.row.get("Kitchen Qual", "TA"), default=2)
-            v_kq = m.getVarByName("x_Kitchen Qual")
-            kq_new = int(round(v_kq.X)) if v_kq is not None else kq_base
-
-            # 3) Política: mínimo Gd (3) si hay una cocina nueva
-            MIN_KQ = 3  # Gd
-            def _kitchen_finish_cost(level_txt: str) -> float:
-                """
-                Costo de terminaciones/paquete de cocina para el nivel destino.
-                'Gd' hereda el costo de TA si no hay tabla específica.
-                """
-                level_txt = str(level_txt).strip()
-                if level_txt == "Ex":
-                    return float(getattr(ct, "kitchenQual_upgrade_EX", 0.0))
-                if level_txt in {"Gd", "TA"}:
-                    return float(getattr(ct, "kitchenQual_upgrade_TA", 0.0))
-                return 0.0
-
-            
-            # 3.a) Si se añadió cocina sin x_AddKitch (fallback), cobra obra+fijo
-            if (k_new - k_base) > 0.5 and not addk_bin:
-                c_obra = C_COST * A_Kitch
-                c_fijo = KITCH_FIX
-                c_k = c_obra + c_fijo
-                agregados_cost_report += c_k
-                cambios_costos.append(("Kitchen AbvGr", k_base, k_new, c_k))
-                print(f"agregado (fallback): Kitchen AbvGr +1 → costo {money(c_k)}")
-
-            # 3.b) Si hay cocina nueva o calidad final < Gd, cobra paquete/upgrade hasta Gd
-            needs_package = ((k_new - k_base) > 0.5) or (kq_new < MIN_KQ)
-            if needs_package:
-                target_txt = "Gd"
-                # cobra el paquete/terminaciones de cocina para Gd
-                c_pkg = _kitchen_finish_cost(target_txt)
-                if c_pkg > 0:
-                    agregados_cost_report += c_pkg
-                    cambios_costos.append(("Kitchen Package", "mínimo Gd", target_txt, c_pkg))
-                    print(f"paquete de cocina (mín. {target_txt}) → costo {money(c_pkg)}")
-
-                # además, si kq_new<MIN_KQ explícitamente, cobra upgrade incremental
-                if kq_new < MIN_KQ:
-                    # si necesitas detallar upgrades por escalones, añade aquí
-                    pass
-
-        except Exception as e:
-            print(f"(paquete de cocina omitido: {e})")
 
     except Exception as e:
         print(f"⚠️ error leyendo ampliaciones/agregados: {e}")
@@ -1428,65 +1372,94 @@ def main():
     except Exception as e:
         print("[HEAT-DEBUG] Error en reporte:", e)
 
- # ---- BsmtFin: reconstrucción de valores + costo ----
+    # ---- BsmtFin: costo alineado al modelo (solo tr1/tr2 si existen) ----
     bsmt_finish_cost_report = 0.0
     try:
-        v_fin = m.getVarByName("bsmt_finish")
+        # Helper local robusto (no depende de otras defs)
+        def _num(x, default=0.0):
+            try:
+                import pandas as _pd
+                v = float(_pd.to_numeric(x, errors="coerce"))
+                return default if _pd.isna(v) else v
+            except Exception:
+                return default
+
+        # Tramos de terminación (si existen en el MIP, estos son la verdad del costo)
         v_tr1 = m.getVarByName("bsmt_tr1")
         v_tr2 = m.getVarByName("bsmt_tr2")
-        b1_var = m.getVarByName("bsmt_fin1")
-        b2_var = m.getVarByName("bsmt_fin2")
-        bu_var = m.getVarByName("bsmt_unf")
 
-        if all(v is not None for v in [v_fin, v_tr1, v_tr2, b1_var, b2_var, bu_var]):
-            tr1 = float(v_tr1.X)
-            tr2 = float(v_tr2.X)
-
-            # bases
-            b1b = float(pd.to_numeric(base.row.get("BsmtFin SF 1"), errors="coerce") or 0.0)
-            b2b = float(pd.to_numeric(base.row.get("BsmtFin SF 2"), errors="coerce") or 0.0)
-            bub = float(pd.to_numeric(base.row.get("Bsmt Unf SF"),   errors="coerce") or 0.0)
-            tbb = float(pd.to_numeric(base.row.get("Total Bsmt SF"), errors="coerce") or (b1b+b2b+bub))
-
-            # nuevos desde variables (conservación)
-            b1n = float(b1_var.X)
-            b2n = float(b2_var.X)
-            bun = float(bu_var.X)
-            tbn = b1n + b2n + bun
-
-            # costo: solo lo trasladado a “fin”
+        if v_tr1 is not None or v_tr2 is not None:
+            tr1 = float(v_tr1.X) if v_tr1 is not None else 0.0
+            tr2 = float(v_tr2.X) if v_tr2 is not None else 0.0
             added = tr1 + tr2
             if added > 1e-9:
-                bsmt_finish_cost_report = ct.finish_basement_per_f2 * added
+                bsmt_finish_cost_report = float(ct.finish_basement_per_f2) * added
+                total_base = _num(base.row.get("BsmtFin SF 1"), 0.0) + _num(base.row.get("BsmtFin SF 2"), 0.0)
+                total_new  = total_base + added
+                if bsmt_finish_cost_report > 1e-9:
+                    cambios_costos.append((
+                        "Basement finish (ft²)",
+                        int(round(total_base)),
+                        int(round(total_new)),
+                        float(bsmt_finish_cost_report),
+                        ))
 
-            # cambios para imprimir (cobrando solo lo que corresponde)
-            if abs(b1n - b1b) > 1e-9:
-                cambios_costos.append(("BsmtFin SF 1", b1b, b1n, ct.finish_basement_per_f2 * tr1))
-            if abs(b2n - b2b) > 1e-9:
-                cambios_costos.append(("BsmtFin SF 2", b2b, b2n, ct.finish_basement_per_f2 * tr2))
-            if abs(bun - bub) > 1e-9:
-                cambios_costos.append(("Bsmt Unf SF",  bub, bun, 0.0))
-            if abs(tbn - tbb) > 1e-9:
-                cambios_costos.append(("Total Bsmt SF", tbb, tbn, 0.0))
+
+            # Para snapshot (sin costo) y una ÚNICA línea de costo total:
+            b1_var = m.getVarByName("bsmt_fin1")
+            b2_var = m.getVarByName("bsmt_fin2")
+            bu_var = m.getVarByName("bsmt_unf")
+
+            # Valores base desde la casa
+            b1b = _num(base.row.get("BsmtFin SF 1"), 0.0)
+            b2b = _num(base.row.get("BsmtFin SF 2"), 0.0)
+            bub = _num(base.row.get("Bsmt Unf SF"),   0.0)
+
+            # Valores óptimos si existen variables; si no, usa base
+            b1n = float(b1_var.X) if b1_var is not None else b1b
+            b2n = float(b2_var.X) if b2_var is not None else b2b
+            bun = float(bu_var.X) if bu_var is not None else bub
+
+            # Snapshot sin costo (para mostrar cambios de SF)
+            if abs(b1n - b1b) > 1e-9: cambios_costos.append(("BsmtFin SF 1", b1b, b1n, 0.0))
+            if abs(b2n - b2b) > 1e-9: cambios_costos.append(("BsmtFin SF 2", b2b, b2n, 0.0))
+            if abs(bun - bub) > 1e-9: cambios_costos.append(("Bsmt Unf SF",  bub, bun, 0.0))
+
+            # UNA sola línea con el costo real de terminar basement (según tramos)
+            total_base = int(round(b1b + b2b))
+            total_new  = int(round(b1n + b2n))
+            if bsmt_finish_cost_report > 1e-9 and total_new != total_base:
+                cambios_costos.append((
+                    "Basement finish (ft²)",
+                    total_base,
+                    total_new,
+                    float(bsmt_finish_cost_report)
+                ))
+
+        else:
+            # Fallback: no hay tr1/tr2; cobramos por delta directo de SF terminados
+            b1_base = _num(base.row.get("BsmtFin SF 1"), 0.0)
+            b2_base = _num(base.row.get("BsmtFin SF 2"), 0.0)
+
+            v_b1 = m.getVarByName("bsmt_fin1")
+            v_b2 = m.getVarByName("bsmt_fin2")
+
+            b1_new = float(v_b1.X) if v_b1 is not None else b1_base
+            b2_new = float(v_b2.X) if v_b2 is not None else b2_base
+
+            c_b1 = max(0.0, b1_new - b1_base) * float(ct.finish_basement_per_f2)
+            c_b2 = max(0.0, b2_new - b2_base) * float(ct.finish_basement_per_f2)
+
+            if c_b1 > 0.0: cambios_costos.append(("BsmtFin SF 1", b1_base, b1_new, c_b1))
+            if c_b2 > 0.0: cambios_costos.append(("BsmtFin SF 2", b2_base, b2_new, c_b2))
+
+            bsmt_finish_cost_report = c_b1 + c_b2
+
     except Exception as e:
         print("[BSMT-DEBUG] error construyendo reporte:", e)
+    
+    print(f"[DBG] bsmt_finish_cost_report: {bsmt_finish_cost_report:,.0f}")
 
-    # Fallback (si no existían tr1/tr2/vars de conservación): usar solo delta positivo
-    if bsmt_finish_cost_report == 0.0:
-        try:
-            b1_base = float(pd.to_numeric(base.row.get("BsmtFin SF 1"), errors="coerce") or 0.0)
-            b2_base = float(pd.to_numeric(base.row.get("BsmtFin SF 2"), errors="coerce") or 0.0)
-            b1_new  = _to_float_safe(opt.get("BsmtFin SF 1", b1_base))
-            b2_new  = _to_float_safe(opt.get("BsmtFin SF 2", b2_base))
-            c_b1 = max(0.0, b1_new - b1_base) * ct.finish_basement_per_f2
-            c_b2 = max(0.0, b2_new - b2_base) * ct.finish_basement_per_f2
-            if c_b1 > 0:
-                cambios_costos.append(("BsmtFin SF 1", b1_base, b1_new, c_b1))
-            if c_b2 > 0:
-                cambios_costos.append(("BsmtFin SF 2", b2_base, b2_new, c_b2))
-            bsmt_finish_cost_report = c_b1 + c_b2
-        except Exception:
-            pass
 
 
     # ---- Bsmt Cond (reporte + costo) ----
@@ -1646,13 +1619,19 @@ def main():
     #              RESULTADOS DE LA OPTIMIZACIÓN
     # ============================================================
 
-    print("\n[DBG] Comparación de costos línea a línea:")
+    print("\n[DBG] Costo usado por término (var * coef):")
     if hasattr(m, "_lin_cost_expr"):
+        used = []
         for i in range(m._lin_cost_expr.size()):
             v = m._lin_cost_expr.getVar(i)
-            c = m._lin_cost_expr.getCoeff(i)
-            if abs(c) > 0:
-                print(f"   {v.VarName:30s} → {c:,.0f}")
+            c = float(m._lin_cost_expr.getCoeff(i))
+            x = float(getattr(v, "X", 0.0))
+            if x * c > 1e-6:
+                used.append((v.VarName, x * c, c, x))
+        used.sort(key=lambda t: -t[1])
+        for name, val, coef, x in used[:80]:  # limita para no inundar la consola
+            print(f"   {name:30s} → {val:,.0f}   (coef={coef:,.0f}, x={x:.2f})")
+
 
     # --- Lecturas seguras de precios y costos desde el modelo ---
     precio_base = getattr(m, "_base_price_val", None)
@@ -1763,7 +1742,7 @@ def main():
     else:
         print("  (No se detectaron cambios)")
 
-    # ------------------ 4) Snapshot completo Base vs Óptimo ------------------
+    '''# ------------------ 4) Snapshot completo Base vs Óptimo ------------------
     print("\n🧾 **Snapshot: atributos Base vs Óptimo (completo)**")
     try:
         base_dict = dict(base.row.items())
@@ -1816,7 +1795,7 @@ def main():
         else:
             print("  📉 MIP Gap final: N/D")
     except Exception as e:
-        print(f"  ⚠️  No se pudieron calcular métricas: {e}")
+        print(f"  ⚠️  No se pudieron calcular métricas: {e}")'''
 
     print("\n" + "="*60)
     print("            FIN RESULTADOS DE LA OPTIMIZACIÓN")
