@@ -24,7 +24,7 @@ MODIFIABLE = [
     FeatureSpec("Bsmt Unf SF",  0.0, 100000.0, "C"),
     FeatureSpec("Gr Liv Area", 0.0, 10000.0, "C"),
     FeatureSpec("1st Flr SF", 0.0, 5000.0, "C"),
-    FeatureSpec("2nd Flr SF", 0.0, 4000.0, "C"),
+    #FeatureSpec("2nd Flr SF", 0.0, 4000.0, "C"),
     FeatureSpec("Low Qual Fin SF", 0.0, 1000.0, "C"),
     # --- Mas Vnr Type (binarios) ---
     FeatureSpec("mvt_is_BrkCmn", lb=0, ub=1, vartype="B"),
@@ -180,11 +180,11 @@ for c in COMPONENTES:
 
 # features fijas que el modelo necesita pero no se modifican (tomadas de la casa base)
 IMMUTABLE: List[str] = [
-    "MSSubClass", "Neighborhood", "OverallQual", "OverallCond",
+    "MS SubClass", "Neighborhood", "OverallQual", "OverallCond",
     "YearBuilt", "YearRemodAdd", "Functional", "LotArea", "Lot Shape",
-    "LandContour", "LotConfig", "LandSlope", "BldgType", "HouseStyle","Basement Exposure",
-      "condition_1", "condition_2", "MSZoning", "Street", "Alley", "LotFrontage", "Fondation", "Month Sold", 
-      "Year Sold", "Sale Type", "Sale Condition"
+    "LandContour", "LotConfig", "LandSlope", "BldgType", "HouseStyle","Bsmt Exposure",
+      "Condition 1", "Condition 2", "MSZoning", "Street", "Alley", "LotFrontage", "Foundation", "Month Sold", 
+      "Year Sold", "Sale Type", "Sale Condition", "2nd Flr SF"
 ]
 
 # mapeo ordinal (ejemplo). Ajusta a tu encoding de entrenamiento

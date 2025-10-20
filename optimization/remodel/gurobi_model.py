@@ -82,8 +82,29 @@ def apply_quality_policy_ordinal(m, x: dict, base_row: pd.Series, col: str):
 
 
 
-def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: XGBBundle) -> gp.Model:
+def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: XGBBundle, base_price=None) -> gp.Model:
+    # --- Normalizar presupuesto a USD --
+
     m = gp.Model("remodel_embed")
+
+    # --- Normalizar presupuesto a float USD ---
+    try:
+        budget_usd = float(budget)
+        if not np.isfinite(budget_usd) or budget_usd <= 0:
+            print(f"[WARN] Presupuesto inválido o no positivo ({budget}), se usa fallback 40000")
+            budget_usd = 40000.0
+    except Exception:
+        print(f"[WARN] Presupuesto no numérico ({type(budget)}={budget}), se usa fallback 40000")
+        budget_usd = 40000.0
+    
+    m._budget_usd = float(budget_usd)
+    m._budget = float(budget_usd)  # compat con tu logger anterior
+
+
+    # si no viene precalculado, lo calculamos rápido
+    if base_price is None:
+        Xb = pd.DataFrame([base_row])
+        base_price = float(bundle.predict(Xb).iloc[0])
 
     # -------------------
     # 1) Variables de decisión
@@ -490,7 +511,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # ================== FIN (CENTRAL AIR) ==================
 
 
-    '''# ========== POOL QC (solo mejora, no crear piscina) ==========
+    # ========== POOL QC (solo mejora, no crear piscina) ==========
     PQC = ["Ex","Gd","TA","Fa","Po","No aplica"]
 
     def _pq_base_dummy(tag: str) -> float:
@@ -564,26 +585,35 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
 
 
-# ========== ÁREA LIBRE Y DECISIONES DE AMPLIACIÓN / AGREGADO ==========
+    # =======================================================================
+    # ========== ÁREA LIBRE Y DECISIONES DE AMPLIACIÓN / AGREGADO ==========
+    # Basado en PDF de modelo de remodelación (p.26–28)
+    # =======================================================================
 
-    A_Full, A_Half, A_Kitch, A_Bed = 40.0, 20.0, 75.0, 70.0  # ft²
+    # --- 1. Parámetros de superficie por agregado directo (ft²) ---
+    A_Full, A_Half, A_Kitch, A_Bed = 40.0, 20.0, 75.0, 70.0  # baño completo, medio, cocina, dormitorio
 
-    AddFull, AddHalf, AddKitch, AddBed = x["AddFull"], x["AddHalf"], x["AddKitch"], x["AddBed"]
+    # Variables binarias de agregados (deben existir en x)
+    AddFull  = x.get("AddFull", None)
+    AddHalf  = x.get("AddHalf", None)
+    AddKitch = x.get("AddKitch", None)
+    AddBed   = x.get("AddBed", None)
 
-    COMPONENTES = ["Garage Area", "Wood Deck SF", "Open Porch SF", "Enclosed Porch",
-                "3Ssn Porch", "Screen Porch", "Pool Area"]
+    # --- 2. Componentes con ampliaciones porcentuales (10, 20, 30%) ---
+    COMPONENTES = [
+        "Garage Area", "Wood Deck SF", "Open Porch SF",
+        "Enclosed Porch", "3Ssn Porch", "Screen Porch", "Pool Area"
+    ]
     z = {c: {s: x[f"z{s}_{c.replace(' ', '')}"] for s in [10, 20, 30]} for c in COMPONENTES}
 
-    ampl_cost_report = 0.0
-    agregados_cost_report = 0.0
-
-
+    # --- 3. Helper para obtener valor numérico base ---
     def _val(col):
         try:
             return float(pd.to_numeric(base_row.get(col), errors="coerce") or 0.0)
         except Exception:
             return 0.0
 
+    # --- 4. Calcular área libre del terreno (ft² disponibles para ampliar) ---
     lot_area = _val("Lot Area")
     first_flr = _val("1st Flr SF")
     garage = _val("Garage Area")
@@ -594,14 +624,15 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     screen = _val("Screen Porch")
     pool = _val("Pool Area")
 
-    area_libre_base = lot_area - (first_flr + garage + wooddeck + openporch +
-                                enclosed + ssn3 + screen + pool)
+    area_libre_base = lot_area - (first_flr + garage + wooddeck + openporch + enclosed + ssn3 + screen + pool)
     if area_libre_base < 0:
         area_libre_base = 0.0
 
+    # --- 5. Restricción: solo una escala de ampliación por componente ---
     for c in COMPONENTES:
         m.addConstr(sum(z[c][s] for s in [10, 20, 30]) <= 1, name=f"AMPL_one_scale_{c.replace(' ', '')}")
 
+    # --- 6. Δ (delta) de ampliación para cada porcentaje ---
     delta = {}
     for c in COMPONENTES:
         base_val = _val(c)
@@ -609,32 +640,53 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             base_val = 0.0
         delta[c] = {s: round(base_val * s / 100, 3) for s in [10, 20, 30]}
 
+    # --- 7. Restricción: área libre no negativa (PDF p.27) ---
     m.addConstr(
-        (area_libre_base
-        - (A_Full * AddFull + A_Half * AddHalf + A_Kitch * AddKitch + A_Bed * AddBed)
-        - gp.quicksum(delta[c][s] * z[c][s] for c in COMPONENTES for s in [10, 20, 30]))
-        >= 0, name="AREA_libre_no_negativa"
+        (
+            area_libre_base
+            - (A_Full * (AddFull or 0) + A_Half * (AddHalf or 0)
+            + A_Kitch * (AddKitch or 0) + A_Bed * (AddBed or 0))
+            - gp.quicksum(delta[c][s] * z[c][s] for c in COMPONENTES for s in [10, 20, 30])
+        ) >= 0,
+        name="AREA_libre_no_negativa"
     )
 
-    lin_cost += ct.construction_cost * (A_Full * AddFull + A_Half * AddHalf + A_Kitch * AddKitch + A_Bed * AddBed)
+    # --- 8. Costo de construcción de agregados directos (PDF p.28) ---
+    lin_cost += ct.construction_cost * (
+        A_Full  * (AddFull  or 0)
+        + A_Half  * (AddHalf  or 0)
+        + A_Kitch * (AddKitch or 0)
+        + A_Bed   * (AddBed   or 0)
+    )
 
-    # --- 2.1 Áreas finales por componente c = base + Δ(c)*z ---
+    # --- 9. Áreas finales = base + Δ ampliaciones ---
     for c in COMPONENTES:
-        if c in x:                    # solo si la feature es modificable
+        if c in x:  # solo si la feature es modificable
             m.addConstr(
-                x[c] == _val(c) + gp.quicksum(delta[c][s] * z[c][s] for s in [10,20,30]),
-                name=f"AMPL_link_{c.replace(' ','')}"
+                x[c] == _val(c) + gp.quicksum(delta[c][s] * z[c][s] for s in [10, 20, 30]),
+                name=f"AMPL_link_{c.replace(' ', '')}"
             )
 
-    # --- 2.2 1st Flr SF = base + A_Full*AddFull + A_Half*AddHalf + A_Kitch*AddKitch + A_Bed*AddBed ---
+    # --- 10. Vincular agregados al 1st Flr SF ---
     if "1st Flr SF" in x:
         m.addConstr(
-            x["1st Flr SF"] == first_flr
-            + A_Full*AddFull + A_Half*AddHalf + A_Kitch*AddKitch + A_Bed*AddBed,
+            x["1st Flr SF"]
+            == first_flr
+            + A_Full  * (AddFull  or 0)
+            + A_Half  * (AddHalf  or 0)
+            + A_Kitch * (AddKitch or 0)
+            + A_Bed   * (AddBed   or 0),
             name="AMPL_link_1stflr"
         )
 
-    # --- Contadores base para agregados (PDF p.27) ---
+        # Ampliación discreta adicional de 40 ft² (PDF p.27)
+        v_1flr = m.addVar(vtype=gp.GRB.BINARY, name="x_Add1stFlr")
+        delta_1flr = 40.0
+        cost_1flr = ct.construction_cost * delta_1flr
+        m.addConstr(x["1st Flr SF"] >= first_flr + v_1flr * delta_1flr, name="AMPL_1stflr_upgrade")
+        lin_cost += cost_1flr * v_1flr
+
+    # --- 11. Vincular contadores de habitaciones/baños/cocinas ---
     def _num_b(col: str) -> float:
         try:
             return float(pd.to_numeric(base_row.get(col), errors="coerce") or 0.0)
@@ -648,30 +700,26 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         "Kitchen AbvGr":  _num_b("Kitchen AbvGr"),
     }
 
-    # Vincular agregados a contadores finales (solo si existen en x)
     if "Full Bath" in x:
-        m.addConstr(x["Full Bath"] == base_counts["Full Bath"] + AddFull,   name="COUNT_fullbath")
+        m.addConstr(x["Full Bath"] == base_counts["Full Bath"] + (AddFull  or 0), name="COUNT_fullbath")
     if "Half Bath" in x:
-        m.addConstr(x["Half Bath"] == base_counts["Half Bath"] + AddHalf,   name="COUNT_halfbath")
+        m.addConstr(x["Half Bath"] == base_counts["Half Bath"] + (AddHalf  or 0), name="COUNT_halfbath")
     if "Bedroom AbvGr" in x:
-        m.addConstr(x["Bedroom AbvGr"] == base_counts["Bedroom AbvGr"] + AddBed, name="COUNT_bedroom")
+        m.addConstr(x["Bedroom AbvGr"] == base_counts["Bedroom AbvGr"] + (AddBed   or 0), name="COUNT_bedroom")
     if "Kitchen AbvGr" in x:
-        m.addConstr(x["Kitchen AbvGr"] == base_counts["Kitchen AbvGr"] + AddKitch, name="COUNT_kitchen")
+        m.addConstr(x["Kitchen AbvGr"] == base_counts["Kitchen AbvGr"] + (AddKitch or 0), name="COUNT_kitchen")
 
-    # Vincular agregados al 1st Flr SF (PDF p.27): 1stFlrSF_final = base + A_Full*AddFull + A_Half*AddHalf + A_Kitch*AddKitch + A_Bed*AddBed
-    if "1st Flr SF" in x:
-        m.addConstr(
-            x["1st Flr SF"] == first_flr + A_Full*AddFull + A_Half*AddHalf + A_Kitch*AddKitch + A_Bed*AddBed,
-            name="AREA_firstflr_link"
+    # --- 12. Costos de ampliaciones porcentuales (PDF p.28) ---
+    for c in COMPONENTES:
+        lin_cost += (
+            ct.ampl10_cost * delta[c][10] * z[c][10]
+            + ct.ampl20_cost * delta[c][20] * z[c][20]
+            + ct.ampl30_cost * delta[c][30] * z[c][30]
         )
 
-
-
-    for c in COMPONENTES:
-        lin_cost += (ct.ampl10_cost * delta[c][10] * z[c][10] +
-                    ct.ampl20_cost * delta[c][20] * z[c][20] +
-                    ct.ampl30_cost * delta[c][30] * z[c][30])
-    # ================== FIN (ÁREA LIBRE Y AMPLIACIONES) ==================
+    # =======================================================================
+    # ================== FIN (ÁREA LIBRE Y AMPLIACIONES) ====================
+    # =======================================================================
 
     # ========== GARAGE QUAL / COND ==========
     G_CATS = ["Ex","Gd","TA","Fa","Po","No aplica"]
@@ -801,7 +849,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         for f in ["MnPrv", "GdPrv"]:
             if f in fn:
                 lin_cost += ct.fence_build_cost_per_ft * lot_front * fn[f]
-# ================== FIN (FENCE) =================='''
+# ================== FIN (FENCE) ==================
 
     # ================== (ELECTRICAL) ==================
     ELECT_TYPES = ["SBrkr", "FuseA", "FuseF", "FuseP", "Mix"]
@@ -1241,6 +1289,12 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     else:
         y_price = y_log
 
+
+    # --- Guardar referencias para inspección desde run_opt.py ---
+    m._y_price_var = y_price
+    m._y_log_var = y_log
+    m._base_price_val = base_price
+
     # -------------------
     # 6) Costos lineales (numéricos + cocina + utilities + roof)
     # -------------------
@@ -1255,16 +1309,6 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         "Full Bath": _num_base("Full Bath"),
         "Wood Deck SF": _num_base("Wood Deck SF"),
     }
-
-
-    if "Bedroom AbvGr" in x:
-        lin_cost += pos(x["Bedroom AbvGr"] - base_vals_lin["Bedroom AbvGr"]) * ct.add_bedroom
-    if "Full Bath" in x:
-        lin_cost += pos(x["Full Bath"] - base_vals_lin["Full Bath"]) * ct.add_bathroom
-    if "Wood Deck SF" in x:
-        lin_cost += pos(x["Wood Deck SF"] - base_vals_lin["Wood Deck SF"]) * ct.deck_per_m2
-    
-
 
 
     # Utilities (upgrade-only; costo solo si cambias)
@@ -1308,13 +1352,53 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         for mn, vb in m_bin.items():
             if mn != base_matl:
                 lin_cost += ct.roof_matl_cost(mn) * roof_area * vb  # $/ft2 * área
+    
+        # ================== COSTOS ADICIONALES (CONSTRUCCIÓN Y DEMOLICIÓN) ==================
+    try:
+        # Costos base generales (por demolición de sectores y construcción)
+        if hasattr(ct, "demo_cost") and hasattr(ct, "construction_cost"):
+            lin_cost += ct.demo_cost  # demolición general si aplica
+            lin_cost += ct.construction_cost * gp.quicksum([
+                (AddFull or 0), (AddHalf or 0), (AddKitch or 0), (AddBed or 0)
+            ])
+        else:
+            print("[WARN] CostTables no tiene demo_cost o construction_cost definidos")
+    except Exception as e:
+        print(f"[WARN] Error agregando costos generales: {e}")
+    # ===================================================================
 
+
+    # === RESTRICCIÓN: la casa remodelada no puede valer menos que la base ===
+    m.addConstr(y_price >= base_price - 1e-6, name="MIN_PRICE_BASE")
     # -------------------
     # 7) Presupuesto y objetivo
-    # -------------------
-    total_cost = lin_cost
-    m.addConstr(total_cost <= budget, name="budget")
-    m.setObjective(y_price - total_cost, gp.GRB.MAXIMIZE)
+
+    # --- Variable explícita de costo total (para depurar y reportar) ---
+    cost_model = m.addVar(lb=0.0, name="cost_model")
+    m.addConstr(cost_model == lin_cost, name="COST_LINK")
+
+    # --- Restricción de presupuesto (estricta y con tolerancia baja) ---
+    m.Params.FeasibilityTol = 1e-9
+    m.Params.IntFeasTol = 1e-9
+    m.Params.OptimalityTol = 1e-9
+    m.Params.NumericFocus = 3
+    m.addConstr(cost_model <= budget_usd, name="BUDGET")
+
+# --- Función objetivo ---
+    m.setObjective(y_price - lin_cost, gp.GRB.MAXIMIZE)
+
+    # --- Guardar lin_cost dentro del modelo para debug externo ---
+    m._lin_cost_expr = lin_cost
+
+    # --- Debug interno del lin_cost ---
+    try:
+        nterms = lin_cost.size()
+        print(f"[DBG] lin_cost tiene {nterms} términos")
+        if nterms > 0:
+            sample = [(lin_cost.getVar(i).VarName, lin_cost.getCoeff(i)) for i in range(min(5, nterms))]
+            print(f"[DBG] primeros términos: {sample}")
+    except Exception as e:
+        print(f"[DBG] no se pudo inspeccionar lin_cost ({type(lin_cost)}): {e}")
 
     # -------------------
     # 8) Resto de restricciones (R1..R8)

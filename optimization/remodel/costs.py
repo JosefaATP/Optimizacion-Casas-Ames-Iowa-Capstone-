@@ -6,10 +6,10 @@ import pandas as pd
 @dataclass
 class CostTables:
     # ====== COSTOS BASE (numéricos) ======
-    add_bedroom: float = 8000.0
-    add_bathroom: float = 1200000.0
+    add_bedroom: float = 230.0
+    add_bathroom: float = 850.0
     deck_per_m2: float = 200.0
-    garage_per_car: float = 900000.0
+    garage_per_car: float = 9000.0
     finish_basement_per_f2: float = 15.0
 
     # ====== COCINA (paquetes) ======

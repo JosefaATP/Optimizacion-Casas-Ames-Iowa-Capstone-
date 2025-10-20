@@ -504,7 +504,9 @@ def main():
     # ============ FIN DEBUGS ============
 
     # ===== construir MIP =====
-    m: gp.Model = build_mip_embed(base.row, args.budget, ct, bundle)
+    m: gp.Model = build_mip_embed(base.row, args.budget, ct, bundle, base_price=precio_base)
+
+
 
     # Ajustes de resolución
     m.Params.MIPGap = PARAMS.mip_gap
@@ -516,6 +518,43 @@ def main():
 
     # Optimizar
     m.optimize()
+
+    for c in m.getConstrs():
+        if "BUDGET" in c.ConstrName:
+            print(f"[DBG] Presupuesto usado efectivamente: RHS={c.RHS:.2f}, Slack={c.Slack:.2f}")
+
+    print("\n===== DEBUG PRESUPUESTO =====")
+    print(f"BUDGET declarado en modelo: {getattr(m, '_budget', 'N/D')}")
+    bud = next((c for c in m.getConstrs() if c.ConstrName == "BUDGET"), None)
+    if bud:
+        try:
+            rhs = bud.RHS
+            slack = bud.Slack
+            lhs = rhs - slack
+            print(f"LHS (costos totales): {lhs:,.2f}")
+            print(f"RHS (presupuesto):    {rhs:,.2f}")
+            print(f"Slack:                {slack:,.2f}")
+        except Exception as e:
+            print(f"⚠️ No se pudo leer restricción: {e}")
+    else:
+        print("⚠️ No se encontró restricción 'BUDGET'")
+    
+    # --- Debug: leer precios y costos directamente del modelo ---
+    if hasattr(m, "_y_price_var"):
+        precio_opt = m._y_price_var.X
+        print(f"[DBG] y_price (predicho): {precio_opt:,.2f}")
+
+    if hasattr(m, "_base_price_val"):
+        print(f"[DBG] base_price_val (desde modelo): {m._base_price_val:,.2f}")
+
+    if hasattr(m, "_lin_cost_expr"):
+        try:
+            lin_val = m._lin_cost_expr.getValue()
+            print(f"[DBG] lin_cost.getValue(): {lin_val:,.2f}")
+        except Exception as e:
+            print(f"[DBG] lin_cost.getValue() error: {e}")
+
+
 
     # ===== chequear factibilidad =====
     if m.Status not in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT):
@@ -594,16 +633,31 @@ def main():
 
     cambios_costos = []
 
+    # flags de agregados (para evitar doble conteo en delta de contadores)
+    def _bx(nm):
+        v = m.getVarByName(f"x_{nm}")
+        return (float(v.X) if v is not None else 0.0)
+
+    add_flags = {
+        "AddFull":  _bx("AddFull"),
+        "AddHalf":  _bx("AddHalf"),
+        "AddKitch": _bx("AddKitch"),
+        "AddBed":   _bx("AddBed"),
+    }
+
     # costos numéricos mapeados (dorms, baños, garage)
     def costo_var(nombre: str, base_v: float, nuevo_v: float) -> float:
         delta = nuevo_v - base_v
-        if nombre == "Bedroom AbvGr":
-            return _pos(delta) * ct.add_bedroom
+        # Los baños completos adicionales se cobran por AddFull (obra + terminaciones)
         if nombre == "Full Bath":
-            return _pos(delta) * ct.add_bathroom
-        if nombre == "Garage Cars":
-            return _pos(delta) * ct.garage_per_car
+            return 0.0
+        # Si se agregó dormitorio vía AddBed, no cobrar delta de "Bedroom AbvGr"
+        if nombre == "Bedroom AbvGr":
+            if add_flags.get("AddBed", 0.0) >= 0.5:
+                return 0.0
+            return _pos(delta) * ct.add_bedroom
         return 0.0
+
 
     total_cost_vars = 0.0
     for nombre, base_v in base_vals.items():
@@ -769,6 +823,201 @@ def main():
     except Exception:
         pass
 
+    # ========== AMPLIACIONES Y AGREGADOS (post-solve) ==========
+    ampl_cost_report = 0.0
+    agregados_cost_report = 0.0
+    try:
+        # --- Helpers locales seguros ---
+        def _to_float_safe(val):
+            import pandas as _pd
+            try:
+                v = float(_pd.to_numeric(val, errors="coerce"))
+                return 0.0 if _pd.isna(v) else v
+            except Exception:
+                return 0.0
+
+        # ===== Parámetros base =====
+        A_Full  = float(getattr(ct, "area_full_bath_std", 40.0))
+        A_Half  = float(getattr(ct, "area_half_bath_std", 20.0))
+        A_Kitch = float(getattr(ct, "area_kitchen_std",  75.0))
+        A_Bed   = float(getattr(ct, "area_bedroom_std",  70.0))
+
+        C_COST  = float(getattr(ct, "construction_cost", 0.0))  # $/ft² genérico
+
+        # ===== AGREGADOS BINARIOS =====
+        # Construcción (si la variable binaria está activa)
+        agregados = {
+            "AddFull":  ("Full Bath",     A_Full,  C_COST),
+            "AddHalf":  ("Half Bath",     A_Half,  C_COST),
+            "AddKitch": ("Kitchen AbvGr", A_Kitch, C_COST),
+            "AddBed":   ("Bedroom AbvGr", A_Bed,   C_COST),
+        }
+        # Costos extra de terminaciones/equipamiento (si los has definido en CostTables)
+        FULL_FIX  = float(getattr(ct, "bath_full_fixture_fixed", 0.0))   # e.g., artefactos/terminaciones
+        HALF_FIX  = float(getattr(ct, "bath_half_fixture_fixed", 0.0))
+        BED_FIX   = float(getattr(ct, "bedroom_finish_fixed", 0.0))      # opcional
+        KITCH_FIX = float(getattr(ct, "add_kitchen_fixed", 0.0))         # fijo adicional a obra
+
+        for key, (nombre, area, costo_unit) in agregados.items():
+            var = m.getVarByName(f"x_{key}")
+            if var and var.X > 0.5:
+                c_obra = float(costo_unit) * float(area)
+                c_fix  = 0.0
+                if key == "AddFull":
+                    c_fix = FULL_FIX
+                elif key == "AddHalf":
+                    c_fix = HALF_FIX
+                elif key == "AddBed":
+                    c_fix = BED_FIX
+                elif key == "AddKitch":
+                    c_fix = KITCH_FIX
+
+                costo_total = c_obra + c_fix
+                agregados_cost_report += costo_total
+                cambios_costos.append((nombre, "sin", "agregado", costo_total))
+                print(f"agregado: {nombre} (+{area:.0f} ft²) → costo {money(costo_total)}")
+
+        # ===== AMPLIACIONES PORCENTUALES =====
+        AMPL_COMPONENTES = [
+            "Garage Area", "Wood Deck SF", "Open Porch SF", "Enclosed Porch",
+            "3Ssn Porch", "Screen Porch", "Pool Area"
+        ]
+        COSTOS = {
+            10: float(getattr(ct, "ampl10_cost", 0.0)),
+            20: float(getattr(ct, "ampl20_cost", 0.0)),
+            30: float(getattr(ct, "ampl30_cost", 0.0)),
+        }
+
+        for comp in AMPL_COMPONENTES:
+            base_val = float(pd.to_numeric(base.row.get(comp), errors="coerce") or 0.0)
+            if base_val <= 0:
+                continue
+            for pct in [10, 20, 30]:
+                v = m.getVarByName(f"x_z{pct}_{comp.replace(' ', '')}")
+                if v and v.X > 0.5:
+                    delta = base_val * pct / 100.0
+                    costo = COSTOS[pct] * delta
+                    ampl_cost_report += costo
+                    cambios_costos.append((f"{comp} (+{pct}%)", base_val, base_val + delta, costo))
+                    print(f"ampliación: {comp} +{pct}% (+{delta:.1f} ft²) → costo {money(costo)}")
+                    break  # una sola por componente
+        # ===== AMPLIACIONES DIRECTAS 1st/2nd FLOOR (si subieron pies²) =====
+        for flr in ["1st Flr SF", "2nd Flr SF"]:
+            base_v = _to_float_safe(base.row.get(flr))
+            new_v  = _to_float_safe(opt.get(flr, base_v))
+
+            delta = new_v - base_v
+            if delta <= 1e-6:
+                continue
+
+            # Descontar la parte explicada por agregados discretos (Add*)
+            A_Full  = float(getattr(ct, "area_full_bath_std", 40.0))
+            A_Half  = float(getattr(ct, "area_half_bath_std", 20.0))
+            A_Kitch = float(getattr(ct, "area_kitchen_std",  75.0))
+            A_Bed   = float(getattr(ct, "area_bedroom_std",  70.0))
+            C_COST  = float(getattr(ct, "construction_cost", 230.0))
+
+            addfull  = (m.getVarByName("x_AddFull")  or 0)
+            addhalf  = (m.getVarByName("x_AddHalf")  or 0)
+            addkitch = (m.getVarByName("x_AddKitch") or 0)
+            addbed   = (m.getVarByName("x_AddBed")   or 0)
+
+            try:
+                addfull  = float(addfull.X)  if hasattr(addfull, "X")  else 0.0
+                addhalf  = float(addhalf.X)  if hasattr(addhalf, "X")  else 0.0
+                addkitch = float(addkitch.X) if hasattr(addkitch, "X") else 0.0
+                addbed   = float(addbed.X)   if hasattr(addbed, "X")   else 0.0
+            except Exception:
+                pass
+
+            delta_explicado_adds = 0.0
+            if flr == "1st Flr SF":
+                delta_explicado_adds = (
+                    A_Full  * addfull +
+                    A_Half  * addhalf +
+                    A_Kitch * addkitch +
+                    A_Bed   * addbed
+                )
+
+            delta_directo = max(0.0, delta - delta_explicado_adds)
+            if delta_directo > 1e-6:
+                c = C_COST * delta_directo
+                ampl_cost_report += c
+                cambios_costos.append((flr, base_v, base_v + delta_directo, c))
+                print(f"ampliación directa: {flr} +{delta_directo:.1f} ft² → costo {money(c)}")
+            else:
+                # Todo el aumento del 1st Flr viene de Add*, ya reportados aparte → no cobrar de nuevo
+                pass
+
+
+        # ===== PAQUETE DE COCINA – calidad mínima Gd =====
+        # Detecta aumento de cocinas y/o baja calidad y cobra paquete/upgrade
+        try:
+            # 1) ¿se añadió una cocina?
+            k_base = _to_float_safe(base.row.get("Kitchen AbvGr"))
+            k_new  = _to_float_safe(opt.get("Kitchen AbvGr", k_base))
+            addk_var  = m.getVarByName("x_AddKitch")
+            addk_bin  = (addk_var is not None and addk_var.X > 0.5)
+
+            # 2) Lectura de calidad antes/después
+            def _kq_to_ord(v, default=2):
+                MP = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
+                try:
+                    iv = int(pd.to_numeric(v, errors="coerce"))
+                    return iv if iv in (0,1,2,3,4) else default
+                except Exception:
+                    return MP.get(str(v).strip(), default)
+
+            kq_base = _kq_to_ord(base.row.get("Kitchen Qual", "TA"), default=2)
+            v_kq = m.getVarByName("x_Kitchen Qual")
+            kq_new = int(round(v_kq.X)) if v_kq is not None else kq_base
+
+            # 3) Política: mínimo Gd (3) si hay una cocina nueva
+            MIN_KQ = 3  # Gd
+            def _kitchen_finish_cost(level_txt: str) -> float:
+                """
+                Costo del paquete/terminaciones de cocina para un nivel destino.
+                'Gd' hereda el costo de TA si no hay tabla específica.
+                """
+                level_txt = str(level_txt).strip()
+                if level_txt == "Ex":
+                    return float(self.kitchenQual_upgrade_EX)
+                if level_txt in {"Gd", "TA"}:
+                    return float(self.kitchenQual_upgrade_TA)
+                return 0.0
+            
+            # 3.a) Si se añadió cocina sin x_AddKitch (fallback), cobra obra+fijo
+            if (k_new - k_base) > 0.5 and not addk_bin:
+                c_obra = C_COST * A_Kitch
+                c_fijo = KITCH_FIX
+                c_k = c_obra + c_fijo
+                agregados_cost_report += c_k
+                cambios_costos.append(("Kitchen AbvGr", k_base, k_new, c_k))
+                print(f"agregado (fallback): Kitchen AbvGr +1 → costo {money(c_k)}")
+
+            # 3.b) Si hay cocina nueva o calidad final < Gd, cobra paquete/upgrade hasta Gd
+            needs_package = ((k_new - k_base) > 0.5) or (kq_new < MIN_KQ)
+            if needs_package:
+                target_txt = "Gd"
+                # cobra el paquete/terminaciones de cocina para Gd
+                c_pkg = _kitchen_finish_cost(target_txt)
+                if c_pkg > 0:
+                    agregados_cost_report += c_pkg
+                    cambios_costos.append(("Kitchen Package", "mínimo Gd", target_txt, c_pkg))
+                    print(f"paquete de cocina (mín. {target_txt}) → costo {money(c_pkg)}")
+
+                # además, si kq_new<MIN_KQ explícitamente, cobra upgrade incremental
+                if kq_new < MIN_KQ:
+                    # si necesitas detallar upgrades por escalones, añade aquí
+                    pass
+
+        except Exception as e:
+            print(f"(paquete de cocina omitido: {e})")
+
+    except Exception as e:
+        print(f"⚠️ error leyendo ampliaciones/agregados: {e}")
+# ================== FIN AMPLIACIONES Y AGREGADOS ==========
+
     # ---- Garage Finish (reporte + costo) ----
     garage_finish_cost_report = 0.0
     try:
@@ -877,55 +1126,6 @@ def main():
         print(f"⚠️ (aviso, no crítico) error leyendo resultado de Pool QC: {e}")
 
 
-    # ========== AMPLIACIONES Y AGREGADOS (post-solve) ==========
-    ampl_cost_report = 0.0
-    agregados_cost_report = 0.0
-    try:
-        # --- Parámetros fijos ---
-        A_Full, A_Half, A_Kitch, A_Bed = 40.0, 20.0, 75.0, 70.0
-
-        # --- Binarios de agregados ---
-        agregados = {
-            "AddFull": ("Full Bath", A_Full, ct.construction_cost),
-            "AddHalf": ("Half Bath", A_Half, ct.construction_cost),
-            "AddKitch": ("Kitchen", A_Kitch, ct.construction_cost),
-            "AddBed": ("Bedroom", A_Bed, ct.construction_cost),
-        }
-
-        for key, (nombre, area, costo_unit) in agregados.items():
-            var = m.getVarByName(f"x_{key}")
-            if var and var.X > 0.5:
-                costo_total = float(costo_unit) * float(area)
-                agregados_cost_report += costo_total
-                cambios_costos.append((nombre, "sin", "agregado", costo_total))
-                print(f"agregado: {nombre} (+{area:.0f} ft²) → costo {money(costo_total)}")
-
-        # --- Ampliaciones ---
-        AMPL_COMPONENTES = [
-            "Garage Area", "Wood Deck SF", "Open Porch SF", "Enclosed Porch",
-            "3Ssn Porch", "Screen Porch", "Pool Area"
-        ]
-        COSTOS = {10: ct.ampl10_cost, 20: ct.ampl20_cost, 30: ct.ampl30_cost}
-
-        for comp in AMPL_COMPONENTES:
-            base_val = float(pd.to_numeric(base.row.get(comp), errors="coerce") or 0.0)
-            if base_val <= 0:
-                continue
-
-            for pct in [10, 20, 30]:
-                v = m.getVarByName(f"x_z{pct}_{comp.replace(' ', '')}")
-                if v and v.X > 0.5:
-                    delta = base_val * pct / 100.0
-                    costo_unit = float(COSTOS[pct])
-                    costo = costo_unit * delta
-                    ampl_cost_report += costo
-                    cambios_costos.append((f"{comp} (+{pct}%)", base_val, base_val + delta, costo))
-                    print(f"ampliación: {comp} +{pct}% (+{delta:.1f} ft²) → costo {money(costo)}")
-                    break  # sólo una por componente
-
-    except Exception as e:
-        print(f"⚠️ error leyendo ampliaciones/agregados: {e}")
-    # ================== FIN AMPLIACIONES Y AGREGADOS ==========
 
   
     # ========== GARAGE QUAL / COND (post-solve) ==========
@@ -1331,206 +1531,169 @@ def main():
         return
     globals()["_REPORTE_IMPRESO"] = True
 
-    print("\n===== RESULTADOS DE LA OPTIMIZACIÓN =====")
 
-    # ===== impresión =====
-    try:
-        
-        cost_model_val = float(m.getVarByName("cost_model").X)
-        print(f"[DBG] cost_model (MIP): {money(cost_model_val)}")
-    except Exception:
-        pass
+    # --- Inicializar variables si no existen todavía ---
+    # --- Inicializar variables si no existen todavía ---
+    y_price = locals().get("y_price", None)
+    y_base = locals().get("y_base", None)
+    lin_cost = locals().get("lin_cost", 0.0)
+    obj_val = getattr(m, "ObjVal", None)  
+    opt_row = locals().get("opt_row", {})
+    cambios_costos = locals().get("cambios_costos", [])
+    budget_slack = locals().get("budget_slack", 0.0)
 
-    # ===== DIAGNÓSTICO DURO DEL MODELO =====
-    def _exists_var(name): 
-        return m.getVarByName(name) is not None
 
-    delta_price = precio_remodelada - precio_base
-    num_cambios = len(cambios_costos)
 
-    # Objetivo y restricción de presupuesto
-    obj_val = None
-    try:
-        obj_val = float(m.ObjVal)
-    except Exception:
-        pass
+    results = {
+        "y_price": y_price,
+        "y_base": y_base,
+        "lin_cost": lin_cost,
+        "cost_report": lin_cost,
+        "opt_row": opt_row,
+        "cambios_costos": cambios_costos,
+        "budget_slack": budget_slack,
+    }
 
-    bud_constr = next((c for c in m.getConstrs() if c.ConstrName == "budget"), None)
-    budget_slack = None
-    try:
-        if bud_constr is not None:
-            budget_slack = float(bud_constr.Slack)
-    except Exception:
-        pass
+    # ============================================================
+    #              RESULTADOS DE LA OPTIMIZACIÓN
+    # ============================================================
 
-    # ¿Se movió algo en las binarias? (independiente del reporte)
+    print("\n[DBG] Comparación de costos línea a línea:")
+    if hasattr(m, "_lin_cost_expr"):
+        for i in range(m._lin_cost_expr.size()):
+            v = m._lin_cost_expr.getVar(i)
+            c = m._lin_cost_expr.getCoeff(i)
+            if abs(c) > 0:
+                print(f"   {v.VarName:30s} → {c:,.0f}")
+
+    # --- Lecturas seguras de precios y costos desde el modelo ---
+    precio_base = getattr(m, "_base_price_val", None)
+    precio_opt_var = getattr(m, "_y_price_var", None)
+    precio_opt = precio_opt_var.X if precio_opt_var is not None else None
+    total_cost_var = m.getVarByName("cost_model")
+    total_cost_model = float(total_cost_var.X) if total_cost_var is not None else 0.0
+
+    # --- Recalcular costo reportado (de la lista de cambios) ---
+    total_cost_recalc = sum(c for _, _, _, c in cambios_costos if c is not None)
+
+    # --- Comparar costos modelo vs reporte ---
+    print("\n===== DEBUG PRESUPUESTO =====")
+    print(f"BUDGET declarado en modelo: {getattr(m, '_budget_usd', 0.0):,.2f}")
+    print(f"LHS (costos totales): {total_cost_model:,.2f}")
+    print(f"RHS (presupuesto):    {getattr(m, '_budget_usd', 0.0):,.2f}")
+    print(f"Slack:                {budget_slack:,.2f}")
+
+    if precio_opt is not None:
+        print(f"[DBG] y_price (predicho): {precio_opt:,.2f}")
+    if precio_base is not None:
+        print(f"[DBG] base_price_val (desde modelo): {precio_base:,.2f}")
+    if hasattr(m, "_lin_cost_expr"):
+        try:
+            print(f"[DBG] lin_cost.getValue(): {m._lin_cost_expr.getValue():,.2f}")
+        except Exception as e:
+            print(f"[DBG] lin_cost.getValue() error: {e}")
+
+    print(f"[DBG] Costo según modelo Gurobi: {total_cost_model:,.0f}")
+    print(f"[DBG] Costo según reporte de cambios: {total_cost_recalc:,.0f}")
+    if abs(total_cost_model - total_cost_recalc) > 1e-6:
+        print("⚠️  Diferencia detectada entre costo modelado y costo reportado.")
+        total_cost = total_cost_model
+    else:
+        total_cost = total_cost_recalc
+
+    # --- Calcular delta precio y utilidad incremental ---
+    delta_precio = None
+    utilidad_incremental = None
+    if precio_base is not None and precio_opt is not None:
+        delta_precio = precio_opt - precio_base
+        utilidad_incremental = (precio_opt - total_cost_model) - precio_base
+
+    # ============================================================
+    #                RESULTADOS IMPRESOS
+    # ============================================================
+
+    print("\n" + "="*60)
+    print("               RESULTADOS DE LA OPTIMIZACIÓN")
+    print("="*60)
+    print(f"📍 PID: {base.row.get('PID', 'N/A')} – {base.row.get('Neighborhood', 'N/A')} | Presupuesto: ${args.budget:,.0f}")
+    print(f"🧮 Modelo: {m.ModelName if hasattr(m, 'ModelName') else 'Gurobi MIP'}")
+    print(f"⏱️ Tiempo total: {getattr(m, 'Runtime', 0.0):.2f}s | MIP Gap: {getattr(m, 'MIPGap', 0.0)*100:.4f}%\n")
+
+    # ------------------ 1) Resumen Económico ------------------
+    print("💰 **Resumen Económico**")
+    if precio_base is not None:
+        print(f"  Precio casa base:        ${precio_base:,.0f}")
+    else:
+        print("  Precio casa base:        N/A")
+    if precio_opt is not None:
+        print(f"  Precio casa remodelada:  ${precio_opt:,.0f}")
+    else:
+        print("  Precio casa remodelada:  N/A")
+    if delta_precio is not None:
+        print(f"  Δ Precio:                ${delta_precio:,.0f}")
+    else:
+        print("  Δ Precio:                N/A")
+
+    print(f"  Costos totales:          ${total_cost:,.0f}")
+    if obj_val is not None:
+        print(f"  Valor objetivo (MIP):    ${obj_val:,.2f}   (≡ y_price - total_cost)")
+    else:
+        obj_recalc = (precio_opt or 0) - total_cost
+        print(f"  Valor objetivo (MIP):    ${obj_recalc:,.2f}   (recalculado)")
+    if utilidad_incremental is not None:
+        print(f"  Utilidad vs. base:       ${utilidad_incremental:,.0f}   (=(y_price - cost) - y_base)")
+    if budget_slack is not None:
+        print(f"  Slack presupuesto:       ${budget_slack:,.2f}")
+
+    # ------------------ 2) Diagnóstico ------------------
+    print("\n🔍 **Diagnóstico del modelo**")
     changed_bin_vars = []
     for v in m.getVars():
         try:
-            # binaria detectada por bounds
-            if abs(v.LB) <= 1e-9 and abs(v.UB - 1.0) <= 1e-9:
-                x = float(v.X)
-                if x > 1e-6 and x < 1.0 - 1e-6:
-                    # fraccionales → raro, pero lo contamos
-                    changed_bin_vars.append((v.VarName, x))
-                elif x > 0.5:
-                    changed_bin_vars.append((v.VarName, x))
+            if abs(v.LB) <= 1e-9 and abs(v.UB - 1.0) <= 1e-9 and v.X > 0.5:
+                changed_bin_vars.append(v.VarName)
         except Exception:
             pass
+    print(f"  🔸 Binarias activas: {len(changed_bin_vars)} (ejemplos: {changed_bin_vars[:10]})")
+    if budget_slack is None:
+        print("  ⚠️  No se encontró o no se pudo leer la restricción 'BUDGET'.")
 
-    print("\n===== CHEQUEOS =====")
-    print(f"y_price: {money(precio_remodelada)}   (base: {money(precio_base)})")
-    print(f"Δprecio: {money(delta_price)}")
-    print(f"Costos totales (reporte): {money(total_cost)}")
-    print(f"Utilidad reportada: {money(delta_price - total_cost)}")
-    print(f"Vars binarias activas: {len(changed_bin_vars)} (ejemplos: {[nm for nm,_ in changed_bin_vars[:10]]})")
-    if obj_val is not None:
-        print(f"Valor de objetivo (Gurobi): {obj_val:,.2f}")
+    # ------------------ 3) Cambios (resumen) ------------------
+    print("\n🏠 **Cambios hechos en la casa**")
+    if cambios_costos:
+        def _is_dup_line(name):
+            return ("Full Bath" in name and "agregado" in name.lower())
+        for nombre, base_val, new_val, cost_val in cambios_costos:
+            if _is_dup_line(nombre):
+                continue
+            suf = f" (costo ${cost_val:,.0f})" if (cost_val is not None and cost_val > 0) else ""
+            print(f"  - {nombre}: {base_val} → {new_val}{suf}")
     else:
-        print("Valor de objetivo no disponible")
-    if bud_constr is None:
-        print("⚠️  No encontré la restricción 'BUDGET' en el modelo.")
-    else:
-        print(f"Slack de 'BUDGET': {budget_slack}")
+        print("  (No se detectaron cambios)")
 
-
-    if aumento_utilidad <= 0:
-        print("tu casa ya esta en su punto optimo para tu presupuesto")
-        print(f"precio casa base: {money(precio_base)}")
-        print(f"precio casa remodelada (optimo hallado): {money(precio_remodelada)}")
-        print(f"costos totales de remodelacion: {money(total_cost)}")
-    else:
-        print(f"Aumento de Utilidad: {money(aumento_utilidad)}")
-        print(f"precio casa base: {money(precio_base)}")
-        print(f"precio casa remodelada: {money(precio_remodelada)}")
-        print(f"costos totales de remodelacion: {money(total_cost)}\n")
-
-        print("Cambios hechos en la casa")
-        CAT_FIELDS = {
-            "Mas Vnr Type","Roof Style","Roof Matl","Utilities",
-            "Electrical","Exterior 1st","Exterior 2nd","Central Air","Heating (tipo)",
-            "Heating (reconstruir tipo)", "Heating QC",
-            "Fence" , "Paved Drive", "Garage Qual" , "Garage Cond", "Pool QC"
-        }
-
-        for nombre, b, n, c in cambios_costos:
-            if nombre in CAT_FIELDS:
-                b_show, n_show = (str(b), str(n))
-            else:
-                b_show, n_show = (frmt_num(b), frmt_num(n))
-            suf = f" (costo {money(c)})" if c > 0 else " (sin costo mapeado)"
-            print(f"- {nombre}: en casa base -> {b_show}  ,  en casa nueva -> {n_show}{suf}")
-
-        # ================== SNAPSHOT: Atributos base vs óptimo ==================
-        def _qual_ord_to_txt(v: int) -> str:
-            MAP = {-1: "No aplica", 0: "Po", 1: "Fa", 2: "TA", 3: "Gd", 4: "Ex"}
-            try:
-                iv = int(round(float(v)))
-                return MAP.get(iv, str(v))
-            except Exception:
-                return str(v)
-
-        def _util_ord_to_txt(v: int | float | str) -> str:
-            try:
-                iv = int(round(float(v)))
-            except Exception:
-                return str(v)
-            return {0:"ELO", 1:"NoSeWa", 2:"NoSewr", 3:"AllPub"}.get(iv, str(v))
-
-        # 1) partimos de la fila original (dict) y clonamos
+    # ------------------ 4) Snapshot completo Base vs Óptimo ------------------
+    print("\n🧾 **Snapshot: atributos Base vs Óptimo (completo)**")
+    try:
         base_dict = dict(base.row.items())
-        opt_dict  = dict(base.row.items())  # iremos sobre-escribiendo con lo óptimo
+        opt_dict = dict(base.row.items())
+        if 'opt' in locals() and isinstance(opt, dict):
+            opt_dict.update(opt)
 
-        # 2) numéricos que sí modificamos (si existen en el modelo/instancia)
-        for nm in ["Bedroom AbvGr","Full Bath","Garage Cars","Total Bsmt SF",
-                   "Gr Liv Area","1st Flr SF","2nd Flr SF","Low Qual Fin SF",
-                   "Mas Vnr Area","TotRms AbvGrd","Kitchen AbvGr","Half Bath","Wood Deck SF",
-                   "BsmtFin SF 1","BsmtFin SF 2","Bsmt Unf SF"]:
-            if nm in base_dict and nm in opt:
-                try:
-                    opt_dict[nm] = float(opt[nm])
-                except Exception:
-                    pass
+        # Central Air
+        v_yes = m.getVarByName("central_air_yes")
+        if v_yes is not None:
+            opt_dict["Central Air"] = "Y" if v_yes.X > 0.5 else "N"
+        # Paved Drive
+        sel_pd = None
+        for d in ["Y", "P", "N"]:
+            v = m.getVarByName(f"paved_drive_is_{d}")
+            if v is not None and v.X > 0.5:
+                sel_pd = d
+                break
+        if sel_pd:
+            opt_dict["Paved Drive"] = sel_pd
 
-        # 3) calidades (si existen)
-        for nm in ["Kitchen Qual","Exter Qual","Exter Cond","Bsmt Qual","Bsmt Cond",
-                   "Heating QC","Fireplace Qu","GarageQual","GarageCond","Pool QC"]:
-            if nm in base_dict:
-                if f"x_{nm}" in [v.VarName for v in m.getVars()]:
-                    try:
-                        val = m.getVarByName(f"x_{nm}").X
-                        opt_dict[nm] = _qual_ord_to_txt(val)
-                    except Exception:
-                        pass
-
-        # 4) Utilities (ordinal→texto)
-        if "Utilities" in base_dict:
-            if util_pick is not None:
-                opt_dict["Utilities"] = util_pick
-            elif "Utilities" in opt:
-                opt_dict["Utilities"] = _util_ord_to_txt(opt["Utilities"])
-
-        # 5) Central Air (binaria Y/N)
-        try:
-            v_yes = m.getVarByName("central_air_yes")
-            if v_yes is not None:
-                opt_dict["Central Air"] = "Y" if v_yes.X > 0.5 else "N"
-        except Exception:
-            pass
-
-        # 5.1) Paved Drive (snapshot)
-        try:
-            sel_pd = None
-            for d in ["Y", "P", "N"]:
-                v = m.getVarByName(f"x_paved_drive_is_{d}")
-                if v is not None and v.X > 0.5:
-                    sel_pd = d
-                    break
-            if sel_pd is not None:
-                opt_dict["Paved Drive"] = sel_pd
-        except Exception:
-            pass
-
-        # 7) Roof resultado final
-        if style_new is not None:
-            opt_dict["Roof Style"] = style_new
-        if matl_new is not None:
-            opt_dict["Roof Matl"] = matl_new
-
-        # 8) Exterior 1st/2nd
-        if ex1_new is not None:
-            opt_dict["Exterior 1st"] = ex1_new
-        if ex2_new is not None:
-            opt_dict["Exterior 2nd"] = ex2_new
-        
-        # 8.1) Garage Finish (snapshot)
-        try:
-            for nm in ["Fin", "RFn", "Unf", "No aplica"]:
-                v = m.getVarByName(f"x_garage_finish_is_{nm}")
-                if v is not None and v.X > 0.5:
-                    opt_dict["Garage Finish"] = nm
-                    break
-        except Exception:
-            pass
-
-        # 8.2) Pool QC (snapshot)
-        try:
-            MAP_INV = { -1:"No aplica", 0:"Po", 1:"Fa", 2:"TA", 3:"Gd", 4:"Ex" }
-            v_pq = m.getVarByName("x_Pool QC")
-            if v_pq is not None:
-                opt_dict["Pool QC"] = MAP_INV.get(int(round(v_pq.X)), "No aplica")
-            else:
-                for tag in ["Po","Fa","TA","Gd","Ex","No aplica","NA"]:
-                    v = m.getVarByName(f"x_pool_qc_is_{tag}")
-                    if v is not None and v.X > 0.5:
-                        opt_dict["Pool QC"] = "No aplica" if tag == "NA" else tag
-                        break
-        except Exception:
-            pass
-
-
-
-        # 10) Imprimir snapshot
+        # Comparativo DataFrame
         keys = sorted(set(base_dict.keys()) | set(opt_dict.keys()))
         rows = []
         for k in keys:
@@ -1539,35 +1702,33 @@ def main():
             def _fmt(v):
                 try:
                     fv = float(pd.to_numeric(v, errors="coerce"))
-                    if pd.isna(fv):
-                        return str(v)
-                    return f"{fv:,.2f}" if abs(fv - round(fv)) > 1e-6 else f"{int(round(fv))}"
+                    if pd.isna(fv): return str(v)
+                    return f"{fv:,.0f}"
                 except Exception:
                     return str(v)
             rows.append((k, _fmt(b), _fmt(n)))
-
         df_snapshot = pd.DataFrame(rows, columns=["Atributo", "Base", "Óptimo"])
         pd.set_option("display.max_rows", 9999)
-        print("\n=== SNAPSHOT: atributos de la casa (Base vs Óptimo) ===")
         print(df_snapshot.to_string(index=False))
-
-    print("\n===== FIN RESULTADOS DE LA OPTIMIZACIÓN =====")
-
-        # ===== MÉTRICAS DE RENDIMIENTO (tiempo y gap) =====
-    try:
-        tiempo_total = m.Runtime  # tiempo total en segundos
-        gap_final = getattr(m, "MIPGap", None)
-
-        print("\n===== MÉTRICAS DEL OPTIMIZADOR =====")
-        print(f"⏱️  Tiempo total de ejecución: {tiempo_total:,.2f} segundos "
-              f"({tiempo_total/60:.2f} min)")
-        if gap_final is not None and gap_final < gp.GRB.INFINITY:
-            print(f"📉 MIP Gap final: {gap_final*100:.2f}%")
-        else:
-            print("📉 MIP Gap final: no disponible (modelo sin convergencia)")
     except Exception as e:
-        print(f"(no se pudo calcular métricas de rendimiento: {e})")
+        print(f"⚠️  Error al generar snapshot: {e}")
 
+    # ------------------ 5) Métricas del optimizador ------------------
+    print("\n📈 **Métricas del optimizador**")
+    try:
+        tiempo_total = getattr(m, "Runtime", 0.0)
+        gap_final = getattr(m, "MIPGap", None)
+        print(f"  ⏱️  Tiempo total: {tiempo_total:,.2f} segundos ({tiempo_total/60:.2f} min)")
+        if gap_final is not None and gap_final < gp.GRB.INFINITY:
+            print(f"  📉 MIP Gap final: {gap_final*100:.2f}%")
+        else:
+            print("  📉 MIP Gap final: N/D")
+    except Exception as e:
+        print(f"  ⚠️  No se pudieron calcular métricas: {e}")
+
+    print("\n" + "="*60)
+    print("            FIN RESULTADOS DE LA OPTIMIZACIÓN")
+    print("="*60 + "\n")
 
 
 if __name__ == "__main__":
