@@ -1,3 +1,4 @@
+# optimization/remodel/benchmark_remodel.py
 #!/usr/bin/env python3
 import argparse
 import csv
@@ -8,17 +9,19 @@ import subprocess
 import sys
 from pathlib import Path
 import os
+from collections import Counter, defaultdict
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# ============== Limpieza / normalización de salida ==============
+# ============================ Helpers de limpieza ============================
 ANSI_RE = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
+
 def _clean_text(s: str) -> str:
     if not s:
         return ""
-    s = ANSI_RE.sub("", s)             # quita escapes ANSI
-    s = s.replace("\u00A0", " ")       # NBSP -> espacio normal
-    s = s.replace("\u202F", " ")       # narrow NBSP -> espacio
+    s = ANSI_RE.sub("", s)
+    s = s.replace("\u00A0", " ").replace("\u202F", " ")
     s = s.replace("\r\n", "\n").replace("\r", "\n")
     return s
 
@@ -34,13 +37,21 @@ def _search_last(pat: re.Pattern, text: str):
         last = m
     return last
 
-# ============== Patrones (muy permisivos) ==============
-RE_OBJ = re.compile(r'Valor\s*objetivo\s*\(MIP\)\s*:\s*\$?\s*([-\d,\.]+)', re.I | re.U)
-RE_ROI = re.compile(r'\bROI\s*:\s*\$?\s*([-\d,\.]+)', re.I | re.U)
-RE_PCT_LINE = re.compile(r'Porcentaje\s+Neto\s+de\s+Mejoras\s*:\s*(.+)', re.I | re.U)
+# ============================ Patrones robustos =============================
+RE_OBJ       = re.compile(r'Valor\s*objetivo\s*\(MIP\)\s*:\s*\$?\s*([-\d,\.]+)', re.I | re.U)
+RE_ROI       = re.compile(r'\bROI\s*:\s*\$?\s*([-\d,\.]+)', re.I | re.U)
+RE_PCT_LINE  = re.compile(r'Porcentaje\s+Neto\s+de\s+Mejoras\s*:\s*(.+)', re.I | re.U)
 RE_FIRST_NUM = re.compile(r'[-+]?\$?[\d,]+(?:\.\d+)?')
 RE_PERCENT   = re.compile(r'([-+]?\$?[\d,]+(?:\.\d+)?)\s*%')
-RE_RT  = re.compile(r'Tiempo\s*total\s*:\s*([-\d,\.]+)s', re.I | re.U)
+RE_RT        = re.compile(r'Tiempo\s*total\s*:\s*([-\d,\.]+)s', re.I | re.U)
+RE_COST      = re.compile(r'Costos\s+totales\s*:\s*\$?\s*([-\d,\.]+)', re.I | re.U)
+RE_SLACK     = re.compile(r'Slack\s+presupuesto\s*:\s*\$?\s*([-\d,\.]+)', re.I | re.U)
+
+# Línea con PID y barrio (tiene un guion largo entre PID y Neighborhood)
+RE_PID_NEI   = re.compile(r'PID\s*:\s*(\d+)\s*[–-]\s*([^|]+?)\s*\|\s*Presupuesto', re.I | re.U)
+
+# Líneas de cambios: "- Nombre: base → nuevo (costo $...)"
+RE_CHANGE    = re.compile(r'^\s*-\s*(.+?):\s*.+?→\s*.+?(?:\s*\(costo.*\))?\s*$', re.I | re.M)
 
 def _parse_pct(line_tail: str) -> float | None:
     m = RE_PERCENT.search(line_tail)
@@ -64,12 +75,11 @@ def _fallback_line_value(out: str, starts_with: str) -> float | None:
     m = RE_FIRST_NUM.search(cand)
     return _to_float(m.group(1)) if m else None
 
-def run_once(pid: int, budget: float, py_exe: str, logdir: Path, tier: str, idx: int, basecsv: str | None) -> dict:
-    cmd = [
-        py_exe, "-m", "optimization.remodel.run_opt",
-        "--pid", str(pid),
-        "--budget", str(float(budget)),
-    ]
+# ============================ Runner una corrida ============================
+def run_once(pid: int, budget: float, py_exe: str, logdir: Path, tier: str, idx: int,
+             basecsv: str | None) -> dict:
+    cmd = [py_exe, "-m", "optimization.remodel.run_opt",
+           "--pid", str(pid), "--budget", str(float(budget))]
     if basecsv:
         cmd += ["--basecsv", basecsv]
 
@@ -78,52 +88,51 @@ def run_once(pid: int, budget: float, py_exe: str, logdir: Path, tier: str, idx:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        encoding="utf-8",         # decodificación UTF-8 (Windows friendly)
-        errors="replace",         # no morir por raros
+        encoding="utf-8",
+        errors="replace",
         check=False,
-        env={**os.environ, "PYTHONIOENCODING": "utf-8"}  # hijo emite UTF-8
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"}
     )
     raw = cp.stdout or ""
     out = _clean_text(raw)
 
-    # 1) Regex directos (última coincidencia)
-    obj = roi = pct = rt = None
+    # Parse métricas principales
+    obj = roi = pct = rt = total_cost = slack = None
+    neighborhood = None
+    changes = []
 
-    m = _search_last(RE_OBJ, out)
-    if m: obj = _to_float(m.group(1))
-
-    m = _search_last(RE_ROI, out)
-    if m: roi = _to_float(m.group(1))
-
-    m = _search_last(RE_PCT_LINE, out)
+    m = _search_last(RE_OBJ, out);      obj = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_ROI, out);      roi = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_PCT_LINE, out); pct = _parse_pct(m.group(1)) if m else None
+    m = _search_last(RE_RT, out);       rt  = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_COST, out);     total_cost = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_SLACK, out);    slack = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_PID_NEI, out)
     if m:
-        pct = _parse_pct(m.group(1))
+        # pid_str = m.group(1)  # no lo usamos, ya lo tenemos
+        neighborhood = m.group(2).strip()
 
-    m = _search_last(RE_RT, out)
-    if m: rt = _to_float(m.group(1))
+    # Cambios (frecuencias)
+    for mc in RE_CHANGE.finditer(out):
+        changes.append(mc.group(1).strip())
 
-    # 2) Fallback por línea si algo faltó
-    if obj is None:
-        obj = _fallback_line_value(out, "Valor objetivo (MIP)")
-    if roi is None:
-        roi = _fallback_line_value(out, "ROI")
-    if pct is None:
-        pct = _fallback_line_value(out, "Porcentaje Neto de Mejoras")
-    if rt is None:
-        rt = _fallback_line_value(out, "Tiempo total")
-
-    
+    # Fallbacks por si algo faltó
+    if obj is None:  obj = _fallback_line_value(out, "Valor objetivo (MIP)")
+    if roi is None:  roi = _fallback_line_value(out, "ROI")
+    if pct is None:  pct = _fallback_line_value(out, "Porcentaje Neto de Mejoras")
+    if rt is None:   rt  = _fallback_line_value(out, "Tiempo total")
 
     ok = (obj is not None and roi is not None and pct is not None)
 
-    # 3) Si MISS, guardar log para inspección
     if not ok:
         logdir.mkdir(parents=True, exist_ok=True)
-        log_path = logdir / f"run_{tier}_{idx:02d}_pid{pid}.log"
-        try:
-            log_path.write_text(raw, encoding="utf-8")
-        except Exception:
-            pass
+        (logdir / f"run_{tier}_{idx:02d}_pid{pid}.log").write_text(raw, encoding="utf-8")
+
+    budget_used = None
+    if slack is not None:
+        budget_used = float(budget) - slack
+        if budget_used < 0:
+            budget_used = 0.0
 
     return {
         "pid": pid,
@@ -132,10 +141,16 @@ def run_once(pid: int, budget: float, py_exe: str, logdir: Path, tier: str, idx:
         "roi": roi,
         "pct_net_improve": pct,
         "runtime_s": rt,
+        "total_cost": total_cost,
+        "slack": slack,
+        "budget_used": budget_used,
+        "neighborhood": neighborhood,
+        "changes": changes,
         "raw_ok": ok,
         "raw_output": out,
     }
 
+# ============================ Utilidades ============================
 def summarize(rows, key):
     vals = [r[key] for r in rows if r.get(key) is not None]
     if not vals:
@@ -150,7 +165,6 @@ def summarize(rows, key):
     }
 
 def _load_random_pids(basecsv: str, n: int, seed: int) -> list[int]:
-    """Carga PIDs del CSV base y devuelve n PIDs aleatorios únicos (o todos si hay menos)."""
     df = pd.read_csv(basecsv)
     if "PID" not in df.columns:
         raise ValueError(f"El CSV '{basecsv}' no tiene columna 'PID'.")
@@ -159,149 +173,227 @@ def _load_random_pids(basecsv: str, n: int, seed: int) -> list[int]:
     random.shuffle(pids)
     return pids[:min(n, len(pids))]
 
+# ============================ Main ============================
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--basecsv", type=str, required=True,
                     help="Ruta al CSV base (de donde se toman los PIDs al azar)")
     ap.add_argument("--n_houses", type=int, default=50,
                     help="Número de casas distintas a evaluar (default: 50)")
-    ap.add_argument("--trials", type=int, default=None,
-                    help="(Obsoleto en este modo) Ignorado; usamos n_houses * 3 corridas fijas por casa")
     ap.add_argument("--py", type=str, default=sys.executable, help="Python a usar (default: actual)")
     ap.add_argument("--seed", type=int, default=42, help="Semilla aleatoria (default: 42)")
     ap.add_argument("--outdir", type=str, default="bench_out", help="Carpeta de salida (CSV + figuras)")
+    ap.add_argument("--topn_neigh", type=int, default=10, help="Top-N neighborhoods para gráficos")
     args = ap.parse_args()
 
     random.seed(args.seed)
-    outdir = Path(args.outdir)
-    outdir.mkdir(parents=True, exist_ok=True)
+    outdir = Path(args.outdir); outdir.mkdir(parents=True, exist_ok=True)
     logdir = outdir / "logs"
 
-    # Tiers y presupuestos fijos (puntos medios de cada rango)
-    # low: 15k–40k → 27,500 | mid: 40k–75k → 57,500 | high: 75k–200k → 137,500
-    tiers = {
-        "low":  18_000.0,
-        "mid":  50_000.0,
-        "high": 120_000.0,
-    }
+    # Tiers con presupuestos fijos
+    tiers = {"low": 18_000.0, "mid": 50_000.0, "high": 120_000.0}
 
-    # Cargar PIDs aleatorios de la base
+    # PIDs
     pids = _load_random_pids(args.basecsv, args.n_houses, args.seed)
     if not pids:
         print("⚠ No se encontraron PIDs en el CSV base.")
         return
+    print(f"Se evaluarán {len(pids)} casas distintas con 3 presupuestos fijos por casa.\n")
 
-    print(f"Se evaluarán {len(pids)} casas distintas (PIDs aleatorios) con 3 presupuestos fijos por casa.\n")
-
+    # Corridas
     all_rows = []
     idx_global = 0
     for j, pid in enumerate(pids, start=1):
         print(f"=== CASA #{j:02d} | PID={pid} ===")
         for tier, budget in tiers.items():
             idx_global += 1
-            res = run_once(pid, budget, py_exe=args.py, logdir=logdir, tier=tier, idx=idx_global, basecsv=args.basecsv)
+            res = run_once(pid, budget, py_exe=args.py, logdir=logdir,
+                           tier=tier, idx=idx_global, basecsv=args.basecsv)
             res["tier"] = tier
-            res["pid"] = pid
             all_rows.append(res)
             ok = "OK" if res["raw_ok"] else "MISS"
-            print(f"[{tier:>4}] budget=${budget:,.0f} → obj={res['objective_mip']} roi={res['roi']} pct={res['pct_net_improve']} [{ok}]")
+            print(f"[{tier:>4}] budget=${budget:,.0f} → obj={res['objective_mip']} "
+                  f"roi={res['roi']} pct={res['pct_net_improve']} [{ok}]")
         print()
 
-    # CSV
+    # ============================ Guardar CSV ============================
     csv_path = outdir / "remodel_benchmark.csv"
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=[
-            "tier","pid","budget","objective_mip","roi","pct_net_improve","runtime_s","raw_ok"
+            "tier","pid","neighborhood","budget","budget_used","total_cost","slack",
+            "objective_mip","roi","pct_net_improve","runtime_s","raw_ok"
         ])
         w.writeheader()
         for r in all_rows:
-            w.writerow({k: r.get(k) for k in w.fieldnames})
+            w.writerow({
+                "tier": r.get("tier"), "pid": r.get("pid"),
+                "neighborhood": r.get("neighborhood"),
+                "budget": r.get("budget"),
+                "budget_used": r.get("budget_used"),
+                "total_cost": r.get("total_cost"),
+                "slack": r.get("slack"),
+                "objective_mip": r.get("objective_mip"),
+                "roi": r.get("roi"),
+                "pct_net_improve": r.get("pct_net_improve"),
+                "runtime_s": r.get("runtime_s"),
+                "raw_ok": r.get("raw_ok"),
+            })
     print(f"\n✔ Resultados guardados en: {csv_path}")
 
-    # Resumen por tier
+    # ============================ Resumen por tier ============================
     print("\n=== RESUMEN POR TIER ===")
     for tier in tiers.keys():
-        rows = [r for r in all_rows if r["tier"] == tier and r["raw_ok"]]
-        s_obj = summarize(rows, "objective_mip")
-        s_roi = summarize(rows, "roi")
-        s_pct = summarize(rows, "pct_net_improve")
+        rows_ok = [r for r in all_rows if r["tier"] == tier and r["raw_ok"]]
+        s_obj = summarize(rows_ok, "objective_mip")
+        s_roi = summarize(rows_ok, "roi")
+        s_pct = summarize(rows_ok, "pct_net_improve")
+        s_used = summarize(rows_ok, "budget_used")
 
         def fmt(s):
-            return f"n={s['n']}, mean={s['mean']:.2f} (std={s['std']:.2f}), p50={s['p50']:.2f}, min={s['min']:.2f}, max={s['max']:.2f}" if s["n"] else "n=0"
+            return (f"n={s['n']}, mean={s['mean']:.2f} (std={s['std']:.2f}), "
+                    f"p50={s['p50']:.2f}, min={s['min']:.2f}, max={s['max']:.2f}") if s["n"] else "n=0"
 
         print(f"\n[{tier}]")
         print("  Obj (MIP):     ", fmt(s_obj))
         print("  ROI:           ", fmt(s_roi))
         print("  % Net mejora:  ", fmt(s_pct))
+        print("  Budget usado:  ", fmt(s_used))
 
-    # ===== Gráficas (solo si hay datos válidos) =====
+    # ============================ Gráficas por tier ============================
+    def _vals(metric, tier_key):
+        return [r[metric] for r in all_rows
+                if r["tier"] == tier_key and r["raw_ok"] and r.get(metric) is not None]
+
     def boxplot_metric(metric, ylabel, fname):
-        data = []
-        labels = []
+        data, labels = [], []
         for t in tiers.keys():
-            vals = [r[metric] for r in all_rows if r["tier"]==t and r["raw_ok"] and r.get(metric) is not None]
+            vals = _vals(metric, t)
             if vals:
-                data.append(vals)
-                labels.append(t.upper())
+                data.append(vals); labels.append(t.upper())
         if not data:
             print(f"⚠ No hay datos válidos para {ylabel}; se omite figura.")
             return
         fig = plt.figure()
         plt.boxplot(data, tick_labels=labels)
         plt.title(f"{ylabel} por tier (presupuestos fijos)")
-        plt.ylabel(ylabel)
-        plt.xlabel("Tier de presupuesto")
-        fig.tight_layout()
-        out = outdir / fname
-        plt.savefig(out, dpi=160)
-        plt.close(fig)
+        plt.ylabel(ylabel); plt.xlabel("Tier de presupuesto")
+        fig.tight_layout(); out = outdir / fname
+        plt.savefig(out, dpi=160); plt.close(fig)
         print(f"✔ Figura: {out}")
 
     boxplot_metric("objective_mip", "Valor objetivo (MIP)", "box_obj_mip.png")
     boxplot_metric("roi", "ROI", "box_roi.png")
 
-    # Barras: % neto de mejoras promedio por tier
+    # Barras: % neto de mejoras
     means, lbls = [], []
     for t in tiers.keys():
-        vals = [r["pct_net_improve"] for r in all_rows if r["tier"] == t and r["raw_ok"] and r.get("pct_net_improve") is not None]
+        vals = _vals("pct_net_improve", t)
         if vals:
-            means.append(sum(vals)/len(vals))
-            lbls.append(t.upper())
+            means.append(sum(vals)/len(vals)); lbls.append(t.upper())
     if means:
         fig = plt.figure()
         plt.bar(lbls, means)
         plt.title("Promedio % neto de mejoras por tier (presupuestos fijos)")
         plt.ylabel("% neto de mejoras")
-        fig.tight_layout()
-        out = outdir / "bar_pct_net.png"
-        plt.savefig(out, dpi=160)
-        plt.close(fig)
+        fig.tight_layout(); out = outdir / "bar_pct_net.png"
+        plt.savefig(out, dpi=160); plt.close(fig)
         print(f"✔ Figura: {out}")
-    else:
-        print("⚠ No hay datos válidos para % neto de mejoras; se omite figura.")
 
-    # Scatter presupuesto vs objetivo (trivial aquí porque presupuesto es fijo por tier,
-    # pero sirve para la presentación igualmente con clusters por tier).
+    # Violin: budget usado por tier
+    used_data, used_labels = [], []
+    for t in tiers.keys():
+        vals = _vals("budget_used", t)
+        if vals:
+            used_data.append(vals); used_labels.append(t.upper())
+    if used_data:
+        fig = plt.figure()
+        plt.violinplot(used_data, showmedians=True)
+        plt.xticks(range(1, len(used_labels)+1), used_labels)
+        plt.title("Budget usado por tier")
+        plt.ylabel("USD usados")
+        fig.tight_layout(); out = outdir / "violin_budget_used.png"
+        plt.savefig(out, dpi=160); plt.close(fig)
+        print(f"✔ Figura: {out}")
+
+    # Scatter: budget usado vs objetivo
     any_ok = any(r["raw_ok"] and r.get("objective_mip") is not None for r in all_rows)
     if any_ok:
         tier_colors = {"low": "tab:blue", "mid": "tab:orange", "high": "tab:green"}
         fig = plt.figure()
         for t in tiers.keys():
-            xs = [r["budget"] for r in all_rows if r["tier"]==t and r["raw_ok"] and r.get("objective_mip") is not None]
+            xs = [r["budget_used"] for r in all_rows if r["tier"]==t and r["raw_ok"] and r.get("budget_used") is not None]
             ys = [r["objective_mip"] for r in all_rows if r["tier"]==t and r["raw_ok"] and r.get("objective_mip") is not None]
             if xs and ys:
                 plt.scatter(xs, ys, label=t.upper(), color=tier_colors.get(t))
-        plt.legend()
-        plt.title("Presupuesto vs Valor objetivo (MIP)")
-        plt.xlabel("Presupuesto ($)")
-        plt.ylabel("Valor objetivo (MIP)")
-        fig.tight_layout()
-        out = outdir / "scatter_budget_obj.png"
-        plt.savefig(out, dpi=160)
-        plt.close(fig)
+        plt.legend(); plt.title("Budget usado vs Valor objetivo (MIP)")
+        plt.xlabel("Budget usado ($)"); plt.ylabel("Valor objetivo (MIP)")
+        fig.tight_layout(); out = outdir / "scatter_used_obj.png"
+        plt.savefig(out, dpi=160); plt.close(fig)
         print(f"✔ Figura: {out}")
+
+        # Correlación (Pearson) global entre used y obj
+        df_corr = pd.DataFrame([
+            {"used": r["budget_used"], "obj": r["objective_mip"]}
+            for r in all_rows if r["raw_ok"] and r.get("budget_used") is not None and r.get("objective_mip") is not None
+        ])
+        if len(df_corr) >= 3:
+            corr = df_corr["used"].corr(df_corr["obj"])
+            print(f"\n📎 Correlación Pearson (budget usado vs objetivo) = {corr:.3f}")
+
+    # ============================ Top cambios por tier ============================
+    tier_changes: dict[str, Counter] = {t: Counter() for t in tiers.keys()}
+    for r in all_rows:
+        if r["raw_ok"] and r.get("changes"):
+            tier_changes[r["tier"]].update(r["changes"])
+
+    topch_rows = []
+    for t in tiers.keys():
+        top5 = tier_changes[t].most_common(10)
+        if not top5: continue
+        for name, cnt in top5:
+            topch_rows.append({"tier": t, "change": name, "count": cnt})
+
+    if topch_rows:
+        df_top = pd.DataFrame(topch_rows)
+        df_top.to_csv(outdir / "top_changes_by_tier.csv", index=False, encoding="utf-8")
+        print(f"✔ Top cambios por tier → {outdir/'top_changes_by_tier.csv'}")
+
+        # Bar charts por tier (top-10)
+        for t in tiers.keys():
+            top10 = tier_changes[t].most_common(10)
+            if not top10: continue
+            labels = [k for k,_ in top10]; counts = [v for _,v in top10]
+            fig = plt.figure(figsize=(8, 4.5))
+            plt.barh(labels[::-1], counts[::-1])
+            plt.title(f"Top 10 cambios – {t.upper()}")
+            plt.xlabel("Frecuencia"); plt.tight_layout()
+            out = outdir / f"top_changes_{t}.png"
+            plt.savefig(out, dpi=160); plt.close(fig)
+            print(f"✔ Figura: {out}")
+
+    # ============================ Resumen por Neighborhood ============================
+    rows_ok = [r for r in all_rows if r["raw_ok"]]
+    df = pd.DataFrame(rows_ok)
+    if "neighborhood" in df.columns and df["neighborhood"].notna().any():
+        agg = (df.groupby("neighborhood")[["objective_mip","roi","pct_net_improve","budget_used"]]
+                 .agg(["count","mean","median","std","min","max"]))
+        agg.to_csv(outdir / "summary_by_neighborhood.csv", encoding="utf-8")
+        print(f"✔ Resumen por neighborhood → {outdir/'summary_by_neighborhood.csv'}")
+
+        # Top-N neighborhoods por objetivo medio (solo si hay suficientes)
+        means = (df.groupby("neighborhood")["objective_mip"].mean()
+                   .sort_values(ascending=False).head(args.topn_neigh))
+        if not means.empty:
+            fig = plt.figure(figsize=(9, 5))
+            means.plot(kind="bar")
+            plt.ylabel("Objetivo (MIP) promedio")
+            plt.title(f"Top {args.topn_neigh} neighborhoods por objetivo medio")
+            plt.tight_layout()
+            out = outdir / "bar_neigh_topN_obj.png"
+            plt.savefig(out, dpi=160); plt.close(fig)
+            print(f"✔ Figura: {out}")
     else:
-        print("⚠ No hay datos válidos para scatter; se omite figura.")
+        print("⚠ No se pudo extraer 'Neighborhood' del output; se omiten gráficos por barrio.")
 
 if __name__ == "__main__":
     main()

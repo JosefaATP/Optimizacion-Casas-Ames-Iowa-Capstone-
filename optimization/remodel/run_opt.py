@@ -204,7 +204,7 @@ def main():
 
     precio_base = float(bundle.predict(X_base).iloc[0])
 
-    # ============== DEBUGS (opcionales) ==============
+    # ============== DEBUGS PARA SABER IMPACTO DE ATRIBUTO EN EL PRECIO ==============
     # Kitchen Qual
     if "Kitchen Qual" in feat_order:
         X_dbg = X_base.copy()
@@ -340,7 +340,7 @@ def main():
         pass
 
 
-        # === DEBUG Garage Finish → precio: barrido Fin, RFn, Unf, No aplica ===
+    # === DEBUG Garage Finish → precio: barrido Fin, RFn, Unf, No aplica ===
     try:
         cols_gf = ["Garage Finish_Fin", "Garage Finish_RFn", "Garage Finish_Unf", "Garage Finish_No aplica"]
 
@@ -388,8 +388,7 @@ def main():
         print(f"(debug pool qc omitido: {e})")
 
 
-            # === DEBUG Ampliaciones → precio: barrido +10%, +20%, +30% ===
-
+    # === DEBUG Ampliaciones → precio: barrido +10%, +20%, +30% ===
     try:
         AMPL_COMPONENTES = [
             "Garage Area", "Wood Deck SF", "Open Porch SF", "Enclosed Porch",
@@ -421,7 +420,7 @@ def main():
         print(f"(debug ampliaciones omitido: {e})")
 
     
-# === DEBUG Garage Qual / Garage Cond → precio (ordinal 0–4 o Po–Ex) ===
+    # === DEBUG Garage Qual / Garage Cond → precio (ordinal 0–4 o Po–Ex) ===
     try:
         if "Garage Qual" in X_base.columns and "Garage Cond" in X_base.columns:
             print("\nDEBUG GarageQual / GarageCond → precio:")
@@ -450,7 +449,7 @@ def main():
     except Exception as e:
         print(f"(debug garage qual/cond omitido: {e})")
 
-        # === DEBUG PavedDrive → precio: barrido N, P, Y ===
+    # === DEBUG PavedDrive → precio: barrido N, P, Y ===
     try:
         cols_pd = ["Paved Drive_N", "Paved Drive_P", "Paved Drive_Y"]
 
@@ -474,7 +473,7 @@ def main():
     except Exception as e:
         print(f"(debug paved drive omitido: {e})")
 
-        # === DEBUG Fence → precio: barrido de categorías ===
+    # === DEBUG Fence → precio: barrido de categorías ===
     try:
         cols_fence = [f"Fence_{f}" for f in ["GdPrv", "MnPrv", "GdWo", "MnWw", "NA"]]
         if any(col in X_base.columns for col in cols_fence):
@@ -492,10 +491,6 @@ def main():
     except Exception as e:
         print(f"(debug fence omitido: {e})")
 
-
-
-
-    # ============ FIN DEBUGS ============
     # --- DEBUG: Heating (TIPO) -> precio ---
     if any(c.startswith("Heating_") for c in X_base.columns):
         Xd = X_base.copy()
@@ -542,7 +537,7 @@ def main():
             p_up = price(Xd)
             print(f"DEBUG Bsmt: +100 ft² terminados → Δprecio = {p_up - precio_base:,.2f}")
         
-        # --- DEBUG: BsmtFin Type 1 -> precio ---
+    # --- DEBUG: BsmtFin Type 1 -> precio ---
     B1_TYPES = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","No aplica"]
     if any(c.startswith("BsmtFin Type 1_") for c in X_base.columns):
         Xd = X_base.copy()
@@ -581,14 +576,11 @@ def main():
             vals.append((q, float(bundle.predict(Xd).iloc[0])))
         print("DEBUG Fireplace Qu -> precio:", vals)
 
-
-
     # ============ FIN DEBUGS ============
 
+    
     # ===== construir MIP =====
     m: gp.Model = build_mip_embed(base.row, args.budget, ct, bundle, base_price=precio_base)
-
-
 
     # Ajustes de resolución
     m.Params.MIPGap = PARAMS.mip_gap
@@ -600,43 +592,6 @@ def main():
 
     # Optimizar
     m.optimize()
-
-    for c in m.getConstrs():
-        if "BUDGET" in c.ConstrName:
-            print(f"[DBG] Presupuesto usado efectivamente: RHS={c.RHS:.2f}, Slack={c.Slack:.2f}")
-
-    print("\n===== DEBUG PRESUPUESTO =====")
-    print(f"BUDGET declarado en modelo: {getattr(m, '_budget', 'N/D')}")
-    bud = next((c for c in m.getConstrs() if c.ConstrName == "BUDGET"), None)
-    if bud:
-        try:
-            rhs = bud.RHS
-            slack = bud.Slack
-            lhs = rhs - slack
-            print(f"LHS (costos totales): {lhs:,.2f}")
-            print(f"RHS (presupuesto):    {rhs:,.2f}")
-            print(f"Slack:                {slack:,.2f}")
-        except Exception as e:
-            print(f"⚠️ No se pudo leer restricción: {e}")
-    else:
-        print("⚠️ No se encontró restricción 'BUDGET'")
-    
-    # --- Debug: leer precios y costos directamente del modelo ---
-    if hasattr(m, "_y_price_var"):
-        precio_opt = m._y_price_var.X
-        print(f"[DBG] y_price (predicho): {precio_opt:,.2f}")
-
-    if hasattr(m, "_base_price_val"):
-        print(f"[DBG] base_price_val (desde modelo): {m._base_price_val:,.2f}")
-
-    if hasattr(m, "_lin_cost_expr"):
-        try:
-            lin_val = m._lin_cost_expr.getValue()
-            print(f"[DBG] lin_cost.getValue(): {lin_val:,.2f}")
-        except Exception as e:
-            print(f"[DBG] lin_cost.getValue() error: {e}")
-
-
 
     # ===== chequear factibilidad =====
     if m.Status not in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT):
@@ -700,7 +655,6 @@ def main():
     base_vals = {
         "Bedroom AbvGr": _num_base("Bedroom AbvGr"),
         "Full Bath": _num_base("Full Bath"),
-        "Garage Cars": _num_base("Garage Cars"),
     }
 
     def _to_float_safe(val) -> float:
@@ -967,7 +921,7 @@ def main():
                 costo_total = c_obra + c_fix
                 agregados_cost_report += costo_total
                 cambios_costos.append((nombre, "sin", "agregado", costo_total))
-                print(f"agregado: {nombre} (+{area:.0f} ft²) → costo {money(costo_total)}")
+                #print(f"agregado: {nombre} (+{area:.0f} ft²) → costo {money(costo_total)}")
 
         # ===== AMPLIACIONES PORCENTUALES =====
         AMPL_COMPONENTES = [
@@ -993,6 +947,7 @@ def main():
                     cambios_costos.append((f"{comp} (+{pct}%)", base_val, base_val + delta, costo))
                     print(f"ampliación: {comp} +{pct}% (+{delta:.1f} ft²) → costo {money(costo)}")
                     break  # una sola por componente
+        
         # ===== AMPLIACIONES DIRECTAS 1st/2nd FLOOR (si subieron pies²) =====
         for flr in ["1st Flr SF", "2nd Flr SF"]:
             base_v = _to_float_safe(base.row.get(flr))
@@ -1036,14 +991,14 @@ def main():
                 c = C_COST * delta_directo
                 ampl_cost_report += c
                 cambios_costos.append((flr, base_v, base_v + delta_directo, c))
-                print(f"ampliación directa: {flr} +{delta_directo:.1f} ft² → costo {money(c)}")
+                #print(f"ampliación directa: {flr} +{delta_directo:.1f} ft² → costo {money(c)}")
             else:
                 # Todo el aumento del 1st Flr viene de Add*, ya reportados aparte → no cobrar de nuevo
                 pass
 
     except Exception as e:
         print(f"⚠️ error leyendo ampliaciones/agregados: {e}")
-# ================== FIN AMPLIACIONES Y AGREGADOS ==========
+    # ================== FIN AMPLIACIONES Y AGREGADOS ==========
 
     # ---- Garage Finish (reporte + costo) ----
     garage_finish_cost_report = 0.0
@@ -1153,8 +1108,6 @@ def main():
         print(f"⚠️ (aviso, no crítico) error leyendo resultado de Pool QC: {e}")
 
 
-
-  
     # ========== GARAGE QUAL / COND (post-solve) ==========
     try:
         G_CATS = ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]
@@ -1196,11 +1149,11 @@ def main():
         cost_cond = _cost(new_cond) if new_cond != base_cond else 0.0
         garage_qc_cost_report = cost_qual + cost_cond
 
-        print("\nCambios en GarageQual / GarageCond:")
-        print(f"  GarageQual: {base_qual} → {new_qual}  "
-            f"({'sin cambio' if cost_qual == 0.0 else f'costo ${cost_qual:,.0f}'})")
-        print(f"  GarageCond: {base_cond} → {new_cond}  "
-            f"({'sin cambio' if cost_cond == 0.0 else f'costo ${cost_cond:,.0f}'})")
+        #print("\nCambios en GarageQual / GarageCond:")
+        #print(f"  GarageQual: {base_qual} → {new_qual}  "
+        #      f"({'sin cambio' if cost_qual == 0.0 else f'costo ${cost_qual:,.0f}'})")
+        #print(f"  GarageCond: {base_cond} → {new_cond}  "
+        #      f"({'sin cambio' if cost_cond == 0.0 else f'costo ${cost_cond:,.0f}'})")
 
         if base_qual != new_qual:
             cambios_costos.append(("GarageQual", base_qual, new_qual, cost_qual))
@@ -1228,9 +1181,9 @@ def main():
 
         cost_pd = ct.paved_drive_cost(new_pd) if new_pd != base_pd else 0.0
 
-        print("\nCambio en PavedDrive:")
-        print(f"  {base_pd} → {new_pd}  "
-              f"({'sin cambio' if base_pd == new_pd else f'costo ${cost_pd:,.0f}'})")
+        #print("\nCambio en PavedDrive:")
+        #print(f"  {base_pd} → {new_pd}  "
+        #      f"({'sin cambio' if base_pd == new_pd else f'costo ${cost_pd:,.0f}'})")
 
         if base_pd != new_pd:
             cambios_costos.append(("Paved Drive", base_pd, new_pd, cost_pd))
@@ -1240,7 +1193,7 @@ def main():
 
     # ================== FIN PAVED DRIVE ==========
 
-  # ========== FENCE (post-solve) ==========
+    # ========== FENCE (post-solve) ==========
     fence_cost_report = 0.0   # <--- añade esta línea ANTES del try
     try:
         FENCE_CATS = ["GdPrv", "MnPrv", "GdWo", "MnWw", "No aplica"]
@@ -1268,9 +1221,9 @@ def main():
 
         fence_cost_report = cost_f  # <--- importante
 
-        print("\nCambio en Fence:")
-        print(f"  {base_f} → {new_f}  "
-            f"({'sin cambio' if cost_f == 0.0 else f'costo ${cost_f:,.0f}'})")
+        #print("\nCambio en Fence:")
+        #print(f"  {base_f} → {new_f}  "
+        #      f"({'sin cambio' if cost_f == 0.0 else f'costo ${cost_f:,.0f}'})")
 
         if new_f != base_f:
             cambios_costos.append(("Fence", base_f, new_f, cost_f))
@@ -1278,7 +1231,6 @@ def main():
     except Exception as e:
         print(f"(post-solve fence omitido: {e})")
     # ================== FIN FENCE ==================
-
 
 
     # ---- Mas Vnr Type ----
@@ -1458,7 +1410,7 @@ def main():
     except Exception as e:
         print("[BSMT-DEBUG] error construyendo reporte:", e)
     
-    print(f"[DBG] bsmt_finish_cost_report: {bsmt_finish_cost_report:,.0f}")
+    #print(f"[DBG] bsmt_finish_cost_report: {bsmt_finish_cost_report:,.0f}")
 
 
 
@@ -1530,6 +1482,7 @@ def main():
         opt_dict["BsmtFin Type 1"] = b1_new
         opt_dict["BsmtFin Type 2"] = b2_new
 
+
     # ---- Fireplace Qu (reporte + costo) ----
     fp_cost_report = 0.0
     try:
@@ -1582,13 +1535,11 @@ def main():
 
     # ===== métricas =====
     aumento_utilidad = (precio_remodelada - precio_base) - total_cost
-# Evitar que el reporte se imprima más de una vez
+    # Evitar que el reporte se imprima más de una vez
     if globals().get("_REPORTE_IMPRESO", False):
         return
     globals()["_REPORTE_IMPRESO"] = True
 
-
-    # --- Inicializar variables si no existen todavía ---
     # --- Inicializar variables si no existen todavía ---
     y_price = locals().get("y_price", None)
     y_base = locals().get("y_base", None)
@@ -1598,8 +1549,7 @@ def main():
     cambios_costos = locals().get("cambios_costos", [])
     budget_slack = locals().get("budget_slack", 0.0)
 
-
-
+    # --- Empaquetar resultados ---
     results = {
         "y_price": y_price,
         "y_base": y_base,
@@ -1710,9 +1660,9 @@ def main():
         obj_recalc = (precio_opt or 0) - total_cost
         print(f"  Valor objetivo (MIP):    ${obj_recalc:,.2f}   (recalculado)")
     if utilidad_incremental is not None:
-        print(f"ROI:       ${utilidad_incremental:,.0f}   (=(y_price - cost) - y_base)")
+        print(f"  ROI:       ${utilidad_incremental:,.0f}   (=(y_price - cost) - y_base)")
     if margen is not None:
-        print(f"Porcentaje Neto de Mejoras:       ${margen:,.0f}%   (=(y_price - y_base)/y_price")
+        print(f"  Porcentaje Neto de Mejoras:       ${margen:,.0f}%   (=(y_price - y_base)/y_price")
     if budget_slack is not None:
         print(f"  Slack presupuesto:       ${budget_slack:,.2f}")
 
