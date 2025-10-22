@@ -56,13 +56,21 @@ class CostTables:
     def roof_style_cost(self, name: str) -> float:
         return float(self.roof_style_costs.get(str(name), 0.0))
 
-    roof_matl_costs_sqft: Dict[str, float] = field(default_factory=lambda: {
-        "ClyTile": 11.89, "CompShg": 6.00, "Membran": 6.00,
-        "Metal": 8.99, "Roll": 3.75, "Tar&Grv": 5.50,
-        "WdShake": 11.00, "WdShngl": 6.35,
-    })
-    def roof_matl_cost(self, name: str) -> float:
-        return float(self.roof_matl_costs_sqft.get(str(name), 0.0))
+    roof_matl_fixed = {
+        "ClyTile": 17352.0,
+        "CompShg": 20000.0,
+        "Membran": 8011.95,
+        "Metal":   11739.0,
+        "Roll":    7600.0,
+        "Tar&Grv": 8550.0,
+        "WdShake": 22500.0,
+        "WdShngl": 19500.0,
+    }
+    # costo fijo de demolicion del techo (ajusta segun tu paper)
+    roof_demo_cost = 10850.0  # si aplica, pon el valor > 0
+
+    def get_roof_matl_cost(self, mat: str) -> float:
+        return float(self.roof_matl_fixed.get(mat, 0.0))
 
     # ---- Masonry veneer (Mas Vnr) ----
     mas_vnr_costs_sqft: Dict[str, float] = field(default_factory=lambda: {
@@ -141,32 +149,62 @@ class CostTables:
         return self.fence_category_costs.get(f, 0.0)
 
 
-    # ====== EXTERIOR ======
-    exterior_demo_face1: float = 1.65
-    exterior_demo_face2: float = 1.65
+    # ====== EXTERIOR (LUMPSUM, SIN DEMOLICIÓN) ======
 
-    exterior_matl_costs: Dict[str, float] = field(default_factory=lambda: {
-        "AsbShng": 11.50, "AsphShn": 1.50, "BrkComm": 1.21, "BrkFace": 15.00,
-        "CBlock": 22.50, "CemntBd": 12.50, "HdBoard": 11.00, "ImStucc": 8.50,
-        "MetalSd": 5.48, "Other": 11.56, "Plywood": 2.00, "PreCast": 37.50,
-        "Stone": 27.50, "Stucco": 12.00, "VinylSd": 7.46, "Wd Sdng": 3.64,
-        "WdShngl": 12.50,
-    })  #ARREGLAR
+    # Costos fijos por CAMBIO de material del frente 1 o 2.
+    # ⚠️ Ajusta los montos con los de tu tabla/documento.
+    exterior_matl_lumpsum: Dict[str, float] = field(default_factory=lambda: {
+        "AsbShng": 19000.0,
+        "AsphShn": 22500.0,
+        "BrkComm": 26000.0,
+        "BrkFace": 22000.0,
+        "CBlock": 10300.0,
+        "CemntBd": 14674.0,
+        "HdBoard": 21300.0,
+        "ImStucc": 16500.0,
+        "MetalSd": 9600.0,
+        "Other": 23461.81,
+        "Plywood": 8461.81,
+        "PreCast": 17625.0,
+        "Stone": 50216.50,
+        "Stucco": 5629.0,
+        "VinylSd": 12500.0,
+        "Wd Sdng": 12500.0,
+        "WdShngl": 21900.0,
+    })
+
     def ext_mat_cost(self, name: str) -> float:
-        return float(self.exterior_matl_costs.get(str(name), 0.0))
+        """Costo fijo por elegir el material 'name' en un frente (demolición incluida)."""
+        return float(self.exterior_matl_lumpsum.get(str(name), 0.0))
 
-    exter_qual_upgrade_per_level: float = 17000.0  #ARREGLARLO
-    exter_cond_upgrade_per_level: float = 17000.0  #ARREGLARLO
 
-    @staticmethod
-    def exterior_area_proxy(base_row: pd.Series) -> float:
-        try:
-            gla = float(pd.to_numeric(base_row.get("Gr Liv Area"), errors="coerce"))
-        except Exception:
-            gla = 0.0
-        if pd.isna(gla):
-            gla = 0.0
-        return 0.8 * gla
+    # Costos fijos por NIVEL final de calidad/condición (se cobran sólo si el nivel
+    # final es superior al nivel de la casa base).
+    # ⚠️ Ajusta los montos con los de tu tabla/documento.
+    exter_qual_costs: Dict[str, float] = field(default_factory=lambda: {
+        "Po": 7646.70,
+        "Fa": 14558.00,
+        "TA": 18883.75,
+        "Gd": 22833.06,
+        "Ex": 106250.00,
+    })
+    exter_cond_costs: Dict[str, float] = field(default_factory=lambda: {
+        "Po": 7646.70,
+        "Fa": 14558.00,
+        "TA": 18883.75,
+        "Gd": 22833.06,
+        "Ex": 106250.00,
+    })
+
+    def exter_qual_cost(self, level: str) -> float:
+        """Costo fijo por terminar con calidad exterior 'level' (Po/Fa/TA/Gd/Ex)."""
+        return float(self.exter_qual_costs.get(str(level), 0.0))
+
+    def exter_cond_cost(self, level: str) -> float:
+        """Costo fijo por terminar con condición exterior 'level' (Po/Fa/TA/Gd/Ex)."""
+        return float(self.exter_cond_costs.get(str(level), 0.0))
+
+
 
     # ====== ELECTRICAL ======
     electrical_demo_small: float = 800.0

@@ -175,103 +175,147 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     # ========= FIN =========
 
-
     # ================== (EXTERIOR) ==================
 
-    # === Exter Qual / Exter Cond → upgrade-only + costo por nivel ===
-    def _q_to_ord(v):
-        mapping = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
-        try:
-            return int(v)
-        except Exception:
-            return mapping.get(str(v), 2)
-
-    if "Exter Qual" in x:
-        exq_base = _q_to_ord(base_row.get("Exter Qual", "TA"))
-        m.addConstr(x["Exter Qual"] >= exq_base, name="R_EXQ_upgrade_only")
-        lin_cost += pos(x["Exter Qual"] - exq_base) * ct.exter_qual_upgrade_per_level
-
-    if "Exter Cond" in x:
-        exc_base = _q_to_ord(base_row.get("Exter Cond", "TA"))
-        m.addConstr(x["Exter Cond"] >= exc_base, name="R_EXC_upgrade_only")
-        lin_cost += pos(x["Exter Cond"] - exc_base) * ct.exter_cond_upgrade_per_level
-
-    # Materiales disponibles (usa mismos nombres que en costs.py y en tu CSV)
+    # --- Materiales disponibles (usa mismos nombres que en costs.py y en tu CSV)
     EXT_MATS = [
         "AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard","ImStucc",
         "MetalSd","Other","Plywood","PreCast","Stone","Stucco","VinylSd","Wd Sdng","WdShngl",
     ]
 
-    # Binarios de decisión (de features.py)
-    ex1 = {nm: x[f"ex1_is_{nm}"] for nm in EXT_MATS if f"ex1_is_{nm}" in x}
-    ex2 = {nm: x[f"ex2_is_{nm}"] for nm in EXT_MATS if f"ex2_is_{nm}" in x}
+    # --- Binarias de decisión que vienen desde MODIFIABLE
+    ex1 = {nm: x.get(f"ex1_is_{nm}") for nm in EXT_MATS if f"ex1_is_{nm}" in x}
+    ex2 = {nm: x.get(f"ex2_is_{nm}") for nm in EXT_MATS if f"ex2_is_{nm}" in x}
 
-    # ¿Existe Exterior2nd en la casa base?
-    ex2_base_name = str(base_row.get("Exterior 2nd", "None"))
-    Ilas2 = 0 if (ex2_base_name in ["None", "nan", "NaN", "NoneType", "0"] or pd.isna(base_row.get("Exterior 2nd"))) else 1
+    # --- ¿Existe Exterior 2nd en la casa base?
+    ex2_base_name_raw = str(base_row.get("Exterior 2nd", "None"))
+    Ilas2 = 0 if (ex2_base_name_raw in ["None","nan","NaN","NoneType","0"] or pd.isna(base_row.get("Exterior 2nd"))) else 1
 
-    # (E1) selección única / activación por Ilas2
+    # --- Selección única / activación por Ilas2
     if ex1:
         m.addConstr(gp.quicksum(ex1.values()) == 1, name="EXT_ex1_pick_one")
     if ex2:
         m.addConstr(gp.quicksum(ex2.values()) == Ilas2, name="EXT_ex2_pick_ilas2")
 
-    # (E2) inyectar dummies a X_input (tu modelo trae OHE de exteriores)
+    # --- Inyectar dummies al X_input (pipeline entrenado con OHE de Exterior1st/2nd)
+    def _put_var(df: pd.DataFrame, col: str, var: gp.Var):
+        if col in df.columns:
+            if df[col].dtype != "O":
+                df[col] = df[col].astype("object")
+            df.loc[0, col] = var
+
     for nm in EXT_MATS:
         col1 = f"Exterior 1st_{nm}"
         if col1 in X_input.columns and nm in ex1:
-            X_input.loc[0, col1] = ex1[nm]
+            _put_var(X_input, col1, ex1[nm])
         col2 = f"Exterior 2nd_{nm}"
         if col2 in X_input.columns and nm in ex2:
-            X_input.loc[0, col2] = ex2[nm]
+            _put_var(X_input, col2, ex2[nm])
 
-    # (E3) ELEGIBILIDAD (solo si calidad o condición ≤ TA(=2))
+    # --- Base: material actual por frente
+    ex1_base_name = str(base_row.get("Exterior 1st", "None")).strip()
+    ex2_base_name = str(base_row.get("Exterior 2nd", "None")).strip()
+
+    # --- Elegibilidad: sólo si (Exter Qual <= TA) o (Exter Cond <= TA)
     def _q_to_ord(v):
         M = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
         try:
-            return int(v)
+            return int(pd.to_numeric(v, errors="coerce"))
         except Exception:
-            return M.get(str(v), 2)
+            return M.get(str(v).strip(), 2)
 
-    exq_base = _q_to_ord(base_row.get("Exter Qual", 2))
-    exc_base = _q_to_ord(base_row.get("Exter Cond", 2))
-    eligible = 1 if (exq_base <= 2 or exc_base <= 2) else 0
+    exq_base_ord = _q_to_ord(base_row.get("Exter Qual", "TA"))
+    exc_base_ord = _q_to_ord(base_row.get("Exter Cond", "TA"))
+    eligible = 1 if (exq_base_ord <= 2 or exc_base_ord <= 2) else 0
 
-    # material base (nombres CSV)
-    ex1_base_name = str(base_row.get("Exterior 1st"))
-    ex2_base_name = str(base_row.get("Exterior 2nd"))
+    # --- Si NO es elegible: congelar materiales a los de base (si existen esas vars)
+    if eligible == 0:
+        # Frente 1
+        if ex1_base_name in ex1:
+            for nm, v in ex1.items():
+                v.UB = 1.0 if nm == ex1_base_name else 0.0
+        # Frente 2 (sólo si existe y tenemos la var)
+        if Ilas2 == 1 and ex2:
+            if ex2_base_name in ex2:
+                for nm, v in ex2.items():
+                    v.UB = 1.0 if nm == ex2_base_name else 0.0
 
-    # Si NO elegible -> obligar a mantener materiales base
-    if not eligible:
-        # frente 1
-        for nm in EXT_MATS:
-            if nm in ex1:
-                ex1[nm].UB = 1 if nm == ex1_base_name else 0
-        # frente 2 (solo si existe)
-        if Ilas2 == 1:
-            for nm in EXT_MATS:
-                if nm in ex2:
-                    ex2[nm].UB = 1 if nm == ex2_base_name else 0
+    # --- Costos fijos por CAMBIO de material (sin multiplicar por área; sin demolición extra)
+    #     Nota: sólo se cobra si el material final es distinto al base.
+    for nm, vb in ex1.items():
+        if nm != ex1_base_name:
+            lin_cost += ct.ext_mat_cost(nm) * vb
 
-    # (E4) Costos de cambio de material (solo si cambias)
-    area_ext = ct.exterior_area_proxy(base_row)
-
-    # frente 1: suma de “material distinto al base”
-    for nm in EXT_MATS:
-        if nm in ex1 and nm != ex1_base_name:
-            # demolición + reconstrucción con material nm
-            lin_cost += (ct.exterior_demo_face1 * area_ext) * ex1[nm]
-            lin_cost += (ct.ext_mat_cost(nm) * area_ext) * ex1[nm]
-
-    # frente 2 (si existe)
     if Ilas2 == 1:
-        for nm in EXT_MATS:
-            if nm in ex2 and nm != ex2_base_name:
-                lin_cost += (ct.exterior_demo_face2 * area_ext) * ex2[nm]
-                lin_cost += (ct.ext_mat_cost(nm) * area_ext) * ex2[nm]
+        for nm, vb in ex2.items():
+            if nm != ex2_base_name:
+                lin_cost += ct.ext_mat_cost(nm) * vb
 
-    
+    # -------------------------------------------------------------------------
+    # Exter Qual / Exter Cond con costos fijos por nivel (lumpsum) y upgrade-only
+    # -------------------------------------------------------------------------
+    EQ_LEVELS = ["Po","Fa","TA","Gd","Ex"]
+    ORD = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
+
+    # --- One-hot de calidad y condición finales
+    eq_bin = {nm: m.addVar(vtype=gp.GRB.BINARY, name=f"exterqual_is_{nm}") for nm in EQ_LEVELS}
+    ec_bin = {nm: m.addVar(vtype=gp.GRB.BINARY, name=f"extercond_is_{nm}") for nm in EQ_LEVELS}
+    m.addConstr(gp.quicksum(eq_bin.values()) == 1, name="EXT_EQ_onehot")
+    m.addConstr(gp.quicksum(ec_bin.values()) == 1, name="EXT_EC_onehot")
+
+    # --- No-empeorar (bloquear niveles por debajo de la base)
+    for nm in EQ_LEVELS:
+        if ORD[nm] < exq_base_ord:
+            eq_bin[nm].UB = 0.0
+        if ORD[nm] < exc_base_ord:
+            ec_bin[nm].UB = 0.0
+
+    # --- Si NO es elegible: fijar ambos al nivel base
+    if eligible == 0:
+        # Calidad
+        for nm, vb in eq_bin.items():
+            if ORD[nm] == exq_base_ord:
+                vb.LB = vb.UB = 1.0
+            else:
+                vb.UB = 0.0
+        # Condición
+        for nm, vb in ec_bin.items():
+            if ORD[nm] == exc_base_ord:
+                vb.LB = vb.UB = 1.0
+            else:
+                vb.UB = 0.0
+
+    # --- Enlazar con la variable ordinal si existe en MODIFIABLE
+    if "Exter Qual" in x:
+        m.addConstr(x["Exter Qual"] ==
+                    0*eq_bin["Po"] + 1*eq_bin["Fa"] + 2*eq_bin["TA"] + 3*eq_bin["Gd"] + 4*eq_bin["Ex"],
+                    name="EXT_EQ_link_int")
+    if "Exter Cond" in x:
+        m.addConstr(x["Exter Cond"] ==
+                    0*ec_bin["Po"] + 1*ec_bin["Fa"] + 2*ec_bin["TA"] + 3*ec_bin["Gd"] + 4*ec_bin["Ex"],
+                    name="EXT_EC_link_int")
+
+    # --- Si tu pipeline trae OHE de Qual/Cond, inyecta dummies
+    for nm in EQ_LEVELS:
+        col = f"Exter Qual_{nm}"
+        if col in X_input.columns:
+            _put_var(X_input, col, eq_bin[nm])
+    for nm in EQ_LEVELS:
+        col = f"Exter Cond_{nm}"
+        if col in X_input.columns:
+            _put_var(X_input, col, ec_bin[nm])
+
+    # --- Costos fijos por subir de nivel (sólo si el nivel final es > base)
+    for nm, vb in eq_bin.items():
+        if ORD[nm] > exq_base_ord:
+            lin_cost += ct.exter_qual_cost(nm) * vb
+    for nm, vb in ec_bin.items():
+        if ORD[nm] > exc_base_ord:
+            lin_cost += ct.exter_cond_cost(nm) * vb
+
     # ================== FIN (EXTERIOR) ==================
+
+
 
     # ================== (MAS VNR: tipo + área) ==================
     MV_TYPES = ["BrkCmn", "BrkFace", "CBlock", "No aplica", "Stone"]  # <-- sin "None"
@@ -324,33 +368,24 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         if nm in mvt and nm != mvt_base:
             lin_cost += ct.mas_vnr_cost(nm) * area_term * mvt[nm]
     # ================== FIN (MAS VNR) ==================
-
-
-
     # -------------------
-    # 4) ROOF: estilo/material con dummies "horneadas" y compatibilidad
+    # 4) ROOF: estilo fijo segun base_row, material con costo fijo + compatibilidad
     # -------------------
     style_names = ["Flat", "Gable", "Gambrel", "Hip", "Mansard", "Shed"]
     matl_names  = ["ClyTile", "CompShg", "Membran", "Metal", "Roll", "Tar&Grv", "WdShake", "WdShngl"]
 
-    # binarios provenientes de features.py
+    # binarios ya creados en x
     s_bin = {nm: x[f"roof_style_is_{nm}"] for nm in style_names if f"roof_style_is_{nm}" in x}
     m_bin = {nm: x[f"roof_matl_is_{nm}"]  for nm in matl_names  if f"roof_matl_is_{nm}"  in x}
 
-    # (exactamente uno)
-    if s_bin:
-        m.addConstr(gp.quicksum(s_bin.values()) == 1, name="ROOF_pick_one_style")
-    if m_bin:
-        m.addConstr(gp.quicksum(m_bin.values()) == 1, name="ROOF_pick_one_matl")
-
-    # helper para asignar gp.Var en DataFrame sin warning
+    # helper para inyectar gp.Var en X_input
     def _put_var(df: pd.DataFrame, col: str, var: gp.Var):
         if col in df.columns:
-            if df[col].dtype != "O":  # 'O' = object
+            if df[col].dtype != "O":
                 df[col] = df[col].astype("object")
             df.loc[0, col] = var
 
-    # Inyectar dummies en X_input si el modelo las tiene
+    # inyectar dummies al DataFrame del modelo si existen
     for nm in style_names:
         col = f"Roof Style_{nm}"
         if col in X_input.columns and nm in s_bin:
@@ -361,22 +396,57 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         if col in X_input.columns and nm in m_bin:
             _put_var(X_input, col, m_bin[nm])
 
-
-    # Compatibilidad (0 = prohibido) usando labels del dataset
-    for sn, forbids in {
+    # === estilos prohibidos por compatibilidad segun tu matriz ===
+    ROOF_FORBIDS = {
         "Gable":   ["Membran"],
         "Hip":     ["Membran"],
-        "Flat":    ["WdShngl", "ClyTile", "CompShg"],   # techo plano: sin tejas ni asfalto tradicional
+        "Flat":    ["WdShngl", "ClyTile", "CompShg"],
         "Mansard": ["Membran"],
-        "Shed":    ["ClyTile"],                         # ej: evitar teja pesada en shed muy inclinado
-    }.items():
-        for mn in forbids:
-            if (f"roof_style_is_{sn}" in x) and (f"roof_matl_is_{mn}" in x):
-                m.addConstr(x[f"roof_style_is_{sn}"] + x[f"roof_matl_is_{mn}"] <= 1,
-                            name=f"ROOF_compat_{sn}_{mn}")
+        "Shed":    ["ClyTile"],
+        "Gambrel": [],
+    }
+
+    # helpers para leer la base sin romper si cambia el nombre
+    def _base_val(name, alt=None):
+        if name in base_row:
+            return str(base_row[name])
+        if alt and alt in base_row:
+            return str(base_row[alt])
+        return None
+
+    base_style = _base_val("RoofStyle", "Roof Style")
+    base_mat   = _base_val("RoofMatl",  "Roof Matl")
+
+    # === 1) fijar RoofStyle a la base ===
+    if s_bin and base_style is not None:
+        m.addConstr(gp.quicksum(s_bin.values()) == 1, name="ROOF_pick_one_style")
+        for nm, var in s_bin.items():
+            m.addConstr(var == (1.0 if nm == base_style else 0.0), name=f"ROOF_style_fixed_{nm}")
+
+    # === 2) elegir exactamente un material ===
+    if m_bin:
+        m.addConstr(gp.quicksum(m_bin.values()) == 1, name="ROOF_pick_one_matl")
+
+    # === 3) compatibilidad: apagar materiales no permitidos para el estilo base ===
+    if m_bin and base_style is not None:
+        for mn in ROOF_FORBIDS.get(base_style, []):
+            if mn in m_bin:
+                m.addConstr(m_bin[mn] == 0.0, name=f"ROOF_incompat_{base_style}_{mn}")
+
+    # === 4) costo fijo por cambio de material: demolicion + costo del NUEVO material (excluye el base) ===
+    cost_roof = gp.LinExpr(0.0)
+    if m_bin and base_mat is not None and base_mat in m_bin:
+        change_ind = 1.0 - m_bin[base_mat]
+        cost_roof += ct.roof_demo_cost * change_ind
+        # solo cobramos materiales distintos al base
+        for mat, y in m_bin.items():
+            if mat != base_mat:
+                cost_roof += ct.get_roof_matl_cost(mat) * y
 
 
-# ================== FIN (ROOF) ==================
+    # sumar al costo total
+    lin_cost += cost_roof
+    # ================== FIN (ROOF) ==================
 
     # ========== GARAGE FINISH (pdf: p.29) ==========
     GF = ["Fin", "RFn", "Unf", "No aplica"]      # categorías de decisión
@@ -406,8 +476,43 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     gar = {g: x.get(f"garage_finish_is_{g}") for g in GF if f"garage_finish_is_{g}" in x}
     UpgGa = x.get("UpgGarage")  # puede ser None si no la modelas
 
+    # --- Inyectar OHE de "Garage Finish" al X_input si el pipeline lo trae
+    #      Soporta tanto "..._No aplica" como "..._NA"
+    def _put_ohe(df: pd.DataFrame, col: str, var: gp.Var):
+        if col in df.columns:
+            if df[col].dtype != "O":
+                df[col] = df[col].astype("object")
+            df.loc[0, col] = var
+
+    gf_cols = [c for c in X_input.columns if c.startswith("Garage Finish_")]
+    if gf_cols and gar:
+        for nm, vb in gar.items():
+            if vb is None:
+                continue
+            # mapear 'No aplica' a la columna que exista
+            if nm == "No aplica":
+                if "Garage Finish_No aplica" in X_input.columns:
+                    _put_ohe(X_input, "Garage Finish_No aplica", vb)
+                elif "Garage Finish_NA" in X_input.columns:
+                    _put_ohe(X_input, "Garage Finish_NA", vb)
+            else:
+                col = f"Garage Finish_{nm}"
+                if col in X_input.columns:
+                    _put_ohe(X_input, col, vb)
+
     # --- selección única
     m.addConstr(gp.quicksum(v for v in gar.values() if v is not None) == 1.0, name="GaFin_pick_one")
+
+    try:
+        gt   = str(base_row.get("Garage Type", "No aplica")).strip()
+        area = float(pd.to_numeric(base_row.get("Garage Area"), errors="coerce") or 0.0)
+        cars = float(pd.to_numeric(base_row.get("Garage Cars"), errors="coerce") or 0.0)
+        has_garage = (gt not in {"NA", "No aplica"}) or (area > 0) or (cars > 0)
+    except Exception:
+        has_garage = False
+
+    if has_garage and "No aplica" in gar and gar["No aplica"] is not None:
+        gar["No aplica"].UB = 0.0
 
     # --- conjuntos permitidos / fijaciones (pdf, caso a caso)
     # Si base=NA  -> gar_NA = 1, resto 0
@@ -464,6 +569,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         float(ct.garage_finish_cost(g)) * MaskGa[g] * gar[g]
         for g in GF if g in gar and gar[g] is not None
     )
+
     # ========== FIN GARAGE FINISH ==========
 
 
@@ -1339,20 +1445,6 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             if k != u_base_ord:
                 lin_cost += ct.util_cost(util_names[k]) * vb
 
-    # Roof: costos (fuera del bloque de utilities)
-    if s_bin or m_bin:
-        base_style = str(base_row.get("Roof Style", "Gable"))
-        base_matl  = str(base_row.get("Roof Matl",  "CompShg"))
-
-        for sn, vb in s_bin.items():
-            if sn != base_style:
-                lin_cost += ct.roof_style_cost(sn) * vb  # costo fijo por cambiar estilo
-
-        roof_area = float(pd.to_numeric(base_row.get("Gr Liv Area"), errors="coerce") or 0.0)
-        for mn, vb in m_bin.items():
-            if mn != base_matl:
-                lin_cost += ct.roof_matl_cost(mn) * roof_area * vb  # $/ft2 * área
-    
         # ================== COSTOS ADICIONALES (CONSTRUCCIÓN Y DEMOLICIÓN) ==================
     try:
         # Costos base generales (por demolición de sectores y construcción)
@@ -1385,7 +1477,9 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     m.addConstr(cost_model <= budget_usd, name="BUDGET")
 
 # --- Función objetivo ---
-    m.setObjective(y_price - lin_cost, gp.GRB.MAXIMIZE)
+
+    m.setObjective((y_price - lin_cost) - float(base_price), gp.GRB.MAXIMIZE)
+
 
     # --- Guardar lin_cost dentro del modelo para debug externo ---
     m._lin_cost_expr = lin_cost

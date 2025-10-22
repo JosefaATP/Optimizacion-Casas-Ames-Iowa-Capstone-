@@ -75,6 +75,54 @@ def _fallback_line_value(out: str, starts_with: str) -> float | None:
     m = RE_FIRST_NUM.search(cand)
     return _to_float(m.group(1)) if m else None
 
+RE_MONEY     = r'([-\d,\.]+)'
+
+RE_OBJ       = re.compile(r'Valor\s*objetivo\s*\(MIP\)\s*:\s*\$?\s*' + RE_MONEY, re.I | re.U)
+
+# ROI en dólares y ROI % (ambos soportan texto intermedio entre "ROI" y ":")
+RE_ROI_USD   = re.compile(r'\bROI(?:\s*\(.*?\))?\s*:\s*\$?\s*' + RE_MONEY, re.I | re.U)
+RE_ROI_PCT   = re.compile(r'\bROI\s*%\s*:\s*' + RE_MONEY + r'\s*%', re.I | re.U)
+
+# tiempos y gap
+RE_RT        = re.compile(r'Tiempo\s*total\s*:\s*' + RE_MONEY + r'\s*s', re.I | re.U)
+RE_MIPGAP    = re.compile(r'MIP\s*Gap\s*:\s*' + RE_MONEY + r'\s*%', re.I | re.U)
+
+# costos / slack (permite "(modelo)")
+RE_COST      = re.compile(r'Costos\s+totales(?:\s*\(.*?\))?\s*:\s*\$?\s*' + RE_MONEY, re.I | re.U)
+RE_SLACK     = re.compile(r'Slack\s+presupuesto\s*:\s*\$?\s*' + RE_MONEY, re.I | re.U)
+
+# precios
+RE_PRICE_BASE  = re.compile(r'Precio\s*casa\s*base\s*:\s*\$?\s*' + RE_MONEY, re.I | re.U)
+RE_PRICE_OPT   = re.compile(r'Precio\s*casa\s*remodelada\s*:\s*\$?\s*' + RE_MONEY, re.I | re.U)
+RE_DELTA_PRICE = re.compile(r'Δ\s*Precio\s*:\s*\$?\s*' + RE_MONEY, re.I | re.U)
+
+# uplifts/porciones
+RE_UPLIFT    = re.compile(r'Uplift\s*vs\s*base\s*:\s*' + RE_MONEY + r'\s*%', re.I | re.U)
+RE_SHARE     = re.compile(r'%\s*del\s*precio\s*final\s*por\s*mejoras\s*:\s*' + RE_MONEY + r'\s*%', re.I | re.U)
+
+# Línea con PID y barrio
+RE_PID_NEI   = re.compile(r'PID\s*:\s*(\d+)\s*[–-]\s*([^|]+?)\s*\|\s*Presupuesto', re.I | re.U)
+
+# Binarias activas
+RE_BINS      = re.compile(r'Binarias\s*activas\s*:\s*(\d+)', re.I | re.U)
+
+# Cambios (frecuencias): "- Nombre: base → nuevo (costo ...)"
+RE_CHANGE    = re.compile(r'^\s*-\s*(.+?):\s*.+?→\s*.+?(?:\s*\(costo.*\))?\s*$', re.I | re.M)
+
+def _parse_pct(line_tail: str) -> float | None:
+    m = re.search(r'([-+]?\$?[\d,]+(?:\.\d+)?)', line_tail)
+    return _to_float(m.group(1)) if m else None
+
+def _fallback_line_value(out: str, starts_with: str) -> float | None:
+    cand = None
+    for ln in out.splitlines():
+        if starts_with.lower() in ln.lower():
+            cand = ln
+    if not cand:
+        return None
+    m = re.search(r'([-+]?\$?[\d,]+(?:\.\d+)?)', cand)
+    return _to_float(m.group(1)) if m else None
+
 # ============================ Runner una corrida ============================
 def run_once(pid: int, budget: float, py_exe: str, logdir: Path, tier: str, idx: int,
              basecsv: str | None) -> dict:

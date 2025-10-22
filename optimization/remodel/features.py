@@ -18,14 +18,12 @@ MODIFIABLE = [
     # nombres EXACTOS con espacios, tal como en tu CSV/modelo
     FeatureSpec("Bedroom AbvGr", 0, 6, "I"),
     FeatureSpec("Full Bath", 0, 4, "I"),
-    FeatureSpec("Garage Cars", 0, 4, "I"),
     FeatureSpec("BsmtFin SF 1", 0.0, 1000000.0, "C"),
     FeatureSpec("BsmtFin SF 2", 0.0, 100000.0, "C"),
     FeatureSpec("Bsmt Unf SF",  0.0, 100000.0, "C"),
     FeatureSpec("Gr Liv Area", 0.0, 10000.0, "C"),
     FeatureSpec("1st Flr SF", 0.0, 5000.0, "C"),
     #FeatureSpec("2nd Flr SF", 0.0, 4000.0, "C"),
-    FeatureSpec("Low Qual Fin SF", 0.0, 1000.0, "C"),
     # --- Mas Vnr Type (binarios) ---
     FeatureSpec("mvt_is_BrkCmn", lb=0, ub=1, vartype="B"),
     FeatureSpec("mvt_is_BrkFace", lb=0, ub=1, vartype="B"),
@@ -50,10 +48,7 @@ MODIFIABLE += [
 ]
 
 
-
-
 OHE_CATS = ["No aplica", "Po", "Fa", "TA", "Gd", "Ex"]
-
 
 MODIFIABLE.append(FeatureSpec("delta_KitchenQual_TA", lb=0, ub=1, vartype="B"))
 MODIFIABLE.append(FeatureSpec("delta_KitchenQual_EX", lb=0, ub=1, vartype="B"))
@@ -72,8 +67,17 @@ MODIFIABLE.append(FeatureSpec("Roof Style", 0, 5, "I"))
 MODIFIABLE.append(FeatureSpec("Roof Matl",  0, 7, "I"))
 
 # ==== ROOF: elección de estilo/material (exactamente una de cada) ====
-for _nm in ["Flat","Gable","Gambrel","Hip","Mansard","Shed"]:
-    MODIFIABLE.append(FeatureSpec(name=f"roof_style_is_{_nm}", lb=0, ub=1, vartype="B"))
+
+# compatibilidad estilo->material (1 = permitido)
+ROOF_COMPAT = {
+    # usa exactamente los labels de tus dummies
+    "Gable":   {"CompShg":1,"Metal":1,"ClyTile":1,"WdShngl":1,"Membran":0,"Roll":1,"Tar&Grv":1,"WdShake":1},
+    "Hip":     {"CompShg":1,"Metal":1,"ClyTile":1,"WdShngl":1,"Membran":1,"Roll":1,"Tar&Grv":1,"WdShake":1},
+    "Flat":    {"CompShg":0,"Metal":1,"ClyTile":0,"WdShngl":0,"Membran":1,"Roll":1,"Tar&Grv":1,"WdShake":0},
+    "Mansard": {"CompShg":1,"Metal":1,"ClyTile":1,"WdShngl":1,"Membran":1,"Roll":1,"Tar&Grv":1,"WdShake":1},
+    "Shed":    {"CompShg":1,"Metal":1,"ClyTile":1,"WdShngl":1,"Membran":1,"Roll":1,"Tar&Grv":1,"WdShake":1},
+    "Gambrel": {"CompShg":1,"Metal":1,"ClyTile":1,"WdShngl":1,"Membran":1,"Roll":1,"Tar&Grv":1,"WdShake":1},
+}
 
 for _nm in ["ClyTile","CompShg","Membran","Metal","Roll","Tar&Grv","WdShake","WdShngl"]:
     MODIFIABLE.append(FeatureSpec(name=f"roof_matl_is_{_nm}", lb=0, ub=1, vartype="B"))
@@ -184,7 +188,7 @@ IMMUTABLE: List[str] = [
     "YearBuilt", "YearRemodAdd", "Functional", "LotArea", "Lot Shape",
     "LandContour", "LotConfig", "LandSlope", "BldgType", "HouseStyle","Bsmt Exposure",
       "Condition 1", "Condition 2", "MSZoning", "Street", "Alley", "LotFrontage", "Foundation", "Month Sold", 
-      "Year Sold", "Sale Type", "Sale Condition", "2nd Flr SF", "Roof Style"
+      "Year Sold", "Sale Type", "Sale Condition", "2nd Flr SF", "Roof Style", "Garage Cars", "Low Qual Fin SF"
 ]
 
 # mapeo ordinal (ejemplo). Ajusta a tu encoding de entrenamiento
