@@ -114,6 +114,8 @@ MODIFIABLE += [
     FeatureSpec("3Ssn Porch",    0.0, 100000.0, "C"),
     FeatureSpec("Screen Porch",  0.0, 100000.0, "C"),
     FeatureSpec("Pool Area",     0.0, 100000.0, "C"),
+    # Añadidos: permitir modificar el área de masilla de fachada
+    FeatureSpec("Mas Vnr Area",  0.0, 100000.0, "C"),
 ]
 
 

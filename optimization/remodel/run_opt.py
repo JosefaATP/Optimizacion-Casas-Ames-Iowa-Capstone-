@@ -354,8 +354,143 @@ def main():
         v_gc.UB = base_gc
 
 
-    # Optimizar
+    # --- DIAGNÓSTICO DE INFACTIBILIDAD ---
+    def debug_infeas(m: gp.Model, tag="remodel"):
+        # que no “escamotee” cosas al presolve al calcular IIS
+        m.Params.Presolve = 0
+        m.Params.InfUnbdInfo = 1
+
+        m.computeIIS()
+        # escribe la IIS a disco (útil para abrirla en un editor)
+        m.write(f"{tag}.ilp")      # IIS (subconjunto mínimo inconsistente)
+        m.write(f"{tag}.lp")       # modelo original en LP
+
+        bad_cons = [c for c in m.getConstrs() if c.IISConstr]
+        bad_q    = [q for q in m.getQConstrs() if q.IISQConstr]
+        bad_gen  = [g for g in m.getGenConstrs() if g.IISGenConstr]
+        bad_lb   = [v for v in m.getVars() if v.IISLB]
+        bad_ub   = [v for v in m.getVars() if v.IISUB]
+
+        print("\n=== IIS: restricciones en conflicto ===")
+        for c in bad_cons:
+            print(" CONSTR:", c.ConstrName)
+        for q in bad_q:
+            print(" QCONSTR:", q.QCName)
+        for g in bad_gen:
+            print(" GENCONSTR:", g.GenConstrName)
+
+        print("\n=== IIS: límites en conflicto ===")
+        for v in bad_lb:
+            print(f" LB  : {v.VarName} = {v.LB}")
+        for v in bad_ub:
+            print(f" UB  : {v.VarName} = {v.UB}")
+
+    # Usa este wrapper de optimización:
     m.optimize()
+    # --- Diagnóstico post-solve: desglose numérico de lin_cost y cambios ---
+    def diagnose_solution(m: gp.Model, base_X: pd.DataFrame, modif_names: list[str]):
+        print("\n[DIAG] Ejecutando diagnóstico post-solve...")
+        try:
+            # 1) listar variables modificables que cambiaron
+            cambios = []
+            for name in modif_names:
+                var = m.getVarByName(f"x_{name}")
+                if var is None:
+                    continue
+                try:
+                    val = var.X
+                except Exception:
+                    # no solucion (ej: infeasible)
+                    val = None
+                base_val = None
+                if name in base_X.columns:
+                    try:
+                        base_val = float(base_X.iloc[0].loc[name])
+                    except Exception:
+                        base_val = None
+                if val is not None and base_val is not None and abs(val - base_val) > 1e-9:
+                    cambios.append((name, base_val, val))
+
+            if cambios:
+                print(f"[DIAG] Variables modificables que cambiaron: {len(cambios)}")
+                for c in cambios[:50]:
+                    print(f"  - {c[0]}: base={c[1]} -> sol={c[2]}")
+            else:
+                print("[DIAG] Ninguna variable modificable cambió respecto al base_X")
+
+            # 2) evaluar lin_cost numéricamente: soportamos LinExpr y QuadExpr
+            expr = getattr(m, "_lin_cost_expr", None)
+            if expr is None:
+                print("[DIAG] No se encontró m._lin_cost_expr para evaluar")
+                return
+
+            total = 0.0
+            terms_info = []
+            try:
+                # Si es LinExpr
+                n = None
+                try:
+                    n = expr.size()
+                except Exception:
+                    n = None
+
+                if n and n > 0:
+                    for i in range(n):
+                        try:
+                            v = expr.getVar(i)
+                            c = expr.getCoeff(i)
+                            val = v.X if v is not None else 0.0
+                            contrib = float(c) * float(val)
+                            terms_info.append((v.VarName if v is not None else None, c, val, contrib))
+                            total += contrib
+                        except Exception:
+                            try:
+                                v1 = expr.getVar1(i)
+                                v2 = expr.getVar2(i)
+                                c = expr.getCoeff(i)
+                                val1 = v1.X if v1 is not None else 0.0
+                                val2 = v2.X if v2 is not None else 0.0
+                                contrib = float(c) * float(val1) * float(val2)
+                                terms_info.append(((v1.VarName if v1 is not None else None, v2.VarName if v2 is not None else None), c, (val1, val2), contrib))
+                                total += contrib
+                            except Exception:
+                                # fallback: string repr
+                                terms_info.append((str(expr), None, None, None))
+                                break
+                else:
+                    # no size(): fallback try str()
+                    terms_info.append((str(expr), None, None, None))
+            except Exception as e:
+                print(f"[DIAG] Error evaluando lin_cost: {e}")
+
+            print(f"[DIAG] lin_cost calculado numericamente = {total}")
+            if terms_info:
+                print("[DIAG] Primeros términos de lin_cost (hasta 20):")
+                for t in terms_info[:20]:
+                    print(f"   {t}")
+        except Exception as e:
+            print(f"[DIAG] fallo diagnóstico: {e}")
+
+    # Llamada al diagnóstico si el modelo terminó con solución óptima
+    if m.Status in (gp.GRB.INFEASIBLE, gp.GRB.INF_OR_UNBD):
+        print("\n[WARN] Modelo infactible. Corriendo IIS…")
+        debug_infeas(m, tag="remodel_debug")
+
+        # (opcional) prueba una relajación de factibilidad para ver “por dónde duele”
+        print("\n[INFO] Ejecutando feasibility relaxation…")
+        # copia para no tocar el modelo original
+        r = m.copy()
+        # minimiza suma de slacks en restricciones, sin penalizar bounds
+        r.feasRelaxS(relaxobjtype=0, minrelax=True, vrelax=False, crelax=True)
+        r.optimize()
+    else:
+        # run post-solve diagnostic
+        try:
+            diagnose_solution(m, X_base, [f.name for f in MODIFIABLE])
+        except Exception as e:
+            print(f"[WARN] Diagnóstico post-solve falló: {e}")
+        # (no feasibility relaxation produced; nothing más que hacer aquí)
+
 
     # ===== chequear estado y leer solución =====
     st = m.Status
@@ -1222,16 +1357,47 @@ def main():
 
     print("\n[DBG] Costo usado por término (var * coef):")
     if lin_cost_expr is not None:
-        used = []
-        for i in range(lin_cost_expr.size()):
-            v = lin_cost_expr.getVar(i)
-            c = float(lin_cost_expr.getCoeff(i))
-            x = float(getattr(v, "X", 0.0))
-            if x * c > 1e-6:
-                used.append((v.VarName, x * c, c, x))
-        used.sort(key=lambda t: -t[1])
-        for name, val, coef, x in used[:80]:
-            print(f"   {name:30s} → {val:,.0f}   (coef={coef:,.0f}, x={x:.2f})")
+        used_lin = []
+        used_quad = []
+        try:
+            n = lin_cost_expr.size()
+        except Exception:
+            n = 0
+
+        # If it's a linear expression (has getVar), iterate vars/coeffs
+        if n > 0 and hasattr(lin_cost_expr, 'getVar'):
+            for i in range(n):
+                try:
+                    v = lin_cost_expr.getVar(i)
+                    c = float(lin_cost_expr.getCoeff(i))
+                    x = float(getattr(v, "X", 0.0))
+                except Exception:
+                    continue
+                if abs(x * c) > 1e-9:
+                    used_lin.append((v.VarName, x * c, c, x))
+            used_lin.sort(key=lambda t: -t[1])
+            for name, val, coef, x in used_lin[:80]:
+                print(f"   {name:30s} → {val:,.0f}   (coef={coef:,.0f}, x={x:.2f})")
+
+        # If it's a quadratic expression (has getVar1/getVar2), inspect quadratic terms
+        elif n > 0 and hasattr(lin_cost_expr, 'getVar1'):
+            for i in range(n):
+                try:
+                    v1 = lin_cost_expr.getVar1(i)
+                    v2 = lin_cost_expr.getVar2(i)
+                    coeff = float(lin_cost_expr.getCoeff(i))
+                    x1 = float(getattr(v1, "X", 0.0))
+                    x2 = float(getattr(v2, "X", 0.0))
+                except Exception:
+                    continue
+                val = coeff * x1 * x2
+                if abs(val) > 1e-9:
+                    used_quad.append((f"{v1.VarName}*{v2.VarName}", val, coeff, x1, x2))
+            used_quad.sort(key=lambda t: -t[1])
+            for name, val, coef, x1, x2 in used_quad[:80]:
+                print(f"   {name:30s} → {val:,.0f}   (coef={coef:,.6f}, x1={x1:.2f}, x2={x2:.2f})")
+        else:
+            print('[DBG] lin_cost_expr present but no supported accessors found (unable to enumerate terms)')
 
     # --- helpers seguros para % ---
     def _pct(num, den):

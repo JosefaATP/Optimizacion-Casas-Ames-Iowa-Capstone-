@@ -1,4 +1,4 @@
-#optimization/remodel/gurobi_model.py
+# optimization/remodel/gurobi_model.py
 from typing import Dict, Any
 import pandas as pd
 import gurobipy as gp
@@ -179,7 +179,7 @@ def apply_quality_policy_ordinal(m, x: dict, base_row: pd.Series, col: str):
 
 
 
-def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: XGBBundle, base_price=None) -> gp.Model:
+def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: XGBBundle, base_price=None, fix_to_base: bool = False) -> gp.Model:
     # --- Normalizar presupuesto a USD --
 
     m = gp.Model("remodel_embed")
@@ -198,12 +198,24 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     m._budget = float(budget_usd)  # compat con tu logger anterior
 
 
-    # si no viene precalculado, lo calculamos rápido
+    # si no viene precalculado, lo calculamos re1pido
+    # Build the numeric encoded base row first and use it to compute base_price.
+    # This ensures the same encoding is used for the pre-solve base_price and
+    # for the X_input that will be injected into the embedded predictor.
+    base_X = build_base_input_row(bundle, base_row)
 
     if base_price is None:
-        Xb = build_base_input_row(bundle, base_row)
-        base_price = float(bundle.predict(Xb).iloc[0])
-
+        try:
+            # Prefer predicting from the numeric/encoded row used by the MIP.
+            base_price = float(bundle.predict(base_X).iloc[0])
+        except Exception:
+            # Fallback: try a raw DataFrame made from the original base_row.
+            try:
+                raw_df = pd.DataFrame([base_row])
+                base_price = float(bundle.predict(raw_df).iloc[0])
+            except Exception:
+                # Last resort: zero to avoid crashing; model has a MIN_PRICE_BASE guard.
+                base_price = 0.0
 
     # -------------------
     # 1) Variables de decisión
@@ -225,19 +237,128 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # -------------------
     # 2) Armar X_input (fila 1xN en el ORDEN que espera el modelo)
     # -------------------
+    # Build X_input using the same encoding routine as build_base_input_row
+    # so that the pipeline sees identical columns/types for base prediction
     feature_order = bundle.feature_names_in()
     modif = {f.name for f in MODIFIABLE}
 
+    # base numeric row (1xN) kept for debugging/compatibility with old checks
+    base_X = build_base_input_row(bundle, base_row)
+
+    # Build X_input preserving raw categorical values (strings) and numeric
+    # values for numeric/ordinal features. For decision variables (modifiable)
+    # we insert gp.Var objects so gurobi-ml can embed the pipeline.
     row_vals: Dict[str, Any] = {}
     for fname in feature_order:
         if fname in modif:
+            # decision variable (gp.Var)
             row_vals[fname] = x[fname]
-        else:
-            base_val = base_row.get(fname, 0)
-            row_vals[fname] = _coerce_base_value(fname, base_val)  
+            continue
+
+        # Prefer the numeric encoding that build_base_input_row produced
+        # (handles OHE dummies and ordinal coercions). Only if it's missing
+        # fall back to inspecting raw base_row and applying light coercion.
+        try:
+            if fname in base_X.columns:
+                v = base_X.iloc[0].loc[fname]
+                # if it's a pandas NA-like, fall through to raw handling
+                if v is not None and not (isinstance(v, float) and pd.isna(v)):
+                    row_vals[fname] = float(v)
+                    continue
+        except Exception:
+            # fallback to raw handling below
+            pass
+
+        raw_val = base_row.get(fname, None)
+
+        # Central Air is encoded as 'Y'/'N' in the raw pipeline
+        if str(fname) == "Central Air":
+            row_vals[fname] = "Y" if str(raw_val).strip().upper() in {"Y","YES","1","TRUE"} else "N"
+            continue
+
+        # If the raw value is numeric-like, keep numeric. This handles
+        # continuous features (lot area, areas, counts).
+        try:
+            num = pd.to_numeric(raw_val, errors="coerce")
+            if not pd.isna(num):
+                row_vals[fname] = float(num)
+                continue
+        except Exception:
+            pass
+
+        # Ordinal features that must be converted to numeric ordinals
+        if fname in _ORDINAL_MINUS1 or fname in _ORDINAL_0TO4 or fname == "Utilities":
+            row_vals[fname] = _coerce_base_value(fname, raw_val)
+            continue
+
+        # Default: keep the categorical string (normalized)
+        row_vals[fname] = _norm_cat(raw_val)
 
     # ... arriba: X_input = pd.DataFrame([row_vals], columns=feature_order)
     X_input = pd.DataFrame([row_vals], columns=feature_order, dtype=object)
+    # expose numeric base row for debugging and downstream checks
+    m._X_input = X_input
+    m._X_base_numeric = base_X
+
+    # --- Encoding consistency check: ensure non-modifiable columns match base encoding
+    try:
+        mismatches = []
+        for fname in feature_order:
+            if fname in modif:
+                continue
+            try:
+                v_base = float(base_X.iloc[0].loc[fname])
+            except Exception:
+                v_base = float(_coerce_base_value(fname, base_row.get(fname, 0)))
+            try:
+                v_in = X_input.iloc[0].loc[fname]
+                v_in_f = float(v_in)
+            except Exception:
+                # if it's not convertible, mark mismatch
+                v_in_f = None
+            if v_in_f is None or (not np.isfinite(v_in_f)) or abs(v_base - v_in_f) > 1e-8:
+                mismatches.append((fname, v_base, v_in))
+
+        if mismatches:
+            print(f"[WARN] Encoding mismatch detected for {len(mismatches)} non-modifiable features. Auto-fixing to base values for consistency.")
+            # auto-fix: replace X_input values by base_X numeric values for non-modifiable features
+            for fname, v_base, _ in mismatches:
+                X_input.iloc[0, X_input.columns.get_loc(fname)] = float(v_base)
+            # update exposed copy
+            m._X_input = X_input
+            m._encoding_ok = False
+            # print sample
+            sample = mismatches[:10]
+            for s in sample:
+                print(f" [ENC] {s[0]}: base={s[1]} vs model_input={s[2]}")
+        else:
+            m._encoding_ok = True
+    except Exception as e:
+        print(f"[WARN] Encoding check failed: {e}")
+        m._encoding_ok = False
+
+    # If requested, fix all modifiable decision variables to their base values
+    # (useful to force a "no-change" scenario so that the embedded predictor
+    # evaluates the identical input as the precomputed base prediction).
+    if fix_to_base:
+        for fname in (f.name for f in MODIFIABLE):
+            var = x.get(fname)
+            if var is None:
+                continue
+            # get numeric base value from base_X (if present)
+            try:
+                base_val = float(base_X.iloc[0].loc[fname])
+            except Exception:
+                # fallback to coercion from raw base_row
+                base_val = _coerce_base_value(fname, base_row.get(fname, 0))
+            # guard NaN/Inf which cause Gurobi attribute errors
+            try:
+                if not np.isfinite(base_val):
+                    base_val = 0.0
+            except Exception:
+                base_val = 0.0
+            var.LB = base_val
+            var.UB = base_val
     # (mantén el _align_ohe_dtypes(...) tal como ya lo tienes)
 
     for col in ["Kitchen Qual","Exter Qual","Exter Cond","Heating QC",
@@ -446,7 +567,6 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     base_cost = ct.mas_vnr_cost(mvt_base)
     mv_area = x["Mas Vnr Area"] if "Mas Vnr Area" in x else mv_area_base
-
     # política: si base es "No aplica" o área=0 → no se puede agregar
     no_base_veneer = (mv_area_base <= 1e-9) or (mvt_base == "No aplica")
     if no_base_veneer:
@@ -465,10 +585,41 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         if isinstance(mv_area, gp.Var):
             m.addConstr(mv_area >= mv_area_base, name="MVT_area_no_decrease")
 
-    area_term = mv_area if isinstance(mv_area, gp.Var) else float(mv_area)
-    for nm in MV_TYPES:
-        if nm in mvt and nm != mvt_base:
-            lin_cost += ct.mas_vnr_cost(nm) * area_term * mvt[nm]
+    # --- Linearización del término area * mvt (binaria × continua)
+    # Para evitar expresiones cuadráticas usamos variables auxiliares
+    # mv_area_mvt_{nm} = mv_area * mvt[nm]  (lineal mediante Big-M)
+    # Elegimos UB para mv_area como una cota razonable por casa: max(mv_area_base, 2000.0)
+    try:
+        # si tb_base está definido y es razonable, podríamos usarlo; de lo contrario
+        # usamos mv_area_base como referencia
+        ub_candidate = float(mv_area_base if mv_area_base > 0 else 0.0)
+    except Exception:
+        ub_candidate = 0.0
+    UB_DEFAULT = 2000.0
+    mv_area_ub = max(ub_candidate, UB_DEFAULT)
+
+    # si mv_area no es Var (es un número) la costificación queda trivial
+    if isinstance(mv_area, gp.Var):
+        mv_area_mvt = {}
+        for nm in MV_TYPES:
+            if nm in mvt and nm != mvt_base:
+                aux_name = f"mv_area_mvt_{nm}"
+                mv_area_mvt[nm] = m.addVar(lb=0.0, ub=mv_area_ub, name=aux_name)
+                # p <= a
+                m.addConstr(mv_area_mvt[nm] <= mv_area, name=f"MVT_lin_p_le_a_{nm}")
+                # p <= UB * b
+                m.addConstr(mv_area_mvt[nm] <= mv_area_ub * mvt[nm], name=f"MVT_lin_p_le_UBb_{nm}")
+                # p >= a - UB*(1-b)
+                m.addConstr(mv_area_mvt[nm] >= mv_area - mv_area_ub * (1.0 - mvt[nm]), name=f"MVT_lin_p_ge_a_minus_UB1b_{nm}")
+                # p >= 0 implícito por lb
+                # costo lineal por tipo usando la variable auxiliar
+                lin_cost += ct.mas_vnr_cost(nm) * mv_area_mvt[nm]
+    else:
+        # mv_area es número: usarlo directamente (sigue siendo lineal)
+        area_term = float(mv_area)
+        for nm in MV_TYPES:
+            if nm in mvt and nm != mvt_base:
+                lin_cost += ct.mas_vnr_cost(nm) * area_term * mvt[nm]
     # ================== FIN (MAS VNR) ==================
     # -------------------
      # -------------------
@@ -528,9 +679,26 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             m.addConstr(gp.quicksum(s_bin.values()) == 1, name="ROOF_style_fixed_pick_one")
         # si la var de la base no existe en s_bin, NO añadimos restricciones de estilo
 
-    # === MATERIAL: sí puede cambiar (pick-one siempre que existan) ===
-    if m_bin:
-        m.addConstr(gp.quicksum(m_bin.values()) == 1, name="ROOF_pick_one_matl")
+    # === MATERIAL: always expose a full one-hot across known materials ===
+    # Build a dict `all_m_bin` that contains a binary var for each material
+    # in `matl_names`. If the variable exists in `x` (modifiable) we use it,
+    # otherwise we create a fixed binary (1 for the base material, 0 for the rest).
+    all_m_bin = {}
+    for nm in matl_names:
+        var_name = f"roof_matl_is_{nm}"
+        if var_name in x:
+            all_m_bin[nm] = x[var_name]
+        else:
+            v = m.addVar(vtype=gp.GRB.BINARY, name=var_name)
+            # If this is the base material, fix it to 1; otherwise fix to 0
+            if base_mat is not None and nm == base_mat:
+                v.LB = v.UB = 1.0
+            else:
+                v.LB = v.UB = 0.0
+            all_m_bin[nm] = v
+
+    # Enforce exactly-one material chosen (over the complete universe)
+    m.addConstr(gp.quicksum(all_m_bin.values()) == 1, name="ROOF_pick_one_matl")
 
     # incompatibilidades del material según el estilo BASE (si lo conocemos)
     if m_bin and base_style is not None:
@@ -538,14 +706,28 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             if mn in m_bin:
                 m.addConstr(m_bin[mn] == 0.0, name=f"ROOF_incompat_{base_style}_{mn}")
 
-    # costo por cambiar material: demolición + costo del material nuevo (≠ base)
+    # costo por cambiar material: material price + demolition if chosen material
+    # differs from base. Use exact equality roof_change == sum(non_base_vars)
     cost_roof = gp.LinExpr(0.0)
-    if m_bin and base_mat is not None and base_mat in m_bin:
-        change_ind = 1.0 - m_bin[base_mat]
-        cost_roof += ct.roof_demo_cost * change_ind
-        for mat, y in m_bin.items():
-            if mat != base_mat:
-                cost_roof += ct.get_roof_matl_cost(mat) * y
+    # material price terms: only charge if final material differs from base
+    for mat, y in all_m_bin.items():
+        try:
+            mat_cost = float(ct.get_roof_matl_cost(mat))
+        except Exception:
+            mat_cost = 0.0
+        if base_mat is None or mat != base_mat:
+            # only add coefficient for non-base materials
+            cost_roof += mat_cost * y
+
+    # demolition (demo) applies if chosen material != base (same as before)
+    if base_mat is not None and float(ct.roof_demo_cost) != 0.0:
+        non_base_vars = [y for nm, y in all_m_bin.items() if nm != base_mat]
+        if non_base_vars:
+            roof_change = m.addVar(vtype=gp.GRB.BINARY, name="roof_change_mat")
+            # enforce roof_change == sum(non_base_vars)
+            m.addConstr(roof_change == gp.quicksum(non_base_vars), name="ROOF_change_eq_sum_nonbase")
+            cost_roof += float(ct.roof_demo_cost) * roof_change
+
     lin_cost += cost_roof
 
     # ================== FIN (ROOF) ==================
@@ -1164,10 +1346,17 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     change_type = None
     if heat_bin:
         change_type = m.addVar(vtype=gp.GRB.BINARY, name="heat_change_type")
+        # Define change_type as "chosen type is different from base" without
+        # using arithmetic negation (1 - var). Instead, sum the non-base
+        # heat type bins. This keeps all coefficients positive and avoids
+        # introducing negative coefficients into linear expressions.
         if heat_base in heat_bin:
-            m.addConstr(change_type == 1 - heat_bin[heat_base], name="HEAT_change_def")
+            non_base_sum = gp.quicksum(v for nm, v in heat_bin.items() if nm != heat_base)
+            m.addConstr(change_type == non_base_sum, name="HEAT_change_def")
         else:
-            m.addConstr(change_type >= 0, name="HEAT_change_def_guard")
+            # If the base type isn't represented among bins, conservatively
+            # allow change_type to be 0 (no change) by fixing it to 0.
+            m.addConstr(change_type == 0, name="HEAT_change_def_guard")
 
     # (H5) Dummies de QC (para costos y, si aplica, inyectar al XGB)
     qc_bins = {}
@@ -1182,18 +1371,20 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             _put_var(X_input, f"Heating QC_{nm}", qb)
 
     # (H6) Costos (tal como el PDF)
+    # Build cost using only positive coefficients when possible to avoid
+    # producing negative variable coefficients like '- base_type_cost * change_type'.
     cost_heat = gp.LinExpr(0.0)
 
-    # Reconstruir mismo tipo: C_base * (UpgType - ChangeType)
-    if (upg_type is not None) and (change_type is not None):
-        cost_heat += base_type_cost * (upg_type - change_type)
+    # Cost for upgrading type: only charge when choosing a type different from base
+    if upg_type is not None:
+        # upg_type acts as a gate; but actual cost is encoded per type below
+        cost_heat += 0  # placeholder for clarity
 
-    # Cambiar a tipo más caro
     for nm, vb in heat_bin.items():
         if nm != heat_base:
             cost_heat += ct.heating_type_cost(nm) * vb
 
-    # Cambiar calidad
+    # Cambiar calidad: only charge for QC levels different from base
     if qc_bins:
         for nm, qb in qc_bins.items():
             if q_map[nm] != qc_base:
@@ -1560,8 +1751,20 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # 7) Presupuesto y objetivo
 
     # --- Variable explícita de costo total (para depurar y reportar) ---
+    # Use a linking inequality instead of equality to avoid infeasibility when
+    # numerical issues produce a slightly negative lin_cost. We also ensure
+    # cost_model is non-negative. The solver will minimize cost_model subject
+    # to budget and other constraints, so this safely approximates the true
+    # linear cost while preventing negative-cost exploits.
     cost_model = m.addVar(lb=0.0, name="cost_model")
-    m.addConstr(cost_model == lin_cost, name="COST_LINK")
+    # cost_model must be at least the assembled lin_cost (so it accounts for
+    # all positive cost terms), but we don't force equality which could
+    # conflict with the non-negative lower bound if lin_cost becomes slightly
+    # negative due to numerical/logic issues.
+    m.addConstr(cost_model >= lin_cost, name="COST_LINK_GE")
+    # Explicit non-negativity constraint (LB already set, but keep constraint
+    # for readability in IIS extraction / debugging).
+    m.addConstr(cost_model >= 0.0, name="COST_NONNEG")
 
     # --- Restricción de presupuesto (estricta y con tolerancia baja) ---
     m.Params.FeasibilityTol = 1e-9
@@ -1572,7 +1775,9 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
 # --- Función objetivo ---
 
-    m.setObjective((y_price - lin_cost) - float(base_price), gp.GRB.MAXIMIZE)
+    # Use cost_model in the objective to ensure the optimizer cannot exploit
+    # any negative terms in the raw lin_cost expression.
+    m.setObjective((y_price - cost_model) - float(base_price), gp.GRB.MAXIMIZE)
 
 
     # --- Guardar lin_cost dentro del modelo para debug externo ---
@@ -1580,13 +1785,66 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     # --- Debug interno del lin_cost ---
     try:
-        nterms = lin_cost.size()
-        print(f"[DBG] lin_cost tiene {nterms} términos")
-        if nterms > 0:
-            sample = [(lin_cost.getVar(i).VarName, lin_cost.getCoeff(i)) for i in range(min(5, nterms))]
-            print(f"[DBG] primeros términos: {sample}")
+        # Attempt a robust inspection of lin_cost. It can be a LinExpr or a
+        # QuadExpr (if products of variables were created). We try several
+        # access patterns and fall back to printing the expression string.
+        nterms = None
+        try:
+            nterms = lin_cost.size()
+        except Exception:
+            nterms = None
+
+        print(f"[DBG] lin_cost type={type(lin_cost)} size={nterms}")
+
+        if nterms and nterms > 0:
+            terms = []
+            for i in range(min(50, nterms)):
+                try:
+                    # LinExpr pattern
+                    v = lin_cost.getVar(i)
+                    c = lin_cost.getCoeff(i)
+                    terms.append((v.VarName if v is not None else None, float(c)))
+                    continue
+                except Exception:
+                    pass
+                try:
+                    # QuadExpr pattern: getVar1/getVar2/getCoeff
+                    v1 = lin_cost.getVar1(i)
+                    v2 = lin_cost.getVar2(i)
+                    c = lin_cost.getCoeff(i)
+                    name1 = v1.VarName if v1 is not None else None
+                    name2 = v2.VarName if v2 is not None else None
+                    terms.append(((name1, name2), float(c)))
+                    continue
+                except Exception:
+                    pass
+                # Last resort: append string representation
+                try:
+                    terms.append((str(lin_cost), None))
+                    break
+                except Exception:
+                    terms.append(("<unprintable>", None))
+                    break
+
+            print(f"[DBG] primeros términos (hasta 50): {terms[:10]}")
+        else:
+            # fallback: just print the expression
+            try:
+                print(f"[DBG] lin_cost expr: {lin_cost}")
+            except Exception as e:
+                print(f"[DBG] lin_cost (unprintable): {e}")
     except Exception as e:
         print(f"[DBG] no se pudo inspeccionar lin_cost ({type(lin_cost)}): {e}")
+
+    # Ensure assembled linear/quadratic cost expression is non-negative.
+    # If lin_cost could evaluate negative due to modeling mistakes, the
+    # optimizer could exploit that (cost_model is LB=0). For safety, force
+    # lin_cost >= 0. This will expose modeling errors as infeasibilities
+    # rather than silently allowing free uplifts.
+    try:
+        m.addConstr(lin_cost >= 0.0, name="LIN_COST_NONNEG")
+    except Exception as e:
+        print(f"[WARN] No se pudo añadir LIN_COST_NONNEG: {e}")
 
     # -------------------
     # 8) Resto de restricciones (R1..R8)
@@ -1601,7 +1859,21 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         m.addConstr(x["1st Flr SF"] >= x["Total Bsmt SF"], name="R3_floor1_ge_bsmt")
 
     def _val_or_var(col):
-        return x[col] if col in x else float(base_row[col])
+        """Return a gp.Var (if decision variable present) or a numeric value from base_row.
+
+        Safe: if the base_row doesn't have the column or it's non-numeric, returns 0.0.
+        """
+        if col in x:
+            return x[col]
+        # prefer .get to avoid KeyError; coerce to float safely
+        try:
+            v = base_row.get(col, 0)
+        except Exception:
+            return 0.0
+        try:
+            return float(pd.to_numeric(v, errors="coerce") or 0.0)
+        except Exception:
+            return 0.0
 
     need = all(c in base_row for c in ["Full Bath", "Bedroom AbvGr"])
     if need and ("Half Bath" in base_row or "Half Bath" in x):

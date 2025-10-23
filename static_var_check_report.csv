@@ -1,0 +1,241 @@
+token,in_modifiable
+)  for nm in matl_names  if f,False
+) for g in GF if f,False
+) for g in G_CATS if f,False
+) for nm in EXT_MATS if f,False
+) for nm in style_names if f,False
+1st Flr SF,True
+2nd Flr SF,False
+3Ssn Porch,True
+ALQ,False
+AMPL_1stflr_upgrade,False
+AMPL_link_1stflr,False
+AREA_libre_no_negativa,False
+AddBed,True
+AddFull,True
+AddHalf,True
+AddKitch,True
+AllPub,False
+AsbShng,False
+AsphShn,False
+B1_change_if_upg,False
+B1_pick_one,False
+B1_upg_flag,False
+B2_change_if_upg,False
+B2_pick_hasB2,False
+B2_upg_flag,False
+BLQ,False
+BSMTCOND_link_int,False
+BSMTCOND_onehot,False
+BSMT_all_or_nothing,False
+BSMT_conservation_sum,False
+BSMT_link_fin1,False
+BSMT_link_fin2,False
+BSMT_link_unf,False
+BUDGET,False
+Bedroom AbvGr,True
+BrkCmn,False
+BrkComm,False
+BrkFace,False
+Bsmt Cond,True
+Bsmt Qual,False
+Bsmt Unf SF,True
+BsmtFin SF 1,True
+BsmtFin SF 2,True
+BsmtFin Type 1,False
+BsmtFin Type 2,False
+CBlock,False
+COST_LINK,False
+COUNT_bedroom,False
+COUNT_fullbath,False
+COUNT_halfbath,False
+COUNT_kitchen,False
+CemntBd,False
+Central Air,False
+Central Air_N,False
+Central Air_Y,False
+CentralAir_onehot,False
+ClyTile,False
+Col_Cat,False
+CompShg,False
+ELEC_pick_one,False
+ELO,False
+EXT_EC_link_int,False
+EXT_EC_onehot,False
+EXT_EQ_link_int,False
+EXT_EQ_onehot,False
+EXT_ex1_pick_one,False
+EXT_ex2_pick_ilas2,False
+Electrical,False
+Enclosed Porch,True
+Exter Cond,True
+Exter Qual,True
+Exterior 1st,False
+Exterior 2nd,False
+FENCE_pick_one,False
+FP_onehot,False
+Fence,False
+Fin,False
+Fireplace Qu,True
+Fireplace Qu_,False
+Flat,False
+Floor,False
+Full Bath,True
+FuseA,False
+FuseF,False
+FuseP,False
+GC_pick_one,False
+GLQ,False
+GQ_pick_one,False
+GaFin_Fin_requires_Upg,False
+GaFin_RFnUnf_disallowed_when_upg,False
+GaFin_change_only_if_upg,False
+GaFin_pick_one,False
+Gable,False
+Gambrel,False
+Garage Area,True
+Garage Cars,False
+Garage Cond,True
+Garage Finish,False
+Garage Finish_,False
+Garage Finish_NA,False
+Garage Finish_No aplica,False
+Garage Qual,True
+Garage Type,False
+GasA,False
+GasW,False
+GdPrv,False
+GdWo,False
+Gr Liv Area,True
+Grav,False
+HEAT_any_ge_qc,False
+HEAT_any_ge_type,False
+HEAT_any_le_sum,False
+HEAT_any_no_vars,False
+HEAT_any_rebuild,False
+HEAT_change_def,False
+HEAT_change_def_guard,False
+HEAT_paths_exclusive,False
+HEAT_pick_one_type,False
+HEAT_qc_link,False
+HEAT_qc_min_if_any_rebuild,False
+HEAT_qc_onehot,False
+HEAT_qc_upgrade_only,False
+Half Bath,True
+HdBoard,False
+Heating,False
+Heating QC,True
+Hip,False
+ImStucc,False
+KIT_link_int,False
+KIT_onehot,False
+Kitchen AbvGr,True
+Kitchen Qual,True
+Lot Area,False
+Lot Frontage,False
+Low Qual Fin SF,False
+LowQualFinSF,False
+LwQ,False
+MIN_PRICE_BASE,False
+MVT_area_no_decrease,False
+MVT_pick_one,False
+MVT_stay_noaplica,False
+Mansard,False
+Mas Vnr Area,False
+Mas Vnr Type,False
+Membran,False
+Metal,False
+MetalSd,False
+Mix,False
+MnPrv,False
+MnWw,False
+NaN,False
+No aplica,False
+NoSeWa,False
+NoSewr,False
+None,False
+NoneType,False
+Open Porch SF,True
+OthW,False
+Other,False
+PAVED_pick_one,False
+Paved Drive,False
+Plywood,False
+Pool Area,True
+Pool QC,True
+PoolQC_fix_NA,False
+PoolQC_pick_one,False
+PreCast,False
+R1_floor1_ge_floor2,False
+R2_grliv_le_lot,False
+R3_floor1_ge_bsmt,False
+R4_baths_le_bedrooms,False
+R5_min_bedrooms,False
+R5_min_fullbath,False
+R5_min_kitchen,False
+R7_gr_liv_equality,False
+R8_other_rooms,False
+R8_rooms_balance,False
+RFN o peor,False
+RFn,False
+ROOF_pick_one_matl,False
+ROOF_style_fixed_pick_one,False
+Rec,False
+Roll,False
+Roof Matl,True
+Roof Style,False
+RoofMatl,False
+RoofStyle,False
+SBrkr,False
+Screen Porch,True
+Shed,False
+Stone,False
+Stucco,False
+TRUE,False
+Tar&Grv,False
+TotRms AbvGrd,False
+Total Bsmt SF,False
+True,False
+UTIL_link,False
+UTIL_one_hot,False
+UTIL_upgrade_only,False
+Unf,False
+UpgGa_allowed_if_eligible,False
+UpgGa_off_for_Fin,False
+UpgGa_off_for_NA,False
+UpgGarage,True
+UpgGarage_disabled_for_NA,False
+Utilities,True
+VinylSd,False
+Wall,False
+Wd Sdng,False
+WdShake,False
+WdShngl,False
+Wood Deck SF,True
+YES,False
+Yes,False
+bsmt_finish_all,False
+bsmt_to_fin1,False
+bsmt_to_fin2,False
+central_air_no,False
+central_air_yes,False
+como,False
+construction_cost,False
+cost_model,False
+demo_cost,False
+exp_expm1,False
+heat_change_type,False
+heat_upg_qc,True
+heat_upg_type,True
+no empeorar,False
+pool_qc_is_NA,False
+remodel_embed,False
+util_AllPub,False
+util_ELO,False
+util_NoSeWa,False
+util_NoSewr,False
+x_Add1stFlr,False
+x_pool_qc_is_NA,False
+y,False
+y_log,False
+y_price,False
