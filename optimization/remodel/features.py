@@ -40,7 +40,6 @@ MODIFIABLE += [
     FeatureSpec("Exter Cond",     lb=-1, ub=4, vartype="I"),
     FeatureSpec("Heating QC",     lb=-1, ub=4, vartype="I"),
     FeatureSpec("Fireplace Qu",   lb=-1, ub=4, vartype="I"),
-    FeatureSpec("Bsmt Qual",      lb=-1, ub=4, vartype="I"),
     FeatureSpec("Bsmt Cond",      lb=-1, ub=4, vartype="I"),
     FeatureSpec("Garage Qual",    lb=-1, ub=4, vartype="I"),
     FeatureSpec("Garage Cond",    lb=-1, ub=4, vartype="I"),
@@ -63,7 +62,6 @@ MODIFIABLE += [
 ]
 
 # códigos que alimentan al predictor Roof Style y Roof Matl
-MODIFIABLE.append(FeatureSpec("Roof Style", 0, 5, "I"))
 MODIFIABLE.append(FeatureSpec("Roof Matl",  0, 7, "I"))
 
 # ==== ROOF: elección de estilo/material (exactamente una de cada) ====
@@ -188,7 +186,7 @@ IMMUTABLE: List[str] = [
     "YearBuilt", "YearRemodAdd", "Functional", "LotArea", "Lot Shape",
     "LandContour", "LotConfig", "LandSlope", "BldgType", "HouseStyle","Bsmt Exposure",
       "Condition 1", "Condition 2", "MSZoning", "Street", "Alley", "LotFrontage", "Foundation", "Month Sold", 
-      "Year Sold", "Sale Type", "Sale Condition", "2nd Flr SF", "Roof Style", "Garage Cars", "Low Qual Fin SF"
+      "Year Sold", "Sale Type", "Sale Condition", "2nd Flr SF", "Roof Style", "Garage Cars", "Low Qual Fin SF", "Bsmt Qual", "Bsmt Full Bath", "Bsmt Half Bath"
 ]
 
 # mapeo ordinal (ejemplo). Ajusta a tu encoding de entrenamiento

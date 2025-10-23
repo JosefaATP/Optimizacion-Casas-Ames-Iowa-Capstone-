@@ -38,43 +38,6 @@ def _search_last(pat: re.Pattern, text: str):
     return last
 
 # ============================ Patrones robustos =============================
-RE_OBJ       = re.compile(r'Valor\s*objetivo\s*\(MIP\)\s*:\s*\$?\s*([-\d,\.]+)', re.I | re.U)
-RE_ROI       = re.compile(r'\bROI\s*:\s*\$?\s*([-\d,\.]+)', re.I | re.U)
-RE_PCT_LINE  = re.compile(r'Porcentaje\s+Neto\s+de\s+Mejoras\s*:\s*(.+)', re.I | re.U)
-RE_FIRST_NUM = re.compile(r'[-+]?\$?[\d,]+(?:\.\d+)?')
-RE_PERCENT   = re.compile(r'([-+]?\$?[\d,]+(?:\.\d+)?)\s*%')
-RE_RT        = re.compile(r'Tiempo\s*total\s*:\s*([-\d,\.]+)s', re.I | re.U)
-RE_COST      = re.compile(r'Costos\s+totales\s*:\s*\$?\s*([-\d,\.]+)', re.I | re.U)
-RE_SLACK     = re.compile(r'Slack\s+presupuesto\s*:\s*\$?\s*([-\d,\.]+)', re.I | re.U)
-
-# Línea con PID y barrio (tiene un guion largo entre PID y Neighborhood)
-RE_PID_NEI   = re.compile(r'PID\s*:\s*(\d+)\s*[–-]\s*([^|]+?)\s*\|\s*Presupuesto', re.I | re.U)
-
-# Líneas de cambios: "- Nombre: base → nuevo (costo $...)"
-RE_CHANGE    = re.compile(r'^\s*-\s*(.+?):\s*.+?→\s*.+?(?:\s*\(costo.*\))?\s*$', re.I | re.M)
-
-def _parse_pct(line_tail: str) -> float | None:
-    m = RE_PERCENT.search(line_tail)
-    if m:
-        return _to_float(m.group(1))
-    m = RE_FIRST_NUM.search(line_tail)
-    if m:
-        return _to_float(m.group(1))
-    return None
-
-def _fallback_line_value(out: str, starts_with: str) -> float | None:
-    cand = None
-    for ln in out.splitlines():
-        if starts_with.lower() in ln.lower():
-            cand = ln
-    if not cand:
-        return None
-    if "Porcentaje Neto de Mejoras" in starts_with:
-        tail = cand.split(":", 1)[-1] if ":" in cand else cand
-        return _parse_pct(tail)
-    m = RE_FIRST_NUM.search(cand)
-    return _to_float(m.group(1)) if m else None
-
 RE_MONEY     = r'([-\d,\.]+)'
 
 RE_OBJ       = re.compile(r'Valor\s*objetivo\s*\(MIP\)\s*:\s*\$?\s*' + RE_MONEY, re.I | re.U)
@@ -100,7 +63,7 @@ RE_DELTA_PRICE = re.compile(r'Δ\s*Precio\s*:\s*\$?\s*' + RE_MONEY, re.I | re.U)
 RE_UPLIFT    = re.compile(r'Uplift\s*vs\s*base\s*:\s*' + RE_MONEY + r'\s*%', re.I | re.U)
 RE_SHARE     = re.compile(r'%\s*del\s*precio\s*final\s*por\s*mejoras\s*:\s*' + RE_MONEY + r'\s*%', re.I | re.U)
 
-# Línea con PID y barrio
+# Línea con PID y barrio (guion largo/normal entre PID y Neighborhood)
 RE_PID_NEI   = re.compile(r'PID\s*:\s*(\d+)\s*[–-]\s*([^|]+?)\s*\|\s*Presupuesto', re.I | re.U)
 
 # Binarias activas
@@ -145,33 +108,49 @@ def run_once(pid: int, budget: float, py_exe: str, logdir: Path, tier: str, idx:
     out = _clean_text(raw)
 
     # Parse métricas principales
-    obj = roi = pct = rt = total_cost = slack = None
+    obj = rt = total_cost = slack = None
     neighborhood = None
     changes = []
 
-    m = _search_last(RE_OBJ, out);      obj = _to_float(m.group(1)) if m else None
-    m = _search_last(RE_ROI, out);      roi = _to_float(m.group(1)) if m else None
-    m = _search_last(RE_PCT_LINE, out); pct = _parse_pct(m.group(1)) if m else None
-    m = _search_last(RE_RT, out);       rt  = _to_float(m.group(1)) if m else None
-    m = _search_last(RE_COST, out);     total_cost = _to_float(m.group(1)) if m else None
-    m = _search_last(RE_SLACK, out);    slack = _to_float(m.group(1)) if m else None
+    # Métricas principales
+    m = _search_last(RE_OBJ, out);        obj = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_ROI_USD, out);    roi_usd = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_ROI_PCT, out);    roi_pct = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_RT, out);         rt  = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_MIPGAP, out);     mip_gap = _to_float(m.group(1)) if m else None
+
+    m = _search_last(RE_PRICE_BASE, out); price_base = _to_float(m.group(1)) if m else _fallback_line_value(out, "Precio casa base")
+    m = _search_last(RE_PRICE_OPT,  out); price_opt  = _to_float(m.group(1)) if m else _fallback_line_value(out, "Precio casa remodelada")
+    m = _search_last(RE_DELTA_PRICE,out); delta_price = _to_float(m.group(1))
+    if delta_price is None and (price_base is not None and price_opt is not None):
+        delta_price = price_opt - price_base
+
+    m = _search_last(RE_UPLIFT, out);     uplift_pct = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_SHARE,  out);     share_pct  = _to_float(m.group(1)) if m else None
+
+    m = _search_last(RE_COST, out);       total_cost = _to_float(m.group(1)) if m else None
+    m = _search_last(RE_SLACK, out);      slack = _to_float(m.group(1)) if m else None
+
+    # PID/Neighborhood
     m = _search_last(RE_PID_NEI, out)
     if m:
-        # pid_str = m.group(1)  # no lo usamos, ya lo tenemos
         neighborhood = m.group(2).strip()
+
+    # Binarias activas
+    m = _search_last(RE_BINS, out);       bins_active = int(m.group(1)) if m else None
 
     # Cambios (frecuencias)
     for mc in RE_CHANGE.finditer(out):
         changes.append(mc.group(1).strip())
 
-    # Fallbacks por si algo faltó
-    if obj is None:  obj = _fallback_line_value(out, "Valor objetivo (MIP)")
-    if roi is None:  roi = _fallback_line_value(out, "ROI")
-    if pct is None:  pct = _fallback_line_value(out, "Porcentaje Neto de Mejoras")
-    if rt is None:   rt  = _fallback_line_value(out, "Tiempo total")
+    # Fallbacks por si algo faltó (sólo ROI en $)
+    if roi_usd is None:
+        roi_usd = _fallback_line_value(out, "ROI")
 
-    ok = (obj is not None and roi is not None and pct is not None)
+    # ok si al menos objetivo y precios existen
+    ok = (obj is not None and price_base is not None and price_opt is not None)
 
+    # Si no ok: guardamos log raw
     if not ok:
         logdir.mkdir(parents=True, exist_ok=True)
         (logdir / f"run_{tier}_{idx:02d}_pid{pid}.log").write_text(raw, encoding="utf-8")
@@ -186,13 +165,20 @@ def run_once(pid: int, budget: float, py_exe: str, logdir: Path, tier: str, idx:
         "pid": pid,
         "budget": float(budget),
         "objective_mip": obj,
-        "roi": roi,
-        "pct_net_improve": pct,
+        "roi": roi_usd,                      # ROI en $
+        "roi_pct": roi_pct,                  # ROI %
+        "pct_net_improve": share_pct,        # % del precio final por mejoras
+        "uplift_pct": uplift_pct,            # Uplift vs base (%)
+        "price_base": price_base,
+        "price_opt": price_opt,
+        "delta_price": delta_price,
         "runtime_s": rt,
+        "mip_gap_pct": mip_gap,
         "total_cost": total_cost,
         "slack": slack,
         "budget_used": budget_used,
         "neighborhood": neighborhood,
+        "bins_active": bins_active,
         "changes": changes,
         "raw_ok": ok,
         "raw_output": out,
@@ -261,7 +247,7 @@ def main():
             all_rows.append(res)
             ok = "OK" if res["raw_ok"] else "MISS"
             print(f"[{tier:>4}] budget=${budget:,.0f} → obj={res['objective_mip']} "
-                  f"roi={res['roi']} pct={res['pct_net_improve']} [{ok}]")
+                  f"roi$={res['roi']} roi%={res['roi_pct']} share%={res['pct_net_improve']} [{ok}]")
         print()
 
     # ============================ Guardar CSV ============================
@@ -269,12 +255,15 @@ def main():
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=[
             "tier","pid","neighborhood","budget","budget_used","total_cost","slack",
-            "objective_mip","roi","pct_net_improve","runtime_s","raw_ok"
+            "objective_mip","roi","roi_pct","pct_net_improve","uplift_pct",
+            "price_base","price_opt","delta_price",
+            "runtime_s","mip_gap_pct","bins_active","raw_ok"
         ])
         w.writeheader()
         for r in all_rows:
             w.writerow({
-                "tier": r.get("tier"), "pid": r.get("pid"),
+                "tier": r.get("tier"),
+                "pid": r.get("pid"),
                 "neighborhood": r.get("neighborhood"),
                 "budget": r.get("budget"),
                 "budget_used": r.get("budget_used"),
@@ -282,8 +271,15 @@ def main():
                 "slack": r.get("slack"),
                 "objective_mip": r.get("objective_mip"),
                 "roi": r.get("roi"),
+                "roi_pct": r.get("roi_pct"),
                 "pct_net_improve": r.get("pct_net_improve"),
+                "uplift_pct": r.get("uplift_pct"),
+                "price_base": r.get("price_base"),
+                "price_opt": r.get("price_opt"),
+                "delta_price": r.get("delta_price"),
                 "runtime_s": r.get("runtime_s"),
+                "mip_gap_pct": r.get("mip_gap_pct"),
+                "bins_active": r.get("bins_active"),
                 "raw_ok": r.get("raw_ok"),
             })
     print(f"\n✔ Resultados guardados en: {csv_path}")
@@ -292,10 +288,17 @@ def main():
     print("\n=== RESUMEN POR TIER ===")
     for tier in tiers.keys():
         rows_ok = [r for r in all_rows if r["tier"] == tier and r["raw_ok"]]
-        s_obj = summarize(rows_ok, "objective_mip")
-        s_roi = summarize(rows_ok, "roi")
-        s_pct = summarize(rows_ok, "pct_net_improve")
-        s_used = summarize(rows_ok, "budget_used")
+
+        s_obj    = summarize(rows_ok, "objective_mip")
+        s_roi    = summarize(rows_ok, "roi")
+        s_roi_pct= summarize(rows_ok, "roi_pct")
+        s_share  = summarize(rows_ok, "pct_net_improve")
+        s_uplift = summarize(rows_ok, "uplift_pct")
+        s_dprice = summarize(rows_ok, "delta_price")
+        s_used   = summarize(rows_ok, "budget_used")
+        s_rt     = summarize(rows_ok, "runtime_s")
+        s_gap    = summarize(rows_ok, "mip_gap_pct")
+        s_bins   = summarize(rows_ok, "bins_active")
 
         def fmt(s):
             return (f"n={s['n']}, mean={s['mean']:.2f} (std={s['std']:.2f}), "
@@ -303,9 +306,15 @@ def main():
 
         print(f"\n[{tier}]")
         print("  Obj (MIP):     ", fmt(s_obj))
-        print("  ROI:           ", fmt(s_roi))
-        print("  % Net mejora:  ", fmt(s_pct))
+        print("  ROI ($):       ", fmt(s_roi))
+        print("  ROI %:         ", fmt(s_roi_pct))
+        print("  % Mej/final:   ", fmt(s_share))
+        print("  Uplift %:      ", fmt(s_uplift))
+        print("  Δ Precio:      ", fmt(s_dprice))
         print("  Budget usado:  ", fmt(s_used))
+        print("  Runtime (s):   ", fmt(s_rt))
+        print("  MIP Gap %:     ", fmt(s_gap))
+        print("  Bin activas:   ", fmt(s_bins))
 
     # ============================ Gráficas por tier ============================
     def _vals(metric, tier_key):
@@ -329,10 +338,16 @@ def main():
         plt.savefig(out, dpi=160); plt.close(fig)
         print(f"✔ Figura: {out}")
 
+    # Boxplots estándar + nuevos
     boxplot_metric("objective_mip", "Valor objetivo (MIP)", "box_obj_mip.png")
-    boxplot_metric("roi", "ROI", "box_roi.png")
+    boxplot_metric("roi", "ROI ($)", "box_roi_usd.png")
+    boxplot_metric("roi_pct", "ROI %", "box_roi_pct.png")
+    boxplot_metric("uplift_pct", "Uplift vs base (%)", "box_uplift.png")
+    boxplot_metric("pct_net_improve", "% del precio final por mejoras", "box_share_final.png")
+    boxplot_metric("delta_price", "Δ Precio ($)", "box_delta_price.png")
+    boxplot_metric("runtime_s", "Tiempo total (s)", "box_runtime.png")
 
-    # Barras: % neto de mejoras
+    # Barras: % neto de mejoras (promedio por tier)
     means, lbls = [], []
     for t in tiers.keys():
         vals = _vals("pct_net_improve", t)
@@ -341,8 +356,8 @@ def main():
     if means:
         fig = plt.figure()
         plt.bar(lbls, means)
-        plt.title("Promedio % neto de mejoras por tier (presupuestos fijos)")
-        plt.ylabel("% neto de mejoras")
+        plt.title("Promedio % del precio final por mejoras por tier")
+        plt.ylabel("% del precio final por mejoras")
         fig.tight_layout(); out = outdir / "bar_pct_net.png"
         plt.savefig(out, dpi=160); plt.close(fig)
         print(f"✔ Figura: {out}")
@@ -388,6 +403,45 @@ def main():
             corr = df_corr["used"].corr(df_corr["obj"])
             print(f"\n📎 Correlación Pearson (budget usado vs objetivo) = {corr:.3f}")
 
+    # Scatter: Δ Precio vs Objetivo
+    xs = [r["delta_price"] for r in all_rows if r["raw_ok"] and r.get("delta_price") is not None and r.get("objective_mip") is not None]
+    ys = [r["objective_mip"] for r in all_rows if r["raw_ok"] and r.get("delta_price") is not None and r.get("objective_mip") is not None]
+    if xs and ys:
+        fig = plt.figure()
+        plt.scatter(xs, ys, s=10)
+        plt.title("Δ Precio vs Valor objetivo (MIP)")
+        plt.xlabel("Δ Precio ($)"); plt.ylabel("Valor objetivo (MIP)")
+        fig.tight_layout(); out = outdir / "scatter_dprice_obj.png"
+        plt.savefig(out, dpi=160); plt.close(fig)
+        print(f"✔ Figura: {out}")
+
+    # Scatter: ROI % vs Objetivo (coloreado por tier)
+    tier_colors = {"low": "tab:blue", "mid": "tab:orange", "high": "tab:green"}
+    any_ok2 = any(r["raw_ok"] and r.get("roi_pct") is not None and r.get("objective_mip") is not None for r in all_rows)
+    if any_ok2:
+        fig = plt.figure()
+        for t in tiers.keys():
+            xs = [r["roi_pct"] for r in all_rows if r["tier"]==t and r["raw_ok"] and r.get("roi_pct") is not None and r.get("objective_mip") is not None]
+            ys = [r["objective_mip"] for r in all_rows if r["tier"]==t and r["raw_ok"] and r.get("roi_pct") is not None and r.get("objective_mip") is not None]
+            if xs and ys:
+                plt.scatter(xs, ys, label=t.upper(), color=tier_colors.get(t), s=12)
+        plt.legend(); plt.title("ROI % vs Valor objetivo (MIP)")
+        plt.xlabel("ROI %"); plt.ylabel("Valor objetivo (MIP)")
+        fig.tight_layout(); out = outdir / "scatter_roi_pct_obj.png"
+        plt.savefig(out, dpi=160); plt.close(fig)
+        print(f"✔ Figura: {out}")
+
+    # Histograma de MIP Gap (global)
+    mipgaps = [r["mip_gap_pct"] for r in all_rows if r["raw_ok"] and r.get("mip_gap_pct") is not None]
+    if mipgaps:
+        fig = plt.figure()
+        plt.hist(mipgaps, bins=20)
+        plt.title("Distribución MIP Gap (%)")
+        plt.xlabel("MIP Gap (%)"); plt.ylabel("Frecuencia")
+        fig.tight_layout(); out = outdir / "hist_mipgap.png"
+        plt.savefig(out, dpi=160); plt.close(fig)
+        print(f"✔ Figura: {out}")
+
     # ============================ Top cambios por tier ============================
     tier_changes: dict[str, Counter] = {t: Counter() for t in tiers.keys()}
     for r in all_rows:
@@ -396,9 +450,9 @@ def main():
 
     topch_rows = []
     for t in tiers.keys():
-        top5 = tier_changes[t].most_common(10)
-        if not top5: continue
-        for name, cnt in top5:
+        top10 = tier_changes[t].most_common(10)
+        if not top10: continue
+        for name, cnt in top10:
             topch_rows.append({"tier": t, "change": name, "count": cnt})
 
     if topch_rows:
@@ -423,12 +477,14 @@ def main():
     rows_ok = [r for r in all_rows if r["raw_ok"]]
     df = pd.DataFrame(rows_ok)
     if "neighborhood" in df.columns and df["neighborhood"].notna().any():
-        agg = (df.groupby("neighborhood")[["objective_mip","roi","pct_net_improve","budget_used"]]
-                 .agg(["count","mean","median","std","min","max"]))
+        agg = (df.groupby("neighborhood")[[
+                    "objective_mip","roi","roi_pct","pct_net_improve",
+                    "uplift_pct","delta_price","budget_used"
+               ]].agg(["count","mean","median","std","min","max"]))
         agg.to_csv(outdir / "summary_by_neighborhood.csv", encoding="utf-8")
         print(f"✔ Resumen por neighborhood → {outdir/'summary_by_neighborhood.csv'}")
 
-        # Top-N neighborhoods por objetivo medio (solo si hay suficientes)
+        # Top-N neighborhoods por objetivo medio
         means = (df.groupby("neighborhood")["objective_mip"].mean()
                    .sort_values(ascending=False).head(args.topn_neigh))
         if not means.empty:

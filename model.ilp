@@ -1,0 +1,11 @@
+\ Model remodel_embed_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Maximize
+ 
+Subject To
+ PoolQC_fix_NA: x_poolqc_is_No_aplica = 1
+Bounds
+ x_poolqc_is_No_aplica = 0
+Binaries
+ x_poolqc_is_No_aplica
+End

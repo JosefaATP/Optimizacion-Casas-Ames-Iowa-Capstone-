@@ -57,8 +57,105 @@ def _na2noaplica(s: str) -> str:
     s = str(s).strip()
     return "No aplica" if s in {"NA", "No aplica"} else s
 
+# ---------- COERCIÓN DE VALORES BASE A NUMÉRICOS ----------
+# Map ordinal estándar -1..4 (misma convención que usaste en el resto)
+_ORD_MAP = {"Po":0, "Fa":1, "TA":2, "Gd":3, "Ex":4, "No aplica":-1, "NA":-1}
 
-FORBID_BUILD_WHEN_NA = {"Fireplace Qu","Bsmt Qual","Bsmt Cond","Garage Qual","Garage Cond","Pool QC"}
+def _as_int_or_map(val, default=0, allow_minus1=True):
+    try:
+        v = int(pd.to_numeric(val, errors="coerce"))
+        # aceptamos -1..4 si allow_minus1, o 0..4 si no
+        if allow_minus1:
+            return v if v in (-1, 0, 1, 2, 3, 4) else default
+        else:
+            return v if v in (0, 1, 2, 3, 4) else default
+    except Exception:
+        s = str(val).strip()
+        if s in _ORD_MAP:
+            v = _ORD_MAP[s]
+            if (not allow_minus1) and v == -1:
+                return default
+            return v
+        return default
+
+_UTIL_MAP = {"ELO":0, "NoSeWa":1, "NoSewr":2, "AllPub":3}
+
+# Columnas que el XGB espera como ordinales (entran como números)
+_ORDINAL_MINUS1 = {"Fireplace Qu", "Pool QC"}   # permiten -1
+_ORDINAL_0TO4   = {"Kitchen Qual", "Exter Qual", "Exter Cond", "Heating QC",
+                   "Bsmt Qual", "Bsmt Cond", "Garage Qual", "Garage Cond"}
+
+def _coerce_base_value(col: str, val):
+    col = str(col)
+    # Ordinales
+    if col in _ORDINAL_MINUS1:
+        return float(_as_int_or_map(val, default=-1, allow_minus1=True))
+    if col in _ORDINAL_0TO4:
+        return float(_as_int_or_map(val, default=2, allow_minus1=True))  # TA=2 por defecto
+
+    # Utilities (codificación entera 0..3)
+    if col == "Utilities":
+        s = str(val).strip()
+        if s in _UTIL_MAP: 
+            return float(_UTIL_MAP[s])
+        try:
+            v = int(pd.to_numeric(val, errors="coerce"))
+            return float(v if v in (0,1,2,3) else 3)  # default AllPub
+        except Exception:
+            return 3.0  # AllPub
+
+    # Booleans tipo Y/N que el pipeline pudiera tener como 0/1 (solo por seguridad)
+    if col in {"Central Air"}:
+        s = str(val).strip().upper()
+        return 1.0 if s in {"Y", "YES", "1", "TRUE"} else 0.0
+
+    # Genérico: si es numérico, lo devuelvo como float; si es "No aplica"/"NA" → 0.0
+    s = str(val).strip()
+    if s in {"No aplica","NA","nan","None",""}:
+        return 0.0
+    try:
+        return float(pd.to_numeric(val, errors="coerce"))
+    except Exception:
+        # último recurso: deja 0.0 (pero evita strings)
+        return 0.0
+# ---------- FIN COERCIÓN ----------
+
+def _norm_cat(s: str) -> str:
+    s = str(s).strip()
+    return "No aplica" if s in {"NA", "No aplica"} else s
+
+def build_base_input_row(bundle, base_row: pd.Series) -> pd.DataFrame:
+    """
+    Devuelve una fila 1xN con EXACTAMENTE las columnas que espera el regressor
+    (bundle.feature_names_in()), ya numéricas (one-hots/ordinales) y alineadas
+    a como las usa el MIP. Así, y_base y y_price son comparables 1:1.
+    """
+    cols = list(bundle.feature_names_in())
+    row = {}
+
+    for c in cols:
+        # ¿Es dummy OHE del tipo "Col_Cat"?
+        if "_" in c and (c.count("_") >= 1):
+            root, cat = c.split("_", 1)
+            root = root.replace("_", " ").strip()
+            cat  = cat.strip()
+
+            base_val = base_row.get(root, None)
+
+            # Normalizaciones mínimas coherentes con el MIP
+            if root == "Central Air":
+                base_cat = "Y" if str(base_val).strip().upper() in {"Y","YES","1","TRUE"} else "N"
+            else:
+                base_cat = _norm_cat(base_val)
+
+            row[c] = 1.0 if _norm_cat(base_cat) == _norm_cat(cat) else 0.0
+        else:
+            # Columna numérica/ordinal ya en la grilla del modelo
+            row[c] = float(_coerce_base_value(c, base_row.get(c, 0)))
+    return pd.DataFrame([row], columns=cols, dtype=float)
+
+
+FORBID_BUILD_WHEN_NA = {"Fireplace Qu","Bsmt Cond","Garage Qual","Garage Cond","Pool QC"}
 
 def apply_quality_policy_ordinal(m, x: dict, base_row: pd.Series, col: str):
     """Enlaza política para variable ordinal x[col] (−1..4):
@@ -102,9 +199,11 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
 
     # si no viene precalculado, lo calculamos rápido
+
     if base_price is None:
-        Xb = pd.DataFrame([base_row])
+        Xb = build_base_input_row(bundle, base_row)
         base_price = float(bundle.predict(Xb).iloc[0])
+
 
     # -------------------
     # 1) Variables de decisión
@@ -129,17 +228,20 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     feature_order = bundle.feature_names_in()
     modif = {f.name for f in MODIFIABLE}
 
-    # Base: var si es modificable, si no el valor de la casa base
     row_vals: Dict[str, Any] = {}
     for fname in feature_order:
-        row_vals[fname] = x[fname] if fname in modif else base_row.get(fname, 0)
+        if fname in modif:
+            row_vals[fname] = x[fname]
+        else:
+            base_val = base_row.get(fname, 0)
+            row_vals[fname] = _coerce_base_value(fname, base_val)  
 
     # ... arriba: X_input = pd.DataFrame([row_vals], columns=feature_order)
     X_input = pd.DataFrame([row_vals], columns=feature_order, dtype=object)
     # (mantén el _align_ohe_dtypes(...) tal como ya lo tienes)
 
     for col in ["Kitchen Qual","Exter Qual","Exter Cond","Heating QC",
-                "Fireplace Qu","Bsmt Qual","Bsmt Cond","Garage Qual","Garage Cond","Pool QC"]:
+                "Fireplace Qu","Bsmt Cond","Garage Qual","Garage Cond","Pool QC"]:
         apply_quality_policy_ordinal(m, x, base_row, col)
 
 
@@ -533,29 +635,25 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     # Si base∈{RFn,Unf} -> puede mantener (RFn/Unf) o subir a Fin
     else:
-        # activación (pdf):
-        # UpgGa >= BaseGa_RFn ; UpgGa >= BaseGa_Unf ; UpgGa <= BaseGa_RFn + BaseGa_Unf
+        # --- activación: solo si la base es RFn/Unf se PERMITE upgradear,
+        #     pero NO se obliga (UpgGa es opcional)
         if UpgGa is not None:
-            m.addConstr(UpgGa >= BaseGa["RFn"], name="UpgGa_ge_RFn")
-            m.addConstr(UpgGa >= BaseGa["Unf"], name="UpgGa_ge_Unf")
-            m.addConstr(UpgGa <= BaseGa["RFn"] + BaseGa["Unf"], name="UpgGa_le_sum")
+            m.addConstr(UpgGa <= BaseGa["RFn"] + BaseGa["Unf"],
+                        name="UpgGa_allowed_if_eligible")
 
-            # cambio solo si corresponde (pdf):
-            # sum_g M_i,g * gar_i,g <= UpgGa
-            m.addConstr(gp.quicksum(MaskGa[g] * gar[g] for g in GF if gar[g] is not None) <= UpgGa,
-                        name="GaFin_change_only_if_upg")
+            # Si UpgGa=0, no se puede cambiar:  sum M*g <= 0  → quedarse en la base
+            m.addConstr(gp.quicksum(MaskGa[g] * gar[g] for g in GF if gar[g] is not None)
+                        <= UpgGa, name="GaFin_change_only_if_upg")
 
-            # permisos implementados linealmente (pdf):
-            # gar_Fin <= UpgGa ; sum_{g∈{RFn,Unf}} gar_g <= 1 - UpgGa
+            # Fin solo si UpgGa=1
             if "Fin" in gar and gar["Fin"] is not None:
-                m.addConstr(gar["Fin"] <= UpgGa, name="GaFin_Fin_le_Upg")
-            m.addConstr(gp.quicksum(gar[g] for g in GF_RFnOrWorse if g in gar and gar[g] is not None)
-                        <= 1.0 - UpgGa, name="GaFin_RFnUnf_le_1_minus_Upg")
+                m.addConstr(gar["Fin"] <= UpgGa, name="GaFin_Fin_requires_Upg")
 
-        # si no modelas UpgGa, al menos prohíbe downgrade y permite Fin
+            # Si UpgGa=1, no podés terminar en RFn/Unf
+            m.addConstr(gp.quicksum(gar[g] for g in GF_RFnOrWorse if g in gar and gar[g] is not None)
+                        <= 1.0 - UpgGa, name="GaFin_RFnUnf_disallowed_when_upg")
         else:
-            # bloquear "No aplica" y cualquier peor a la base por costo
-            # detecta base actual entre RFn/Unf, orden peor→mejor
+            # (tu fallback sin UpgGa) – dejalo tal cual
             ORDER = ["Unf", "RFn", "Fin"]
             base_cat = next((g for g in ORDER if BaseGa[g] == 1.0), None)
             if base_cat:
@@ -563,6 +661,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
                 for i, g in enumerate(ORDER):
                     if i < base_idx and g in gar and gar[g] is not None:
                         gar[g].UB = 0.0
+
 
     # --- costo (pdf): CostoGaFin = sum_g C_GF^g * M_i,g * gar_i,g
     lin_cost += gp.quicksum(
@@ -1174,20 +1273,15 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             pass
     # ================== FIN FIREPLACE QU ==================
 
-    # ================== BSMT (Fin1, Fin2, Unf, Total) ==================
-    # Variables existentes (deben estar en MODIFIABLE)
+    # ================== BSMT (TODO O NADA: Fin1/Fin2 vs Unf) ==================
     b1_var = x.get("BsmtFin SF 1")
     b2_var = x.get("BsmtFin SF 2")
     bu_var = x.get("Bsmt Unf SF")
     if (b1_var is None) or (b2_var is None) or (bu_var is None):
-        raise RuntimeError(
-            "Faltan variables de sótano en MODIFIABLE: "
-            "asegúrate de tener 'BsmtFin SF 1', 'BsmtFin SF 2', 'Bsmt Unf SF'."
-        )
+        raise RuntimeError("Faltan variables de sótano en MODIFIABLE: "
+                           "'BsmtFin SF 1', 'BsmtFin SF 2', 'Bsmt Unf SF'.")
 
-    # Bases (constantes de la casa)
-    def _num(v): 
-        import pandas as pd
+    def _num(v):
         try: return float(pd.to_numeric(v, errors="coerce") or 0.0)
         except: return 0.0
 
@@ -1195,30 +1289,30 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     b2_base = _num(base_row.get("BsmtFin SF 2"))
     bu_base = _num(base_row.get("Bsmt Unf SF"))
     tb_base = _num(base_row.get("Total Bsmt SF"))
-    if tb_base <= 0.0:
-        tb_base = b1_base + b2_base + bu_base
+    if tb_base <= 0.0: tb_base = b1_base + b2_base + bu_base
 
-    # Transferencias SOLO desde Unf → Fin1/Fin2 (no hay demoliciones)
-    tr1 = m.addVar(lb=0.0, name="bsmt_tr1")  # pies² que pasan de Unf a Fin1
-    tr2 = m.addVar(lb=0.0, name="bsmt_tr2")  # pies² que pasan de Unf a Fin2
+    # binaria: ¿termino TODO lo no terminado?
+    finish_bsmt = m.addVar(vtype=gp.GRB.BINARY, name="bsmt_finish_all")
 
-    # Enlaces sin demoler:
-    #   Fin1 = Fin1_base + tr1
-    #   Fin2 = Fin2_base + tr2
-    #   Unf  = Unf_base  - tr1 - tr2
-    m.addConstr(b1_var == b1_base + tr1, name="BSMT_link_fin1")
-    m.addConstr(b2_var == b2_base + tr2, name="BSMT_link_fin2")
-    m.addConstr(bu_var == bu_base - tr1 - tr2, name="BSMT_link_unf")
+    # reasignaciones desde Unf a 1 y 2 (no negativas)
+    x1 = m.addVar(lb=0.0, name="bsmt_to_fin1")
+    x2 = m.addVar(lb=0.0, name="bsmt_to_fin2")
 
-    # No se puede terminar más de lo que había sin terminar
-    m.addConstr(tr1 + tr2 <= bu_base + 1e-6, name="BSMT_no_more_than_unf_base")
+    # si terminas, consumes todo lo Unf base
+    m.addConstr(x1 + x2 == bu_base * finish_bsmt, name="BSMT_all_or_nothing")
 
-    # Conservación del total (seguridad)
+    # enlaces de áreas
+    m.addConstr(b1_var == b1_base + x1,                   name="BSMT_link_fin1")
+    m.addConstr(b2_var == b2_base + x2,                   name="BSMT_link_fin2")
+    m.addConstr(bu_var == bu_base * (1.0 - finish_bsmt),  name="BSMT_link_unf")
+
+    # conservación (sanity)
     m.addConstr(b1_var + b2_var + bu_var == tb_base, name="BSMT_conservation_sum")
 
-    # Costos: solo cobramos lo que efectivamente se terminó
-    lin_cost += ct.finish_basement_per_f2 * (tr1 + tr2)
-    # ================== FIN BSMT ==================
+    # costo: solo si decides terminar (precio por ft² * Unf_base)
+    lin_cost += ct.finish_basement_per_f2 * bu_base * finish_bsmt
+    # ================== FIN BSMT TODO O NADA ==================
+
 
  
     # ================== (BSMT COND: ordinal upgrade-only) ==================

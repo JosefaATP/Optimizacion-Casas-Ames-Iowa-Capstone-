@@ -3,6 +3,7 @@ import argparse
 import pandas as pd
 import gurobipy as gp
 
+from optimization.remodel.gurobi_model import build_base_input_row
 from .config import PARAMS
 from .io import get_base_house
 from . import costs
@@ -200,15 +201,12 @@ def main():
     except AttributeError:
         base_row = base if isinstance(base, pd.Series) else pd.Series(base)
 
-    # ===== precio_base (ValorInicial) con el pipeline COMPLETO =====
-    feat_order = bundle.feature_names_in()
-    X_base = pd.DataFrame([_row_with_dummies(base_row, feat_order)], columns=feat_order)
-
-    # normalizaciones defensivas
-    _coerce_quality_ordinals_inplace(X_base, getattr(bundle, "quality_cols", []))
-    _coerce_utilities_ordinal_inplace(X_base)
-
+    # ===== precio_base (ValorInicial) en el MISMO espacio que usa el MIP/XGB =====
+    X_base = build_base_input_row(bundle, base_row)
     precio_base = float(bundle.predict(X_base).iloc[0])
+
+    feat_order = list(X_base.columns)
+
 
     # --- (debugs opcionales recortados para brevedad) ---
     if "Kitchen Qual" in feat_order:
@@ -355,8 +353,28 @@ def main():
         v_gc.LB = base_gc
         v_gc.UB = base_gc
 
+
     # Optimizar
     m.optimize()
+
+    # ===== chequear estado y leer solución =====
+    st = m.Status
+    if st in (gp.GRB.INF_OR_UNBD, gp.GRB.INFEASIBLE, gp.GRB.UNBOUNDED):
+        print("\n❌ Modelo infeasible/unbounded. Intentando IIS...")
+        try:
+            m.computeIIS()
+            m.write("model.ilp"); m.write("model.iis")
+            print("IIS escrito en model.iis (y LP en model.ilp).")
+        except Exception as e:
+            print(f"[WARN] computeIIS falló: {e}")
+        return  # o salir elegantemente sin acceder a .X
+
+    if st not in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT) or m.SolCount == 0:
+        print("\n⚠️ No hay solución válida; se omite impresión de variables.")
+        return
+
+    # A partir de aquí ya podés leer .X con seguridad
+    precio_remodelada = float(m.getVarByName("y_price").X)
 
     # ===== leer precios =====
     precio_remodelada = float(m.getVarByName("y_price").X)
