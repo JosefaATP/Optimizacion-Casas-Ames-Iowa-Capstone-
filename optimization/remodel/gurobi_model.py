@@ -471,34 +471,32 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             lin_cost += ct.mas_vnr_cost(nm) * area_term * mvt[nm]
     # ================== FIN (MAS VNR) ==================
     # -------------------
-    # 4) ROOF: estilo fijo segun base_row, material con costo fijo + compatibilidad
+     # -------------------
+    # 4) ROOF: estilo FIJO (no se puede cambiar) y material con costo + compatibilidad
     # -------------------
     style_names = ["Flat", "Gable", "Gambrel", "Hip", "Mansard", "Shed"]
     matl_names  = ["ClyTile", "CompShg", "Membran", "Metal", "Roll", "Tar&Grv", "WdShake", "WdShngl"]
 
-    # binarios ya creados en x
-    s_bin = {nm: x[f"roof_style_is_{nm}"] for nm in style_names if f"roof_style_is_{nm}" in x}
-    m_bin = {nm: x[f"roof_matl_is_{nm}"]  for nm in matl_names  if f"roof_matl_is_{nm}"  in x}
+    # binarios ya creados en x (si existen en MODIFIABLE)
+    s_bin = {nm: x.get(f"roof_style_is_{nm}") for nm in style_names if f"roof_style_is_{nm}" in x}
+    m_bin = {nm: x.get(f"roof_matl_is_{nm}")  for nm in matl_names  if f"roof_matl_is_{nm}"  in x}
 
-    # helper para inyectar gp.Var en X_input
+    # helper para inyectar gp.Var en X_input (lo usaremos SOLO para materiales)
     def _put_var(df: pd.DataFrame, col: str, var: gp.Var):
         if col in df.columns:
             if df[col].dtype != "O":
                 df[col] = df[col].astype("object")
             df.loc[0, col] = var
 
-    # inyectar dummies al DataFrame del modelo si existen
-    for nm in style_names:
-        col = f"Roof Style_{nm}"
-        if col in X_input.columns and nm in s_bin:
-            _put_var(X_input, col, s_bin[nm])
+    # NO inyectamos estilo al X_input -> dejamos los dummies de estilo tal como vienen en X_base
 
+    # Inyectar SOLO dummies de MATERIAL al DataFrame del modelo si existen
     for nm in matl_names:
         col = f"Roof Matl_{nm}"
         if col in X_input.columns and nm in m_bin:
             _put_var(X_input, col, m_bin[nm])
 
-    # === estilos prohibidos por compatibilidad segun tu matriz ===
+    # estilos prohibidos por compatibilidad según tu matriz
     ROOF_FORBIDS = {
         "Gable":   ["Membran"],
         "Hip":     ["Membran"],
@@ -508,7 +506,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         "Gambrel": [],
     }
 
-    # helpers para leer la base sin romper si cambia el nombre
+    # helpers para leer la base (acepta nombres alternativos)
     def _base_val(name, alt=None):
         if name in base_row:
             return str(base_row[name])
@@ -519,35 +517,37 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     base_style = _base_val("RoofStyle", "Roof Style")
     base_mat   = _base_val("RoofMatl",  "Roof Matl")
 
-    # === 1) fijar RoofStyle a la base ===
-    if s_bin and base_style is not None:
-        m.addConstr(gp.quicksum(s_bin.values()) == 1, name="ROOF_pick_one_style")
-        for nm, var in s_bin.items():
-            m.addConstr(var == (1.0 if nm == base_style else 0.0), name=f"ROOF_style_fixed_{nm}")
+    # === STYLE: FIJO a la base si la var existe; si no existe, no imponemos nada ===
+    if s_bin:
+        if base_style in s_bin:
+            # estilo fijo: esa binaria =1, el resto =0; el pick-one es seguro en este caso
+            s_bin[base_style].LB = s_bin[base_style].UB = 1.0
+            for nm, var in s_bin.items():
+                if nm != base_style:
+                    var.UB = 0.0
+            m.addConstr(gp.quicksum(s_bin.values()) == 1, name="ROOF_style_fixed_pick_one")
+        # si la var de la base no existe en s_bin, NO añadimos restricciones de estilo
 
-    # === 2) elegir exactamente un material ===
+    # === MATERIAL: sí puede cambiar (pick-one siempre que existan) ===
     if m_bin:
         m.addConstr(gp.quicksum(m_bin.values()) == 1, name="ROOF_pick_one_matl")
 
-    # === 3) compatibilidad: apagar materiales no permitidos para el estilo base ===
+    # incompatibilidades del material según el estilo BASE (si lo conocemos)
     if m_bin and base_style is not None:
         for mn in ROOF_FORBIDS.get(base_style, []):
             if mn in m_bin:
                 m.addConstr(m_bin[mn] == 0.0, name=f"ROOF_incompat_{base_style}_{mn}")
 
-    # === 4) costo fijo por cambio de material: demolicion + costo del NUEVO material (excluye el base) ===
+    # costo por cambiar material: demolición + costo del material nuevo (≠ base)
     cost_roof = gp.LinExpr(0.0)
     if m_bin and base_mat is not None and base_mat in m_bin:
         change_ind = 1.0 - m_bin[base_mat]
         cost_roof += ct.roof_demo_cost * change_ind
-        # solo cobramos materiales distintos al base
         for mat, y in m_bin.items():
             if mat != base_mat:
                 cost_roof += ct.get_roof_matl_cost(mat) * y
-
-
-    # sumar al costo total
     lin_cost += cost_roof
+
     # ================== FIN (ROOF) ==================
 
     # ========== GARAGE FINISH (pdf: p.29) ==========
