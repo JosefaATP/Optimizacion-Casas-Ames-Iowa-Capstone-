@@ -1190,6 +1190,7 @@ def main():
     except Exception:
         pass
 
+
     # ========= Salida =========
     print("\n" + "="*60)
     print("               RESULTADOS DE LA OPTIMIZACIÓN")
@@ -1315,8 +1316,6 @@ def main():
     cB = m.getConstrByName("BUDGET")
     if cB:
         print(f"  BUDGET slack = {cB.Slack:.6f}")
-
-
 
 if __name__ == "__main__":
     main()
