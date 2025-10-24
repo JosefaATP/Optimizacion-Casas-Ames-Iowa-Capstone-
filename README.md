@@ -1,3 +1,5 @@
+# BRANCH OFICIAL ENTREGA 2: `XGBoost-+-Remodelación`
+
 # 🧭 Guía rápida de trabajo en este repositorio
 
 Objetivo: que todos podamos trabajar ordenados en ramas, usar consola para los commits, pull, push, y tener el entorno configurado igual.
@@ -139,5 +141,6 @@ git stash pop
 - Revisar bien antes de hacer merge a main
 
 Si algo falla, no forzar nada sin entenderlo primero 😅
+
 
 
