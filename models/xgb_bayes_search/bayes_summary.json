@@ -1,0 +1,1150 @@
+{
+  "best": {
+    "r2": 0.9369936701314173,
+    "params": {
+      "n_estimators": 3758,
+      "learning_rate": 0.03683247703306933,
+      "max_depth": 4,
+      "min_child_weight": 5.0,
+      "gamma": 0.008345270600629286,
+      "subsample": 0.6783424963567025,
+      "colsample_bytree": 0.43051657642562313,
+      "reg_lambda": 3.364253417277695,
+      "reg_alpha": 0.052422719530854305
+    },
+    "iteration": 60,
+    "metrics": {
+      "train": {
+        "RMSE": 12978.383490971975,
+        "MAE": 9034.138211763146,
+        "MAPE_pct": 3.369964103137489,
+        "R2": 0.9887123001055321,
+        "residual_skew": 0.9526078994489325,
+        "residual_kurtosis": 7.980981685105925
+      },
+      "test": {
+        "RMSE": 30777.777494189202,
+        "MAE": 18861.800764283562,
+        "MAPE_pct": 7.148244753424129,
+        "R2": 0.9369936701314173,
+        "residual_skew": -0.07104749790413245,
+        "residual_kurtosis": 15.314652039125496
+      },
+      "log_target": true
+    }
+  },
+  "finalists": [
+    {
+      "iteration": 60,
+      "r2_score": 0.9369936701314173,
+      "params": {
+        "n_estimators": 3758,
+        "learning_rate": 0.03683247703306933,
+        "max_depth": 4,
+        "min_child_weight": 5.0,
+        "gamma": 0.008345270600629286,
+        "subsample": 0.6783424963567025,
+        "colsample_bytree": 0.43051657642562313,
+        "reg_lambda": 3.364253417277695,
+        "reg_alpha": 0.052422719530854305
+      },
+      "model_path": "models/xgb_bayes_search/trial_060/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_060/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_060/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 12978.383490971975,
+          "MAE": 9034.138211763146,
+          "MAPE_pct": 3.369964103137489,
+          "R2": 0.9887123001055321,
+          "residual_skew": 0.9526078994489325,
+          "residual_kurtosis": 7.980981685105925
+        },
+        "test": {
+          "RMSE": 30777.777494189202,
+          "MAE": 18861.800764283562,
+          "MAPE_pct": 7.148244753424129,
+          "R2": 0.9369936701314173,
+          "residual_skew": -0.07104749790413245,
+          "residual_kurtosis": 15.314652039125496
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 51,
+      "r2_score": 0.9357927032917812,
+      "params": {
+        "n_estimators": 3986,
+        "learning_rate": 0.06375189726886134,
+        "max_depth": 4,
+        "min_child_weight": 4.0,
+        "gamma": 0.012581096249036364,
+        "subsample": 0.6811572182642053,
+        "colsample_bytree": 0.5151134894000593,
+        "reg_lambda": 3.5977113229225175,
+        "reg_alpha": 0.058907958280407687
+      },
+      "model_path": "models/xgb_bayes_search/trial_051/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_051/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_051/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 14555.458917787802,
+          "MAE": 10099.110468677234,
+          "MAPE_pct": 3.7574221460094726,
+          "R2": 0.9858023634442714,
+          "residual_skew": 0.9176814353090647,
+          "residual_kurtosis": 7.606052035355188
+        },
+        "test": {
+          "RMSE": 31069.72125898526,
+          "MAE": 19555.257823195563,
+          "MAPE_pct": 7.362799980671646,
+          "R2": 0.9357927032917812,
+          "residual_skew": -0.40860141473103684,
+          "residual_kurtosis": 13.464158742632764
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 41,
+      "r2_score": 0.935699797290251,
+      "params": {
+        "n_estimators": 2843,
+        "learning_rate": 0.042345759919321546,
+        "max_depth": 3,
+        "min_child_weight": 4.0,
+        "gamma": 0.00023616774143642166,
+        "subsample": 0.6679711716396667,
+        "colsample_bytree": 0.6032099013976314,
+        "reg_lambda": 3.798901092380118,
+        "reg_alpha": 0.05963017089026609
+      },
+      "model_path": "models/xgb_bayes_search/trial_041/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_041/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_041/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 9819.238919971323,
+          "MAE": 6832.318178549908,
+          "MAPE_pct": 2.5767459378049797,
+          "R2": 0.9935387000357032,
+          "residual_skew": 0.9371124846849648,
+          "residual_kurtosis": 8.304441828802023
+        },
+        "test": {
+          "RMSE": 31092.191603332096,
+          "MAE": 19586.997739362047,
+          "MAPE_pct": 7.463312502229519,
+          "R2": 0.935699797290251,
+          "residual_skew": -0.018885410352126337,
+          "residual_kurtosis": 12.146041442138088
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 39,
+      "r2_score": 0.935323127233809,
+      "params": {
+        "n_estimators": 2533,
+        "learning_rate": 0.030767693223484455,
+        "max_depth": 3,
+        "min_child_weight": 6.0,
+        "gamma": 0.0010557065099114917,
+        "subsample": 0.6555230641922706,
+        "colsample_bytree": 0.42682270433113945,
+        "reg_lambda": 0.5737245116937721,
+        "reg_alpha": 0.0650414017607044
+      },
+      "model_path": "models/xgb_bayes_search/trial_039/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_039/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_039/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 13139.861451004397,
+          "MAE": 9259.527237133465,
+          "MAPE_pct": 3.4901773646828747,
+          "R2": 0.9884296680001927,
+          "residual_skew": 0.7731542226458444,
+          "residual_kurtosis": 7.392878644306475
+        },
+        "test": {
+          "RMSE": 31183.127523147985,
+          "MAE": 19180.28841506956,
+          "MAPE_pct": 7.3411602229604185,
+          "R2": 0.935323127233809,
+          "residual_skew": -0.70865517000095,
+          "residual_kurtosis": 18.234605555801707
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 62,
+      "r2_score": 0.9353103590867018,
+      "params": {
+        "n_estimators": 2971,
+        "learning_rate": 0.02749638545031956,
+        "max_depth": 3,
+        "min_child_weight": 11.0,
+        "gamma": 0.003290591067513838,
+        "subsample": 0.7372080048578779,
+        "colsample_bytree": 0.9679006217660021,
+        "reg_lambda": 3.1565100201089344,
+        "reg_alpha": 0.06166134634051462
+      },
+      "model_path": "models/xgb_bayes_search/trial_062/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_062/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_062/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 13512.424747299996,
+          "MAE": 9282.585741805078,
+          "MAPE_pct": 3.501939941608535,
+          "R2": 0.9877642435040193,
+          "residual_skew": 0.8973087313167365,
+          "residual_kurtosis": 11.452305129335599
+        },
+        "test": {
+          "RMSE": 31186.20537071709,
+          "MAE": 19704.478554809823,
+          "MAPE_pct": 7.458687274665611,
+          "R2": 0.9353103590867018,
+          "residual_skew": 0.0785943004664667,
+          "residual_kurtosis": 12.211811512947246
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 55,
+      "r2_score": 0.9345723141715438,
+      "params": {
+        "n_estimators": 3973,
+        "learning_rate": 0.04653541536647904,
+        "max_depth": 3,
+        "min_child_weight": 6.0,
+        "gamma": 0.00514702504217668,
+        "subsample": 0.675704226289544,
+        "colsample_bytree": 0.4272322565188277,
+        "reg_lambda": 1.5984550523862937,
+        "reg_alpha": 0.090507967239965
+      },
+      "model_path": "models/xgb_bayes_search/trial_055/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_055/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_055/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 11478.849942611656,
+          "MAE": 8006.3240351843015,
+          "MAPE_pct": 3.0090992547434214,
+          "R2": 0.9911699938498704,
+          "residual_skew": 0.8716544020626071,
+          "residual_kurtosis": 7.972972063864456
+        },
+        "test": {
+          "RMSE": 31363.60272542698,
+          "MAE": 19607.038483760585,
+          "MAPE_pct": 7.45207333705841,
+          "R2": 0.9345723141715438,
+          "residual_skew": -0.14152312055926952,
+          "residual_kurtosis": 14.20980413967344
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 92,
+      "r2_score": 0.9343515989115111,
+      "params": {
+        "n_estimators": 2644,
+        "learning_rate": 0.031670343945923676,
+        "max_depth": 4,
+        "min_child_weight": 6.0,
+        "gamma": 0.000600801455714062,
+        "subsample": 0.7021863977422511,
+        "colsample_bytree": 0.8955004413873353,
+        "reg_lambda": 3.5736174229097455,
+        "reg_alpha": 0.05357082487756377
+      },
+      "model_path": "models/xgb_bayes_search/trial_092/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_092/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_092/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 6638.567373902532,
+          "MAE": 4603.460913065054,
+          "MAPE_pct": 1.7240289324481752,
+          "R2": 0.9970466631569571,
+          "residual_skew": 0.9409061223835479,
+          "residual_kurtosis": 8.484619448955353
+        },
+        "test": {
+          "RMSE": 31416.45953521942,
+          "MAE": 19644.684107511584,
+          "MAPE_pct": 7.460726569792387,
+          "R2": 0.9343515989115111,
+          "residual_skew": -0.03112997239198537,
+          "residual_kurtosis": 13.659675841126086
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 47,
+      "r2_score": 0.9342761657755545,
+      "params": {
+        "n_estimators": 2973,
+        "learning_rate": 0.04423927641410715,
+        "max_depth": 3,
+        "min_child_weight": 8.0,
+        "gamma": 0.004317431292903629,
+        "subsample": 0.650798880917603,
+        "colsample_bytree": 0.4962946584524787,
+        "reg_lambda": 0.73552288974296,
+        "reg_alpha": 0.15665141213980088
+      },
+      "model_path": "models/xgb_bayes_search/trial_047/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_047/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_047/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 11919.60669040857,
+          "MAE": 8295.299588700304,
+          "MAPE_pct": 3.119861155987117,
+          "R2": 0.9904788786717605,
+          "residual_skew": 0.8280483605194839,
+          "residual_kurtosis": 7.619936227885138
+        },
+        "test": {
+          "RMSE": 31434.503856555733,
+          "MAE": 19829.988695450054,
+          "MAPE_pct": 7.5384935602543575,
+          "R2": 0.9342761657755545,
+          "residual_skew": -0.061272819951479936,
+          "residual_kurtosis": 13.124846109969207
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 50,
+      "r2_score": 0.9341764506959707,
+      "params": {
+        "n_estimators": 3220,
+        "learning_rate": 0.06729513718606611,
+        "max_depth": 3,
+        "min_child_weight": 11.0,
+        "gamma": 0.0017896662623612118,
+        "subsample": 0.7838855185390802,
+        "colsample_bytree": 0.4107023696861595,
+        "reg_lambda": 3.33174505967092,
+        "reg_alpha": 0.059016984244887424
+      },
+      "model_path": "models/xgb_bayes_search/trial_050/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_050/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_050/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 8849.316462516306,
+          "MAE": 6094.564153041551,
+          "MAPE_pct": 2.2835432652983325,
+          "R2": 0.9947521223478861,
+          "residual_skew": 0.8894360052299147,
+          "residual_kurtosis": 9.237095894197573
+        },
+        "test": {
+          "RMSE": 31458.340765125686,
+          "MAE": 19980.930173758283,
+          "MAPE_pct": 7.552814349264702,
+          "R2": 0.9341764506959707,
+          "residual_skew": 0.45338587524115903,
+          "residual_kurtosis": 12.473733872824068
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 93,
+      "r2_score": 0.9339192308858523,
+      "params": {
+        "n_estimators": 3282,
+        "learning_rate": 0.06634610162152667,
+        "max_depth": 3,
+        "min_child_weight": 4.0,
+        "gamma": 0.007144606945290401,
+        "subsample": 0.743971386183382,
+        "colsample_bytree": 0.4190032116251444,
+        "reg_lambda": 2.066451131461093,
+        "reg_alpha": 0.10682134461725264
+      },
+      "model_path": "models/xgb_bayes_search/trial_093/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_093/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_093/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 13603.696396875994,
+          "MAE": 9500.125973496031,
+          "MAPE_pct": 3.5498537651987414,
+          "R2": 0.9875983888303758,
+          "residual_skew": 0.8456857696651222,
+          "residual_kurtosis": 8.24450296537816
+        },
+        "test": {
+          "RMSE": 31519.745983353176,
+          "MAE": 19443.837622566694,
+          "MAPE_pct": 7.411804435768686,
+          "R2": 0.9339192308858523,
+          "residual_skew": -0.11317879762463741,
+          "residual_kurtosis": 14.76464358617825
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 96,
+      "r2_score": 0.9339143633102823,
+      "params": {
+        "n_estimators": 1394,
+        "learning_rate": 0.03834073470413521,
+        "max_depth": 3,
+        "min_child_weight": 4.0,
+        "gamma": 0.005864702025181969,
+        "subsample": 0.7078466823296768,
+        "colsample_bytree": 0.4777201561669312,
+        "reg_lambda": 0.8090856489739064,
+        "reg_alpha": 0.060584260310767406
+      },
+      "model_path": "models/xgb_bayes_search/trial_096/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_096/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_096/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 15311.520404276418,
+          "MAE": 10749.288208627513,
+          "MAPE_pct": 4.054932773105047,
+          "R2": 0.9842891065334417,
+          "residual_skew": 0.6937889369198443,
+          "residual_kurtosis": 7.377142217369042
+        },
+        "test": {
+          "RMSE": 31520.906849989,
+          "MAE": 19198.722536490608,
+          "MAPE_pct": 7.314896171119539,
+          "R2": 0.9339143633102823,
+          "residual_skew": -0.6820528905780952,
+          "residual_kurtosis": 17.7984824951019
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 53,
+      "r2_score": 0.9339022158809307,
+      "params": {
+        "n_estimators": 2669,
+        "learning_rate": 0.028439706157992354,
+        "max_depth": 7,
+        "min_child_weight": 7.0,
+        "gamma": 0.0023507446121913142,
+        "subsample": 0.6858286360325961,
+        "colsample_bytree": 0.41742074080022795,
+        "reg_lambda": 1.6674470023009225,
+        "reg_alpha": 0.08219768085463451
+      },
+      "model_path": "models/xgb_bayes_search/trial_053/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_053/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_053/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 8047.452694192895,
+          "MAE": 5552.388699962525,
+          "MAPE_pct": 2.0643762634354452,
+          "R2": 0.9956600860987074,
+          "residual_skew": 0.9446177062035926,
+          "residual_kurtosis": 7.7025616538492985
+        },
+        "test": {
+          "RMSE": 31523.803700306296,
+          "MAE": 19249.604686369825,
+          "MAPE_pct": 7.257869481910725,
+          "R2": 0.9339022158809307,
+          "residual_skew": -0.29728451211109563,
+          "residual_kurtosis": 17.013482875452574
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 56,
+      "r2_score": 0.9338193527600054,
+      "params": {
+        "n_estimators": 3932,
+        "learning_rate": 0.03495355889292027,
+        "max_depth": 3,
+        "min_child_weight": 9.0,
+        "gamma": 0.001614506397650595,
+        "subsample": 0.8027233126915062,
+        "colsample_bytree": 0.9821293924232671,
+        "reg_lambda": 1.5108889272137742,
+        "reg_alpha": 0.22221921211897974
+      },
+      "model_path": "models/xgb_bayes_search/trial_056/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_056/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_056/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 10259.000274948887,
+          "MAE": 7043.8256312396015,
+          "MAPE_pct": 2.6586238208860418,
+          "R2": 0.9929469927256034,
+          "residual_skew": 0.8432205825669605,
+          "residual_kurtosis": 8.818622294278285
+        },
+        "test": {
+          "RMSE": 31543.557332182118,
+          "MAE": 19954.25969807252,
+          "MAPE_pct": 7.590571749261489,
+          "R2": 0.9338193527600054,
+          "residual_skew": 0.3920143062756852,
+          "residual_kurtosis": 12.115328071666461
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 85,
+      "r2_score": 0.9333988522687525,
+      "params": {
+        "n_estimators": 1581,
+        "learning_rate": 0.027853461422767987,
+        "max_depth": 3,
+        "min_child_weight": 10.0,
+        "gamma": 0.00024749877566132566,
+        "subsample": 0.7635378861619173,
+        "colsample_bytree": 0.8767019970353793,
+        "reg_lambda": 2.4027622207204073,
+        "reg_alpha": 0.06806941069615657
+      },
+      "model_path": "models/xgb_bayes_search/trial_085/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_085/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_085/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 17834.719163732032,
+          "MAE": 12066.024487677014,
+          "MAPE_pct": 4.573004051589507,
+          "R2": 0.9786844374418341,
+          "residual_skew": 0.9404919424249316,
+          "residual_kurtosis": 12.557637843916911
+        },
+        "test": {
+          "RMSE": 31643.609833574075,
+          "MAE": 19557.66521007907,
+          "MAPE_pct": 7.345290143777169,
+          "R2": 0.9333988522687525,
+          "residual_skew": -0.2632936566695852,
+          "residual_kurtosis": 14.934085644702177
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 68,
+      "r2_score": 0.9332945499789935,
+      "params": {
+        "n_estimators": 3402,
+        "learning_rate": 0.03578112089815961,
+        "max_depth": 7,
+        "min_child_weight": 8.0,
+        "gamma": 0.0013391376934296377,
+        "subsample": 0.7044900949714682,
+        "colsample_bytree": 0.44227744515194184,
+        "reg_lambda": 3.9119156688922354,
+        "reg_alpha": 0.05086519881090118
+      },
+      "model_path": "models/xgb_bayes_search/trial_068/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_068/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_068/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 6019.783760025922,
+          "MAE": 4129.671193886165,
+          "MAPE_pct": 1.5384327189101665,
+          "R2": 0.9975715675312071,
+          "residual_skew": 1.0050840416180995,
+          "residual_kurtosis": 7.584784363754031
+        },
+        "test": {
+          "RMSE": 31668.37824882205,
+          "MAE": 19607.330490191765,
+          "MAPE_pct": 7.377167688429317,
+          "R2": 0.9332945499789935,
+          "residual_skew": 0.12033392004787347,
+          "residual_kurtosis": 15.752769276158487
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 72,
+      "r2_score": 0.9330415434534826,
+      "params": {
+        "n_estimators": 3236,
+        "learning_rate": 0.030063472136838226,
+        "max_depth": 3,
+        "min_child_weight": 5.0,
+        "gamma": 0.022941798669748888,
+        "subsample": 0.6865257027881496,
+        "colsample_bytree": 0.9871434170200637,
+        "reg_lambda": 1.1142374091998941,
+        "reg_alpha": 0.06520618279096166
+      },
+      "model_path": "models/xgb_bayes_search/trial_072/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_072/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_072/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 18098.363353253197,
+          "MAE": 12521.140541759332,
+          "MAPE_pct": 4.686807762743435,
+          "R2": 0.9780495789575472,
+          "residual_skew": 0.8505158033605605,
+          "residual_kurtosis": 8.794021275612216
+        },
+        "test": {
+          "RMSE": 31728.37876803732,
+          "MAE": 19549.463332769523,
+          "MAPE_pct": 7.373399118239599,
+          "R2": 0.9330415434534826,
+          "residual_skew": -0.5713946677093379,
+          "residual_kurtosis": 15.919067126080217
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 71,
+      "r2_score": 0.9329311936824083,
+      "params": {
+        "n_estimators": 1749,
+        "learning_rate": 0.06421255150071829,
+        "max_depth": 3,
+        "min_child_weight": 7.0,
+        "gamma": 0.007575356288842429,
+        "subsample": 0.672496283717211,
+        "colsample_bytree": 0.9710957309323326,
+        "reg_lambda": 3.759358899068505,
+        "reg_alpha": 0.22490221817221956
+      },
+      "model_path": "models/xgb_bayes_search/trial_071/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_071/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_071/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 14592.23673434316,
+          "MAE": 9951.547656300596,
+          "MAPE_pct": 3.735174186664373,
+          "R2": 0.9857305254137732,
+          "residual_skew": 0.947457564944123,
+          "residual_kurtosis": 9.351727007128158
+        },
+        "test": {
+          "RMSE": 31754.5127186239,
+          "MAE": 19838.069527808417,
+          "MAPE_pct": 7.515703443833935,
+          "R2": 0.9329311936824083,
+          "residual_skew": 0.20221124344977123,
+          "residual_kurtosis": 12.091281602778329
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 97,
+      "r2_score": 0.9327876654777044,
+      "params": {
+        "n_estimators": 3932,
+        "learning_rate": 0.04912075214849629,
+        "max_depth": 3,
+        "min_child_weight": 9.0,
+        "gamma": 0.0011489240724125165,
+        "subsample": 0.6761352029237905,
+        "colsample_bytree": 0.46855687942766655,
+        "reg_lambda": 3.0243539017465446,
+        "reg_alpha": 0.0940013567418469
+      },
+      "model_path": "models/xgb_bayes_search/trial_097/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_097/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_097/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 8140.970361366738,
+          "MAE": 5673.766975187298,
+          "MAPE_pct": 2.1324082665123525,
+          "R2": 0.9955586336675022,
+          "residual_skew": 0.7209679198309317,
+          "residual_kurtosis": 7.201820332424359
+        },
+        "test": {
+          "RMSE": 31788.472115612294,
+          "MAE": 20296.745764671155,
+          "MAPE_pct": 7.663058978750509,
+          "R2": 0.9327876654777044,
+          "residual_skew": 0.1657791226510298,
+          "residual_kurtosis": 11.850141026574356
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 66,
+      "r2_score": 0.9327265432233256,
+      "params": {
+        "n_estimators": 2020,
+        "learning_rate": 0.042742952407619085,
+        "max_depth": 3,
+        "min_child_weight": 8.0,
+        "gamma": 0.011121343881307814,
+        "subsample": 0.6546209446595439,
+        "colsample_bytree": 0.5401499409366041,
+        "reg_lambda": 3.2489796946766636,
+        "reg_alpha": 0.05883490313358317
+      },
+      "model_path": "models/xgb_bayes_search/trial_066/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_066/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_066/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 15753.961877278425,
+          "MAE": 10842.689823457104,
+          "MAPE_pct": 4.0847792224950465,
+          "R2": 0.9833680247807867,
+          "residual_skew": 0.9907358994529938,
+          "residual_kurtosis": 9.90080279973785
+        },
+        "test": {
+          "RMSE": 31802.922897309985,
+          "MAE": 19881.021180502077,
+          "MAPE_pct": 7.554165820331926,
+          "R2": 0.9327265432233256,
+          "residual_skew": -0.3191700497774064,
+          "residual_kurtosis": 12.154707381452114
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 33,
+      "r2_score": 0.9322857354344415,
+      "params": {
+        "n_estimators": 3974,
+        "learning_rate": 0.048942908253398844,
+        "max_depth": 3,
+        "min_child_weight": 12.0,
+        "gamma": 0.007426912468042281,
+        "subsample": 0.9162366771869266,
+        "colsample_bytree": 0.41141932301373907,
+        "reg_lambda": 0.7379175716869608,
+        "reg_alpha": 0.0758590764886393
+      },
+      "model_path": "models/xgb_bayes_search/trial_033/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_033/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_033/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 16198.049896429087,
+          "MAE": 11084.24788851918,
+          "MAPE_pct": 4.214084358548767,
+          "R2": 0.9824171320812671,
+          "residual_skew": 0.795149774063908,
+          "residual_kurtosis": 11.457098979356335
+        },
+        "test": {
+          "RMSE": 31906.94673500997,
+          "MAE": 19839.596393460564,
+          "MAPE_pct": 7.462141161570453,
+          "R2": 0.9322857354344415,
+          "residual_skew": -0.1279673610095866,
+          "residual_kurtosis": 14.974330111717757
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 99,
+      "r2_score": 0.9319613115216574,
+      "params": {
+        "n_estimators": 3856,
+        "learning_rate": 0.05504288901857484,
+        "max_depth": 3,
+        "min_child_weight": 8.0,
+        "gamma": 0.0004866441815221113,
+        "subsample": 0.8644947367124205,
+        "colsample_bytree": 0.44030043059216945,
+        "reg_lambda": 3.0426520776224684,
+        "reg_alpha": 0.05437330838789674
+      },
+      "model_path": "models/xgb_bayes_search/trial_099/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_099/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_099/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 6743.942129936875,
+          "MAE": 4716.266377752201,
+          "MAPE_pct": 1.7771553286050463,
+          "R2": 0.9969521617245282,
+          "residual_skew": 0.7633417333410403,
+          "residual_kurtosis": 6.74936302473468
+        },
+        "test": {
+          "RMSE": 31983.28964175386,
+          "MAE": 19994.97983744743,
+          "MAPE_pct": 7.595242286518084,
+          "R2": 0.9319613115216574,
+          "residual_skew": 0.3136987599660279,
+          "residual_kurtosis": 12.562754500309085
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 69,
+      "r2_score": 0.9314399746629648,
+      "params": {
+        "n_estimators": 1598,
+        "learning_rate": 0.051272358088570794,
+        "max_depth": 3,
+        "min_child_weight": 8.0,
+        "gamma": 0.011022892844353652,
+        "subsample": 0.6675914993013738,
+        "colsample_bytree": 0.4569492431498122,
+        "reg_lambda": 2.7599052634554475,
+        "reg_alpha": 0.5527514809750793
+      },
+      "model_path": "models/xgb_bayes_search/trial_069/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_069/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_069/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 20605.384461263155,
+          "MAE": 13430.842325338022,
+          "MAPE_pct": 5.055319825376871,
+          "R2": 0.9715471553203033,
+          "residual_skew": 1.3254296616358916,
+          "residual_kurtosis": 15.811633645464514
+        },
+        "test": {
+          "RMSE": 32105.589536408304,
+          "MAE": 19581.76658330283,
+          "MAPE_pct": 7.288540972930256,
+          "R2": 0.9314399746629648,
+          "residual_skew": -0.557213747495326,
+          "residual_kurtosis": 19.029463582143734
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 91,
+      "r2_score": 0.9313090532212065,
+      "params": {
+        "n_estimators": 1480,
+        "learning_rate": 0.05094404524955147,
+        "max_depth": 3,
+        "min_child_weight": 5.0,
+        "gamma": 0.01623240405040716,
+        "subsample": 0.6890208608332927,
+        "colsample_bytree": 0.9958399121179088,
+        "reg_lambda": 0.7013659779530128,
+        "reg_alpha": 0.07629357344881833
+      },
+      "model_path": "models/xgb_bayes_search/trial_091/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_091/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_091/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 16736.000147550476,
+          "MAE": 11692.122806026144,
+          "MAPE_pct": 4.376801877216605,
+          "R2": 0.9812298565853415,
+          "residual_skew": 0.8102583100654117,
+          "residual_kurtosis": 7.731334756413639
+        },
+        "test": {
+          "RMSE": 32136.229149764447,
+          "MAE": 19828.899903088917,
+          "MAPE_pct": 7.395579752234835,
+          "R2": 0.9313090532212065,
+          "residual_skew": -0.042791908532121954,
+          "residual_kurtosis": 14.125491048775407
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 87,
+      "r2_score": 0.9311004611177722,
+      "params": {
+        "n_estimators": 3143,
+        "learning_rate": 0.02706473321461964,
+        "max_depth": 3,
+        "min_child_weight": 12.0,
+        "gamma": 0.011663989670248624,
+        "subsample": 0.6846527740504427,
+        "colsample_bytree": 0.5491602296722395,
+        "reg_lambda": 3.267200934676885,
+        "reg_alpha": 0.07189392269222983
+      },
+      "model_path": "models/xgb_bayes_search/trial_087/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_087/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_087/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 16611.074551349633,
+          "MAE": 11329.88875521446,
+          "MAPE_pct": 4.27335977005599,
+          "R2": 0.9815090295907827,
+          "residual_skew": 0.9276414541645203,
+          "residual_kurtosis": 10.753608105823364
+        },
+        "test": {
+          "RMSE": 32184.98581040407,
+          "MAE": 19526.496650660254,
+          "MAPE_pct": 7.3682829439822015,
+          "R2": 0.9311004611177722,
+          "residual_skew": 0.145209738129466,
+          "residual_kurtosis": 16.920022206229177
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 54,
+      "r2_score": 0.9308977336524553,
+      "params": {
+        "n_estimators": 3472,
+        "learning_rate": 0.04844580075850099,
+        "max_depth": 3,
+        "min_child_weight": 9.0,
+        "gamma": 0.002948440045722923,
+        "subsample": 0.6617658632982407,
+        "colsample_bytree": 0.6647550484553852,
+        "reg_lambda": 0.6947462326228603,
+        "reg_alpha": 0.8400908521114602
+      },
+      "model_path": "models/xgb_bayes_search/trial_054/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_054/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_054/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 16425.60937804177,
+          "MAE": 10709.597242586411,
+          "MAPE_pct": 4.008878186170088,
+          "R2": 0.9819196334877858,
+          "residual_skew": 1.3213633421176225,
+          "residual_kurtosis": 15.462246398687679
+        },
+        "test": {
+          "RMSE": 32232.300989721196,
+          "MAE": 20130.378779478553,
+          "MAPE_pct": 7.535769380371665,
+          "R2": 0.9308977336524553,
+          "residual_skew": 0.2583247744653775,
+          "residual_kurtosis": 12.549205238114302
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 88,
+      "r2_score": 0.9305970481850948,
+      "params": {
+        "n_estimators": 3547,
+        "learning_rate": 0.04237154440777257,
+        "max_depth": 4,
+        "min_child_weight": 5.0,
+        "gamma": 0.0009037688506318144,
+        "subsample": 0.651365158148539,
+        "colsample_bytree": 0.8390430542056404,
+        "reg_lambda": 3.974543764699438,
+        "reg_alpha": 1.1731313932208927
+      },
+      "model_path": "models/xgb_bayes_search/trial_088/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_088/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_088/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 15574.821414794169,
+          "MAE": 9696.072909965264,
+          "MAPE_pct": 3.594615135740178,
+          "R2": 0.9837441231658306,
+          "residual_skew": 1.8666494870710515,
+          "residual_kurtosis": 24.700012032667935
+        },
+        "test": {
+          "RMSE": 32302.351256391004,
+          "MAE": 20255.613856094158,
+          "MAPE_pct": 7.62317851851144,
+          "R2": 0.9305970481850948,
+          "residual_skew": -0.11435769659708464,
+          "residual_kurtosis": 12.833320642573856
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 49,
+      "r2_score": 0.930583358936789,
+      "params": {
+        "n_estimators": 3919,
+        "learning_rate": 0.03133033943569089,
+        "max_depth": 3,
+        "min_child_weight": 12.0,
+        "gamma": 0.00477783378590624,
+        "subsample": 0.6843655062554778,
+        "colsample_bytree": 0.566008104240857,
+        "reg_lambda": 2.8514183816173286,
+        "reg_alpha": 0.6659015196306556
+      },
+      "model_path": "models/xgb_bayes_search/trial_049/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_049/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_049/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 17801.544371311607,
+          "MAE": 11521.086882305877,
+          "MAPE_pct": 4.320700950534617,
+          "R2": 0.9787636628754605,
+          "residual_skew": 1.3162535393876393,
+          "residual_kurtosis": 16.083086197951484
+        },
+        "test": {
+          "RMSE": 32305.536806089043,
+          "MAE": 20017.315478775974,
+          "MAPE_pct": 7.461076992305878,
+          "R2": 0.930583358936789,
+          "residual_skew": 0.1800145677652129,
+          "residual_kurtosis": 14.644765601609445
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 52,
+      "r2_score": 0.9304250358885289,
+      "params": {
+        "n_estimators": 3988,
+        "learning_rate": 0.02081794839829366,
+        "max_depth": 6,
+        "min_child_weight": 12.0,
+        "gamma": 0.0044490984625361624,
+        "subsample": 0.6503464334089205,
+        "colsample_bytree": 0.4193862805815593,
+        "reg_lambda": 0.739320821934041,
+        "reg_alpha": 0.13291285356128404
+      },
+      "model_path": "models/xgb_bayes_search/trial_052/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_052/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_052/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 10963.85509067892,
+          "MAE": 7487.2701523530595,
+          "MAPE_pct": 2.7951087409552775,
+          "R2": 0.9919445311513532,
+          "residual_skew": 0.9936511879273172,
+          "residual_kurtosis": 9.081763606392663
+        },
+        "test": {
+          "RMSE": 32342.35649328518,
+          "MAE": 19434.21959687062,
+          "MAPE_pct": 7.256416777085803,
+          "R2": 0.9304250358885289,
+          "residual_skew": 0.17316129772696537,
+          "residual_kurtosis": 16.734503175652833
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 59,
+      "r2_score": 0.9302949802753485,
+      "params": {
+        "n_estimators": 3895,
+        "learning_rate": 0.0663180211280282,
+        "max_depth": 3,
+        "min_child_weight": 14.0,
+        "gamma": 0.031045301615910466,
+        "subsample": 0.7015860491531472,
+        "colsample_bytree": 0.4107006444282216,
+        "reg_lambda": 2.794728458509188,
+        "reg_alpha": 0.05311610159908608
+      },
+      "model_path": "models/xgb_bayes_search/trial_059/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_059/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_059/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 20922.431900029926,
+          "MAE": 13994.777647969682,
+          "MAPE_pct": 5.281237489590669,
+          "R2": 0.9706648323344722,
+          "residual_skew": 0.9450582867141163,
+          "residual_kurtosis": 11.067923637101739
+        },
+        "test": {
+          "RMSE": 32372.570961922218,
+          "MAE": 19698.759820912226,
+          "MAPE_pct": 7.378937859956351,
+          "R2": 0.9302949802753485,
+          "residual_skew": -0.4362327727941552,
+          "residual_kurtosis": 18.083802525361968
+        },
+        "log_target": true
+      }
+    },
+    {
+      "iteration": 42,
+      "r2_score": 0.930154221536582,
+      "params": {
+        "n_estimators": 2366,
+        "learning_rate": 0.05425742385186298,
+        "max_depth": 3,
+        "min_child_weight": 11.0,
+        "gamma": 0.000187445228091554,
+        "subsample": 0.6566333930808216,
+        "colsample_bytree": 0.633568516213621,
+        "reg_lambda": 0.6858474856792902,
+        "reg_alpha": 0.09532228120459303
+      },
+      "model_path": "models/xgb_bayes_search/trial_042/model_xgb.joblib",
+      "meta_path": "models/xgb_bayes_search/trial_042/meta.json",
+      "metrics_path": "models/xgb_bayes_search/trial_042/metrics.json",
+      "metrics": {
+        "train": {
+          "RMSE": 10369.879339455621,
+          "MAE": 7284.63244736252,
+          "MAPE_pct": 2.7628026141926236,
+          "R2": 0.9927937113308952,
+          "residual_skew": 0.7710661185646661,
+          "residual_kurtosis": 8.06033226432847
+        },
+        "test": {
+          "RMSE": 32405.24023161178,
+          "MAE": 20155.558695199386,
+          "MAPE_pct": 7.584613086033569,
+          "R2": 0.930154221536582,
+          "residual_skew": 0.42230029195660534,
+          "residual_kurtosis": 11.332461829736772
+        },
+        "log_target": true
+      }
+    }
+  ],
+  "seed": 42,
+  "n_calls": 100
+}
