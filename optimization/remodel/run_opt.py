@@ -358,6 +358,18 @@ def main():
         v_gc.LB = base_gc
         v_gc.UB = base_gc
 
+    # Penaliza slacks si existieran con prefijos comunes
+    LAMBDA = 1e6
+    slacks = []
+    for v in m.getVars():
+        nm = v.VarName
+        if nm.startswith(("R_", "KIT_", "EXT_", "MVT_", "ROOF_", "GaFin_", "HEAT_", "BSMT_", "AREA_", "UTIL_")):
+            # Añade solo si son slacks no negativas en tu formulación
+            slacks.append(v)
+
+    if slacks:
+        m.setObjective(m.getObjective() - LAMBDA * gp.quicksum(slacks), gp.GRB.MAXIMIZE)
+
     m.optimize()
 
     # tras optimize(), usa el mismo X que vio el embed:
@@ -465,10 +477,14 @@ def main():
             y_price = float("nan")
         uplift = y_price - float(base_price)
         obj    = float(m.objVal)
-        try:
-            used_cost = uplift - obj  # ya que objetivo = y_price - cost - y_base
-        except Exception:
-            used_cost = float("nan")
+        # Lee el costo directamente del modelo (fuente de verdad)
+        cost_var = m.getVarByName("cost_model") or getattr(m, "_cost_var", None)
+        if cost_var is not None:
+            used_cost = float(cost_var.X)
+        else:
+            # Fallback: evalúa el LinExpr guardado
+            used_cost = _eval_linexpr(m._lin_cost_expr, m) if hasattr(m, "_lin_cost_expr") else float("nan")
+
 
         print("\n=== AUDIT COSTS ===")
         print(f"  y_base        = {base_price:,.2f}")

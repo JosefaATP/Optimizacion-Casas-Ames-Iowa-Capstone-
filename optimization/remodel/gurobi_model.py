@@ -202,6 +202,29 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     # base_X numerico y base_price consistente
     base_X = build_base_input_row(bundle, base_row)
+
+    # --- DEBUG: base_X no debe traer NaN/Inf
+    try:
+        _bad_cols = []
+        for c in base_X.columns:
+            v = base_X.iloc[0][c]
+            try:
+                vf = float(v)
+            except Exception:
+                # si por algún motivo no es float (no debería en base_X), márcalo
+                _bad_cols.append((c, v))
+                continue
+            if not np.isfinite(vf):
+                _bad_cols.append((c, v))
+        if _bad_cols:
+            print("[DEBUG] base_X trae valores no finitos en:")
+            for c, v in _bad_cols[:25]:
+                print(f"   - {c}: {v} | raw base={base_row.get(c, None)}")
+            # Si prefieres, puedes sanear:
+            base_X = base_X.fillna(0.0)
+    except Exception as e:
+        print(f"[DEBUG] chequeo base_X falló: {e}")
+
     if base_price is None:
         try:
             base_price = float(bundle.predict(base_X).iloc[0])
@@ -1558,6 +1581,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     y_log = m.addVar(lb=-gp.GRB.INFINITY, name="y_log")
     m.addConstr(y_log == y_emb, name="LINK_ylog_embed")
 
+
     # Si el target está en log, genero y_price con PWL(exp)
     if bundle.is_log_target():
         y_price = m.addVar(lb=0.0, name="y_price")
@@ -1592,7 +1616,58 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # (1) Presupuesto
     m.addConstr(cost_model <= budget_usd, name="BUDGET")
 
-    # (2) No permitir empeorar el precio base (déjalo si quieres esa política)
+    # === NO-CHANGE GUARD: si cost_model == 0 -> todo igual a base y y_price == base ===
+    z_change = m.addVar(vtype=gp.GRB.BINARY, name="z_change")
+    M_cost = max(1.0, float(m._budget if hasattr(m, "_budget") else budget_usd))
+    m.addConstr(m._cost_var <= M_cost * z_change, name="NOCHG_cost_link")
+    eps_cost = 1.0  
+    m.addConstr(m._cost_var >= eps_cost * z_change, name="NOCHG_cost_lb")
+
+    bigM_fallback = 1e6
+
+    if getattr(m, "_x_vars", None) and getattr(m, "_x_cols", None):
+        for fname in m._x_cols:
+            var = m._x_vars[fname]
+            if not hasattr(var, "LB"):
+                # No es Var de Gurobi (es constante float): no hace falta ligar
+                continue
+
+            # base_val desde base_X (si no existe, convertir desde base_row)
+            base_val = None
+            try:
+                if fname in base_X.columns:
+                    base_val = float(base_X.iloc[0][fname])
+                else:
+                    base_val = float(_coerce_base_value(fname, base_row.get(fname, 0)))
+            except Exception:
+                base_val = None
+
+            # Si no es finito, loguea y sáltalo (evita el NaN en la constante)
+            if (base_val is None) or (not np.isfinite(base_val)):
+                print(f"[NOCHG] skip '{fname}': base_val={base_val}")
+                continue
+
+            # M por variable usando LB/UB (con fallback)
+            try:
+                lb = float(var.LB); ub = float(var.UB)
+            except Exception:
+                lb, ub = 0.0, bigM_fallback
+
+            Mpos = ub - base_val
+            Mneg = base_val - lb
+            if (not np.isfinite(Mpos)) or (Mpos < 0): Mpos = bigM_fallback
+            if (not np.isfinite(Mneg)) or (Mneg < 0): Mneg = bigM_fallback
+
+            m.addConstr(var - base_val       <= Mpos * z_change, name=f"NOCHG_pos_{fname}")
+            m.addConstr(base_val - var       <= Mneg * z_change, name=f"NOCHG_neg_{fname}")
+
+    # Anclar el precio cuando no hay cambios
+    M_price = 2e6
+    m.addConstr(m._y_price_var - float(base_price) <= M_price * z_change, name="NOCHG_price_pos")
+    m.addConstr(float(base_price) - m._y_price_var <= M_price * z_change, name="NOCHG_price_neg")
+
+
+    # (2) No permitir empeorar el precio base (puedes dejarlo si querías esa política)
     m.addConstr(y_price >= float(base_price) - 1e-6, name="MIN_PRICE_BASE")
 
     # (3) Objetivo
