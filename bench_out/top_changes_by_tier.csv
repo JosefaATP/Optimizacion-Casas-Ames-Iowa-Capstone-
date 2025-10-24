@@ -1,16 +1,31 @@
 tier,change,count
-low,Enclosed Porch +10%,1
-low,1st Flr SF,1
-low,Gr Liv Area,1
-low,AddFull (+40 ft²),1
-low,Wood Deck SF +10%,1
-mid,Enclosed Porch +10%,1
-mid,1st Flr SF,1
-mid,Gr Liv Area,1
-mid,AddFull (+40 ft²),1
-mid,Wood Deck SF +10%,1
-high,Enclosed Porch +10%,1
-high,1st Flr SF,1
-high,Gr Liv Area,1
-high,AddFull (+40 ft²),1
-high,Wood Deck SF +10%,1
+low,Basement finish (ft²),70
+low,1st Flr SF,18
+low,Gr Liv Area,18
+low,AddFull (+40 ft²),18
+low,Wood Deck SF +10%,10
+low,Exterior 2nd,10
+low,Electrical,9
+low,Open Porch SF +10%,9
+low,AddHalf (+20 ft²),8
+low,Wood Deck SF +20%,7
+mid,Basement finish (ft²),78
+mid,1st Flr SF,31
+mid,Gr Liv Area,31
+mid,AddFull (+40 ft²),30
+mid,Exterior 1st,26
+mid,Exterior 2nd,22
+mid,Electrical,13
+mid,Open Porch SF +10%,11
+mid,Wood Deck SF +10%,9
+mid,AddBed (+70 ft²),9
+high,Basement finish (ft²),80
+high,Exterior 2nd,40
+high,1st Flr SF,38
+high,Gr Liv Area,38
+high,AddFull (+40 ft²),38
+high,Exterior 1st,35
+high,Electrical,25
+high,AddBed (+70 ft²),16
+high,Open Porch SF +10%,12
+high,AddHalf (+20 ft²),10
