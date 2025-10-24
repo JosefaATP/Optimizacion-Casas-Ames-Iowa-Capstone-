@@ -3,7 +3,7 @@
 >1. Guia completa para correr y entender el modulo de **remodelacion** del proyecto *Optimizacion Casas Ames Iowa Capstone*.
 >2. Guia completa para entender el modulo de **training** del XGBoost.
 ---
-# modulo `optimization/remodel`
+# Módulo `optimization/remodel`
 
 ## 1) Que hace este modulo
 
@@ -157,7 +157,8 @@ Métricas y gráficos se guardan en `bench_out/` (al correr el archivo `benchmar
 * Logs con gap, tiempo y restricciones activas si debug esta ON
 
 ---
-
+# Módulo `training`
+--
 ##  Uso y referencias a la IA
 El código fue echo con ayuda de la IA. A continuación links utilizados para la elaboración de partes del código:
 
