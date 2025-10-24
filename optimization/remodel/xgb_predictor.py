@@ -1,3 +1,4 @@
+# optimization/remodel/xgb_predictor.py
 from pathlib import Path
 from typing import List
 
@@ -135,33 +136,28 @@ class XGBBundle:
         self.log_target: bool = self._ttr is not None
 
         self.pre: ColumnTransformer = self.pipe_full.named_steps["pre"]
-        _flatten_column_transformer_inplace(self.pre)
-        _patch_ohe_categories_inplace(self.pre)
 
         if self._ttr is not None:
             self.reg: XGBRegressor = self._ttr.regressor_
         else:
             self.reg: XGBRegressor = self.pipe_full.named_steps["xgb"]  # type: ignore
 
-        # Booster robusto
+        # === Booster: usa SOLO el que viene dentro del joblib ===
         try:
             _ = self.reg.get_booster()
         except Exception:
-            if hasattr(self.reg, "_Booster_raw") and getattr(self.reg, "_Booster_raw", None):
-                bst = Booster(); bst.load_model(self.reg._Booster_raw); self.reg._Booster = bst
-            else:
-                bj = PATHS.model_dir / "booster.json"
-                if bj.exists():
-                    bst = Booster(); bst.load_model(str(bj)); self.reg._Booster = bst
-                else:
-                    raise FileNotFoundError("No Booster ni booster.json; reentrena guardando Booster.")
-        try:
-            _ = self.reg.get_booster()
-        except NotFittedError:
-            bj = self.model_path.parent / "booster.json"
-            self.reg.load_model(str(bj))
-        
+            raw = getattr(self.reg, "_Booster_raw", None)
+            if raw is None:
+                raise RuntimeError(
+                    "El modelo XGB cargado no trae Booster ni _Booster_raw. "
+                    "Reentrena con retrain_xgb_same_env.py (ese script guarda _Booster_raw)."
+                )
+            from xgboost import Booster
+            bst = Booster()
+            bst.load_model(raw)        # raw = buffer devuelto por save_raw()
+            self.reg._Booster = bst
 
+        # Pipeline a embedir: MISMO pre aplanado + MISMO regressor
         self.pipe_for_embed: SKPipeline = SKPipeline(steps=[
             ("pre", self.pre),
             ("xgb", self.reg),

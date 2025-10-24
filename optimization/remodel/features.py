@@ -114,8 +114,6 @@ MODIFIABLE += [
     FeatureSpec("3Ssn Porch",    0.0, 100000.0, "C"),
     FeatureSpec("Screen Porch",  0.0, 100000.0, "C"),
     FeatureSpec("Pool Area",     0.0, 100000.0, "C"),
-    # Añadidos: permitir modificar el área de masilla de fachada
-    FeatureSpec("Mas Vnr Area",  0.0, 100000.0, "C"),
 ]
 
 
@@ -186,7 +184,7 @@ for c in COMPONENTES:
 IMMUTABLE: List[str] = [
     "MS SubClass", "Neighborhood", "OverallQual", "OverallCond",
     "YearBuilt", "YearRemodAdd", "Functional", "LotArea", "Lot Shape",
-    "LandContour", "LotConfig", "LandSlope", "BldgType", "HouseStyle","Bsmt Exposure",
+    "LandContour", "LotConfig", "LandSlope", "BldgType", "HouseStyle","Bsmt Exposure","FunctioNo aplical",
       "Condition 1", "Condition 2", "MSZoning", "Street", "Alley", "LotFrontage", "Foundation", "Month Sold", 
       "Year Sold", "Sale Type", "Sale Condition", "2nd Flr SF", "Roof Style", "Garage Cars", "Low Qual Fin SF", "Bsmt Qual", "Bsmt Full Bath", "Bsmt Half Bath"
 ]

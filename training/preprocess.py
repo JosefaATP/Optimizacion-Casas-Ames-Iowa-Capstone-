@@ -48,16 +48,10 @@ def infer_feature_types(
             categorical_cols = cat_auto
     return numeric_cols, categorical_cols
 
-def build_preprocessor(
-    numeric_cols: List[str],
-) -> ColumnTransformer:
-    """
-    Con OHE ya horneado en el DataFrame, el preprocesador solo debe pasar numéricas.
-    """
-    num_pipe = SKPipeline(steps=[("passthrough", "passthrough")])
-    pre = ColumnTransformer(
-        transformers=[("num", num_pipe, numeric_cols)],
+def build_preprocessor(numeric_cols: List[str]) -> ColumnTransformer:
+    # Nada de SKPipeline aquí
+    return ColumnTransformer(
+        transformers=[("num", "passthrough", numeric_cols)],
         remainder="drop",
         n_jobs=None,
     )
-    return pre

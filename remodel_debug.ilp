@@ -3,92 +3,16 @@
 Maximize
  
 Subject To
- ROOF_pick_one_matl: x_roof_matl_is_ClyTile + x_roof_matl_is_CompShg
-   + x_roof_matl_is_Membran + x_roof_matl_is_Metal + x_roof_matl_is_Roll
-   + x_roof_matl_is_Tar&Grv + x_roof_matl_is_WdShake
-   + x_roof_matl_is_WdShngl = 1
- ROOF_change_eq_sum_nonbase: - x_roof_matl_is_ClyTile
-   - x_roof_matl_is_Membran - x_roof_matl_is_Metal - x_roof_matl_is_Roll
-   - x_roof_matl_is_Tar&Grv - x_roof_matl_is_WdShake
-   - x_roof_matl_is_WdShngl + roof_change_mat = 0
- COST_LINK_GE: - 17352 x_roof_matl_is_ClyTile
-   - 20000 x_roof_matl_is_CompShg - 8011.95 x_roof_matl_is_Membran
-   - 11739 x_roof_matl_is_Metal - 7600 x_roof_matl_is_Roll
-   - 8550 x_roof_matl_is_Tar&Grv - 22500 x_roof_matl_is_WdShake
-   - 19500 x_roof_matl_is_WdShngl - 3300 x_elect_is_FuseA
-   - 2475 x_elect_is_FuseF - 1650 x_elect_is_FuseP - 1875 x_elect_is_Mix
-   - 24038 x_garage_finish_is_Fin - 20769 x_garage_finish_is_RFn
-   - 135088 x_poolqc_is_Ex - 96421 x_poolqc_is_Gd - 57755 x_poolqc_is_TA
-   - 19088 x_poolqc_is_Fa - 115088 x_poolqc_is_Po - 9200 x_AddFull
-   - 4600 x_AddHalf - 17250 x_AddKitch - 16100 x_AddBed
-   - 51659 x_garage_qual_is_Ex - 51659 x_garage_cond_is_Ex
-   - 37849 x_garage_qual_is_Gd - 37849 x_garage_cond_is_Gd
-   - 14113 x_garage_qual_is_Fa - 14113 x_garage_cond_is_Fa
-   - 4188 x_garage_qual_is_Po - 4188 x_garage_cond_is_Po
-   - 3354 x_paved_drive_is_P - 1800 x_paved_drive_is_N
-   - 6300 x_fence_is_GdPrv - 4700 x_fence_is_MnPrv - 1500 x_fence_is_GdWo
-   - 300 x_fence_is_MnWw - 19000 x_ex1_is_AsbShng - 22500 x_ex1_is_AsphShn
-   - 26000 x_ex1_is_BrkComm - 22000 x_ex1_is_BrkFace
-   - 10300 x_ex1_is_CBlock - 14674 x_ex1_is_CemntBd
-   - 16500 x_ex1_is_ImStucc - 9600 x_ex1_is_MetalSd
-   - 23461.81 x_ex1_is_Other - 8461.81 x_ex1_is_Plywood
-   - 17625 x_ex1_is_PreCast - 50216.5 x_ex1_is_Stone - 5629 x_ex1_is_Stucco
-   - 12500 x_ex1_is_VinylSd - 12500 x_ex1_is_Wd_Sdng
-   - 21900 x_ex1_is_WdShngl - 19000 x_ex2_is_AsbShng
-   - 22500 x_ex2_is_AsphShn - 26000 x_ex2_is_BrkComm
-   - 22000 x_ex2_is_BrkFace - 10300 x_ex2_is_CBlock
-   - 14674 x_ex2_is_CemntBd - 16500 x_ex2_is_ImStucc
-   - 9600 x_ex2_is_MetalSd - 23461.81 x_ex2_is_Other
-   - 8461.81 x_ex2_is_Plywood - 17625 x_ex2_is_PreCast
-   - 50216.5 x_ex2_is_Stone - 5629 x_ex2_is_Stucco - 12500 x_ex2_is_VinylSd
-   - 12500 x_ex2_is_Wd_Sdng - 21900 x_ex2_is_WdShngl - 1773 x_heat_is_Floor
-   - 5750 x_heat_is_GasA - 8500 x_heat_is_GasW - 6300 x_heat_is_Grav
-   - 4900 x_heat_is_OthW - 3700 x_heat_is_Wall - 5750 x_heat_upg_type
-   - 75000 x_b1_is_GLQ - 32000 x_b1_is_BLQ - 23500 x_b1_is_Rec
-   - 15000 x_b1_is_LwQ - 11250 x_b1_is_Unf - 75000 x_b2_is_GLQ
-   - 53500 x_b2_is_ALQ - 32000 x_b2_is_BLQ - 23500 x_b2_is_Rec
-   - 11250 x_b2_is_Unf - 4739.328 x_z10_GarageArea
-   - 12267.648 x_z20_GarageArea - 22584.96 x_z30_GarageArea
-   - 1777.248 x_z10_WoodDeckSF - 4600.368 x_z20_WoodDeckSF
-   - 8469.36 x_z30_WoodDeckSF - 42500 kit_is_Gd - 180000 kit_is_Ex
-   - 22833.06 exterqual_is_Gd - 106250 exterqual_is_Ex
-   - 22833.06 extercond_is_Gd - 106250 extercond_is_Ex
-   - 1.21 mv_area_mvt_BrkCmn - 15 mv_area_mvt_BrkFace
-   - 22.5 mv_area_mvt_CBlock - 27.5 mv_area_mvt_Stone
-   - 10850 roof_change_mat - 9200 x_Add1stFlr - 3750 heat_qc_is_Po
-   - 5000 heat_qc_is_Fa - 6500 heat_qc_is_TA - 10000 heat_qc_is_Ex
-   - 2400 bsmt_finish_all - 51750 bsmtcond_is_Gd - 62500 bsmtcond_is_Ex
-   - 20000 util_ELO - 22000 util_NoSeWa - 39500 util_NoSewr + cost_model
-   >= -5750
- BUDGET: cost_model <= 10000
+ PoolQC_link_ord: x_Pool_QC - poolqc_is_Fa - 2 poolqc_is_TA
+   - 3 poolqc_is_Gd - 4 poolqc_is_Ex + poolqc_is_No_aplica = 0
 Bounds
- cost_model free
+ poolqc_is_Fa = 0
+ poolqc_is_TA = 0
+ poolqc_is_Gd = 0
+ poolqc_is_Ex = 0
+ poolqc_is_No_aplica = 1
 Binaries
- x_roof_matl_is_ClyTile x_roof_matl_is_CompShg x_roof_matl_is_Membran
- x_roof_matl_is_Metal x_roof_matl_is_Roll x_roof_matl_is_Tar&Grv
- x_roof_matl_is_WdShake x_roof_matl_is_WdShngl x_elect_is_FuseA
- x_elect_is_FuseF x_elect_is_FuseP x_elect_is_Mix x_garage_finish_is_Fin
- x_garage_finish_is_RFn x_poolqc_is_Ex x_poolqc_is_Gd x_poolqc_is_TA
- x_poolqc_is_Fa x_poolqc_is_Po x_AddFull x_AddHalf x_AddKitch x_AddBed
- x_garage_qual_is_Ex x_garage_cond_is_Ex x_garage_qual_is_Gd
- x_garage_cond_is_Gd x_garage_qual_is_Fa x_garage_cond_is_Fa
- x_garage_qual_is_Po x_garage_cond_is_Po x_paved_drive_is_P
- x_paved_drive_is_N x_fence_is_GdPrv x_fence_is_MnPrv x_fence_is_GdWo
- x_fence_is_MnWw x_ex1_is_AsbShng x_ex1_is_AsphShn x_ex1_is_BrkComm
- x_ex1_is_BrkFace x_ex1_is_CBlock x_ex1_is_CemntBd x_ex1_is_ImStucc
- x_ex1_is_MetalSd x_ex1_is_Other x_ex1_is_Plywood x_ex1_is_PreCast
- x_ex1_is_Stone x_ex1_is_Stucco x_ex1_is_VinylSd x_ex1_is_Wd_Sdng
- x_ex1_is_WdShngl x_ex2_is_AsbShng x_ex2_is_AsphShn x_ex2_is_BrkComm
- x_ex2_is_BrkFace x_ex2_is_CBlock x_ex2_is_CemntBd x_ex2_is_ImStucc
- x_ex2_is_MetalSd x_ex2_is_Other x_ex2_is_Plywood x_ex2_is_PreCast
- x_ex2_is_Stone x_ex2_is_Stucco x_ex2_is_VinylSd x_ex2_is_Wd_Sdng
- x_ex2_is_WdShngl x_heat_is_Floor x_heat_is_GasA x_heat_is_GasW
- x_heat_is_Grav x_heat_is_OthW x_heat_is_Wall x_heat_upg_type x_b1_is_GLQ
- x_b1_is_BLQ x_b1_is_Rec x_b1_is_LwQ x_b1_is_Unf x_b2_is_GLQ x_b2_is_ALQ
- x_b2_is_BLQ x_b2_is_Rec x_b2_is_Unf x_z10_GarageArea x_z20_GarageArea
- x_z30_GarageArea x_z10_WoodDeckSF x_z20_WoodDeckSF x_z30_WoodDeckSF
- kit_is_Gd kit_is_Ex exterqual_is_Gd exterqual_is_Ex extercond_is_Gd
- extercond_is_Ex roof_change_mat x_Add1stFlr heat_qc_is_Po heat_qc_is_Fa
- heat_qc_is_TA heat_qc_is_Ex bsmt_finish_all bsmtcond_is_Gd bsmtcond_is_Ex
- util_ELO util_NoSeWa util_NoSewr
+ poolqc_is_Fa poolqc_is_TA poolqc_is_Gd poolqc_is_Ex poolqc_is_No_aplica
+Generals
+ x_Pool_QC
 End

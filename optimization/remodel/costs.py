@@ -228,7 +228,7 @@ class CostTables:
         "GasA":  5750.0,
         "GasW":  8500.0,
         "Grav":  6300.0,
-        "OthW":  4900.0,
+        "OthW":  5000.0,
         "Wall":  3700.0,
     })
     def heating_type_cost(self, name: str) -> float:
@@ -237,9 +237,9 @@ class CostTables:
     # Calidad (valores del cuadro; Gd y Fa interpoladas como dice la nota)
     heating_qc_costs: Dict[str, float] = field(default_factory=lambda: {
         "Ex": 10000.0,
-        "Gd":  8000.0,   # interpolado (entre TA y Ex)
+        "Gd":  8250.0,   # interpolado (entre TA y Ex)
         "TA":  6500.0,
-        "Fa":  5000.0,   # interpolado (entre Po y TA)
+        "Fa":  5125.0,   # interpolado (entre Po y TA)
         "Po":  3750.0,
     })
     def heating_qc_cost(self, name: str) -> float:
