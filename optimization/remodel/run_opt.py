@@ -280,6 +280,29 @@ def check_predict_consistency(m: gp.Model, bundle):
             print(f"[PRED] log(y_hat) = {float(_np.log(max(y_hat, 1e-9))):.6f}  |  y_log (MIP) = {float(v_log.X):.6f}")
         except Exception:
             pass
+def audit_cost_breakdown_vars(m, top=20):
+    expr = getattr(m, "_lin_cost_expr", None)
+    if expr is None:
+        print("[COST-BREAKDOWN] no _lin_cost_expr")
+        return
+    try:
+        vs = expr.getVars(); cs = expr.getCoeffs()
+        X  = m.getAttr("X", vs)
+    except Exception:
+        print("[COST-BREAKDOWN] no se pudo leer términos")
+        return
+    rows = []
+    for v, c, x in zip(vs, cs, X):
+        try:
+            contrib = float(c) * float(x)
+        except Exception:
+            continue
+        if abs(contrib) > 1e-6:
+            rows.append((v.VarName, float(c), float(x), contrib))
+    rows.sort(key=lambda t: abs(t[3]), reverse=True)
+    print("\n[COST-BREAKDOWN] top términos de costo:")
+    for name, c, x, contr in rows[:top]:
+        print(f"  {name:<35s} coef={c:>10.4f} * X={x:>10.4f}  => {contr:>10.2f}")
 
 # ==============================
 # Main
@@ -358,20 +381,9 @@ def main():
         v_gc.LB = base_gc
         v_gc.UB = base_gc
 
-    # Penaliza slacks si existieran con prefijos comunes
-    LAMBDA = 1e6
-    slacks = []
-    for v in m.getVars():
-        nm = v.VarName
-        if nm.startswith(("R_", "KIT_", "EXT_", "MVT_", "ROOF_", "GaFin_", "HEAT_", "BSMT_", "AREA_", "UTIL_")):
-            # Añade solo si son slacks no negativas en tu formulación
-            slacks.append(v)
-
-    if slacks:
-        m.setObjective(m.getObjective() - LAMBDA * gp.quicksum(slacks), gp.GRB.MAXIMIZE)
 
     m.optimize()
-
+    audit_cost_breakdown_vars(m, top=30)
     # tras optimize(), usa el mismo X que vio el embed:
     X_in = rebuild_embed_input_df(m, m._X_base_numeric)
     try:
@@ -850,6 +862,55 @@ def main():
     except Exception:
         pass
 
+    # (8.5) Fireplace Qual – reporter
+    try:
+        ORD = {"No aplica": -1, "Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
+        INV = {v: k for k, v in ORD.items()}
+
+        def _fq_txt(v):
+            try:
+                n = int(pd.to_numeric(v, errors="coerce"))
+                return INV.get(n, "No aplica")
+            except Exception:
+                s = str(v).strip()
+                return "No aplica" if s in {"", "NA", "N/A", "NoAplica"} else s
+
+        base_fq = _fq_txt(base_row.get("Fireplace Qu", "No aplica"))
+
+        # preferimos las dummies, si existen
+        pick = None
+        for nm in ["Po", "Fa", "TA", "Gd", "Ex", "No aplica"]:
+            v = _getv(m, f"fireplace_is_{nm}")
+            if v is not None and v.X > 0.5:
+                pick = nm
+                break
+        if pick is None:
+            # fallback: leer la var numérica
+            vnum = _getv(m, "x_Fireplace Qu", "Fireplace Qu", "x_FireplaceQu")
+            if vnum is not None:
+                try:
+                    pick = INV.get(int(round(float(vnum.X))), base_fq)
+                except Exception:
+                    pick = base_fq
+
+        def _fq_cost(name):
+            if hasattr(ct, "fireplace_qc_costs"):
+                return float(ct.fireplace_qc_costs.get(name, 0.0))
+            if hasattr(ct, "fireplace_costs"):
+                return float(ct.fireplace_costs.get(name, 0.0))
+            if hasattr(ct, "fireplace_cost"):
+                try:
+                    return float(ct.fireplace_cost(name))
+                except Exception:
+                    return 0.0
+            return 0.0
+
+        if pick and pick != base_fq and pick != "No aplica":
+            cambios_costos.append(("Fireplace Qual", base_fq, pick, _fq_cost(pick)))
+    except Exception as e:
+        print(f"[TRACE] Fireplace reporter falló: {e}")
+
+
     # (9) Basement finish (usa variables del modelo si existen)
     try:
         # Si el modelo creó finish all: bsmt_finish_all + bsmt_to_fin1/2
@@ -917,6 +978,7 @@ def main():
         a = _opt_val_chg(nm)
         if a is not None and abs(a - b) > 1e-9:
             cambios_costos.append((nm, b, a, None))  # sin costo explícito
+            
 
     # (12) Costos explícitos de ampliaciones (explican 1st/GrLiv/Half/Bed)
     A_Full, A_Half, A_Kitch, A_Bed = 40.0, 20.0, 75.0, 70.0
@@ -951,26 +1013,173 @@ def main():
             float(ct.construction_cost) * delta_1flr
         ))
 
-    # (13) Wood Deck: costo de ampliación (z10/z20/z30)
-    def _num(x):
-        try: return float(pd.to_numeric(x, errors="coerce") or 0.0)
-        except Exception: return 0.0
+    # (13) Ampliaciones porcentuales (z10/z20/z30) para superficies (Deck, Porches, Pool, Garage)
+    try:
+        def _num(x):
+            try: 
+                return float(pd.to_numeric(x, errors="coerce") or 0.0)
+            except Exception: 
+                return 0.0
 
-    base_wd = _num(base_row.get("Wood Deck SF"))
-    picked = False
-    for s, tag in [(10, "10%"), (20, "20%"), (30, "30%")]:
-        v = _v(f"z{s}_WoodDeckSF")
-        if v is not None and float(v.X) > 0.5:
-            delta = round(base_wd * s / 100.0, 3)
-            unit_cost = {10: ct.ampl10_cost, 20: ct.ampl20_cost, 30: ct.ampl30_cost}[s]
-            # quita la línea genérica "Wood Deck SF" sin costo y pon la de ampliación con costo
-            cambios_costos = [t for t in cambios_costos if t[0] != "Wood Deck SF"]
-            cambios_costos.append((
-                f"Wood Deck +{tag}", base_wd, base_wd + delta,
-                float(unit_cost) * delta
-            ))
-            picked = True
-            break
+        # Columna → posibles alias para buscar z-flags con nombres distintos
+        COMPONENTES = [
+            ("Wood Deck SF",   ["WoodDeckSF","WoodDeck","DeckSF","Deck"]),
+            ("Open Porch SF",  ["OpenPorchSF","OpenPorch"]),
+            ("Enclosed Porch", ["EnclosedPorch"]),
+            ("3Ssn Porch",     ["3SsnPorch","ThreeSsnPorch","ThreeSeasonPorch"]),
+            ("Screen Porch",   ["ScreenPorch"]),
+            ("Pool Area",      ["PoolArea","Pool"]),
+            ("Garage Area",    ["GarageArea","Garage"])
+        ]
+
+        def _find_zflag(m, s, col, aliases):
+            # prueba varios nombres razonables
+            candidates = []
+            base = col
+            # variantes con/ sin espacios / SF
+            candidates += [f"z{s}_{base}",
+                        f"z{s}_{base.replace(' ','')}",
+                        f"z{s}_{base.replace(' ','_')}",
+                        f"z{s}_{base.replace(' ','').replace('SF','')}",
+                        f"z{s}_{base.replace(' ','_').replace('SF','')}"]
+            # añade alias
+            for a in aliases:
+                candidates += [f"z{s}_{a}", f"z{s}{a}", f"z_{s}_{a}"]
+            # busca
+            for nm in candidates:
+                v = _getv(m, nm)
+                if v is not None:
+                    return v
+            # fallback: búsqueda “contiene” (muy laxa pero útil)
+            tgt = base.replace(" ", "").replace("_", "").replace("%","").lower()
+            for v in m.getVars():
+                vn = v.VarName.replace(" ", "").replace("_","").replace("%","").lower()
+                if vn.startswith(f"z{s}") and tgt in vn:
+                    return v
+            return None
+
+        # helper: valor óptimo de una columna (lee var x_... o X_in)
+        def _opt_val_chg(col: str):
+            v = _getv(m, f"x_{col}")
+            if v is not None:
+                try:
+                    return float(v.X)
+                except Exception:
+                    return None
+            if hasattr(m, "_X_input") and (col in m._X_input.columns):
+                obj = m._X_input.loc[0, col]
+                try:
+                    return float(obj.X) if hasattr(obj, "X") else float(pd.to_numeric(obj, errors="coerce") or 0.0)
+                except Exception:
+                    return None
+            return None
+
+        for col, aliases in COMPONENTES:
+            base_c = _num(base_row.get(col))
+            new_c  = _opt_val_chg(col)
+            if new_c is None:
+                continue
+            delta = new_c - base_c
+
+            # intenta z10/z20/z30; si no encuentra z*, infiere por delta≈%base
+            picked = False
+            for s in (10, 20, 30):
+                vflag = _find_zflag(m, s, col, aliases)
+                flag_on = (vflag is not None and float(vflag.X) > 0.5)
+                # tolerancia: 1 ft² o 1% del base, lo que sea mayor
+                tol = max(1.0, 0.01 * base_c)
+                by_ratio = (base_c > 0 and abs(delta - base_c * s / 100.0) <= tol)
+
+                if flag_on or by_ratio:
+                    unit_cost = {10: ct.ampl10_cost, 20: ct.ampl20_cost, 30: ct.ampl30_cost}[s]
+                    # evita doble conteo: borra la línea genérica del mismo atributo si ya estaba
+                    cambios_costos = [t for t in cambios_costos if t[0] != col]
+                    cambios_costos.append((
+                        f"{col} +{s}%", base_c, new_c,
+                        float(unit_cost) * (base_c * s / 100.0)
+                    ))
+                    picked = True
+                    break
+
+            # si no “pickeó” nada pero hubo cambio, deja (o conserva) la línea genérica sin costo
+            if (not picked) and abs(delta) > 1e-9:
+                # Si ya hay una genérica, no duplicar
+                if not any(t[0] == col for t in cambios_costos):
+                    cambios_costos.append((col, base_c, new_c, None))
+
+    except Exception:
+        pass
+
+    # (X) Garage Qual / Cond – reporter robusto
+    try:
+        G_LIST = ["Po", "Fa", "TA", "Gd", "Ex", "No aplica"]
+
+        def _norm_noap(s):
+            s = str(s).strip()
+            return "No aplica" if s in {"", "NA", "N/A", "NoAplica", "No aplica", "None", "nan"} else s
+
+        def _g_txt(v):
+            # base puede venir como número u texto
+            M = {0:"Po", 1:"Fa", 2:"TA", 3:"Gd", 4:"Ex"}
+            try:
+                vv = int(pd.to_numeric(v, errors="coerce"))
+                return M.get(vv, "No aplica")
+            except Exception:
+                return _norm_noap(v)
+
+        gq_base = _g_txt(base_row.get("Garage Qual", "No aplica"))
+        gc_base = _g_txt(base_row.get("Garage Cond", "No aplica"))
+
+        # pick dummies o fallback numérico
+        def _pick_active_any(prefix_dummy: str, numeric_var_names=("x_Garage Qual","x_GarageQual")):
+            # prueba con o sin prefijo x_
+            for nm in G_LIST:
+                v = _getv(m, f"x_{prefix_dummy}{nm}", f"{prefix_dummy}{nm}")
+                if v is not None and v.X > 0.5:
+                    return nm
+            # fallback: variable numérica (ordinal 0..4)
+            for nv in numeric_var_names:
+                vnum = _getv(m, nv)
+                if vnum is not None:
+                    M = {0:"Po",1:"Fa",2:"TA",3:"Gd",4:"Ex"}
+                    try:
+                        return M.get(int(round(float(vnum.X))), "No aplica")
+                    except Exception:
+                        pass
+            return None
+
+        q_new = _pick_active_any("garage_qual_is_")
+        c_new = _pick_active_any("garage_cond_is_")
+
+        # normaliza
+        q_new = _norm_noap(q_new) if q_new is not None else None
+        c_new = _norm_noap(c_new) if c_new is not None else None
+        gq_base = _norm_noap(gq_base)
+        gc_base = _norm_noap(gc_base)
+
+        # costo de destino (mismo esquema que usas en otros qual/cond)
+        def _cost(name):
+            try:
+                return float(ct.garage_qc_costs.get(name, 0.0))
+            except Exception:
+                return 0.0
+
+        if q_new and q_new != gq_base and q_new != "No aplica":
+            cambios_costos.append(("Garage Qual", gq_base, q_new, _cost(q_new)))
+        if c_new and c_new != gc_base and c_new != "No aplica":
+            cambios_costos.append(("Garage Cond", gc_base, c_new, _cost(c_new)))
+
+        # TRAZA opcional para depurar por qué a veces hay costo y no aparece cambio
+        try:
+            cq = _cost(q_new) if (q_new and q_new != gq_base and q_new != "No aplica") else 0.0
+            cc = _cost(c_new) if (c_new and c_new != gc_base and c_new != "No aplica") else 0.0
+            print(f"[TRACE] GQ: base={gq_base} -> pick={q_new} ; cost={cq}")
+            print(f"[TRACE] GC: base={gc_base} -> pick={c_new} ; cost={cc}")
+        except Exception:
+            pass
+
+    except Exception as e:
+        print(f"[TRACE] Reporter Garage falló: {e}")
 
 
     # (14) Chequeo: suma de costos reportados vs lin_cost del modelo
@@ -1049,9 +1258,19 @@ def main():
         # 2) Sobrescribe las numéricas que sí cambian en tu MIP
         for col in [
             "1st Flr SF", "Gr Liv Area", "Half Bath", "Wood Deck SF",
-            "Bsmt Unf SF", "BsmtFin SF 1", "BsmtFin SF 2", "Total Bsmt SF"
+            "Open Porch SF", "Enclosed Porch", "3Ssn Porch", "Screen Porch",
+            "Pool Area", "Garage Area", "Bsmt Unf SF", "BsmtFin SF 1", "BsmtFin SF 2", "Total Bsmt SF"
         ]:
             opt_dict[col] = _opt_val(col)
+
+        # Fireplace Qu (mostrar etiqueta)
+        try:
+            M = {-1:"No aplica", 0:"Po", 1:"Fa", 2:"TA", 3:"Gd", 4:"Ex"}
+            v_fp = _getv(m, "x_Fireplace Qu")
+            if v_fp is not None:
+                opt_dict["Fireplace Qu"] = M.get(int(round(float(v_fp.X))), opt_dict.get("Fireplace Qu"))
+        except Exception:
+            pass
 
         # 3) Inyecta categóricas como ya hacías
         v_yes = m.getVarByName("central_air_yes")

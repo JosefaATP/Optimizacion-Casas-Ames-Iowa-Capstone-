@@ -11,7 +11,7 @@ class CostTables:
     deck_per_m2: float = 0.0
     finish_basement_per_f2: float = 15.0
 
-    # ====== COCINA (paquetes) ======
+    # ====== COCINA (paquetes) ====== LISTO
 
     kitchenQual_upgrade_TA: float = 42500.0
     kitchenQual_upgrade_EX: float = 180000.0
@@ -38,7 +38,7 @@ class CostTables:
         return 0.0    # Po/Fa
 
 
-    # ====== UTILITIES ======
+    # ====== UTILITIES ====== LISTO
     utilities_costs: Dict[str, float] = field(default_factory=lambda: {
         "AllPub": 31750.0,
         "NoSewr": 39500.0,
@@ -48,7 +48,7 @@ class CostTables:
     def util_cost(self, name: str) -> float:
         return float(self.utilities_costs.get(str(name), 0.0))
 
-    # ====== TECHO ======
+    # ====== TECHO ====== REVISAR
     roof_style_costs: Dict[str, float] = field(default_factory=lambda: {
         "Flat": 3500.0, "Gable": 3000.0, "Gambrel": 4500.0,
         "Hip": 4000.0, "Mansard": 6000.0, "Shed": 2000.0,
@@ -72,14 +72,14 @@ class CostTables:
     def get_roof_matl_cost(self, mat: str) -> float:
         return float(self.roof_matl_fixed.get(mat, 0.0))
 
-    # ---- Masonry veneer (Mas Vnr) ----
+    # ---- Masonry veneer (Mas Vnr) ---- LISTO
     mas_vnr_costs_sqft: Dict[str, float] = field(default_factory=lambda: {
         "BrkCmn": 1.21, "BrkFace": 15.0, "CBlock": 22.5, "None": 0.0, "Stone": 27.5, "No aplica": 0.0,
     })
     def mas_vnr_cost(self, name: str) -> float:
         return float(self.mas_vnr_costs_sqft.get(str(name), 0.0))
     
-    # ====== GARAGE FINISH ======
+    # ====== GARAGE FINISH ====== REVISAR
     # costos totales por categoría (USD)
     garage_finish_costs_sqft: Dict[str, float] = field(default_factory=lambda: {
         "No aplica": 0.0,
@@ -90,10 +90,10 @@ class CostTables:
     def garage_finish_cost(self, name: str) -> float:
         return float(self.garage_finish_costs_sqft.get(str(name), 0.0))
 
-        # ====== POOL QUALITY ======
+    # ====== POOL QUALITY ====== REVISAR
     pool_area_cost: float = 88.0  # USD por ft²
 
-    # costos totales por categoría (USD)
+    # costos totales por categoría (USD) REVISAR
     poolqc_costs: Dict[str, float] = field(default_factory=lambda: {
         "No aplica": 0.0,
         "Fa": 19000.0,
@@ -103,7 +103,7 @@ class CostTables:
         "Ex": 135000.0,
     })
 
-    # ====== COSTOS DE CONSTRUCCIÓN Y AMPLIACIÓN ======
+    # ====== COSTOS DE CONSTRUCCIÓN Y AMPLIACIÓN ====== LISTO
     construction_cost: float = 230.0  # USD/ft²
 
     ampl10_cost: float = 82.28   # ampliación pequeña
@@ -111,7 +111,7 @@ class CostTables:
     ampl30_cost: float = 130.70  # ampliación grande
     
 
-    # ====== GARAGE QUALITY / CONDITION ======
+    # ====== GARAGE QUALITY / CONDITION ====== LISTO
     garage_qc_costs: Dict[str, float] = field(default_factory=lambda: {
         "No aplica": 0.0,
         "Po": 4188.0,   # muy mala calidad
@@ -122,15 +122,16 @@ class CostTables:
     })
 
     # ====== PAVED DRIVE ======
-# costos por categoría (USD, desde el PDF)
+    # costos por categoría (USD, desde el PDF)
     paved_drive_costs: Dict[str, float] = field(default_factory=lambda: {
-        "Y": 4908.0,   # entrada totalmente pavimentada
-        "P": 3354.0,   # entrada parcialmente pavimentada (promedio)
-        "N": 1800.0,   # entrada de grava / tierra
+        "Y": 4.0,   # entrada totalmente pavimentada
+        "P": 5.0,   # entrada parcialmente pavimentada (promedio)
+        "N": 1.0,   # entrada de grava / tierra
     })
 
     def paved_drive_cost(self, name: str) -> float:
         return float(self.paved_drive_costs.get(str(name), 0.0))
+    
     # ====== FENCE ======
     # costos por categoría (USD)
     fence_category_costs: Dict[str, float] = field(default_factory=lambda: {
@@ -151,8 +152,7 @@ class CostTables:
 
     # ====== EXTERIOR (LUMPSUM, SIN DEMOLICIÓN) ======
 
-    # Costos fijos por CAMBIO de material del frente 1 o 2.
-    # ⚠️ Ajusta los montos con los de tu tabla/documento.
+    # Costos fijos por CAMBIO de material del frente 1 o 2. LISTO
     exterior_matl_lumpsum: Dict[str, float] = field(default_factory=lambda: {
         "AsbShng": 19000.0,
         "AsphShn": 22500.0,
@@ -180,7 +180,6 @@ class CostTables:
 
     # Costos fijos por NIVEL final de calidad/condición (se cobran sólo si el nivel
     # final es superior al nivel de la casa base).
-    # ⚠️ Ajusta los montos con los de tu tabla/documento.
     exter_qual_costs: Dict[str, float] = field(default_factory=lambda: {
         "Po": 7646.70,
         "Fa": 14558.00,
@@ -204,9 +203,7 @@ class CostTables:
         """Costo fijo por terminar con condición exterior 'level' (Po/Fa/TA/Gd/Ex)."""
         return float(self.exter_cond_costs.get(str(level), 0.0))
 
-
-
-    # ====== ELECTRICAL ======
+    # ====== ELECTRICAL ====== LISTO
     electrical_demo_small: float = 800.0
     electrical_type_costs: Dict[str, float] = field(default_factory=lambda: {
         # Ames: SBrkr, FuseA, FuseF, FuseP, Mix (peor→mejor ~ más caro)
@@ -219,7 +216,7 @@ class CostTables:
     def electrical_cost(self, name: str) -> float:
         return float(self.electrical_type_costs.get(str(name), 0.0))
     
-        # ====== CENTRAL AIR ======
+    # ====== CENTRAL AIR ======
     central_air_install: float = 5362.0  # <-- puedes ajustar este costo
 
     # ====== HEATING ======
@@ -254,7 +251,7 @@ class CostTables:
     def bsmt_cond_cost(self, name: str) -> float:
         return float(self.bsmt_cond_upgrade_costs.get(str(name), 0.0))
 
-    # ====== BSMT FIN TYPE (costos por categoría) ======
+    # ====== BSMT FIN TYPE (costos por categoría) ====== LISTO
     bsmt_type_costs: Dict[str, float] = field(default_factory=lambda: {
         # Valores del cuadro (ALQ/Rec interpolados)
         "GLQ": 75000.0,
@@ -268,7 +265,7 @@ class CostTables:
     def bsmt_type_cost(self, name: str) -> float:
         return float(self.bsmt_type_costs.get(str(name), 0.0))
 
-    # ====== FIREPLACE ======
+    # ====== FIREPLACE ====== LISTO
     fireplace_costs: Dict[str, float] = field(default_factory=lambda: {
         "Po": 1500.0,   # Royster (rangos 1–2k)
         "Fa": 2000.0,   # interpolada (TA/Po)

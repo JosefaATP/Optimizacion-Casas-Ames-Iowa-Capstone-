@@ -1,31 +1,16 @@
 tier,change,count
-low,Basement finish (ft²),48
-low,Garage Cars,47
-low,Garage Finish,36
-low,Exterior 2nd,34
-low,Exterior 1st,7
-low,Full Bath,6
-low,Wood Deck SF (+10%),4
-low,Half Bath,3
-low,Electrical,3
-low,Enclosed Porch (+10%),2
-mid,Basement finish (ft²),48
-mid,Garage Cars,47
-mid,Exterior 2nd,40
-mid,Garage Finish,36
-mid,Full Bath,28
-mid,Exterior 1st,21
-mid,Half Bath,12
-mid,Bedroom AbvGr,10
-mid,Electrical,9
-mid,Wood Deck SF (+20%),5
-high,Basement finish (ft²),48
-high,Garage Cars,47
-high,Exterior 2nd,41
-high,Garage Finish,36
-high,Full Bath,30
-high,Exterior 1st,26
-high,Electrical,15
-high,Bedroom AbvGr,14
-high,Half Bath,13
-high,Wood Deck SF (+20%),6
+low,Enclosed Porch +10%,1
+low,1st Flr SF,1
+low,Gr Liv Area,1
+low,AddFull (+40 ft²),1
+low,Wood Deck SF +10%,1
+mid,Enclosed Porch +10%,1
+mid,1st Flr SF,1
+mid,Gr Liv Area,1
+mid,AddFull (+40 ft²),1
+mid,Wood Deck SF +10%,1
+high,Enclosed Porch +10%,1
+high,1st Flr SF,1
+high,Gr Liv Area,1
+high,AddFull (+40 ft²),1
+high,Wood Deck SF +10%,1

@@ -462,44 +462,101 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         if ORD[nm] > exc_base_ord:
             lin_cost += ct.exter_cond_cost(nm) * vb
 
+    # ================== MAS VNR (robusto, sin “bajar” a No aplica) ==================
+    MV_CANDIDATES = ["BrkCmn", "BrkFace", "CBlock", "Stone", "No aplica", "NA", "None"]
 
-    # ================== MAS VNR ==================
-    MV_TYPES = ["BrkCmn", "BrkFace", "CBlock", "No aplica", "Stone"]
-    mvt = {nm: x[f"mvt_is_{nm}"] for nm in MV_TYPES if f"mvt_is_{nm}" in x}
-    if mvt:
-        m.addConstr(gp.quicksum(mvt.values()) == 1, name="MVT_pick_one")
+    def _norm(s: str) -> str:
+        return str(s).strip().lower().replace(" ", "").replace("_", "")
 
-    for nm in MV_TYPES:
-        col = f"Mas Vnr Type_{nm}"
-        if col in X_input.columns and nm in mvt:
-            _put_var_obj(X_input, col, mvt[nm])
+    NA_KEYS = {"noaplica", "na", "none"}
 
-    mvt_base = str(base_row.get("Mas Vnr Type", "No aplica")).strip()
+    def _gv(name: str):
+        v = m.getVarByName(name)
+        if v is not None:
+            return v
+        return x.get(name)
+
+    def _pick_mvt_var(nm: str):
+        # prueba con y sin prefijo x_
+        for cand in (f"x_mvt_is_{nm}", f"mvt_is_{nm}"):
+            v = _gv(cand)
+            if v is not None:
+                return v
+        return None
+
+    # 1) Construye el mapa tipo->var binaria (acepta varios alias)
+    mvt_raw = {}
+    for nm in MV_CANDIDATES:
+        v = _pick_mvt_var(nm)
+        if v is not None:
+            mvt_raw[nm] = v
+
+    if mvt_raw:
+        m.addConstr(gp.quicksum(mvt_raw.values()) == 1, name="MVT_pick_one")
+
+    # 2) Ata TODAS las columnas de X_input que empiezan con "Mas Vnr Type_"
+    #    al binario correcto (coincidencia por sufijo, robusta a espacios/case)
+    for col in [c for c in X_input.columns if c.startswith("Mas Vnr Type_")]:
+        suf = col.split("Mas Vnr Type_", 1)[1]
+        # busca var por nombre exacto o por normalización
+        v = mvt_raw.get(suf)
+        if v is None:
+            # intenta por normalización
+            target = _norm(suf)
+            for nm, vv in mvt_raw.items():
+                if _norm(nm) == target:
+                    v = vv
+                    break
+        if v is not None:
+            _put_var_obj(X_input, col, v)
+
+    # 3) Lee base y costos
+    mvt_base_txt = str(base_row.get("Mas Vnr Type", "No aplica")).strip()
+    base_key     = _norm(mvt_base_txt)
     try:
         mv_area_base = float(pd.to_numeric(base_row.get("Mas Vnr Area"), errors="coerce") or 0.0)
     except Exception:
         mv_area_base = 0.0
 
-    base_cost_mvt = ct.mas_vnr_cost(mvt_base)
-    mv_area = x["Mas Vnr Area"] if "Mas Vnr Area" in x else mv_area_base
+    def _cost(nm: str) -> float:
+        try:
+            c = float(pd.to_numeric(ct.mas_vnr_cost(nm), errors="coerce"))
+            return c if pd.notna(c) else 0.0
+        except Exception:
+            return 0.0
 
-    no_base_veneer = (mv_area_base <= 1e-9) or (mvt_base == "No aplica")
-    if no_base_veneer:
-        if "No aplica" in mvt:
-            m.addConstr(mvt["No aplica"] == 1, name="MVT_stay_noaplica")
-        for nm in MV_TYPES:
-            if nm != "No aplica" and nm in mvt:
-                mvt[nm].UB = 0
+    base_cost = _cost(mvt_base_txt)
+    mv_area   = _gv("x_Mas Vnr Area") or _gv("Mas Vnr Area") or mv_area_base
+
+    # 4) Política:
+    #    - Si NO había veneer (No aplica/NA/None o área≈0): quedarse en “No aplica” y área=0.
+    #    - Si SÍ había veneer: prohibido “No aplica” y prohibidos tipos con costo < base.
+    had_veneer = (mv_area_base > 1e-9) and (base_key not in NA_KEYS)
+
+    if not had_veneer:
+        # forzar No aplica = 1, demás = 0, área 0
+        for nm, v in mvt_raw.items():
+            if _norm(nm) in NA_KEYS:
+                m.addConstr(v == 1, name="MVT_stay_noaplica")
+            else:
+                m.addConstr(v == 0, name=f"MVT_forbid_{nm}")
         if isinstance(mv_area, gp.Var):
             mv_area.LB = 0.0
             mv_area.UB = 0.0
     else:
-        for nm in MV_TYPES:
-            if nm in mvt and ct.mas_vnr_cost(nm) < base_cost_mvt:
-                mvt[nm].UB = 0
+        # prohíbe No aplica
+        for nm, v in mvt_raw.items():
+            if _norm(nm) in NA_KEYS:
+                m.addConstr(v == 0, name="MVT_forbid_noaplica")
+        # prohíbe opciones más baratas que la base
+        for nm, v in mvt_raw.items():
+            if _norm(nm) not in NA_KEYS and _cost(nm) < base_cost:
+                m.addConstr(v == 0, name=f"MVT_forbid_cheaper_{nm}")
+        # área no puede bajar
         if isinstance(mv_area, gp.Var):
             m.addConstr(mv_area >= mv_area_base, name="MVT_area_no_decrease")
 
+    # 5) Costo lineal: solo si CAMBIA el tipo (área * costo_nuevo)
     try:
         ub_candidate = float(mv_area_base if mv_area_base > 0 else 0.0)
     except Exception:
@@ -508,20 +565,25 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     mv_area_ub = max(ub_candidate, UB_DEFAULT)
 
     if isinstance(mv_area, gp.Var):
-        mv_area_mvt = {}
-        for nm in MV_TYPES:
-            if nm in mvt and nm != mvt_base:
-                aux_name = f"mv_area_mvt_{nm}"
-                mv_area_mvt[nm] = m.addVar(lb=0.0, ub=mv_area_ub, name=aux_name)
-                m.addConstr(mv_area_mvt[nm] <= mv_area, name=f"MVT_lin_p_le_a_{nm}")
-                m.addConstr(mv_area_mvt[nm] <= mv_area_ub * mvt[nm], name=f"MVT_lin_p_le_UBb_{nm}")
-                m.addConstr(mv_area_mvt[nm] >= mv_area - mv_area_ub * (1.0 - mvt[nm]), name=f"MVT_lin_p_ge_a_minus_UB1b_{nm}")
-                lin_cost += ct.mas_vnr_cost(nm) * mv_area_mvt[nm]
+        for nm, v in mvt_raw.items():
+            if _norm(nm) not in NA_KEYS and nm != mvt_base_txt and v is not None:
+                p = m.addVar(lb=0.0, ub=mv_area_ub, name=f"mv_area_mvt_{nm}")
+                m.addConstr(p <= mv_area,                      name=f"MVT_lin_p_le_a_{nm}")
+                m.addConstr(p <= mv_area_ub * v,               name=f"MVT_lin_p_le_UBb_{nm}")
+                m.addConstr(p >= mv_area - mv_area_ub * (1-v), name=f"MVT_lin_p_ge_a_minus_UB1b_{nm}")
+                lin_cost += _cost(nm) * p
     else:
         area_term = float(mv_area)
-        for nm in MV_TYPES:
-            if nm in mvt and nm != mvt_base:
-                lin_cost += ct.mas_vnr_cost(nm) * area_term * mvt[nm]
+        for nm, v in mvt_raw.items():
+            if _norm(nm) not in NA_KEYS and nm != mvt_base_txt and v is not None:
+                lin_cost += _cost(nm) * area_term * v
+
+    # 6) Log de sanidad
+    try:
+        msg_allowed = ", ".join([nm for nm,v in mvt_raw.items() if v.UB > 0.5 or hasattr(v, "LB") and v.LB > 0.5])
+        print(f"[CHK-MVT] Base={mvt_base_txt} area_base={mv_area_base} | allowed={msg_allowed}")
+    except Exception:
+        pass
 
     # ================== ROOF ==================
     style_names = ["Flat", "Gable", "Gambrel", "Hip", "Mansard", "Shed"]
@@ -888,7 +950,6 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     gq = {g: x.get(f"garage_qual_is_{g}") for g in G_CATS}
     gc = {g: x.get(f"garage_cond_is_{g}") for g in G_CATS}
-    upgG = x.get("UpgGarage")
 
     def _base_txt(col):
         raw = _na2noaplica(base_row.get(col, "No aplica"))
@@ -904,12 +965,14 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     base_qual_txt = _base_txt("Garage Qual")
     base_cond_txt = _base_txt("Garage Cond")
 
+    # máscara: 0 si es la base (no cobra), 1 si es distinta a la base (cobra)
     def _mask_for(base_txt):
         return {g: (0.0 if g == base_txt else 1.0) for g in G_CATS}
 
     maskQ = _mask_for(base_qual_txt)
     maskC = _mask_for(base_cond_txt)
 
+    # Si alguno es "No aplica", se fija en "No aplica" y no se puede mejorar
     if base_qual_txt == "No aplica" or base_cond_txt == "No aplica":
         for g, v in gq.items():
             if v is not None:
@@ -917,30 +980,39 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         for g, v in gc.items():
             if v is not None:
                 m.addConstr(v == (1.0 if g == "No aplica" else 0.0), name=f"GC_fix_NA_{g}")
-        if upgG is not None:
-            m.addConstr(upgG == 0, name="UpgGarage_disabled_for_NA")
     else:
+        # pick-one si existen las dummies
         if any(v is not None for v in gq.values()):
             m.addConstr(gp.quicksum(v for v in gq.values() if v is not None) == 1, name="GQ_pick_one")
         if any(v is not None for v in gc.values()):
             m.addConstr(gp.quicksum(v for v in gc.values() if v is not None) == 1, name="GC_pick_one")
 
-        def _cost(name): return ct.garage_qc_costs.get(name, 0.0)
+        # “No bajar”: si tu tabla es monótona (más caro = mejor), bloquea niveles más baratos que la base
+        def _cost(name): 
+            return float(ct.garage_qc_costs.get(name, 0.0))
+
         base_cost_q = _cost(base_qual_txt)
         base_cost_c = _cost(base_cond_txt)
 
         for g, v in gq.items():
-            if v is None: continue
+            if v is None: 
+                continue
             if g == "No aplica" or _cost(g) < base_cost_q:
-                v.UB = 0
+                v.UB = 0.0
+
         for g, v in gc.items():
-            if v is None: continue
+            if v is None: 
+                continue
             if g == "No aplica" or _cost(g) < base_cost_c:
-                v.UB = 0
+                v.UB = 0.0
 
-        lin_cost += gp.quicksum(_cost(g) * maskQ[g] * gq[g] for g in gq if g != "No aplica" and gq[g] is not None)
-        lin_cost += gp.quicksum(_cost(g) * maskC[g] * gc[g] for g in gc if g != "No aplica" and gc[g] is not None)
+        # COSTO: si cambias, pagas el costo fijo de la categoría elegida (misma lógica que en otros qual/cond)
+        lin_cost += gp.quicksum(_cost(g) * maskQ[g] * gq[g]
+                                for g in G_CATS if g != "No aplica" and gq[g] is not None)
+        lin_cost += gp.quicksum(_cost(g) * maskC[g] * gc[g]
+                                for g in G_CATS if g != "No aplica" and gc[g] is not None)
 
+ 
     # ================== PAVED DRIVE ==================
     PAVED_CATS = ["Y", "P", "N"]
     paved = {d: x.get(f"paved_drive_is_{d}") for d in PAVED_CATS if f"paved_drive_is_{d}" in x}
@@ -1001,6 +1073,23 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         for f in ["MnPrv", "GdPrv"]:
             if f in fn:
                 lin_cost += ct.fence_build_cost_per_ft * lot_front * fn[f]
+    
+    # Empujar Paved Drive al X_input si el pipeline usa one-hot
+    for d, v in paved.items():
+        if v is None:
+            continue
+        col = f"Paved Drive_{d}"
+        if col in X_input.columns:
+            _put_var_obj(X_input, col, v)
+
+    # Empujar Fence al X_input si el pipeline usa one-hot
+    for fcat, v in fn.items():
+        if v is None:
+            continue
+        col = f"Fence_{fcat}"
+        if col in X_input.columns:
+            _put_var_obj(X_input, col, v)
+
 
     # ================== ELECTRICAL (universo completo) ==================
     ELECT_TYPES = ["SBrkr", "FuseA", "FuseF", "FuseP", "Mix"]
@@ -1117,71 +1206,83 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     lin_cost += cost_heat
 
     # ================== FIREPLACE QU ==================
-    # El modelo entrena Fireplace Qu como ORDINAl (-1..4), sin OHE.
-    FP_ORD = {"Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
-    def _fp_cost(level_name: str) -> float:
-        try:
-            return float(ct.fireplace_qc_cost(level_name))
-        except Exception:
+    # Permite: Po, Fa, TA, Gd, Ex y "No aplica" (=-1)
+    FQ_CATS = ["Po", "Fa", "TA", "Gd", "Ex", "No aplica"]
+    FQ_ORD  = {"No aplica": -1, "Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
+
+    v_fq = x.get("Fireplace Qu")  # ya existe como variable numérica en el embed (LB=-1, UB=4)
+    if isinstance(v_fq, gp.Var):
+        # base como texto normalizado
+        def _fq_txt(v):
+            M = { -1:"No aplica", 0:"Po", 1:"Fa", 2:"TA", 3:"Gd", 4:"Ex" }
             try:
-                return float(getattr(ct, "fireplace_qc_costs", {}).get(level_name, 0.0))
+                n = int(pd.to_numeric(v, errors="coerce"))
+                return M.get(n, "No aplica")
             except Exception:
-                return 0.0
+                s = str(v).strip()
+                return {"", "NA", "N/A", "NoAplica"}.__contains__(s) and "No aplica" or s
 
-    fp_base_raw = base_row.get("Fireplace Qu", "No aplica")
-    base_fp_is_na = _is_noaplica(fp_base_raw)
-    fp_base_txt = "No aplica" if base_fp_is_na else str(fp_base_raw).strip()
-    fp_base_ord = -1 if base_fp_is_na else FP_ORD.get(fp_base_txt, 2)
+        base_fq_txt = _fq_txt(base_row.get("Fireplace Qu", "No aplica"))
+        base_ord    = FQ_ORD[base_fq_txt]
 
-    # (1) Política estructural:
-    #     - Si es NA en base => fijar a -1 (no se construye chimenea “de la nada”)
-    #     - Si existe (>=0)   => upgrade-only (no bajar la calidad)
-    if "Fireplace Qu" in x:
-        if base_fp_is_na:
-            x["Fireplace Qu"].LB = -1.0
-            x["Fireplace Qu"].UB = -1.0
-        else:
-            m.addConstr(x["Fireplace Qu"] >= fp_base_ord, name="FP_upgrade_only")
-    # Cinturón y tirantes si es NA en base:
-    if base_fp_is_na:
-        m.addConstr(x["Fireplace Qu"] == -1.0, name="FP_fix_NA_eq")
+        # dummies de elección del nivel destino
+        fq = {nm: m.addVar(vtype=gp.GRB.BINARY, name=f"fireplace_is_{nm}") for nm in FQ_CATS}
+        m.addConstr(gp.quicksum(fq.values()) == 1, name="FQ_pick_one")
 
-    # (2) Si el pipeline tuviese OHE (raro en tu setup), inyecta dummies coherentes:
-    for nm in ["Po", "Fa", "TA", "Gd", "Ex", "No aplica"]:
-        col = f"Fireplace Qu_{nm}"
+        # enlaza el ordinal con la elección: x_FireplaceQu = sum(ord * dummy)
+        m.addConstr(v_fq == gp.quicksum(FQ_ORD[nm] * fq[nm] for nm in FQ_CATS), name="FQ_level_match")
+
+        # NO permitir bajar calidad vs base (solo igual o subir)
+        for nm in FQ_CATS:
+            if FQ_ORD[nm] < base_ord:
+                fq[nm].UB = 0.0
+
+        # Si NO quieres permitir "agregar chimenea" cuando la base es "No aplica", descomenta:
+        if base_fq_txt == "No aplica":
+            for nm in FQ_CATS:
+                fq[nm].UB = 0.0
+            fq["No aplica"].LB = 1.0
+            fq["No aplica"].UB = 1.0
+
+        # costo por nivel destino (sin cobrar quedarse igual)
+        def _fq_cost(name):
+            # Acepta cualquiera de estos esquemas en ct:
+            #   - ct.fireplace_qc_costs: dict { "TA": 1200, ... }
+            #   - ct.fireplace_costs:     dict idem
+            #   - ct.fireplace_cost(name) -> float
+            if hasattr(ct, "fireplace_qc_costs"):
+                return float(ct.fireplace_qc_costs.get(name, 0.0))
+            if hasattr(ct, "fireplace_costs"):
+                return float(ct.fireplace_costs.get(name, 0.0))
+            if hasattr(ct, "fireplace_cost"):
+                try:
+                    return float(ct.fireplace_cost(name))
+                except Exception:
+                    return 0.0
+            return 0.0
+
+        for nm in FQ_CATS:
+            if nm == base_fq_txt:
+                continue
+            lin_cost += _fq_cost(nm) * fq[nm]
+
+ 
+
+    # Empujar Garage Qual one-hot si existen columnas
+    for g, v in gq.items():
+        if v is None: continue
+        col = f"Garage Qual_{g}"
         if col in X_input.columns:
-            v = m.addVar(vtype=gp.GRB.BINARY, name=f"fp_is_{nm}")
-            if base_fp_is_na:
-                v.LB = 1.0 if nm == "No aplica" else 0.0
-                v.UB = v.LB
-            else:
-                # no permitir bajar; NA prohibido si existe chimenea
-                if nm == "No aplica" or FP_ORD.get(nm, -1) < fp_base_ord:
-                    v.UB = 0.0
             _put_var_obj(X_input, col, v)
 
-    # (3) (Opcional) costo por mejorar, si tienes tabla en ct.
-    try:
-        if not base_fp_is_na:
-            fp_bins = {nm: m.addVar(vtype=gp.GRB.BINARY, name=f"fp_bin_{nm}") for nm in ["Po","Fa","TA","Gd","Ex"]}
-            m.addConstr(gp.quicksum(fp_bins.values()) <= 1, name="FP_cost_pick_at_most_one")
-            for nm, vb in fp_bins.items():
-                if FP_ORD[nm] < fp_base_ord:
-                    vb.UB = 0.0
-            if "Fireplace Qu" in x:
-                m.addConstr(
-                    x["Fireplace Qu"] >= fp_base_ord +
-                    gp.quicksum((FP_ORD[nm] - fp_base_ord) * fp_bins[nm] for nm in fp_bins),
-                    name="FP_cost_link_ord"
-                )
-            for nm, vb in fp_bins.items():
-                if FP_ORD[nm] > fp_base_ord:
-                    lin_cost += _fp_cost(nm) * vb
-    except Exception:
-        pass
+    # Empujar Garage Cond one-hot si existen columnas
+    for g, v in gc.items():
+        if v is None: continue
+        col = f"Garage Cond_{g}"
+        if col in X_input.columns:
+            _put_var_obj(X_input, col, v)
 
-
-    # ================== BSMT: FINISH ALL ==================
+    # ================== BSMT: FINISH ALL ================== 
     b1_var = x.get("BsmtFin SF 1")
     b2_var = x.get("BsmtFin SF 2")
     bu_var = x.get("Bsmt Unf SF")
@@ -1495,7 +1596,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         "Exter Qual": (0.0, 4.0),
         "Exter Cond": (0.0, 4.0),
         "Heating QC": (0.0, 4.0),
-        "Bsmt Cond": (0.0, 4.0),
+        "Bsmt Cond": (-1.0, 4.0),
         "Garage Qual": (-1.0, 4.0),
         "Garage Cond": (-1.0, 4.0),
         "Utilities": (0.0, 3.0),
@@ -1669,6 +1770,9 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     # (2) No permitir empeorar el precio base (puedes dejarlo si querías esa política)
     m.addConstr(y_price >= float(base_price) - 1e-6, name="MIN_PRICE_BASE")
+    # Prohibir ROI negativo (opcional pero recomendado)
+    m.addConstr(y_price - cost_model >= float(base_price) - 1e-6, name="NO_NEGATIVE_ROI")
+
 
     # (3) Objetivo
     m.setObjective(y_price - cost_model - float(base_price), gp.GRB.MAXIMIZE)
