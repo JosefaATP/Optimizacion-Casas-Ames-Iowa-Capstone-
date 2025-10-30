@@ -235,7 +235,8 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # === variables de niveles por piso ===
     Floor1 = m.addVar(vtype=GRB.BINARY, name="Floor1")
     Floor2 = m.addVar(vtype=GRB.BINARY, name="Floor2")
-    m.addConstr(Floor1 + Floor2 == 1, name="7.4__floors")
+    m.addConstr(Floor1 == 1, name="7.4__first_floor_always")
+    m.addConstr(Floor2 <= Floor1, name="7.4__second_floor_if_first")
 
     # conteos por piso
     FullBath1 = m.addVar(vtype=GRB.INTEGER, lb=0, name="FullBath1")
@@ -319,7 +320,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     if x1 is not None and x2 is not None:
         m.addConstr(x2 <= getattr(ct, "M2ndFlrSF_max", 0.5 * lot_area) * Floor2, name="7.1.8__2nd_max")
         m.addConstr(x2 >= eps2 * Floor2, name="7.1.8__2nd_min_if_on")
-        m.addConstr(x1 >= eps1 * (Floor1 + Floor2), name="7.1.8__1st_min_if_house")
+        m.addConstr(x1 >= eps1 * Floor1, name="7.1.8__1st_min_if_on")
 
     # 7.2 conteos totales
     FullBath  = m.addVar(vtype=GRB.INTEGER, lb=0, name="FullBath")
@@ -559,19 +560,32 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(OtherRooms2 <= 8 * Floor2, name="7.22.3__other_cnt_2nd_if_on")
 
     # 7.23 area exterior porimetro (aprox simple)
+    smin, smax = 20.0, 70.0
+
     P1 = m.addVar(lb=0.0, name="P1")
     P2 = m.addVar(lb=0.0, name="P2")
     AreaExterior = m.addVar(lb=0.0, name="AreaExterior1st")
-    smin, smax = 20.0, 70.0
+
+    # UB seguro: usa smin, crece con area y no cruza con el LB constante
     if x1 is not None:
-        m.addConstr(P1 <= 2 * ((x1 / smin) + smin) * Floor1, name="7.23__p1_ub")
-        m.addConstr(P1 >= 2 * ((x1 / smax) + smax) * Floor1, name="7.23__p1_lb")
+        # P1 <= 2 * (x1/smin + smin) cuando hay primer piso
+        m.addConstr(P1 <= 2 * ((x1 / smin) + smin) * Floor1, name="7.23__p1_ub_safe")
+        # LB constante seguro: si hay primer piso, a lo menos un rectangulo 2*smin por smin
+        m.addConstr(P1 >= 4 * smin * Floor1, name="7.23__p1_lb_safe")
+
     if x2 is not None:
-        m.addConstr(P2 <= 2 * ((x2 / smin) + smin) * Floor2, name="7.23__p2_ub")
-        m.addConstr(P2 >= 2 * ((x2 / smax) + smax) * Floor2, name="7.23__p2_lb")
-    m.addConstr(P1 >= P2, name="7.23__p1_ge_p2")
+        # P2 <= 2 * (x2/smin + smin) cuando hay segundo piso
+        m.addConstr(P2 <= 2 * ((x2 / smin) + smin) * Floor2, name="7.23__p2_ub_safe")
+        # LB constante seguro en el segundo piso
+        m.addConstr(P2 >= 4 * smin * Floor2, name="7.23__p2_lb_safe")
+
+    # si hay segundo piso, exige P1 >= P2. si no hay, no impone nada
+    m.addConstr(P1 >= P2 * Floor2, name="7.23__p1_ge_p2_if_2nd")
+
+    # area de fachada exterior
     Hext = getattr(ct, "Hext", 7.0)
     m.addConstr(AreaExterior == Hext * (P1 + P2), name="7.23.1__area_ext")
+
 
     ext1_opts = ["VinylSd","MetalSd","Wd Sdng","HdBoard","Stucco","Plywood","CemntBd","BrkFace","BrkComm","WdShing","AsbShng","Stone","ImStucc","AsphShn","CBlock"]
     W = {}

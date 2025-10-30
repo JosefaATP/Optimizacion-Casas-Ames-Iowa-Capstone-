@@ -3,20 +3,17 @@
 Maximize
  
 Subject To
- 7.4__floors: Floor1 + Floor2 = 1
+ 7.4__first_floor_always: Floor1 = 1
  def_cost_model: - 230 x_Total_Bsmt_SF - 230 x_1st_Flr_SF
    - 230 x_2nd_Flr_SF - 88 x_Pool_Area + cost_model = 0
  budget: cost_model <= 250000
  7.23__p1_ub: - 40 Floor1 + P1 + [ - 0.1 x_1st_Flr_SF * Floor1 ] <= 0
  7.23__p1_lb: - 140 Floor1 + P1 + [
    - 0.0285714285714286 x_1st_Flr_SF * Floor1 ] >= 0
- 7.23__p2_ub: - 40 Floor2 + P2 + [ - 0.1 x_2nd_Flr_SF * Floor2 ] <= 0
- 7.23__p2_lb: - 140 Floor2 + P2 + [
-   - 0.0285714285714286 x_2nd_Flr_SF * Floor2 ] >= 0
 Bounds
+ x_1st_Flr_SF free
  P1 free
- P2 free
  cost_model free
 Binaries
- Floor1 Floor2
+ Floor1
 End
