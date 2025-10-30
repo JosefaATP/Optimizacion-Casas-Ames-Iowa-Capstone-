@@ -69,11 +69,18 @@ def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row) -> tuple[List[st
             lb = 0.0
         if col in ORD_CANDIDATES:
             vtype, lb, ub = GRB.INTEGER, -1, 8  # por si el pipe usa -1 para NA
+
+        # dummies OHE: forzar [0,1]
+        if "_" in col and col not in NONNEG_LB0:
+            lb, ub = 0.0, 1.0
+
         if col == "Lot Area" and val is not None and not math.isnan(val):
             v = m.addVar(lb=float(val), ub=float(val), name=f"x_const__{col}")
         else:
             v = m.addVar(lb=lb, ub=ub, vtype=vtype, name=f"x_{col}")
         x_vars[col] = v
+    
+
     m.update()
     return feat_order, x_vars
 
@@ -193,6 +200,37 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
 
     # features X en el orden del XGB
     feat_order, x = _build_x_inputs(m, bundle, base_row)
+
+        # fijar LOT AREA al valor de entrada
+    key_lot = _find_x_key(x, "Lot Area")
+    if key_lot is not None:
+        m.addConstr(x[key_lot] == lot_area, name="link__lot_area_fix")
+
+    # fijar NEIGHBORHOOD one-hots segun parametro/base_row
+    # busca todas las columnas Neighborhood_*
+    neigh_token = str(base_row.get("neigh_arg", "") or getattr(ct, "neigh_arg", "")).strip()
+    # normaliza ejemplos: "NAmes" -> "NWAmes" si ya llega mapeado en base_row, se usara eso
+    # si en base_row viene set con 1 una de ellas, usamos esa prioridad
+    picked = None
+    for col in feat_order:
+        if col.startswith("Neighborhood_") and col in x:
+            if (col in base_row.index) and (float(base_row[col]) == 1.0):
+                picked = col
+                break
+    if picked is None and neigh_token:
+        # intenta emparejar por contains, case-insensitive
+        for col in feat_order:
+            if col.startswith("Neighborhood_") and col in x:
+                if neigh_token.lower() in col.lower():
+                    picked = col
+                    break
+    # aplica fijacion: la elegida =1, las demas =0 (solo si existen en el modelo)
+    if picked is not None:
+        for col in feat_order:
+            if col.startswith("Neighborhood_") and col in x:
+                m.addConstr(x[col] == (1.0 if col == picked else 0.0),
+                            name=f"link__{col}__fix")
+
 
     # === variables de niveles por piso ===
     Floor1 = m.addVar(vtype=GRB.BINARY, name="Floor1")

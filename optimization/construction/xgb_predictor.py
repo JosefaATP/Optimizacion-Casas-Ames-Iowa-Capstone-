@@ -187,6 +187,7 @@ class XGBBundle:
 
     def attach_to_gurobi(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:
         import json, math
+
         try:
             bst = self.reg.get_booster()
         except Exception:
@@ -202,9 +203,9 @@ class XGBBundle:
         dumps = bst.get_dump(with_stats=False, dump_format="json")
         total_expr = gp.LinExpr(base)
 
-        def fin(x):
+        def fin(v):
             try:
-                return math.isfinite(float(x))
+                return math.isfinite(float(v))
             except Exception:
                 return False
 
@@ -218,31 +219,41 @@ class XGBBundle:
                     return
                 f_idx = int(str(nd["split"]).replace("f", ""))
                 thr = float(nd["split_condition"])
-                yes_id = nd["yes"]
+                yes_id = nd["yes"]  # hijo que toma la rama <= thr
                 for ch in nd["children"]:
-                    is_left = (ch["nodeid"] == yes_id)  # rama <=
+                    is_left = (ch["nodeid"] == yes_id)
                     walk(ch, path + [(f_idx, thr, is_left)])
             walk(node, [])
 
             z = [m.addVar(vtype=gp.GRB.BINARY, name=f"t{t_idx}_leaf{k}") for k in range(len(leaves))]
             m.addConstr(gp.quicksum(z) == 1, name=f"TREE_{t_idx}_ONEHOT")
 
-            for k, (conds, val) in enumerate(leaves):
+            for k, (conds, _) in enumerate(leaves):
                 for (f_idx, thr, is_left) in conds:
                     xv = x_list[f_idx]
 
-                    # lb/ub efectivos para calcular M
+                    # bounds efectivos
                     lb = float(xv.LB) if fin(getattr(xv, "LB", None)) else -1e6
                     ub = float(xv.UB) if fin(getattr(xv, "UB", None)) else  1e6
 
+                    # clamp de thresholds extremos para dummies
+                    # si var es binaria en [0,1], umbrales ~0/1 aparecen con hist
+                    # esto evita pedir x >= 1+eps o x <= -eps
+                    if lb >= 0.0 and ub <= 1.0:
+                        if thr <= 0.0 + 1e-12: thr = 0.0
+                        if thr >= 1.0 - 1e-12: thr = 1.0
+
+                    # M dirigidos
+                    M_le = max(0.0, ub - thr)
+                    M_ge = max(0.0, thr - lb)
+
                     if is_left:
-                        # xv <= thr cuando z=1  -> xv <= thr + M*(1 - z)
-                        M_le = max(0.0, ub - thr)
+                        # x <= thr cuando z=1  → x <= thr + M*(1 - z)
                         m.addConstr(xv <= thr + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_le")
                     else:
-                        # xv >= thr + eps cuando z=1 -> xv >= thr+eps - M*(1 - z)
-                        M_ge = max(0.0, thr - lb)
-                        m.addConstr(xv >= thr + eps - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge")
+                        # x >= thr cuando z=1  → x >= thr - M*(1 - z)
+                        # NOTA: sin +eps aqui para no dejar residuo cuando z=0
+                        m.addConstr(xv >= thr - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge")
 
             total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))
 

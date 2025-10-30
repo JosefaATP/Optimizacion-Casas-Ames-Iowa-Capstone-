@@ -3,18 +3,20 @@
 Maximize
  
 Subject To
- ex__BsmtFinType1: BsmtFinType1__GLQ + BsmtFinType1__ALQ
-   + BsmtFinType1__BLQ + BsmtFinType1__Rec + BsmtFinType1__LwQ
-   + BsmtFinType1__Unf + BsmtFinType1__NA = 1
- link__bsmtfintype1__glq: x_BsmtFin_Type_1_GLQ - BsmtFinType1__GLQ = 0
- link__bsmtfintype1__alq: x_BsmtFin_Type_1_ALQ - BsmtFinType1__ALQ = 0
- T732_R12_f213_ge: x_BsmtFin_Type_1_GLQ - t732_leaf12 >= 1e-06
- T921_R14_f211_ge: x_BsmtFin_Type_1_ALQ - t921_leaf14 >= 1e-06
+ 7.4__floors: Floor1 + Floor2 = 1
+ def_cost_model: - 230 x_Total_Bsmt_SF - 230 x_1st_Flr_SF
+   - 230 x_2nd_Flr_SF - 88 x_Pool_Area + cost_model = 0
+ budget: cost_model <= 250000
+ 7.23__p1_ub: - 40 Floor1 + P1 + [ - 0.1 x_1st_Flr_SF * Floor1 ] <= 0
+ 7.23__p1_lb: - 140 Floor1 + P1 + [
+   - 0.0285714285714286 x_1st_Flr_SF * Floor1 ] >= 0
+ 7.23__p2_ub: - 40 Floor2 + P2 + [ - 0.1 x_2nd_Flr_SF * Floor2 ] <= 0
+ 7.23__p2_lb: - 140 Floor2 + P2 + [
+   - 0.0285714285714286 x_2nd_Flr_SF * Floor2 ] >= 0
 Bounds
- x_BsmtFin_Type_1_ALQ free
- x_BsmtFin_Type_1_GLQ free
+ P1 free
+ P2 free
+ cost_model free
 Binaries
- BsmtFinType1__GLQ BsmtFinType1__ALQ BsmtFinType1__BLQ BsmtFinType1__Rec
- BsmtFinType1__LwQ BsmtFinType1__Unf BsmtFinType1__NA t732_leaf12
- t921_leaf14
+ Floor1 Floor2
 End
