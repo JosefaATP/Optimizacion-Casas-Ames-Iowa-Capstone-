@@ -183,6 +183,21 @@ def main():
 
     m.optimize()
 
+    
+    status = int(getattr(m, "Status", -1))
+    print(f"[STATUS] gurobi Status = {status}")
+
+    # debug infeasibilidad o inf_or_unbd
+    if status in (gp.GRB.INFEASIBLE, gp.GRB.INF_OR_UNBD):
+        try:
+            from .gurobi_model import dump_infeasibility_report
+            tag = f"construction_neigh_{args.neigh}_lot_{args.lot}_budget_{int(args.budget)}"
+            dump_infeasibility_report(m, tag=tag)
+        except Exception as e:
+            print("[DEBUG] fallo dump_infeasibility_report:", e)
+        # si quieres, puedes salir aqui
+        return
+
     try:
         picks, areas = summarize_solution(m)
         print("\n[HOUSE SUMMARY]")

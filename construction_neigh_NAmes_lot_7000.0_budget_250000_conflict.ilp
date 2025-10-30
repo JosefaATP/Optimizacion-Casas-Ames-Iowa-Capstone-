@@ -1,0 +1,20 @@
+\ Model construction_embed_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Maximize
+ 
+Subject To
+ ex__BsmtFinType1: BsmtFinType1__GLQ + BsmtFinType1__ALQ
+   + BsmtFinType1__BLQ + BsmtFinType1__Rec + BsmtFinType1__LwQ
+   + BsmtFinType1__Unf + BsmtFinType1__NA = 1
+ link__bsmtfintype1__glq: x_BsmtFin_Type_1_GLQ - BsmtFinType1__GLQ = 0
+ link__bsmtfintype1__alq: x_BsmtFin_Type_1_ALQ - BsmtFinType1__ALQ = 0
+ T732_R12_f213_ge: x_BsmtFin_Type_1_GLQ - t732_leaf12 >= 1e-06
+ T921_R14_f211_ge: x_BsmtFin_Type_1_ALQ - t921_leaf14 >= 1e-06
+Bounds
+ x_BsmtFin_Type_1_ALQ free
+ x_BsmtFin_Type_1_GLQ free
+Binaries
+ BsmtFinType1__GLQ BsmtFinType1__ALQ BsmtFinType1__BLQ BsmtFinType1__Rec
+ BsmtFinType1__LwQ BsmtFinType1__Unf BsmtFinType1__NA t732_leaf12
+ t921_leaf14
+End

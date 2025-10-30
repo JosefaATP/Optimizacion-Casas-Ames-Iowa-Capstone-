@@ -547,7 +547,8 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         m.addConstr(w >= AreaExterior - Uext * (1 - b), name=f"7.23.1__w_ge_lin__{e1}")
     m.addConstr(gp.quicksum(W.values()) == AreaExterior, name="7.23.1__w_sum")
 
-
+ ##REVISAR. NO DBERIA NECESITAR ESTO SI ESTÁN BIEN PUESTAS LAAS RESTRICCIONES
+    # === UBs seguros para variables X existentes ===
 
     safe_ubs = {
         "1st Flr SF": 0.60 * lot_area,
@@ -569,6 +570,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         "Garage Cars": int(getattr(ct, "max_garage_cars", 4)),
         "Fireplaces": 3,
     }
+
     import math
     for nm, ub in safe_ubs.items():
         v = x.get(nm) or x.get(_find_x_key(x, nm))
@@ -617,3 +619,94 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.setParam("NumericFocus", 3)
 
     return m
+
+# ================= DEBUG IIS / CONFLICTS =================
+
+import collections
+import math
+
+def dump_infeasibility_report(m: gp.Model, tag: str = "construction") -> None:
+    """
+    - fuerza DualReductions=0 y re-optimiza para distinguir INF vs UNBD
+    - si es INF, corre computeIIS y escribe archivos .lp y .ilp
+    - imprime resumen agrupado por prefijo (antes de "__") para ubicar rapido el bloque conflictivo
+    """
+    try:
+        # 1) distinguir infeasible vs unbounded
+        m.setParam("DualReductions", 0)
+        m.optimize()
+    except Exception:
+        pass
+
+    status = int(getattr(m, "Status", -1))
+    print(f"[DEBUG] status tras DualReductions=0: {status}")
+
+    # escribe el modelo completo por si ayuda
+    try:
+        m.write(f"{tag}_model.lp")
+    except Exception:
+        pass
+
+    if status not in (gp.GRB.INFEASIBLE, gp.GRB.INF_OR_UNBD):
+        print("[DEBUG] el modelo no quedo inelegible para IIS (no es INFEASIBLE/INF_OR_UNBD).")
+        return
+
+    # 2) IIS
+    print("[DEBUG] corriendo computeIIS() ...")
+    m.computeIIS()
+    try:
+        m.write(f"{tag}_conflict.ilp")
+        print(f"[DEBUG] escrito IIS en {tag}_conflict.ilp y modelo en {tag}_model.lp")
+    except Exception as e:
+        print(f"[DEBUG] no pude escribir .ilp: {e}")
+
+    # 3) listar conflictos por tipo
+    con_flags = [c for c in m.getConstrs() if getattr(c, "IISConstr", 0)]
+    qcon_flags = [qc for qc in m.getQConstrs() if getattr(qc, "IISQConstr", 0)]
+    gen_flags = [gc for gc in m.getGenConstrs() if getattr(gc, "IISGenConstr", 0)]
+    sos_flags = [s for s in m.getSOSs() if getattr(s, "IISSOS", 0)]
+    v_lb = [v for v in m.getVars() if getattr(v, "IISLB", 0)]
+    v_ub = [v for v in m.getVars() if getattr(v, "IISUB", 0)]
+
+    print(f"[IIS] lin-constr: {len(con_flags)}  q-constr: {len(qcon_flags)}  gen-constr: {len(gen_flags)}  sos: {len(sos_flags)}  varLB: {len(v_lb)}  varUB: {len(v_ub)}")
+
+    # 4) agrupar por prefijo antes de "__" para ver bloques (ej: 7.12.1, 7.7.4, etc)
+    def pref(nm: str) -> str:
+        return nm.split("__")[0] if "__" in nm else nm
+
+    bucket = collections.Counter(pref(c.ConstrName) for c in con_flags)
+    if bucket:
+        print("[IIS] top prefijos conflictivos:")
+        for k, cnt in bucket.most_common(20):
+            print(f"   {k:>20s} -> {cnt}")
+
+    # 5) sample de restricciones exactas
+    if con_flags:
+        print("[IIS] primeras 30 restricciones lineales en el IIS:")
+        for c in con_flags[:30]:
+            print("   -", c.ConstrName)
+
+    # 6) bounds problemáticos
+    if v_lb or v_ub:
+        print("[IIS] variables con bounds en el IIS (muestra hasta 20):")
+        for v in (v_lb + v_ub)[:20]:
+            try:
+                print(f"   - {v.VarName}  LB={float(v.LB)}  UB={float(v.UB)}")
+            except Exception:
+                print(f"   - {v.VarName}  (LB/UB no legibles)")
+
+    # 7) gen y q constr
+    if gen_flags:
+        print("[IIS] gen-constr en IIS (ej, PWL_exp):")
+        for gc in gen_flags[:20]:
+            print("   -", gc.ConstrName)
+    if qcon_flags:
+        print("[IIS] q-constr en IIS:")
+        for qc in qcon_flags[:20]:
+            print("   -", qc.QCName)
+
+def build_and_tag(m: gp.Model, tag: str):
+    """
+    util chico por si quieres setear un sufijo de archivos para distintos escenarios
+    """
+    setattr(m, "_debug_tag", str(tag or "construction"))
