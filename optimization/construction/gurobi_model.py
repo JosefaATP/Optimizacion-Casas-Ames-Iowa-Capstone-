@@ -1,653 +1,619 @@
-#optimization/construction/gurobi_model.py
-from typing import Dict, Any
-import pandas as pd
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+import math, re
+from typing import Dict, Iterable, List, Tuple
+
 import gurobipy as gp
-import numpy as np
+from gurobipy import GRB
 
-from sklearn.compose import ColumnTransformer  # puede no usarse directo
-
-# >>> SHIMS antes de gurobi_ml
-from .compat_sklearn import ensure_check_feature_names
-ensure_check_feature_names()
-from .compat_xgboost import patch_get_booster
-patch_get_booster()
-
-try:
-    from gurobi_ml.sklearn.pipeline import add_pipeline_constr as _add_sklearn
-except Exception:
-    from gurobi_ml.sklearn import add_predictor_constr as _add_sklearn
-
-from .features import MODIFIABLE, IMMUTABLE
-from .costs import CostTables
 from .xgb_predictor import XGBBundle
+from .summary_and_costs_hooks import build_cost_expr, summarize_solution  # re-export summarize_solution
 
-# ======================== helpers base ========================
+# ============================== helpers basicos ===================================
 
-def _vtype(code: str):
-    return gp.GRB.CONTINUOUS if code == "C" else (gp.GRB.BINARY if code == "B" else gp.GRB.INTEGER)
+def _norm(s: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", s.lower())
 
-# getVarByName seguro
-def _get_by_name_safe(m: gp.Model, *names: str):
-    for nm in names:
-        try:
-            v = m.getVarByName(nm)
-        except gp.GurobiError:
-            m.update()
-            v = m.getVarByName(nm)
-        if v is not None:
-            return v
+
+def _find_x_key(x: Dict[str, gp.Var], *tokens: str) -> str | None:
+    want = [_norm(t) for t in tokens]
+    for k in x.keys():
+        nk = _norm(k)
+        if all(t in nk for t in want):
+            return k
     return None
 
-# coerciones y mapeos ordinales
-_ORD_MAP = {"Po":0, "Fa":1, "TA":2, "Gd":3, "Ex":4, "No aplica":-1, "NA":-1}
-_UTIL_MAP = {"ELO":0, "NoSeWa":1, "NoSewr":2, "AllPub":3}
 
-_ORDINAL_MINUS1 = {"Fireplace Qu", "Pool QC"}
-_ORDINAL_0TO4   = {"Kitchen Qual", "Exter Qual", "Exter Cond", "Heating QC",
-                   "Bsmt Qual", "Bsmt Cond", "Garage Qual", "Garage Cond"}
-
-def _as_int_or_map(val, default=0, allow_minus1=True):
-    try:
-        v = int(pd.to_numeric(val, errors="coerce"))
-        if allow_minus1:
-            return v if v in (-1,0,1,2,3,4) else default
-        else:
-            return v if v in (0,1,2,3,4) else default
-    except Exception:
-        s = str(val).strip()
-        if s in _ORD_MAP:
-            v = _ORD_MAP[s]
-            if (not allow_minus1) and v == -1:
-                return default
-            return v
-        return default
-
-def _na2noaplica(s: str) -> str:
-    s = str(s).strip()
-    return "No aplica" if s in {"NA", "No aplica"} else s
-
-def _is_noaplica(v) -> bool:
-    try:
-        n = int(pd.to_numeric(v, errors="coerce"))
-        if n == -1:
-            return True
-    except Exception:
-        pass
-    s = str(v).strip()
-    return s in {"No aplica", "NA", "nan", "None", ""}
+def _link_if_exists(m: gp.Model, x: Dict[str, gp.Var], key: str, v: gp.Var):
+    if key in x:
+        m.addConstr(x[key] == v, name=f"link__{_norm(key)}")
 
 
-def _coerce_base_value(col: str, val):
-    col = str(col)
-    # ordinales
-    if col in _ORDINAL_MINUS1:
-        return float(_as_int_or_map(val, default=-1, allow_minus1=True))
-    if col in _ORDINAL_0TO4:
-        return float(_as_int_or_map(val, default=2, allow_minus1=False))
-    # utilities
-    if col == "Utilities":
-        s = str(val).strip()
-        if s in _UTIL_MAP:
-            return float(_UTIL_MAP[s])
-        try:
-            v = int(pd.to_numeric(val, errors="coerce"))
-            return float(v if v in (0,1,2,3) else 3)
-        except Exception:
-            return 3.0
-    # booleanos Y/N simples
-    if col in {"Central Air"}:
-        s = str(val).strip().upper()
-        return 1.0 if s in {"Y","YES","1","TRUE"} else 0.0
-    # generico: numerico si se puede, si no -> 0.0
-    s = str(val).strip()
-    if s in {"No aplica","NA","nan","None",""}:
-        return 0.0
-    try:
-        return float(pd.to_numeric(val, errors="coerce"))
-    except Exception:
-        return 0.0
-
-def _norm_cat(s: str) -> str:
-    s = str(s).strip()
-    return "No aplica" if s in {"NA", "No aplica"} else s
-
-# inyeccion generica de gp.Var al DataFrame del pipeline
-def _put_var_obj(df: pd.DataFrame, col: str, var: gp.Var):
-    if col in df.columns:
-        if df[col].dtype != "O":
-            df[col] = df[col].astype("object")
-        df.loc[0, col] = var
-
-# ordinal base helper
-def _qual_base_ord(base_row, col: str) -> int:
-    MAP = {"No aplica": -1, "Po": 0, "Fa": 1, "TA": 2, "Gd": 3, "Ex": 4}
-    val = str(base_row.get(col, "No aplica")).strip()
-    try:
-        nv = int(pd.to_numeric(val, errors="coerce"))
-        if nv in (-1,0,1,2,3,4):
-            return nv
-    except Exception:
-        pass
-    return MAP.get(val, -1)
-
-# fila de entrada numerica exacta para el regressor
-def build_base_input_row(bundle: XGBBundle, base_row: pd.Series) -> pd.DataFrame:
-    cols = list(bundle.feature_names_in())
-    row = {}
-    for c in cols:
-        if "_" in c and (c.count("_") >= 1):
-            root, cat = c.split("_", 1)
-            root = root.replace("_", " ").strip()
-            cat  = cat.strip()
-            base_val = base_row.get(root, None)
-            if root == "Central Air":
-                base_cat = "Y" if str(base_val).strip().upper() in {"Y","YES","1","TRUE"} else "N"
-            else:
-                base_cat = _norm_cat(base_val)
-            row[c] = 1.0 if _norm_cat(base_cat) == _norm_cat(cat) else 0.0
-        else:
-            row[c] = float(_coerce_base_value(c, base_row.get(c, 0)))
-    return pd.DataFrame([row], columns=cols, dtype=float)
-
-FORBID_BUILD_WHEN_NA = {"Fireplace Qu","Bsmt Cond","Garage Qual","Garage Cond","Pool QC"}
-
-def apply_quality_policy_ordinal(m, x: dict, base_row: pd.Series, col: str):
-    q = x.get(col)
-    if q is None:
-        return
-
-    # => NA robusto: acepta -1 numérico o "No aplica"/"NA" string
-    raw = base_row.get(col, "No aplica")
-    base_is_na = _is_noaplica(raw)  # usa tu helper robusto
-    base_ord = _qual_base_ord(base_row, col)  # -1..4
-
-    # Si tu política prohíbe “construir desde NA”, fíjalo en -1
-    if base_is_na and col in FORBID_BUILD_WHEN_NA:
-        q.LB = -1.0
-        q.UB = -1.0
-        return
-
-    # Si existe (>=0), solo upgrade-only (no bajar)
-    if base_ord >= 0:
-        m.addConstr(q >= base_ord, name=f"{col.replace(' ','_')}_upgrade_only")
+def _safe_get(x: Dict[str, gp.Var], name: str) -> gp.Var | None:
+    return x.get(name) or x.get(_find_x_key(x, name))
 
 
-def _is_noaplica(val) -> bool:
-    s = str(val).strip()
-    if s in {"No aplica", "NA", "", "None"}:
-        return True
-    try:
-        v = int(pd.to_numeric(val, errors="coerce"))
-        return v == -1
-    except Exception:
-        return False
-
-# ======================== modelo principal ========================
-
-def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: XGBBundle,
-                    base_price=None, fix_to_base: bool = False) -> gp.Model:
-    m = gp.Model("remodel_embed")
-
-    # presupuesto
-    try:
-        budget_usd = float(budget)
-        if not np.isfinite(budget_usd) or budget_usd <= 0:
-            print(f"[WARN] Presupuesto invalido o no positivo ({budget}), fallback 40000")
-            budget_usd = 40000.0
-    except Exception:
-        print(f"[WARN] Presupuesto no numerico ({type(budget)}={budget}), fallback 40000")
-        budget_usd = 40000.0
-    m._budget_usd = float(budget_usd)
-    m._budget = float(budget_usd)
-
-    # base_X numerico y base_price consistente
-    base_X = build_base_input_row(bundle, base_row)
-
-    # --- DEBUG: base_X no debe traer NaN/Inf
-    try:
-        _bad_cols = []
-        for c in base_X.columns:
-            v = base_X.iloc[0][c]
-            try:
-                vf = float(v)
-            except Exception:
-                # si por algún motivo no es float (no debería en base_X), márcalo
-                _bad_cols.append((c, v))
-                continue
-            if not np.isfinite(vf):
-                _bad_cols.append((c, v))
-        if _bad_cols:
-            print("[DEBUG] base_X trae valores no finitos en:")
-            for c, v in _bad_cols[:25]:
-                print(f"   - {c}: {v} | raw base={base_row.get(c, None)}")
-            # Si prefieres, puedes sanear:
-            base_X = base_X.fillna(0.0)
-    except Exception as e:
-        print(f"[DEBUG] chequeo base_X falló: {e}")
-
-    if base_price is None:
-        try:
-            base_price = float(bundle.predict(base_X).iloc[0])
-        except Exception:
-            try:
-                raw_df = pd.DataFrame([base_row])
-                base_price = float(bundle.predict(raw_df).iloc[0])
-            except Exception:
-                base_price = 0.0
-
-    # 1) variables de decision
-    x: Dict[str, gp.Var] = {}
-    for f in MODIFIABLE:
-        x[f.name] = m.addVar(lb=f.lb, ub=f.ub, vtype=_vtype(f.vartype), name=f"x_{f.name}")
-
-    lin_cost = gp.LinExpr(0.0)
-    m._lin_cost_expr = lin_cost
-
-    # construir indice de nombres
-    m.update()
-
-    # 2) armar X_input consistente con el pipeline
-    feature_order = bundle.feature_names_in()
-    modif = {f.name for f in MODIFIABLE}
-
-    base_X = build_base_input_row(bundle, base_row)
-
-    row_vals: Dict[str, Any] = {}
-    for fname in feature_order:
-        if fname in modif:
-            row_vals[fname] = x[fname]
-            continue
-        try:
-            if fname in base_X.columns:
-                v = base_X.iloc[0].loc[fname]
-                if v is not None and not (isinstance(v, float) and pd.isna(v)):
-                    row_vals[fname] = float(v)
-                    continue
-        except Exception:
-            pass
-        raw_val = base_row.get(fname, None)
-        if str(fname) == "Central Air":
-            row_vals[fname] = "Y" if str(raw_val).strip().upper() in {"Y","YES","1","TRUE"} else "N"
-            continue
-        try:
-            num = pd.to_numeric(raw_val, errors="coerce")
-            if not pd.isna(num):
-                row_vals[fname] = float(num)
-                continue
-        except Exception:
-            pass
-        if fname in _ORDINAL_MINUS1 or fname in _ORDINAL_0TO4 or fname == "Utilities":
-            row_vals[fname] = _coerce_base_value(fname, raw_val)
-            continue
-        row_vals[fname] = _norm_cat(raw_val)
-
-    X_input = pd.DataFrame([row_vals], columns=feature_order, dtype=object)
-    m._X_input = X_input
-    m._X_base_numeric = base_X
-
-    # chequeo de encoding para columnas no modificables
-    try:
-        mismatches = []
-        for fname in feature_order:
-            if fname in modif:
-                continue
-            try:
-                v_base = float(base_X.iloc[0].loc[fname])
-            except Exception:
-                v_base = float(_coerce_base_value(fname, base_row.get(fname, 0)))
-            try:
-                v_in = X_input.iloc[0].loc[fname]
-                v_in_f = float(v_in)
-            except Exception:
-                v_in_f = None
-            if v_in_f is None or (not np.isfinite(v_in_f)) or abs(v_base - v_in_f) > 1e-8:
-                mismatches.append((fname, v_base, v_in))
-        if mismatches:
-            print(f"[WARN] Encoding mismatch en {len(mismatches)} columnas no-modificables. Auto-fix a base.")
-            for fname, v_base, _ in mismatches:
-                X_input.iloc[0, X_input.columns.get_loc(fname)] = float(v_base)
-            m._X_input = X_input
-            m._encoding_ok = False
-        else:
-            m._encoding_ok = True
-    except Exception as e:
-        print(f"[WARN] Encoding check fallo: {e}")
-        m._encoding_ok = False
-
-    # fijar todo a base si se pide
-    if fix_to_base:
-        for fname in (f.name for f in MODIFIABLE):
-            var = x.get(fname)
-            if var is None:
-                continue
-            try:
-                base_val = float(base_X.iloc[0].loc[fname])
-            except Exception:
-                base_val = _coerce_base_value(fname, base_row.get(fname, 0))
-            try:
-                if not np.isfinite(base_val):
-                    base_val = 0.0
-            except Exception:
-                base_val = 0.0
-            var.LB = base_val
-            var.UB = base_val
-
-    # politicas de ordinales upgrade-only
-    for col in ["Kitchen Qual","Exter Qual","Exter Cond","Heating QC",
-                "Fireplace Qu","Bsmt Cond","Garage Qual","Garage Cond","Pool QC"]:
-        apply_quality_policy_ordinal(m, x, base_row, col)
+def _one_hot(m: gp.Model, name: str, options: Iterable[str]) -> Dict[str, gp.Var]:
+    B: Dict[str, gp.Var] = {opt: m.addVar(vtype=GRB.BINARY, name=f"{name}__{opt}") for opt in options}
+    m.addConstr(gp.quicksum(B.values()) == 1, name=f"ex__{name}")
+    return B
 
 
-    # ================== RESTRICCIONES MINIMAS ==================
-    if "1st Flr SF" in x and "2nd Flr SF" in x:
-        m.addConstr(x["1st Flr SF"] >= x["2nd Flr SF"], name="R1_floor1_ge_floor2")
+def _tie_one_hot_to_x(m: gp.Model, x: Dict[str, gp.Var], feat_name: str, B: Dict[str, gp.Var]):
+    for opt, b in B.items():
+        key = _find_x_key(x, feat_name, opt)
+        if key is not None:
+            m.addConstr(x[key] == b, name=f"link__{_norm(feat_name)}__{_norm(opt)}")
 
-    if "Gr Liv Area" in x and "Lot Area" in base_row:
-        m.addConstr(x["Gr Liv Area"] <= float(base_row["Lot Area"]), name="R2_grliv_le_lot")
 
-    if "1st Flr SF" in x and "Total Bsmt SF" in x:
-        m.addConstr(x["1st Flr SF"] >= x["Total Bsmt SF"], name="R3_floor1_ge_bsmt")
+# ===================== inputs en el orden del XGB (features) ======================
 
-    def _val_or_var(col):
-        if col in x:
-            return x[col]
-        try:
-            v = base_row.get(col, 0)
-        except Exception:
-            return 0.0
-        try:
-            return float(pd.to_numeric(v, errors="coerce") or 0.0)
-        except Exception:
-            return 0.0
+def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row) -> tuple[List[str], Dict[str, gp.Var]]:
+    feat_order: List[str] = list(bundle.feature_names_in())
+    x_vars: Dict[str, gp.Var] = {}
 
-    need = all(c in base_row for c in ["Full Bath", "Bedroom AbvGr"])
-    if need and ("Half Bath" in base_row or "Half Bath" in x):
-        fullb = _val_or_var("Full Bath")
-        halfb = _val_or_var("Half Bath") if ("Half Bath" in x or "Half Bath" in base_row) else 0.0
-        beds  = _val_or_var("Bedroom AbvGr")
-        m.addConstr(fullb + halfb <= beds, name="R4_baths_le_bedrooms")
-
-    if ("Full Bath" in x) or ("Full Bath" in base_row):
-        m.addConstr(_val_or_var("Full Bath") >= 1, name="R5_min_fullbath")
-    if ("Bedroom AbvGr" in x) or ("Bedroom AbvGr" in base_row):
-        m.addConstr(_val_or_var("Bedroom AbvGr") >= 1, name="R5_min_bedrooms")
-    if ("Kitchen AbvGr" in x) or ("Kitchen AbvGr" in base_row):
-        m.addConstr(_val_or_var("Kitchen AbvGr") >= 1, name="R5_min_kitchen")
-
-    lowqual_names = ["Low Qual Fin SF", "LowQualFinSF"]
-    lowqual_col = next((c for c in lowqual_names if c in X_input.columns), None)
-    cols_needed = ["Gr Liv Area", "1st Flr SF", "2nd Flr SF"]
-    if all(c in X_input.columns for c in cols_needed):
-        lhs = _val_or_var("Gr Liv Area")
-        rhs = _val_or_var("1st Flr SF") + _val_or_var("2nd Flr SF")
-        if lowqual_col is not None:
-            rhs += _val_or_var(lowqual_col)
-        m.addConstr(lhs == rhs, name="R7_gr_liv_equality")
-
-    r8_ok = all(c in X_input.columns for c in ["TotRms AbvGrd", "Bedroom AbvGr", "Kitchen AbvGr"])
-    if r8_ok:
-        other = m.addVar(lb=0, ub=15, vtype=gp.GRB.INTEGER, name="R8_other_rooms")
-        m.addConstr(_val_or_var("TotRms AbvGrd") == _val_or_var("Bedroom AbvGr") + _val_or_var("Kitchen AbvGr") + other,
-                    name="R8_rooms_balance")
-    
-    print(X_input)
-    # === FORZAR que X_input tenga TODAS las columnas que el modelo espera ===
-    # Debe ir justo ANTES de _add_sklearn(...)
-    try:
-        expected = list(bundle.feature_names_in())  # todas las columnas de entrenamiento
-
-        def _coerce_num_keep_var(x):
-            # Si es Var de gurobi, conservar el objeto (no convertir),
-            # porque si lo casteas a float lo "congelas".
-            try:
-                if hasattr(x, "X") or hasattr(x, "VarName"):
-                    return x
-                return float(x)
-            except Exception:
-                return x
-
-        if isinstance(X_input, dict):
-            present = set(X_input.keys())
-            missing = [c for c in expected if c not in present]
-            for c in missing:
-                if c in base_X.columns:
-                    X_input[c] = _coerce_num_keep_var(base_X.iloc[0][c])
-                else:
-                    X_input[c] = 0.0
-            # ordenar
-            X_input = {c: X_input[c] for c in expected}
-        elif hasattr(X_input, "columns"):
-            present = set(X_input.columns)
-            missing = [c for c in expected if c not in present]
-            for c in missing:
-                if c in base_X.columns:
-                    X_input[c] = base_X.iloc[0][c]
-                else:
-                    X_input[c] = 0.0
-            # Reordenar columnas
-            X_input = X_input[expected]
-        else:
-            # Caso raro: rehacer dict desde base
-            tmp = {}
-            for c in expected:
-                tmp[c] = _coerce_num_keep_var(base_X.iloc[0][c]) if c in base_X.columns else 0.0
-            X_input = tmp
-
-        miss_n = 0 if 'missing' not in locals() else len(missing)
-        print(f"[ALIGN] columnas faltantes añadidas a X_input: {miss_n}")
-        if miss_n:
-            print(f"[ALIGN] ejemplos: {missing[:15]}")
-
-    except Exception as e:
-        print(f"[ALIGN] fallo alineando X_input con features del modelo: {e}")
-
-    # ---- DEBUG: captura de entradas del embed (columnas -> ESCALARES Var/float)
-    try:
-        if isinstance(X_input, dict):
-            m._x_cols = list(X_input.keys())
-            # dict ya viene como escalar por col (Var o float)
-            m._x_vars = {k: X_input[k] for k in m._x_cols}
-        elif hasattr(X_input, "loc"):
-            # DataFrame de 1 fila -> toma SIEMPRE la celda [0, col]
-            m._x_cols = list(X_input.columns)
-            m._x_vars = {c: X_input.loc[0, c] for c in m._x_cols}
-        else:
-            # fallback raro
-            m._x_cols = list(bundle.feature_names_in())
-            m._x_vars = {c: X_input[i] for i, c in enumerate(m._x_cols)}
-    except Exception:
-        m._x_cols = None
-        m._x_vars = None
-
-    
-    ORD_BOUNDS = {
-        "Fireplace Qu": (-1.0, 4.0),
-        "Pool QC": (-1.0, 4.0),
-        "Kitchen Qual": (0.0, 4.0),
-        "Exter Qual": (0.0, 4.0),
-        "Exter Cond": (0.0, 4.0),
-        "Heating QC": (0.0, 4.0),
-        "Bsmt Cond": (-1.0, 4.0),
-        "Garage Qual": (-1.0, 4.0),
-        "Garage Cond": (-1.0, 4.0),
-        "Utilities": (0.0, 3.0),
+    INT_NAMES = {"Full Bath","Half Bath","Bedroom AbvGr","Kitchen AbvGr","Garage Cars","Fireplaces"}
+    NONNEG_LB0 = set(INT_NAMES) | {
+        "1st Flr SF","2nd Flr SF","Gr Liv Area","Total Bsmt SF","Garage Area",
+        "Wood Deck SF","Open Porch SF","Enclosed Porch","3Ssn Porch","Screen Porch",
+        "Pool Area","Lot Area","Mas Vnr Area",
     }
+    ORD_CANDIDATES = {"Roof Style", "Roof Matl", "Utilities"}
 
-    # === BOUNDS suaves para entradas numéricas (después del ALIGN, antes de _add_sklearn) ===
-    try:
-        lower_default = 0.0
-        upper_default = 1e6
-        dummy_hints = ("_", "Neighborhood_", "Exterior 1st_", "Exterior 2nd_",
-                    "Condition 1_", "Condition 2_", "Electrical_", "Heating_")
+    for col in feat_order:
+        val = X_base_row[col] if col in X_base_row.index else None
+        lb, ub, vtype = 0.0, GRB.INFINITY, GRB.CONTINUOUS
+        if col in INT_NAMES:
+            vtype = GRB.INTEGER
+        if col in NONNEG_LB0:
+            lb = 0.0
+        if col in ORD_CANDIDATES:
+            vtype, lb, ub = GRB.INTEGER, -1, 8  # por si el pipe usa -1 para NA
+        if col == "Lot Area" and val is not None and not math.isnan(val):
+            v = m.addVar(lb=float(val), ub=float(val), name=f"x_const__{col}")
+        else:
+            v = m.addVar(lb=lb, ub=ub, vtype=vtype, name=f"x_{col}")
+        x_vars[col] = v
+    m.update()
+    return feat_order, x_vars
 
-        # ¡OJO! Usa X_input para bounds, no m._x_vars,
-        # y SIEMPRE respeta las cotas ya puestas (no las “subas” a 0)
-        if hasattr(X_input, "loc"):
-            for c in X_input.columns:
-                v = X_input.loc[0, c]
-                if hasattr(v, "LB") and hasattr(v, "UB"):
-                    if c in ORD_BOUNDS:
-                        lb, ub = ORD_BOUNDS[c]
-                        # Ensancha a lo necesario sin romper cotas existentes
-                        v.LB = max(v.LB, lb)
-                        v.UB = min(v.UB, ub)
-                    else:
-                        is_dummy = any(h in c for h in dummy_hints)
-                        if is_dummy:
-                            v.LB = 0.0
-                            v.UB = 1.0
-                        
-    except Exception as e:
-        print(f"[BOUNDS] no pude poner bounds: {e}")
 
-    v_fp = x.get("Fireplace Qu")
-    v_pq = x.get("Pool QC")
-    if v_fp is not None:
-        print(f"[CHK] Fireplace Qu LB={v_fp.LB} UB={v_fp.UB}")
-    if v_pq is not None:
-        print(f"[CHK] Pool QC      LB={v_pq.LB} UB={v_pq.UB}")
+# ========================= embed del XGB (y_log, y_price) =========================
 
-    # ================== PREDICTOR XGB (embedding) ==================
-    # Embebo el pipeline (pre aplanado + regressor). NO paso salida, dejo que gurobi_ml la cree.
-    pc = _add_sklearn(m, bundle.pipe_for_gurobi(), X_input)
+def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
+                      feat_order: List[str], x: Dict[str, gp.Var]) -> tuple[gp.Var, gp.Var]:
+    # y_log que usa el XGB
+    y_log = m.addVar(lb=-1e6, ub=1e6, name="y_log")
 
-    cand_attrs = ["output_vars","prediction_vars","output","predictions","y"]
-    found = []
-    for att in cand_attrs:
-        if hasattr(pc, att):
+    # IMPORTANT: pasar la lista de variables en el MISMO orden que espera el XGB
+    x_list_vars: List[gp.Var] = []
+    for col in feat_order:
+        if col not in x:
+            # si por alguna razon falta, crea dummy continua 0
+            x_list_vars.append(m.addVar(lb=0.0, ub=0.0, name=f"x_missing__{col}"))
+        else:
+            x_list_vars.append(x[col])
+
+    # embebe arboles (la implementacion en xgb_predictor evita 1 - z con binaria complemento)
+    bundle.attach_to_gurobi(m, x_list_vars, y_log)
+
+    # map log -> price via PWL exp (si tu target fue log, usa exp; si fue log1p, usa expm1)
+    y_price = m.addVar(lb=0.0, name="y_price")
+
+    import numpy as np
+    # rango razonable de log-precio, ajusta si quieres: p in [30k, 1.0M] -> log p en [10.3, 13.8]
+    xs = np.linspace(10.3, 13.8, 40)
+    ys = np.exp(xs)  # si usaste log1p, cambia por: np.expm1(xs)
+
+    m.addGenConstrPWL(y_log, y_price, xs.tolist(), ys.tolist(), name="PWL_exp")
+
+    return y_log, y_price
+
+
+# =============================== costos (LinExpr) =================================
+
+def _build_cost_expr(m: gp.Model, x: dict[str, gp.Var], ct) -> gp.LinExpr:
+    cost = gp.LinExpr(0.0)
+
+    # construccion principal por area
+    c_base = getattr(ct, "construction_cost", 0.0)
+    for nm in ("1st Flr SF","2nd Flr SF","Total Bsmt SF"):
+        v = _safe_get(x, nm)
+        if v is not None and c_base:
+            cost += float(c_base) * v
+
+    # terminaciones de sotano
+    c_bsmt_fin = getattr(ct, "basement_finish_cost", 0.0)
+    for nm in ("BsmtFin SF 1","BsmtFin SF 2"):
+        v = _safe_get(x, nm)
+        if v is not None and c_bsmt_fin:
+            cost += float(c_bsmt_fin) * v
+
+    def term_if(name: str, coef_attr: str):
+        v = _safe_get(x, name)
+        unit = getattr(ct, coef_attr, 0.0)
+        return (float(unit) * v) if (v is not None and unit) else 0.0
+
+    # porches, deck, piscina
+    cost += term_if("Wood Deck SF",  "wooddeck_cost")
+    cost += term_if("Open Porch SF", "openporch_cost")
+    cost += term_if("Enclosed Porch","enclosedporch_cost")
+    cost += term_if("3Ssn Porch",    "threessnporch_cost")
+    cost += term_if("Screen Porch",  "screenporch_cost")
+    cost += term_if("Pool Area",     "pool_area_cost")
+
+    # garage por area (acepta dos posibles nombres en ct)
+    xgar = _safe_get(x, "Garage Area")
+    if xgar is not None:
+        unit_gar = getattr(ct, "garage_area_cost", getattr(ct, "garage_cost_per_sf", 0.0))
+        if unit_gar:
+            cost += float(unit_gar) * xgar
+
+    # fundacion por SF si ct lo define
+    if hasattr(ct, "foundation_cost_per_sf"):
+        for tag, unit in getattr(ct, "foundation_cost_per_sf").items():
+            v = m.getVarByName(f"FA__{tag}")
+            if v is not None:
+                cost += float(unit) * v
+
+    # techo por material * gamma(style, mat)
+    if hasattr(ct, "roof_cost_by_material"):
+        gamma = getattr(ct, "gamma", {})
+        for tag, unit in getattr(ct, "roof_cost_by_material").items():
+            for s in ["Flat","Gable","Gambrel","Hip","Mansard","Shed"]:
+                z = m.getVarByName(f"Z__{s}__{tag}")
+                if z is not None:
+                    g = float(gamma.get((s, tag), 1.10))
+                    cost += float(unit) * g * z
+
+    # areas de recintos
+    for nm, attr in (("AreaKitchen","kitchen_area_cost"),
+                     ("AreaFullBath","fullbath_area_cost"),
+                     ("AreaHalfBath","halfbath_area_cost"),
+                     ("AreaBedroom","bedroom_area_cost")):
+        v = m.getVarByName(nm)
+        if v is not None:
+            cost += float(getattr(ct, attr, 0.0)) * v
+
+    # reja perimetral (opcional)
+    has_reja = m.getVarByName("HasReja")
+    if has_reja is not None:
+        cost += float(getattr(ct, "fence_cost_per_ft", 0.0)) * float(getattr(ct, "lot_frontage_ft", 60.0)) * has_reja
+
+    return cost
+
+
+# =============================== modelo principal ================================
+
+def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Model:
+    m = gp.Model("construction_embed")
+
+    lot_area = float(base_row.get("Lot Area", getattr(ct, "lot_area", 7000)))
+    lot_frontage = float(base_row.get("Lot Frontage", getattr(ct, "lot_frontage_ft", 60)))
+
+    # features X en el orden del XGB
+    feat_order, x = _build_x_inputs(m, bundle, base_row)
+
+    # === variables de niveles por piso ===
+    Floor1 = m.addVar(vtype=GRB.BINARY, name="Floor1")
+    Floor2 = m.addVar(vtype=GRB.BINARY, name="Floor2")
+    m.addConstr(Floor1 + Floor2 == 1, name="7.4__floors")
+
+    # conteos por piso
+    FullBath1 = m.addVar(vtype=GRB.INTEGER, lb=0, name="FullBath1")
+    FullBath2 = m.addVar(vtype=GRB.INTEGER, lb=0, name="FullBath2")
+    HalfBath1 = m.addVar(vtype=GRB.INTEGER, lb=0, name="HalfBath1")
+    HalfBath2 = m.addVar(vtype=GRB.INTEGER, lb=0, name="HalfBath2")
+    Kitchen1  = m.addVar(vtype=GRB.INTEGER, lb=0, name="Kitchen1")
+    Kitchen2  = m.addVar(vtype=GRB.INTEGER, lb=0, name="Kitchen2")
+    Bedroom1  = m.addVar(vtype=GRB.INTEGER, lb=0, name="Bedroom1")
+    Bedroom2  = m.addVar(vtype=GRB.INTEGER, lb=0, name="Bedroom2")
+
+    # areas por piso
+    AreaFullBath1 = m.addVar(lb=0.0, name="AreaFullBath1")
+    AreaFullBath2 = m.addVar(lb=0.0, name="AreaFullBath2")
+    AreaHalfBath1 = m.addVar(lb=0.0, name="AreaHalfBath1")
+    AreaHalfBath2 = m.addVar(lb=0.0, name="AreaHalfBath2")
+    AreaKitchen1  = m.addVar(lb=0.0, name="AreaKitchen1")
+    AreaKitchen2  = m.addVar(lb=0.0, name="AreaKitchen2")
+    AreaBedroom1  = m.addVar(lb=0.0, name="AreaBedroom1")
+    AreaBedroom2  = m.addVar(lb=0.0, name="AreaBedroom2")
+    AreaOther1    = m.addVar(lb=0.0, name="AreaOther1")
+    AreaOther2    = m.addVar(lb=0.0, name="AreaOther2")
+    OtherRooms1   = m.addVar(vtype=GRB.INTEGER, lb=0, name="OtherRooms1")
+    OtherRooms2   = m.addVar(vtype=GRB.INTEGER, lb=0, name="OtherRooms2")
+
+    # agregados
+    AreaKitchen   = m.addVar(lb=0.0, name="AreaKitchen")
+    AreaFullBath  = m.addVar(lb=0.0, name="AreaFullBath")
+    AreaHalfBath  = m.addVar(lb=0.0, name="AreaHalfBath")
+    AreaBedroom   = m.addVar(lb=0.0, name="AreaBedroom")
+    OtherRooms    = m.addVar(vtype=GRB.INTEGER, lb=0, name="OtherRooms")
+
+    # banderas de features exteriores
+    HasOpenPorch    = m.addVar(vtype=GRB.BINARY, name="HasOpenPorch")
+    HasEnclosedPorch= m.addVar(vtype=GRB.BINARY, name="HasEnclosedPorch")
+    HasScreenPorch  = m.addVar(vtype=GRB.BINARY, name="HasScreenPorch")
+    Has3SsnPorch    = m.addVar(vtype=GRB.BINARY, name="Has3SsnPorch")
+    HasWoodDeck     = m.addVar(vtype=GRB.BINARY, name="HasWoodDeck")
+    HasPool         = m.addVar(vtype=GRB.BINARY, name="HasPool")
+    HasReja         = m.addVar(vtype=GRB.BINARY, name="HasReja")
+
+    # link a features X cuando existen
+    _link_if_exists(m, x, "Full Bath", FullBath1 + FullBath2)
+    _link_if_exists(m, x, "Half Bath", HalfBath1 + HalfBath2)
+    _link_if_exists(m, x, "Kitchen AbvGr", Kitchen1 + Kitchen2)
+    _link_if_exists(m, x, "Bedroom AbvGr", Bedroom1 + Bedroom2)
+
+    # alias a columnas X
+    x1 = _safe_get(x, "1st Flr SF")
+    x2 = _safe_get(x, "2nd Flr SF")
+    xpool = _safe_get(x, "Pool Area")
+    xdeck = _safe_get(x, "Wood Deck SF")
+    xopen = _safe_get(x, "Open Porch SF")
+    xencl = _safe_get(x, "Enclosed Porch")
+    x3ssn = _safe_get(x, "3Ssn Porch")
+    xscreen = _safe_get(x, "Screen Porch")
+    xgar = _safe_get(x, "Garage Area")
+    xgr = _safe_get(x, "Gr Liv Area")
+
+    # Total Porch SF puede NO existir en X, crea var interna si falta
+    xpor_tot = _safe_get(x, "Total Porch SF")
+    if xpor_tot is None:
+        xpor_tot = m.addVar(lb=0.0, name="TotalPorchSF")
+        x["Total Porch SF"] = xpor_tot
+
+    # 7.1.x basicas de lot y pisos
+    if x1 is not None and xpor_tot is not None and xpool is not None:
+        m.addConstr(x1 + xpor_tot + xpool <= lot_area, name="7.1.1__lot_cap")
+    if x1 is not None and x2 is not None:
+        m.addConstr(x2 <= x1, name="7.1.2__2nd_leq_1st")
+    if xgr is not None and x1 is not None and x2 is not None:
+        m.addConstr(xgr == x1 + x2, name="7.1.3__GrLivArea")
+
+    m.addConstr(AreaFullBath == AreaFullBath1 + AreaFullBath2, name="7.1.4__AFullBath")
+    m.addConstr(AreaHalfBath == AreaHalfBath1 + AreaHalfBath2, name="7.1.5__AHalfBath")
+    m.addConstr(FullBath1 >= 1, name="7.1.6__fullbath_1min")
+    m.addConstr(Kitchen1 >= 1, name="7.1.7__kitchen_1min")
+
+    eps1 = getattr(ct, "eps_floor_min_first", 450)
+    eps2 = getattr(ct, "eps_floor_min_second", 350)
+    if x1 is not None and x2 is not None:
+        m.addConstr(x2 <= getattr(ct, "M2ndFlrSF_max", 0.5 * lot_area) * Floor2, name="7.1.8__2nd_max")
+        m.addConstr(x2 >= eps2 * Floor2, name="7.1.8__2nd_min_if_on")
+        m.addConstr(x1 >= eps1 * (Floor1 + Floor2), name="7.1.8__1st_min_if_house")
+
+    # 7.2 conteos totales
+    FullBath  = m.addVar(vtype=GRB.INTEGER, lb=0, name="FullBath")
+    HalfBath  = m.addVar(vtype=GRB.INTEGER, lb=0, name="HalfBath")
+    Kitchen   = m.addVar(vtype=GRB.INTEGER, lb=0, name="Kitchen")
+    m.addConstr(FullBath == FullBath1 + FullBath2, name="7.2.1__FullBath_count")
+    m.addConstr(HalfBath == HalfBath1 + HalfBath2, name="7.2.2__HalfBath_count")
+    m.addConstr(Kitchen  == Kitchen1  + Kitchen2,  name="7.2.3__Kitchen_count")
+    _link_if_exists(m, x, "Full Bath", FullBath)
+    _link_if_exists(m, x, "Half Bath", HalfBath)
+    _link_if_exists(m, x, "Kitchen AbvGr", Kitchen)
+
+    # 7.3 caps por tipo de edificio
+    bldg_opts = ["1Fam","TwnhsE","TwnhsI","Duplex","2FmCon"]
+    Bldg = _one_hot(m, "BldgType", bldg_opts)
+    _tie_one_hot_to_x(m, x, "Bldg Type", Bldg)
+    Bed_max = {"1Fam":6,"TwnhsE":4,"TwnhsI":4,"Duplex":5,"2FmCon":8}
+    F_max   = {"1Fam":4,"TwnhsE":3,"TwnhsI":3,"Duplex":4,"2FmCon":6}
+    H_max   = {"1Fam":2,"TwnhsE":2,"TwnhsI":2,"Duplex":2,"2FmCon":3}
+    K_max   = {"1Fam":1,"TwnhsE":1,"TwnhsI":1,"Duplex":2,"2FmCon":2}
+    Ch_max  = {"1Fam":1,"TwnhsE":1,"TwnhsI":1,"Duplex":1,"2FmCon":2}
+    Bedrooms = m.addVar(vtype=GRB.INTEGER, lb=0, name="Bedrooms")
+    m.addConstr(Bedrooms == Bedroom1 + Bedroom2, name="7.3.1__bedrooms_sum")
+    m.addConstr(Bedrooms <= gp.quicksum(Bed_max[b]*Bldg[b] for b in bldg_opts), name="7.3.1__bedrooms_cap")
+    m.addConstr(FullBath <= gp.quicksum(F_max[b]*Bldg[b] for b in bldg_opts), name="7.3.2__fullbath_cap")
+    m.addConstr(HalfBath <= gp.quicksum(H_max[b]*Bldg[b] for b in bldg_opts), name="7.3.3__halfbath_cap")
+    m.addConstr(Kitchen  <= gp.quicksum(K_max[b]*Bldg[b] for b in bldg_opts), name="7.3.4__kitchen_cap")
+    Fireplaces = _safe_get(x, "Fireplaces") or m.addVar(vtype=GRB.INTEGER, lb=0, name="Fireplaces")
+    m.addConstr(Fireplaces <= gp.quicksum(Ch_max[b]*Bldg[b] for b in bldg_opts), name="7.3.5__fireplaces_cap")
+    _link_if_exists(m, x, "Bedroom AbvGr", Bedrooms)
+
+    # 7.5 garage
+    GarageCars = _safe_get(x, "Garage Cars") or m.addVar(vtype=GRB.INTEGER, lb=0, name="GarageCars")
+    if xgar is not None:
+        m.addConstr(150 * GarageCars <= xgar, name="7.5.1__gar_area_lb")
+        m.addConstr(xgar <= 250 * GarageCars, name="7.5.1__gar_area_ub")
+    gar_types = ["NA","Attchd","Detchd","BuiltIn","Basment","CarPort","2Types"]
+    GT = _one_hot(m, "GarageType", gar_types)
+    _tie_one_hot_to_x(m, x, "Garage Type", GT)
+    gf_opts = ["NA","Fin","RFn","Unf"]
+    GF = _one_hot(m, "GarageFinish", gf_opts)
+    _tie_one_hot_to_x(m, x, "Garage Finish", GF)
+    m.addConstr(GF["NA"] == GT["NA"], name="7.5.3__finish_na_eq_type_na")
+    m.addConstr(GF["Fin"] + GF["RFn"] + GF["Unf"] == 1 - GT["NA"], name="7.5.3__finish_if_has")
+    m.addConstr(GarageCars >= 1 - GT["NA"], name="7.5.4__min_cars_if_has")
+    m.addConstr(GarageCars <= int(getattr(ct, "max_garage_cars", 4)) * (1 - GT["NA"]), name="7.5.2__cap_cars_if_has")
+    if xgar is not None:
+        m.addConstr(xgar <= (0.2 * lot_area) * (1 - GT["NA"]), name="7.5.2__cap_area_if_has")
+
+    # 7.7 techos (plan vs actual, estilo y material)
+    PR1 = m.addVar(lb=0.0, name="PR1")
+    PR2 = m.addVar(lb=0.0, name="PR2")
+    PlanRoofArea = m.addVar(lb=0.0, name="PlanRoofArea")
+    m.addConstr(PlanRoofArea == PR1 + PR2, name="7.7.2__PlanRoof_sum")
+    U1 = getattr(ct, "alpha1", 0.6) * lot_area
+    U2 = getattr(ct, "alpha2", 0.5) * lot_area
+    Uplan = getattr(ct, "alpha_plan", 0.6) * lot_area
+    if x1 is not None:
+        m.addConstr(PR1 <= x1, name="7.7.1__pr1_leq_1st")
+        m.addConstr(PR1 <= U1 * Floor1, name="7.7.1__pr1_if_floor1")
+        m.addConstr(PR1 >= x1 - U1 * (1 - Floor1), name="7.7.1__pr1_linear")
+    if x2 is not None:
+        m.addConstr(PR2 <= x2, name="7.7.1__pr2_leq_2nd")
+        m.addConstr(PR2 <= U2 * Floor2, name="7.7.1__pr2_if_floor2")
+        m.addConstr(PR2 >= x2 - U2 * (1 - Floor2), name="7.7.1__pr2_linear")
+    m.addConstr(PlanRoofArea <= Uplan, name="7.7.1__planroof_ub")
+
+    S = ["Flat","Gable","Gambrel","Hip","Mansard","Shed"]
+    M = ["ClyTile","CompShg","Membran","Metal","Roll","Tar&Grv","WdShake","WdShngl"]
+    RS = _one_hot(m, "RoofStyle", S)
+    RM = _one_hot(m, "RoofMatl", M)
+    _tie_one_hot_to_x(m, x, "Roof Style", RS)
+    _tie_one_hot_to_x(m, x, "Roof Matl", RM)
+
+    Y, Z = {}, {}
+    for s in S:
+        for mm in M:
+            y = m.addVar(vtype=GRB.BINARY, name=f"Y__{s}__{mm}")
+            z = m.addVar(lb=0.0, name=f"Z__{s}__{mm}")
+            Y[(s, mm)] = y
+            Z[(s, mm)] = z
+            m.addConstr(y <= RS[s], name=f"7.7.4__y_leq_rs__{s}_{mm}")
+            m.addConstr(y <= RM[mm], name=f"7.7.4__y_leq_rm__{s}_{mm}")
+            m.addConstr(y >= RS[s] + RM[mm] - 1, name=f"7.7.4__y_ge_and__{s}_{mm}")
+            m.addConstr(z <= PlanRoofArea, name=f"7.7.5__z_leq_plan__{s}_{mm}")
+            m.addConstr(z <= Uplan * y, name=f"7.7.5__z_leq_u_y__{s}_{mm}")
+            m.addConstr(z >= PlanRoofArea - Uplan * (1 - y), name=f"7.7.5__z_ge_plan_u__{s}_{mm}")
+    m.addConstr(gp.quicksum(Y.values()) == 1, name="7.7.4__one_y")
+
+    gamma = getattr(ct, "gamma", {})
+    ActualRoofArea = m.addVar(lb=0.0, name="ActualRoofArea")
+    m.addConstr(
+        ActualRoofArea == gp.quicksum(float(gamma.get((s, mm), 1.10)) * Z[(s, mm)] for s in S for mm in M),
+        name="7.7.3__actual_roof_area",
+    )
+
+    # 7.8, 7.9 caps de areas total y por parte
+    tbsmt = _safe_get(x, "Total Bsmt SF")
+    if tbsmt is not None and x1 is not None and x2 is not None:
+        TotArea = m.addVar(lb=0.0, name="TotalArea")
+        m.addConstr(TotArea == x1 + x2 + tbsmt, name="7.8__total_area")
+        m.addConstr(x1 <= 0.6 * lot_area, name="7.9__cap_1st")
+        m.addConstr(x2 <= 0.5 * lot_area, name="7.9__cap_2nd")
+        m.addConstr(tbsmt <= 0.5 * lot_area, name="7.9__cap_bsmt")
+        if xgr is not None:
+            m.addConstr(xgr <= 0.8 * lot_area, name="11.10__GrLiv_leq_0.8lot")
+        if xgar is not None:
+            m.addConstr(xgar <= 0.2 * lot_area, name="7.9__cap_garage")
+
+    # 7.10 relacion banos vs dormitorios
+    m.addConstr(3 * FullBath >= 2 * Bedrooms, name="7.10__baths_vs_bed")
+
+    # 7.11 piscina
+    if all(v is not None for v in [x1,xgar,xdeck,xopen,xencl,xscreen,x3ssn,xpool]):
+        m.addConstr(xpool <= (lot_area - x1 - xgar - xdeck - xopen - xencl - xscreen - x3ssn) * HasPool, name="7.11.1__pool_space")
+        m.addConstr(xpool <= 0.1 * lot_area * HasPool, name="7.11.1__pool_max")
+        m.addConstr(xpool >= 160 * HasPool, name="7.11.1__pool_min")
+        m.addConstr(xpool >= 0, name="7.11.1__pool_nonneg")
+
+    # 7.12 porches (forzamos identidad TotalPorch = suma componentes)
+    if all(v is not None for v in [xopen,xencl,xscreen,x3ssn]):
+        m.addConstr(xpor_tot == xopen + xencl + xscreen + x3ssn, name="7.12.1__porch_sum")
+        m.addConstr(xpor_tot <= 0.25 * lot_area, name="7.12.1__porch_cap_total")
+        if x1 is not None:
+            m.addConstr(xpor_tot <= x1, name="7.12.1__porch_leq_1st")
+        m.addConstr(xopen  >= 40 * HasOpenPorch, name="7.12.2__open_min")
+        m.addConstr(xencl  >= 60 * HasEnclosedPorch, name="7.12.2__encl_min")
+        m.addConstr(xscreen>= 40 * HasScreenPorch, name="7.12.2__screen_min")
+        m.addConstr(x3ssn  >= 80 * Has3SsnPorch, name="7.12.2__3ssn_min")
+        m.addConstr(xdeck + xpor_tot + (xpool if xpool is not None else 0) <= 0.35 * lot_area, name="7.12.3__ext_cap")
+        m.addConstr(xdeck + xopen <= 0.20 * lot_area, name="7.12.3__deck_open_cap")
+        m.addConstr(xdeck >= 40 * HasWoodDeck, name="7.13__deck_min")
+        m.addConstr(xdeck <= 0.15 * lot_area * HasWoodDeck, name="7.13__deck_max")
+
+    # 7.18 sotano: exposicion y tipos, areas y banos
+    exp_opts = ["Gd","Av","Mn","No","NA"]
+    EXP = _one_hot(m, "BsmtExposure", exp_opts)
+    _tie_one_hot_to_x(m, x, "Bsmt Exposure", EXP)
+    B1 = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","NA"]
+    B2 = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","NA"]
+    T1 = _one_hot(m, "BsmtFinType1", B1)
+    T2 = _one_hot(m, "BsmtFinType2", B2)
+    _tie_one_hot_to_x(m, x, "BsmtFin Type 1", T1)
+    _tie_one_hot_to_x(m, x, "BsmtFin Type 2", T2)
+
+    real_keys = ["GLQ","ALQ","BLQ","Rec","LwQ"]
+    phi1 = gp.quicksum(T1[k] for k in B1 if k != "NA")
+    phi2 = gp.quicksum(T2[k] for k in B2 if k != "NA")
+    psi1 = gp.quicksum(T1[k] for k in real_keys)
+    psi2 = gp.quicksum(T2[k] for k in real_keys)
+
+    U_bsmt = 0.5 * lot_area
+    Af_min = getattr(ct, "bsmt_finish_min_area", 100.0)
+    UbF = getattr(ct, "bsmt_fullbath_cap", 2)
+    UbH = getattr(ct, "bsmt_halfbath_cap", 1)
+
+    BsmtFinSF1 = m.addVar(lb=0.0, name="BsmtFinSF1")
+    BsmtFinSF2 = m.addVar(lb=0.0, name="BsmtFinSF2")
+    BsmtFullBath = m.addVar(vtype=GRB.INTEGER, lb=0, name="BsmtFullBath")
+    BsmtHalfBath = m.addVar(vtype=GRB.INTEGER, lb=0, name="BsmtHalfBath")
+
+    if tbsmt is not None:
+        m.addConstr(tbsmt == BsmtFinSF1 + BsmtFinSF2, name="7.8__bsmt_parts_sum")
+        m.addConstr(tbsmt <= U_bsmt * (1 - EXP["NA"]), name="7.18__bsmt_cap_if_not_na")
+    m.addConstr(BsmtFinSF1 <= U_bsmt * phi1, name="7.18__sf1_cap_by_type")
+    m.addConstr(BsmtFinSF2 <= U_bsmt * phi2, name="7.18__sf2_cap_by_type")
+    m.addConstr(BsmtFinSF1 >= Af_min * psi1, name="7.18__sf1_min_if_real")
+    m.addConstr(BsmtFinSF2 >= Af_min * psi2, name="7.18__sf2_min_if_real")
+    m.addConstr(BsmtFullBath <= UbF * (psi1 + psi2), name="7.18__bsmt_fullbath_if_real")
+    m.addConstr(BsmtHalfBath <= UbH * (psi1 + psi2), name="7.18__bsmt_halfbath_if_real")
+    m.addConstr(BsmtFinSF1 <= U_bsmt * (1 - EXP["NA"]), name="7.18__sf1_off_if_na")
+    m.addConstr(BsmtFinSF2 <= U_bsmt * (1 - EXP["NA"]), name="7.18__sf2_off_if_na")
+    m.addConstr(BsmtFullBath <= UbF * (1 - EXP["NA"]), name="7.18__bf_off_if_na")
+    m.addConstr(BsmtHalfBath <= UbH * (1 - EXP["NA"]), name="7.18__bh_off_if_na")
+    _link_if_exists(m, x, "Bsmt Full Bath", BsmtFullBath)
+    _link_if_exists(m, x, "Bsmt Half Bath", BsmtHalfBath)
+
+    # 7.15 exteriores 1st vs 2nd: flag mismo material
+    SameMaterial = m.addVar(vtype=GRB.BINARY, name="SameMaterial")
+    ext1_opts = ["VinylSd","MetalSd","Wd Sdng","HdBoard","Stucco","Plywood","CemntBd","BrkFace","BrkComm","WdShing","AsbShng","Stone","ImStucc","AsphShn","CBlock"]
+    ext2_opts = ext1_opts
+    EXT1 = _one_hot(m, "Exterior1st", ext1_opts)
+    EXT2 = _one_hot(m, "Exterior2nd", ext2_opts)
+    _tie_one_hot_to_x(m, x, "Exterior 1st", EXT1)
+    _tie_one_hot_to_x(m, x, "Exterior 2nd", EXT2)
+    for e1 in ext1_opts:
+        if e1 in EXT2:
+            m.addConstr(SameMaterial >= EXT1[e1] + EXT2[e1] - 1, name=f"7.15__same_mat__{e1}")
+
+    # 7.16 enchapados
+    mas_opts = ["BrkCmn","BrkFace","CBlock","None","Stone"]
+    MV = _one_hot(m, "MasVnrType", mas_opts)
+    _tie_one_hot_to_x(m, x, "Mas Vnr Type", MV)
+    MasVnrArea = _safe_get(x, "Mas Vnr Area") or m.addVar(lb=0.0, name="MasVnrArea")
+    Umas = 0.4 * ((x1 + x2) if (x1 is not None and x2 is not None) else lot_area)
+    m.addConstr(MasVnrArea <= Umas, name="7.16.1__mas_cap")
+    m.addConstr(MasVnrArea >= 20.0 * (1 - MV["None"]), name="7.16__mas_min_if_used")
+
+    # 7.20 fundacion
+    f_opts = ["BrkTil","CBlock","PConc","Slab","Stone","Wood"]
+    FND = _one_hot(m, "Foundation", f_opts)
+    _tie_one_hot_to_x(m, x, "Foundation", FND)
+    AreaFoundation = m.addVar(lb=0.0, name="AreaFoundation")
+    if x1 is not None:
+        m.addConstr(AreaFoundation == x1, name="7.20__AreaFoundation_eq_1st")
+    Ufound = 0.6 * lot_area
+    for f in f_opts:
+        FA = m.addVar(lb=0.0, name=f"FA__{f}")
+        m.addConstr(FA <= AreaFoundation, name=f"7.20__fa_leq_area__{f}")
+        m.addConstr(FA <= Ufound * FND[f], name=f"7.20__fa_leq_u_f__{f}")
+        m.addConstr(FA >= AreaFoundation - Ufound * (1 - FND[f]), name=f"7.20__fa_ge_lin__{f}")
+    # if Slab o Wood entonces NA en BsmtExposure (permite NA)
+    m.addConstr(FND["Slab"] <= EXP["NA"], name="7.20__slab_implies_na")
+    m.addConstr(FND["Wood"] <= EXP["NA"], name="7.20__wood_implies_na")
+
+    # 7.21 caps de areas por piso
+    UBed1, UFullB1, UHalfB1, UKitch1, UOther1 = 0.5 * lot_area, 200, 80, 300, 0.5 * lot_area
+    UBed2, UFullB2, UHalfB2, UKitch2, UOther2 = 200, 60, 20, 200, 0.5 * lot_area
+    m.addConstr(AreaBedroom1 <= UBed1 * Floor1, name="7.21.1__abed1_cap")
+    m.addConstr(AreaFullBath1 <= UFullB1 * Floor1, name="7.21.1__afb1_cap")
+    m.addConstr(AreaHalfBath1 <= UHalfB1 * Floor1, name="7.21.1__ahb1_cap")
+    m.addConstr(AreaKitchen1  <= UKitch1 * Floor1, name="7.21.1__ak1_cap")
+    m.addConstr(AreaOther1    <= UOther1 * Floor1, name="7.21.1__aoth1_cap")
+    m.addConstr(AreaBedroom2 <= UBed2 * Floor2, name="7.21.2__abed2_cap")
+    m.addConstr(AreaFullBath2 <= UFullB2 * Floor2, name="7.21.2__afb2_cap")
+    m.addConstr(AreaHalfBath2 <= UHalfB2 * Floor2, name="7.21.2__ahb2_cap")
+    m.addConstr(AreaKitchen2  <= UKitch2 * Floor2, name="7.21.2__ak2_cap")
+    m.addConstr(AreaOther2    <= UOther2 * Floor2, name="7.21.2__aoth2_cap")
+    if x2 is not None:
+        m.addConstr(AreaBedroom2 + AreaKitchen2 + AreaHalfBath2 + AreaFullBath2 + AreaOther2 <= x2, name="7.21__sum_leq_2nd")
+
+    # 7.22 otros recintos
+    m.addConstr(OtherRooms == OtherRooms1 + OtherRooms2, name="7.22.1__other_cnt_sum")
+    m.addConstr(AreaOther1 >= 100 * OtherRooms1, name="7.22.4__other1_min")
+    m.addConstr(AreaOther2 >= 100 * OtherRooms2, name="7.22.4__other2_min")
+    m.addConstr(OtherRooms1 >= 1, name="7.22.2__other_min_on_1st")
+    m.addConstr(OtherRooms2 <= 8 * Floor2, name="7.22.3__other_cnt_2nd_if_on")
+
+    # 7.23 area exterior porimetro (aprox simple)
+    P1 = m.addVar(lb=0.0, name="P1")
+    P2 = m.addVar(lb=0.0, name="P2")
+    AreaExterior = m.addVar(lb=0.0, name="AreaExterior1st")
+    smin, smax = 20.0, 70.0
+    if x1 is not None:
+        m.addConstr(P1 <= 2 * ((x1 / smin) + smin) * Floor1, name="7.23__p1_ub")
+        m.addConstr(P1 >= 2 * ((x1 / smax) + smax) * Floor1, name="7.23__p1_lb")
+    if x2 is not None:
+        m.addConstr(P2 <= 2 * ((x2 / smin) + smin) * Floor2, name="7.23__p2_ub")
+        m.addConstr(P2 >= 2 * ((x2 / smax) + smax) * Floor2, name="7.23__p2_lb")
+    m.addConstr(P1 >= P2, name="7.23__p1_ge_p2")
+    Hext = getattr(ct, "Hext", 7.0)
+    m.addConstr(AreaExterior == Hext * (P1 + P2), name="7.23.1__area_ext")
+
+    ext1_opts = ["VinylSd","MetalSd","Wd Sdng","HdBoard","Stucco","Plywood","CemntBd","BrkFace","BrkComm","WdShing","AsbShng","Stone","ImStucc","AsphShn","CBlock"]
+    W = {}
+    Uext = getattr(ct, "Uext", 4500.0)
+    for e1 in ext1_opts:
+        w = m.addVar(lb=0.0, name=f"W__{e1}")
+        W[e1] = w
+        b = EXT1[e1]  # usa el one-hot ya creado, evita getVarByName(None)
+        m.addConstr(w <= AreaExterior, name=f"7.23.1__w_leq_area__{e1}")
+        m.addConstr(w <= Uext * b, name=f"7.23.1__w_leq_u__{e1}")
+        m.addConstr(w >= AreaExterior - Uext * (1 - b), name=f"7.23.1__w_ge_lin__{e1}")
+    m.addConstr(gp.quicksum(W.values()) == AreaExterior, name="7.23.1__w_sum")
+
+
+
+    safe_ubs = {
+        "1st Flr SF": 0.60 * lot_area,
+        "2nd Flr SF": 0.50 * lot_area,
+        "Total Bsmt SF": 0.50 * lot_area,
+        "Gr Liv Area": 0.80 * lot_area,
+        "Garage Area": 0.20 * lot_area,
+        "Wood Deck SF": 0.15 * lot_area,
+        "Open Porch SF": 0.25 * lot_area,
+        "Enclosed Porch": 0.25 * lot_area,
+        "3Ssn Porch": 0.25 * lot_area,
+        "Screen Porch": 0.25 * lot_area,
+        "Pool Area": 0.10 * lot_area,
+        "Lot Area": lot_area,
+        "Full Bath": 6,
+        "Half Bath": 6,
+        "Bedroom AbvGr": 10,
+        "Kitchen AbvGr": 3,
+        "Garage Cars": int(getattr(ct, "max_garage_cars", 4)),
+        "Fireplaces": 3,
+    }
+    import math
+    for nm, ub in safe_ubs.items():
+        v = x.get(nm) or x.get(_find_x_key(x, nm))
+        if v is not None:
             try:
-                obj = getattr(pc, att)
-                # intenta indexar como matriz/lista
-                try:
-                    v = obj[0][0]
-                except Exception:
-                    try:
-                        v = obj[0]
-                    except Exception:
-                        v = obj
-                if hasattr(v, "VarName"):
-                    found.append((att, v))
+                if (not math.isfinite(float(v.UB))) or (float(v.UB) > float(ub)):
+                    v.UB = float(ub)
             except Exception:
                 pass
 
-    print("[CHK-PC] candidatos a salida:", [a for a,_ in found])
-    if found:
-        y_emb = found[0][1]
-    else:
-        # fallback legacy
-        try:
-            y_emb = pc.output_vars[0][0]
-        except Exception:
-            try:
-                y_emb = pc.output[0][0]
-            except Exception:
-                try:
-                    y_emb = pc.y[0][0]
-                except Exception:
-                    raise RuntimeError("No pude capturar la salida del embed (gurobi_ml).")
-    
-    m._embed_pc = pc
-    m._feat_order = list(bundle.feature_names_in())
 
-    # Creo mi y_log “oficial” y lo ligo al del embed
-    y_log = m.addVar(lb=-gp.GRB.INFINITY, name="y_log")
-    m.addConstr(y_log == y_emb, name="LINK_ylog_embed")
+    # === COSTO total y OBJETIVO ===
+    cost_expr = _build_cost_expr(m, x, ct)
+    cost_var = m.addVar(lb=0.0, name="cost_model")
+    m.addConstr(cost_var == cost_expr, name="def_cost_model")
 
+    y_log, y_price = _attach_xgb_embed(m, bundle, feat_order, x)
 
-    # Si el target está en log, genero y_price con PWL(exp)
-    if bundle.is_log_target():
-        y_price = m.addVar(lb=0.0, name="y_price")
-        grid = np.linspace(10.0, 14.0, 161)
-        m.addGenConstrPWL(y_log, y_price, grid.tolist(), np.expm1(grid).tolist(), name="exp_expm1")
-    else:
-        y_price = y_log
+    # objetivo = precio - costo, con presupuesto
+    m.setObjective(y_price - cost_var, GRB.MAXIMIZE)
+    m.addConstr(cost_var <= budget, name="budget")
 
-    # Exponer handlers para debug
-    m._y_log_embed_var = y_emb
-    m._y_log_var = y_log
+    # Auditoria y etiquetas para post-proceso
     m._y_price_var = y_price
-    m._base_price_val = base_price
+    m._y_log_var   = y_log
+    m._budget_usd  = float(budget)
+    m._x = x
+    m._report_vars = {
+        "Floor1": Floor1, "Floor2": Floor2,
+        "1st Flr SF": x1, "2nd Flr SF": x2,
+        "FullBath": FullBath, "HalfBath": HalfBath, "Kitchen": Kitchen,
+        "Bedrooms": Bedrooms, "Garage Area": xgar, "Garage Cars": GarageCars,
+        "PlanRoofArea": PlanRoofArea, "ActualRoofArea": ActualRoofArea,
+        "Total Bsmt SF": tbsmt,
+        "Total Porch SF": xpor_tot,
+        "Wood Deck SF": xdeck, "Pool Area": xpool,
+        "Cost": cost_var, "y_price": y_price,
+    }
 
-    try:
-        import numpy as _np
-        exact = float(_np.expm1(m._y_log_var.X))
-        pwl   = float(m._y_price_var.X)
-        print(f"[PWL] expm1(y_log) exact={exact:,.2f} | y_price(PWL)={pwl:,.2f} | Δ={pwl-exact:+.2f}")
-    except Exception:
-        pass
-
-    # ================== PRESUPUESTO / OBJETIVO ==================
-    # Variable de costo explícita y ligada al LinExpr acumulado
-    cost_model = m.addVar(lb=0.0, name="cost_model")
-    m.addConstr(cost_model == lin_cost, name="COST_eq_linexpr")
-
-    # Guardar refs para auditorías
-    m._cost_var = cost_model
-    m._lin_cost_expr = lin_cost
-
-    # (1) Presupuesto
-    m.addConstr(cost_model <= budget_usd, name="BUDGET")
-
-    # === NO-CHANGE GUARD: si cost_model == 0 -> todo igual a base y y_price == base ===
-    z_change = m.addVar(vtype=gp.GRB.BINARY, name="z_change")
-    M_cost = max(1.0, float(m._budget if hasattr(m, "_budget") else budget_usd))
-    m.addConstr(m._cost_var <= M_cost * z_change, name="NOCHG_cost_link")
-    eps_cost = 1.0  
-    m.addConstr(m._cost_var >= eps_cost * z_change, name="NOCHG_cost_lb")
-
-    bigM_fallback = 1e6
-
-    if getattr(m, "_x_vars", None) and getattr(m, "_x_cols", None):
-        for fname in m._x_cols:
-            var = m._x_vars[fname]
-            if not hasattr(var, "LB"):
-                # No es Var de Gurobi (es constante float): no hace falta ligar
-                continue
-
-            # base_val desde base_X (si no existe, convertir desde base_row)
-            base_val = None
-            try:
-                if fname in base_X.columns:
-                    base_val = float(base_X.iloc[0][fname])
-                else:
-                    base_val = float(_coerce_base_value(fname, base_row.get(fname, 0)))
-            except Exception:
-                base_val = None
-
-            # Si no es finito, loguea y sáltalo (evita el NaN en la constante)
-            if (base_val is None) or (not np.isfinite(base_val)):
-                print(f"[NOCHG] skip '{fname}': base_val={base_val}")
-                continue
-
-            # M por variable usando LB/UB (con fallback)
-            try:
-                lb = float(var.LB); ub = float(var.UB)
-            except Exception:
-                lb, ub = 0.0, bigM_fallback
-
-            Mpos = ub - base_val
-            Mneg = base_val - lb
-            if (not np.isfinite(Mpos)) or (Mpos < 0): Mpos = bigM_fallback
-            if (not np.isfinite(Mneg)) or (Mneg < 0): Mneg = bigM_fallback
-
-            m.addConstr(var - base_val       <= Mpos * z_change, name=f"NOCHG_pos_{fname}")
-            m.addConstr(base_val - var       <= Mneg * z_change, name=f"NOCHG_neg_{fname}")
-
-    # Anclar el precio cuando no hay cambios
-    M_price = 2e6
-    m.addConstr(m._y_price_var - float(base_price) <= M_price * z_change, name="NOCHG_price_pos")
-    m.addConstr(float(base_price) - m._y_price_var <= M_price * z_change, name="NOCHG_price_neg")
-
-
-    # (2) No permitir empeorar el precio base (puedes dejarlo si querías esa política)
-    m.addConstr(y_price >= float(base_price) - 1e-6, name="MIN_PRICE_BASE")
-    # Prohibir ROI negativo (opcional pero recomendado)
-    m.addConstr(y_price - cost_model >= float(base_price) - 1e-6, name="NO_NEGATIVE_ROI")
-
-
-    # (3) Objetivo
-    m.setObjective(y_price - cost_model - float(base_price), gp.GRB.MAXIMIZE)
+    # Tolerancias numericas estrictas
+    m.setParam("MIPGap", getattr(ct, "mip_gap", 1e-3))
+    m.setParam("TimeLimit", getattr(ct, "time_limit", 300))
+    m.setParam("FeasibilityTol", 1e-7)
+    m.setParam("IntFeasTol", 1e-7)
+    m.setParam("OptimalityTol", 1e-7)
+    m.setParam("NumericFocus", 3)
 
     return m
-
-

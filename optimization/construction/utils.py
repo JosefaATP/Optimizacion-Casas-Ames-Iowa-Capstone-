@@ -20,3 +20,17 @@ def debug_budget_report(m, tag="DEBUG PRESUPUESTO"):
         print(f"[DBG] lin_cost.getValue(): {getattr(m, '_lin_cost_expr', None).getValue():,.2f}")
     except Exception as e:
         print(f"[DBG] Error en debug_budget_report: {e}")
+
+def _link_onehot_to_ordinal(m, x, prefix, ord_name, value_map):
+    # asegura sum z = 1 y ord = sum(val_k * z_k)
+    zs = []
+    expr = gp.LinExpr(0.0)
+    for label, val in value_map.items():
+        v = x.get(f"{prefix}{label}")
+        if v is not None:
+            zs.append(v)
+            expr += float(val) * v
+    if zs:
+        m.addConstr(gp.quicksum(zs) == 1, name=f"ONEHOT_{prefix.strip('_')}")
+        if ord_name in x:
+            m.addConstr(x[ord_name] == expr, name=f"ORD_{ord_name.replace(' ','_')}")

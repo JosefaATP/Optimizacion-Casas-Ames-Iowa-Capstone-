@@ -1,10 +1,13 @@
-# optimization/remodel/xgb_predictor.py
+# optimization/construction/xgb_predictor.py
 from pathlib import Path
 from typing import List
 
+import math, json
 import joblib
 import numpy as np
 import pandas as pd
+import json
+import gurobipy as gp
 
 from sklearn.pipeline import Pipeline as SKPipeline
 from sklearn.compose import ColumnTransformer, TransformedTargetRegressor
@@ -180,3 +183,69 @@ class XGBBundle:
         # No hay OHE en el pre, el pipe espera solo columnas numéricas (incluyendo dummies)
         y = self.pipe_full.predict(X_fixed)
         return pd.Series(y, index=X.index)
+
+
+    def attach_to_gurobi(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:
+        # booster
+        try:
+            bst = self.reg.get_booster()
+        except Exception:
+            bst = getattr(self.reg, "_Booster", None)
+        if bst is None:
+            raise RuntimeError("XGBBundle: no pude obtener Booster del modelo")
+
+        # intercepto/base_score
+        try:
+            base = float(bst.attr("base_score") or 0.0)
+        except Exception:
+            base = 0.0
+
+        dumps = bst.get_dump(with_stats=False, dump_format="json")
+        total_expr = gp.LinExpr(base)
+
+        def safe_M_for_var(v: gp.Var) -> float:
+            lb = float(v.LB) if math.isfinite(float(v.LB)) else 0.0
+            ub = float(v.UB) if math.isfinite(float(v.UB)) else lb + 1e4  # fallback 1e4 si UB inf
+            M = ub - lb + 1.0
+            # clamp por seguridad
+            if not math.isfinite(M) or M <= 0:
+                M = 1e4
+            return min(M, 1e6)
+
+        for t_idx, js in enumerate(dumps):
+            node = json.loads(js)
+
+            leaves = []  # [(path, leaf_value)]
+            def walk(nd, path):
+                if "leaf" in nd:
+                    leaves.append((path, float(nd["leaf"])))
+                    return
+                f_idx = int(str(nd["split"]).replace("f", ""))
+                thr = float(nd["split_condition"])
+                yes_id = nd["yes"]
+                for ch in nd["children"]:
+                    is_left = (ch["nodeid"] == yes_id)  # rama <=
+                    walk(ch, path + [(f_idx, thr, is_left)])
+            walk(node, [])
+
+            z = [m.addVar(vtype=gp.GRB.BINARY, name=f"t{t_idx}_leaf{k}") for k in range(len(leaves))]
+            m.addConstr(gp.quicksum(z) == 1, name=f"TREE_{t_idx}_ONEHOT")
+
+            for k, (conds, val) in enumerate(leaves):
+                # complemento para evitar (1 - z[k])
+                zk0 = m.addVar(vtype=gp.GRB.BINARY, name=f"t{t_idx}_leaf{k}_comp")
+                m.addConstr(zk0 + z[k] == 1, name=f"T{t_idx}_leaf{k}_comp_sum")
+
+                for (f_idx, thr, is_left) in conds:
+                    xv = x_list[f_idx]
+                    M = safe_M_for_var(xv)
+                    thr = float(thr)
+
+                    if is_left:
+                        m.addConstr(xv <= thr + M * zk0, name=f"T{t_idx}_L{k}_f{f_idx}_le")
+                    else:
+                        m.addConstr(xv >= thr + eps - M * zk0, name=f"T{t_idx}_R{k}_f{f_idx}_ge")
+
+            total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))
+
+        m.addConstr(y_log == total_expr, name="YLOG_XGB_SUM")

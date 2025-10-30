@@ -1,199 +1,130 @@
-# optimization/remodel/features.py
+# === FILE: optimization/construction/features.py ===
 from dataclasses import dataclass
 from typing import List, Dict, Tuple
-import numpy as np
 
 @dataclass
 class FeatureSpec:
     name: str
     lb: float
     ub: float
-    vartype: str = "C"  # C continuo, I entero, B binario
+    vartype: str = "C"  # C=continuous, I=integer, B=binary
 
-
-
-# define las features que SI puede modificar la optimizacion
-# ajusta los bounds segun tu PDF "modelo matematico"
-MODIFIABLE = [
-    # nombres EXACTOS con espacios, tal como en tu CSV/modelo
-    FeatureSpec("Bedroom AbvGr", 0, 6, "I"),
-    FeatureSpec("Full Bath", 0, 4, "I"),
-    FeatureSpec("BsmtFin SF 1", 0.0, 1000000.0, "C"),
-    FeatureSpec("BsmtFin SF 2", 0.0, 100000.0, "C"),
-    FeatureSpec("Bsmt Unf SF",  0.0, 100000.0, "C"),
-    FeatureSpec("Gr Liv Area", 0.0, 10000.0, "C"),
-    FeatureSpec("1st Flr SF", 0.0, 5000.0, "C"),
-    #FeatureSpec("2nd Flr SF", 0.0, 4000.0, "C"),
-    # --- Mas Vnr Type (binarios) ---
-    FeatureSpec("mvt_is_BrkCmn", lb=0, ub=1, vartype="B"),
-    FeatureSpec("mvt_is_BrkFace", lb=0, ub=1, vartype="B"),
-    FeatureSpec("mvt_is_CBlock", lb=0, ub=1, vartype="B"),
-    FeatureSpec("mvt_is_No aplica", lb=0, ub=1, vartype="B"),
-    FeatureSpec("mvt_is_Stone", lb=0, ub=1, vartype="B"),
-
-]
-
-# features.py (solo muestra el patrón; no dupliques si ya existen)
-MODIFIABLE += [
-    FeatureSpec("Kitchen Qual",   lb=-1, ub=4, vartype="I"),
-    FeatureSpec("Exter Qual",     lb=-1, ub=4, vartype="I"),
-    FeatureSpec("Exter Cond",     lb=-1, ub=4, vartype="I"),
-    FeatureSpec("Heating QC",     lb=-1, ub=4, vartype="I"),
-    FeatureSpec("Fireplace Qu",   lb=-1, ub=4, vartype="I"),
-    FeatureSpec("Bsmt Cond",      lb=-1, ub=4, vartype="I"),
-    FeatureSpec("Garage Qual",    lb=-1, ub=4, vartype="I"),
-    FeatureSpec("Garage Cond",    lb=-1, ub=4, vartype="I"),
-    FeatureSpec("Pool QC",        lb=-1, ub=4, vartype="I"),
-]
-
-
-OHE_CATS = ["No aplica", "Po", "Fa", "TA", "Gd", "Ex"]
-
-MODIFIABLE.append(FeatureSpec("delta_KitchenQual_TA", lb=0, ub=1, vartype="B"))
-MODIFIABLE.append(FeatureSpec("delta_KitchenQual_EX", lb=0, ub=1, vartype="B"))
-
-# Utilities como entero ordinal 0..3 (ELO, NoSeWa, NoSewr, AllPub)
-MODIFIABLE.append(FeatureSpec("Utilities", 0, 3, "I"))
-MODIFIABLE += [
-    FeatureSpec("u_util_ELO",    0, 1, "B"),
-    FeatureSpec("u_util_NoSeWa", 0, 1, "B"),
-    FeatureSpec("u_util_NoSewr", 0, 1, "B"),
-    FeatureSpec("u_util_AllPub", 0, 1, "B"),
-]
-
-# códigos que alimentan al predictor Roof Style y Roof Matl
-MODIFIABLE.append(FeatureSpec("Roof Matl",  0, 7, "I"))
-
-# ==== ROOF: elección de estilo/material (exactamente una de cada) ====
-
-# compatibilidad estilo->material (1 = permitido)
-ROOF_COMPAT = {
-    # usa exactamente los labels de tus dummies
-    "Gable":   {"CompShg":1,"Metal":1,"ClyTile":1,"WdShngl":1,"Membran":0,"Roll":1,"Tar&Grv":1,"WdShake":1},
-    "Hip":     {"CompShg":1,"Metal":1,"ClyTile":1,"WdShngl":1,"Membran":1,"Roll":1,"Tar&Grv":1,"WdShake":1},
-    "Flat":    {"CompShg":0,"Metal":1,"ClyTile":0,"WdShngl":0,"Membran":1,"Roll":1,"Tar&Grv":1,"WdShake":0},
-    "Mansard": {"CompShg":1,"Metal":1,"ClyTile":1,"WdShngl":1,"Membran":1,"Roll":1,"Tar&Grv":1,"WdShake":1},
-    "Shed":    {"CompShg":1,"Metal":1,"ClyTile":1,"WdShngl":1,"Membran":1,"Roll":1,"Tar&Grv":1,"WdShake":1},
-    "Gambrel": {"CompShg":1,"Metal":1,"ClyTile":1,"WdShngl":1,"Membran":1,"Roll":1,"Tar&Grv":1,"WdShake":1},
-}
-
-for _nm in ["ClyTile","CompShg","Membran","Metal","Roll","Tar&Grv","WdShake","WdShngl"]:
-    MODIFIABLE.append(FeatureSpec(name=f"roof_matl_is_{_nm}", lb=0, ub=1, vartype="B"))
-
-#-----ELECTRICAL-------
-for _nm in ["SBrkr","FuseA","FuseF","FuseP","Mix"]:
-    MODIFIABLE.append(FeatureSpec(name=f"elect_is_{_nm}", lb=0, ub=1, vartype="B"))
-
-
-# ==== GARAGE FINISH (Ga = {Fin, RFn, Unf, No aplica}) ====
-for _nm in ["Fin", "RFn", "Unf", "No aplica"]:
-    MODIFIABLE.append(FeatureSpec(name=f"garage_finish_is_{_nm}", lb=0, ub=1, vartype="B"))
-
-MODIFIABLE.append(FeatureSpec(name="UpgGarage", lb=0, ub=1, vartype="B"))
-
-
-
-# ==== POOL QC (P = {Ex, Gd, TA, Fa, Po, No aplica}) ====
-for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]:
-    MODIFIABLE.append(FeatureSpec(name=f"poolqc_is_{_nm}", lb=0, ub=1, vartype="B"))
-
-MODIFIABLE.append(FeatureSpec(name="upg_pool_qc", lb=0, ub=1, vartype="B"))
-
-
-# ==== AGREGADOS / AMPLIACIONES ====
-# Binarias para nuevos ambientes
-for nm in ["AddFull", "AddHalf", "AddKitch", "AddBed"]:
-    MODIFIABLE.append(FeatureSpec(name=nm, lb=0, ub=1, vartype="B"))
-
-# áreas que pueden ampliarse (aparecen en el PDF)
-MODIFIABLE += [
-    FeatureSpec("Garage Area",   0.0, 100000.0, "C"),
-    FeatureSpec("Wood Deck SF",  0.0, 100000.0, "C"),
-    FeatureSpec("Open Porch SF", 0.0, 100000.0, "C"),
-    FeatureSpec("Enclosed Porch",0.0, 100000.0, "C"),
-    FeatureSpec("3Ssn Porch",    0.0, 100000.0, "C"),
-    FeatureSpec("Screen Porch",  0.0, 100000.0, "C"),
-    FeatureSpec("Pool Area",     0.0, 100000.0, "C"),
-]
-
-
-# contadores de ambientes (si van al XGB)
-MODIFIABLE += [
-    FeatureSpec("Half Bath",   0, 5, "I"),
-    FeatureSpec("Kitchen AbvGr", 0, 3, "I"),
-]
-
-
-# ==== GARAGE QUAL / COND (G = {Ex, Gd, TA, Fa, Po, NA}) ====
-for _nm in ["Ex", "Gd", "TA", "Fa", "Po", "No aplica"]:
-    MODIFIABLE.append(FeatureSpec(name=f"garage_qual_is_{_nm}", lb=0, ub=1, vartype="B"))
-    MODIFIABLE.append(FeatureSpec(name=f"garage_cond_is_{_nm}", lb=0, ub=1, vartype="B"))
-
-
-# Variable de activación (común para ambos)
-MODIFIABLE.append(FeatureSpec(name="UpgGarage", lb=0, ub=1, vartype="B"))
-
-# ==== PAVED DRIVE (D = {Y, P, N}) ====
-for _nm in ["Y", "P", "N"]:
-    MODIFIABLE.append(FeatureSpec(name=f"paved_drive_is_{_nm}", lb=0, ub=1, vartype="B"))
-
-    
-# ==== FENCE (F = {GdPrv, MnPrv, GdWo, MnWw, No aplica}) ====
-for _nm in ["GdPrv", "MnPrv", "GdWo", "MnWw", "No aplica"]:
-    MODIFIABLE.append(FeatureSpec(name=f"fence_is_{_nm}", lb=0, ub=1, vartype="B"))
-
-
-    # === MATERIALES EXTERIORES ===
-EXT_MATS = [
+# --------------------------
+# Canonical label sets (Ames)
+# --------------------------
+ROOF_STYLE = ["Flat","Gable","Gambrel","Hip","Mansard","Shed"]
+ROOF_MATL  = ["ClyTile","CompShg","Membran","Metal","Roll","Tar&Grv","WdShake","WdShngl"]
+EXT_MATS   = [
     "AsbShng","AsphShn","BrkComm","BrkFace","CBlock","CemntBd","HdBoard","ImStucc",
     "MetalSd","Other","Plywood","PreCast","Stone","Stucco","VinylSd","Wd Sdng","WdShngl",
 ]
+BLDG_TYPES = ["1Fam","2FmCon","Duplex","TwnhsE","TwnhsI"]
+HOUSE_STYLES = ["1Story","2Story"]  # por modelo: solo 1 o 2 pisos
+UTILS = ["ELO","NoSeWa","NoSewr","AllPub"]
+FOUNDATION = ["BrkTil","CBlock","PConc","Slab","Stone","Wood"]
+BSMT_EXPOS = ["Gd","Av","Mn","No","NA"]
+BSMT_TYPES = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","NA"]
+HEATING = ["Floor","GasA","GasW","Grav","OthW","Wall"]
+CENTRAL_AIR = ["N","Y"]
+ELECTRICAL = ["SBrkr","FuseA","FuseF","FuseP","Mix"]
+GARAGE_TYPE = ["2Types","Attchd","Basment","BuiltIn","CarPort","Detchd","NA"]
+GARAGE_FINISH = ["Fin","RFn","Unf","NA"]
+PAVED_DRIVE = ["Y","P","N"]
+MISC_FEATURE = ["Elev","Gar2","Othr","Shed","TenC","NA"]
 
-for nm in EXT_MATS:
-    MODIFIABLE.append(FeatureSpec(f"ex1_is_{nm}", lb=0, ub=1, vartype="B"))
-for nm in EXT_MATS:
-    MODIFIABLE.append(FeatureSpec(f"ex2_is_{nm}", lb=0, ub=1, vartype="B"))
-
-# ----- HEATING: elección de tipo -----
-for _nm in ["Floor","GasA","GasW","Grav","OthW","Wall"]:
-    MODIFIABLE.append(FeatureSpec(name=f"heat_is_{_nm}", lb=0, ub=1, vartype="B"))
-
-# Banderas de caminos (como en el PDF)
-MODIFIABLE += [
-    FeatureSpec("heat_upg_type", 0, 1, "B"),
-    FeatureSpec("heat_upg_qc",   0, 1, "B"),
+# --------------------------
+# Modifiable / decision features
+# --------------------------
+MODIFIABLE: List[FeatureSpec] = [
+    # Areas por piso + porches/piscina
+    FeatureSpec("1st Flr SF", 0.0, 1_000_000.0, "C"),
+    FeatureSpec("2nd Flr SF", 0.0, 1_000_000.0, "C"),
+    FeatureSpec("Total Porch SF", 0.0, 1_000_000.0, "C"),
+    FeatureSpec("Pool Area", 0.0, 1_000_000.0, "C"),
+    # Sótano
+    FeatureSpec("Total Bsmt SF", 0.0, 1_000_000.0, "C"),
+    FeatureSpec("BsmtFin SF 1", 0.0, 1_000_000.0, "C"),
+    FeatureSpec("BsmtFin SF 2", 0.0, 1_000_000.0, "C"),
+    # Conteos clave
+    FeatureSpec("Bedroom AbvGr", 0, 12, "I"),
+    FeatureSpec("Full Bath", 0, 6, "I"),
+    FeatureSpec("Half Bath", 0, 6, "I"),
+    FeatureSpec("Kitchen AbvGr", 0, 3, "I"),
+    FeatureSpec("Fireplaces", 0, 6, "I"),
+    # Garage
+    FeatureSpec("Garage Area", 0.0, 1_000_000.0, "C"),
+    FeatureSpec("Garage Cars", 0, 6, "I"),
+    # Techo: variables auxiliares
+    FeatureSpec("PR1", 0.0, 1_000_000.0, "C"),
+    FeatureSpec("PR2", 0.0, 1_000_000.0, "C"),
+    FeatureSpec("PlanRoofArea", 0.0, 1_000_000.0, "C"),
+    FeatureSpec("ActualRoofArea", 0.0, 1_000_000.0, "C"),
+    # Pisos (binarios)
+    FeatureSpec("Floor1", 0, 1, "B"),
+    FeatureSpec("Floor2", 0, 1, "B"),
+    # Ordinales que usa el XGB (y que ligamos a sus one-hot)
+    FeatureSpec("Roof Style", 0, len(ROOF_STYLE)-1, "I"),
+    FeatureSpec("Roof Matl", 0, len(ROOF_MATL)-1, "I"),
+    FeatureSpec("Utilities", 0, len(UTILS)-1, "I"),
 ]
 
-# ----- BSMT FIN TYPES (Type1 y Type2) -----
-_BSMT_TYPES = ["GLQ","ALQ","BLQ","Rec","LwQ","Unf","No aplica"]
-for _nm in _BSMT_TYPES:
-    MODIFIABLE.append(FeatureSpec(name=f"b1_is_{_nm}", lb=0, ub=1, vartype="B"))
-for _nm in _BSMT_TYPES:
-    MODIFIABLE.append(FeatureSpec(name=f"b2_is_{_nm}", lb=0, ub=1, vartype="B"))
+# One-hot seleccionables (exclusividades). Usamos el prefijo exacto que las
+# funciones de restricciones esperan.
+for s in ROOF_STYLE:
+    MODIFIABLE.append(FeatureSpec(f"roof_style_is_{s}", 0, 1, "B"))
+for m in ROOF_MATL:
+    MODIFIABLE.append(FeatureSpec(f"roof_matl_is_{m}", 0, 1, "B"))
+for u in UTILS:
+    MODIFIABLE.append(FeatureSpec(f"u_util_{u}", 0, 1, "B"))
 
-# ==== AMPLIACIONES (binarias por componente y escala) ====
-COMPONENTES = ["GarageArea", "WoodDeckSF", "OpenPorchSF", "EnclosedPorch",
-               "3SsnPorch", "ScreenPorch", "PoolArea"]
+# Exterior 1 / 2
+for nm in EXT_MATS:
+    MODIFIABLE.append(FeatureSpec(f"ex1_is_{nm}", 0, 1, "B"))
+for nm in EXT_MATS:
+    MODIFIABLE.append(FeatureSpec(f"ex2_is_{nm}", 0, 1, "B"))
+MODIFIABLE.append(FeatureSpec("SameMaterial", 0, 1, "B"))
 
-for c in COMPONENTES:
-    for s in [10, 20, 30]:
-        MODIFIABLE.append(FeatureSpec(name=f"z{s}_{c}", lb=0, ub=1, vartype="B"))
+# Basement exposure + finish types
+for x in BSMT_EXPOS:
+    MODIFIABLE.append(FeatureSpec(f"bsmt_exposure_is_{x}", 0, 1, "B"))
+for t in BSMT_TYPES:
+    MODIFIABLE.append(FeatureSpec(f"b1_is_{t}", 0, 1, "B"))
+for t in BSMT_TYPES:
+    MODIFIABLE.append(FeatureSpec(f"b2_is_{t}", 0, 1, "B"))
 
+# Heating / Central Air / Electrical
+for h in HEATING:
+    MODIFIABLE.append(FeatureSpec(f"heat_is_{h}", 0, 1, "B"))
+for a in CENTRAL_AIR:
+    MODIFIABLE.append(FeatureSpec(f"air_is_{a}", 0, 1, "B"))
+for e in ELECTRICAL:
+    MODIFIABLE.append(FeatureSpec(f"elect_is_{e}", 0, 1, "B"))
 
-# features fijas que el modelo necesita pero no se modifican (tomadas de la casa base)
+# Garage type / finish / paved drive
+for g in GARAGE_TYPE:
+    MODIFIABLE.append(FeatureSpec(f"garage_type_is_{g}", 0, 1, "B"))
+for gf in GARAGE_FINISH:
+    MODIFIABLE.append(FeatureSpec(f"garage_finish_is_{gf}", 0, 1, "B"))
+for p in PAVED_DRIVE:
+    MODIFIABLE.append(FeatureSpec(f"paved_drive_is_{p}", 0, 1, "B"))
+
+# Misc
+for s in MISC_FEATURE:
+    MODIFIABLE.append(FeatureSpec(f"misc_is_{s}", 0, 1, "B"))
+
+# --------------------------
+# Immutable/base-carried cols (no se cambian por MIP, pero existen en XGB)
+# --------------------------
 IMMUTABLE: List[str] = [
-    "MS SubClass", "Neighborhood", "OverallQual", "OverallCond",
-    "YearBuilt", "YearRemodAdd", "Functional", "LotArea", "Lot Shape",
-    "LandContour", "LotConfig", "LandSlope", "BldgType", "HouseStyle","Bsmt Exposure","FunctioNo aplical",
-      "Condition 1", "Condition 2", "MSZoning", "Street", "Alley", "LotFrontage", "Foundation", "Month Sold", 
-      "Year Sold", "Sale Type", "Sale Condition", "2nd Flr SF", "Roof Style", "Garage Cars", "Low Qual Fin SF", "Bsmt Qual", "Bsmt Full Bath", "Bsmt Half Bath"
+    "MS SubClass", "Neighborhood", "OverallQual", "OverallCond", "YearBuilt",
+    "YearRemodAdd", "LotArea", "LotFrontage", "BldgType", "HouseStyle",
+    "Foundation", "Mas Vnr Type", "Exterior 1st", "Exterior 2nd",
 ]
 
-# mapeo ordinal (ejemplo). Ajusta a tu encoding de entrenamiento
-ORDINAL_MAP = {
-    "KitchenQual": {"NA":0, "Po":1, "Fa":2, "TA":3, "Gd":4, "Ex":5}
-}
-
-
+# --------------------------
+# Helper to expose bounds as dict
+# --------------------------
 def bounds_dict() -> Dict[str, Tuple[float, float]]:
     return {f.name: (f.lb, f.ub) for f in MODIFIABLE}
+
+
