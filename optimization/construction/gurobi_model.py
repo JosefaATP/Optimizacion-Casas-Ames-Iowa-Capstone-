@@ -119,73 +119,60 @@ def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
 
 # =============================== costos (LinExpr) =================================
 
-def _build_cost_expr(m: gp.Model, x: dict[str, gp.Var], ct) -> gp.LinExpr:
+def _build_cost_expr(m, x, ct):
     cost = gp.LinExpr(0.0)
+    m._cost_terms = []
 
-    # construccion principal por area
-    c_base = getattr(ct, "construction_cost", 0.0)
-    for nm in ("1st Flr SF","2nd Flr SF","Total Bsmt SF"):
-        v = _safe_get(x, nm)
-        if v is not None and c_base:
-            cost += float(c_base) * v
+    def add(label, coef, var):
+        if var is None: 
+            return
+        coef = float(coef)
+        if abs(coef) < 1e-12:
+            return
+        m._cost_terms.append((label, coef, var))
+        nonlocal cost
+        cost += coef * var
 
-    # terminaciones de sotano
-    c_bsmt_fin = getattr(ct, "basement_finish_cost", 0.0)
-    for nm in ("BsmtFin SF 1","BsmtFin SF 2"):
-        v = _safe_get(x, nm)
-        if v is not None and c_bsmt_fin:
-            cost += float(c_bsmt_fin) * v
+    c_base = float(getattr(ct, "construction_cost", 230.0))
+    for nm in ("1st Flr SF", "2nd Flr SF", "Total Bsmt SF"):
+        add(f"{nm} @construction", c_base, _safe_get(x, nm))
 
-    def term_if(name: str, coef_attr: str):
-        v = _safe_get(x, name)
-        unit = getattr(ct, coef_attr, 0.0)
-        return (float(unit) * v) if (v is not None and unit) else 0.0
+    c_fin = float(getattr(ct, "basement_finish_cost", 0.0))
+    add("BsmtFin SF 1 @finish", c_fin, _safe_get(x, "BsmtFin SF 1"))
+    add("BsmtFin SF 2 @finish", c_fin, _safe_get(x, "BsmtFin SF 2"))
 
-    # porches, deck, piscina
-    cost += term_if("Wood Deck SF",  "wooddeck_cost")
-    cost += term_if("Open Porch SF", "openporch_cost")
-    cost += term_if("Enclosed Porch","enclosedporch_cost")
-    cost += term_if("3Ssn Porch",    "threessnporch_cost")
-    cost += term_if("Screen Porch",  "screenporch_cost")
-    cost += term_if("Pool Area",     "pool_area_cost")
+    add("Wood Deck SF", float(getattr(ct, "wooddeck_cost", 0.0)), _safe_get(x, "Wood Deck SF"))
+    add("Open Porch SF", float(getattr(ct, "openporch_cost", 0.0)), _safe_get(x, "Open Porch SF"))
+    add("Enclosed Porch", float(getattr(ct, "enclosedporch_cost", 0.0)), _safe_get(x, "Enclosed Porch"))
+    add("3Ssn Porch", float(getattr(ct, "threessnporch_cost", 0.0)), _safe_get(x, "3Ssn Porch"))
+    add("Screen Porch", float(getattr(ct, "screenporch_cost", 0.0)), _safe_get(x, "Screen Porch"))
+    add("Pool Area", float(getattr(ct, "pool_area_cost", 0.0)), _safe_get(x, "Pool Area"))
+    add("Garage Area", float(getattr(ct, "garage_area_cost", 0.0)), _safe_get(x, "Garage Area"))
 
-    # garage por area (acepta dos posibles nombres en ct)
-    xgar = _safe_get(x, "Garage Area")
-    if xgar is not None:
-        unit_gar = getattr(ct, "garage_area_cost", getattr(ct, "garage_cost_per_sf", 0.0))
-        if unit_gar:
-            cost += float(unit_gar) * xgar
-
-    # fundacion por SF si ct lo define
     if hasattr(ct, "foundation_cost_per_sf"):
-        for tag, unit in getattr(ct, "foundation_cost_per_sf").items():
-            v = m.getVarByName(f"FA__{tag}")
-            if v is not None:
-                cost += float(unit) * v
+        for tag, unit in ct.foundation_cost_per_sf.items():
+            add(f"FA {tag}", float(unit), m.getVarByName(f"FA__{tag}"))
 
-    # techo por material * gamma(style, mat)
     if hasattr(ct, "roof_cost_by_material"):
         gamma = getattr(ct, "gamma", {})
-        for tag, unit in getattr(ct, "roof_cost_by_material").items():
+        for mm, unit in ct.roof_cost_by_material.items():
             for s in ["Flat","Gable","Gambrel","Hip","Mansard","Shed"]:
-                z = m.getVarByName(f"Z__{s}__{tag}")
+                z = m.getVarByName(f"Z__{s}__{mm}")
                 if z is not None:
-                    g = float(gamma.get((s, tag), 1.10))
-                    cost += float(unit) * g * z
+                    g = float(gamma.get((s, mm), 1.10))
+                    add(f"Roof {s}-{mm}", float(unit) * g, z)
 
-    # areas de recintos
     for nm, attr in (("AreaKitchen","kitchen_area_cost"),
                      ("AreaFullBath","fullbath_area_cost"),
                      ("AreaHalfBath","halfbath_area_cost"),
                      ("AreaBedroom","bedroom_area_cost")):
-        v = m.getVarByName(nm)
-        if v is not None:
-            cost += float(getattr(ct, attr, 0.0)) * v
+        add(nm, float(getattr(ct, attr, 0.0)), m.getVarByName(nm))
 
-    # reja perimetral (opcional)
     has_reja = m.getVarByName("HasReja")
     if has_reja is not None:
-        cost += float(getattr(ct, "fence_cost_per_ft", 0.0)) * float(getattr(ct, "lot_frontage_ft", 60.0)) * has_reja
+        add("Reja lineal",
+            float(getattr(ct, "fence_cost_per_ft", 0.0)) * float(getattr(ct, "lot_frontage_ft", 0.0)),
+            has_reja)
 
     return cost
 
@@ -641,6 +628,9 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
 
     y_log, y_price = _attach_xgb_embed(m, bundle, feat_order, x)
 
+    m._lin_cost_expr = cost_expr
+    m._X_input = {"order": feat_order, "x": x}
+    
     # objetivo = precio - costo, con presupuesto
     m.setObjective(y_price - cost_var, GRB.MAXIMIZE)
     m.addConstr(cost_var <= budget, name="budget")

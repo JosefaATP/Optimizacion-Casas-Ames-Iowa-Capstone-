@@ -32,22 +32,55 @@ def build_cost_expr(m: gp.Model, x: Dict[str, gp.Var], ct, params: Dict) -> gp.L
     return cost
 
 
-def summarize_solution(m: gp.Model, x: Dict[str, gp.Var], base_row, ct, params: Dict) -> str:
-    get = lambda k: float(x[k].X) if k in x else None
-    def chosen(prefix, labels):
-        for lb in labels:
-            v = m._x.get(f"{prefix}{lb}")
-            if v is not None and v.X > 0.5:
-                return lb
-        return "(none)"
-    roof_s = chosen("roof_style_is_", ROOF_STYLE_TO_ORD)
-    roof_m = chosen("roof_matl_is_", ROOF_MATL_TO_ORD)
+def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_terms=12):
+    try:
+        print("\n==== HOUSE SUMMARY ====")
+        rv = getattr(m, "_report_vars", {})
+        def val(name):
+            v = rv.get(name)
+            return None if v is None else (v.X if hasattr(v, "X") else float(v))
+        print(f"pisos: floor1={val('Floor1')}, floor2={val('Floor2')}")
+        print(f"areas: 1st={val('1st Flr SF')}, 2nd={val('2nd Flr SF')}, bsmt={val('Total Bsmt SF')}, garage={val('Garage Area')}")
+        print(f"ambientes: beds={val('Bedrooms')}, bathsF={val('FullBath')}, bathsH={val('HalfBath')}, kitchen={val('Kitchen')}")
 
-    lines = []
-    lines.append("\n================= RESUMEN CONSTRUCCIÓN =================")
-    lines.append(f"Pisos: Floor1={get('Floor1'):.0f}, Floor2={get('Floor2'):.0f}")
-    lines.append(f"Area 1st/2nd: {get('1st Flr SF'):.0f} / {get('2nd Flr SF'):.0f}")
-    lines.append(f"PlanRoof={get('PlanRoofArea'):.0f}  ActualRoof={get('ActualRoofArea'):.0f}  Style={roof_s}  Matl={roof_m}")
-    lines.append(f"Garage: cars={get('Garage Cars'):.0f}, area={get('Garage Area'):.0f}")
-    lines.append(f"Ambientes: beds={get('Bedroom AbvGr'):.0f}, full={get('Full Bath'):.0f}, half={get('Half Bath'):.0f}, kitchens={get('Kitchen AbvGr'):.0f}, fp={get('Fireplaces'):.0f}")
-    return "\n".join(lines)
+        # techo elegido
+        roof = []
+        for s in ['Flat','Gable','Gambrel','Hip','Mansard','Shed']:
+            for mm in ['ClyTile','CompShg','Membran','Metal','Roll','Tar&Grv','WdShake','WdShngl']:
+                y = m.getVarByName(f"Y__{s}__{mm}")
+                if y and y.X > 0.5:
+                    roof.append(f"{s}-{mm}")
+        if roof:
+            print("roof:", ", ".join(roof))
+
+        # economia
+        yp = getattr(m, "_y_price_var", None)
+        yl = getattr(m, "_y_log_var", None)
+        if yp is not None:
+            print(f"precio_predicho = {yp.X:,.0f}")
+        if yl is not None:
+            print(f"log_precio = {yl.X:.4f}")
+
+        # costos top
+        if hasattr(m, "_cost_terms"):
+            terms = []
+            for label, coef, var in m._cost_terms:
+                v = var.X if hasattr(var, "X") else float(var)
+                amt = coef * v
+                if abs(amt) > 1e-6:
+                    terms.append((amt, label, v, coef))
+            terms.sort(reverse=True)
+            print("\n-- top costos --")
+            for amt, label, v, coef in terms[:top_cost_terms]:
+                print(f"{label:28s} = {amt:12,.0f}  (coef {coef:,.1f} * {v:,.1f})")
+        else:
+            print("[COST-BREAKDOWN] no _cost_terms en el modelo")
+
+        # auditoria XGB
+        xin = getattr(m, "_X_input", None)
+        if xin:
+            print("[AUDIT] hay _X_input disponible para comparar con el XGB fuera del MIP")
+        else:
+            print("[AUDIT] no hay _X_input para auditar")
+    except Exception as e:
+        print(f"[HOUSE SUMMARY] error: {e}")
