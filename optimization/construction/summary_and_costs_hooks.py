@@ -82,5 +82,33 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
             print("[AUDIT] hay _X_input disponible para comparar con el XGB fuera del MIP")
         else:
             print("[AUDIT] no hay _X_input para auditar")
+
+        
+        xin = getattr(m, "_X_input", None)
+        if xin:
+            order = xin["order"]; xdict = xin["x"]
+            rows = []
+            for i, col in enumerate(order):
+                v = xdict.get(col)
+                val = float(v.X) if v is not None else float("nan")
+                lb  = float(getattr(v, "LB", float("nan"))) if v is not None else float("nan")
+                ub  = float(getattr(v, "UB", float("nan"))) if v is not None else float("nan")
+                rows.append((i, col, val, lb, ub))
+            print("\n-- XGB INPUT (primeras 30) --")
+            for i, col, val, lb, ub in rows[:30]:
+                print(f"{i:3d} {col:25s} = {val:8.3f}  [{lb:,.1f},{ub:,.1f}]")
+            # escribe CSV
+            try:
+                import csv
+                with open("X_input_after_opt.csv", "w", newline="") as f:
+                    w = csv.writer(f)
+                    w.writerow(["idx","feature","value","LB","UB"])
+                    w.writerows(rows)
+                print("[AUDIT] guardado X_input_after_opt.csv")
+            except Exception as e:
+                print("[AUDIT] no se pudo escribir CSV:", e)
+
     except Exception as e:
         print(f"[HOUSE SUMMARY] error: {e}")
+    
+    return {"ok": True}

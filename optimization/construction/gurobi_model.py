@@ -48,7 +48,7 @@ def _tie_one_hot_to_x(m: gp.Model, x: Dict[str, gp.Var], feat_name: str, B: Dict
 
 # ===================== inputs en el orden del XGB (features) ======================
 
-def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row) -> tuple[List[str], Dict[str, gp.Var]]:
+def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row, lot_area) -> tuple[List[str], Dict[str, gp.Var]]:
     feat_order: List[str] = list(bundle.feature_names_in())
     x_vars: Dict[str, gp.Var] = {}
 
@@ -73,6 +73,25 @@ def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row) -> tuple[List[st
         # dummies OHE: forzar [0,1]
         if "_" in col and col not in NONNEG_LB0:
             lb, ub = 0.0, 1.0
+        
+        if col == "Lot Area":
+            lb = ub = float(lot_area)  # fijo
+        elif col == "1st Flr SF":
+            ub = min(ub, 0.60 * lot_area)
+        elif col == "2nd Flr SF":
+            ub = min(ub, 0.50 * lot_area)
+        elif col == "Total Bsmt SF":
+            ub = min(ub, 0.50 * lot_area)
+        elif col == "Gr Liv Area":
+            ub = min(ub, 0.80 * lot_area)
+        elif col == "Garage Area":
+            ub = min(ub, 0.20 * lot_area)
+        elif col == "Total Porch SF":
+            ub = min(ub, 0.25 * lot_area)
+        elif col in ("Wood Deck SF","Open Porch SF","Enclosed Porch","3Ssn Porch","Screen Porch"):
+            ub = min(ub, 0.25 * lot_area)
+        elif col == "Pool Area":
+            ub = min(ub, 0.10 * lot_area)
 
         if col == "Lot Area" and val is not None and not math.isnan(val):
             v = m.addVar(lb=float(val), ub=float(val), name=f"x_const__{col}")
@@ -111,6 +130,11 @@ def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
     # rango razonable de log-precio, ajusta si quieres: p in [30k, 1.0M] -> log p en [10.3, 13.8]
     xs = np.linspace(10.3, 13.8, 40)
     ys = np.exp(xs)  # si usaste log1p, cambia por: np.expm1(xs)
+
+    y_log.LB = float(min(xs)); y_log.UB = float(max(xs))
+    y_price.LB = float(min(ys)); y_price.UB = float(max(ys))
+    m.update()
+
 
     m.addGenConstrPWL(y_log, y_price, xs.tolist(), ys.tolist(), name="PWL_exp")
 
@@ -186,7 +210,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     lot_frontage = float(base_row.get("Lot Frontage", getattr(ct, "lot_frontage_ft", 60)))
 
     # features X en el orden del XGB
-    feat_order, x = _build_x_inputs(m, bundle, base_row)
+    feat_order, x = _build_x_inputs(m, bundle, base_row, lot_area)
 
         # fijar LOT AREA al valor de entrada
     key_lot = _find_x_key(x, "Lot Area")
@@ -626,11 +650,13 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     cost_var = m.addVar(lb=0.0, name="cost_model")
     m.addConstr(cost_var == cost_expr, name="def_cost_model")
 
+    # handlers que lee run_opt
+    m._lin_cost_expr  = cost_expr
+    m._cost_terms     = getattr(m, "_cost_terms", [])  # para [COST-BREAKDOWN]
+    m._X_input        = {"order": feat_order, "x": x} # para [AUDIT]
+
     y_log, y_price = _attach_xgb_embed(m, bundle, feat_order, x)
 
-    m._lin_cost_expr = cost_expr
-    m._X_input = {"order": feat_order, "x": x}
-    
     # objetivo = precio - costo, con presupuesto
     m.setObjective(y_price - cost_var, GRB.MAXIMIZE)
     m.addConstr(cost_var <= budget, name="budget")
