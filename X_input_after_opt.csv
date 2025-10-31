@@ -1,45 +1,45 @@
 idx,feature,value,LB,UB
-0,Lot Frontage,61.0,0.0,inf
+0,Lot Frontage,99.0,0.0,inf
 1,Lot Area,7000.0,7000.0,7000.0
 2,Utilities,-1.0,-1.0,8.0
 3,Overall Qual,10.0,0.0,inf
 4,Overall Cond,7.0,0.0,inf
 5,Year Built,2008.0,0.0,inf
 6,Year Remod/Add,2008.0,0.0,inf
-7,Mas Vnr Area,145.0,0.0,inf
+7,Mas Vnr Area,32.0,0.0,inf
 8,Exter Qual,3.0,0.0,inf
 9,Exter Cond,2.0,0.0,inf
 10,Bsmt Qual,4.0,0.0,inf
 11,Bsmt Cond,3.0,0.0,inf
-12,BsmtFin SF 1,1141.0,0.0,inf
-13,BsmtFin SF 2,108.0,0.0,inf
-14,Bsmt Unf SF,28.0,0.0,inf
+12,BsmtFin SF 1,0.0,0.0,inf
+13,BsmtFin SF 2,0.0,0.0,inf
+14,Bsmt Unf SF,0.0,0.0,inf
 15,Total Bsmt SF,0.0,0.0,3500.0
 16,Heating QC,4.0,0.0,inf
-17,1st Flr SF,451.0,0.0,4200.0
+17,1st Flr SF,450.0,0.0,4200.0
 18,2nd Flr SF,0.0,0.0,3500.0
-19,Low Qual Fin SF,80.0,0.0,inf
-20,Gr Liv Area,451.0,0.0,5600.0
+19,Low Qual Fin SF,108.0,0.0,inf
+20,Gr Liv Area,450.0,0.0,5600.0
 21,Bsmt Full Bath,0.0,0.0,inf
 22,Bsmt Half Bath,0.0,0.0,inf
 23,Full Bath,3.0,-0.0,6.0
 24,Half Bath,1.0,-0.0,6.0
-25,Bedroom AbvGr,4.0,-0.0,10.0
+25,Bedroom AbvGr,0.0,-0.0,10.0
 26,Kitchen AbvGr,2.0,-0.0,3.0
 27,Kitchen Qual,4.0,0.0,inf
-28,TotRms AbvGrd,6.0,0.0,inf
+28,TotRms AbvGrd,3.0,0.0,inf
 29,Fireplaces,2.0,-0.0,3.0
 30,Fireplace Qu,2.0,0.0,inf
-31,Garage Yr Blt,1975.0,0.0,inf
+31,Garage Yr Blt,2007.0,0.0,inf
 32,Garage Cars,3.0,-0.0,4.0
-33,Garage Area,550.0,0.0,1400.0
+33,Garage Area,504.0,0.0,1400.0
 34,Garage Qual,2.0,0.0,inf
 35,Garage Cond,2.0,0.0,inf
 36,Wood Deck SF,371.0,0.0,1050.0
-37,Open Porch SF,267.0,0.0,1750.0
-38,Enclosed Porch,34.0,0.0,1750.0
-39,3Ssn Porch,0.0,0.0,1750.0
-40,Screen Porch,150.0,0.0,1750.0
+37,Open Porch SF,225.0,0.0,1750.0
+38,Enclosed Porch,39.0,0.0,1750.0
+39,3Ssn Porch,23.0,0.0,1750.0
+40,Screen Porch,161.0,0.0,1750.0
 41,Pool Area,0.0,0.0,700.0
 42,Pool QC,0.0,0.0,inf
 43,Misc Val,54.0,0.0,inf

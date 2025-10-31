@@ -494,7 +494,21 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     BsmtHalfBath = m.addVar(vtype=GRB.INTEGER, lb=0, name="BsmtHalfBath")
 
     if tbsmt is not None:
-        m.addConstr(tbsmt == BsmtFinSF1 + BsmtFinSF2, name="7.8__bsmt_parts_sum")
+        # ===== PATCH B start: basement links =====
+        # crea variable para Bsmt Unf si no existe en x
+        BsmtUnfSF = _safe_get(x, "Bsmt Unf SF") or m.addVar(lb=0.0, name="BsmtUnfSF")
+
+        # enlaza features del XGB a tus variables
+        _link_if_exists(m, x, "Bsmt Unf SF", BsmtUnfSF)
+        _link_if_exists(m, x, "BsmtFin SF 1", BsmtFinSF1)
+        _link_if_exists(m, x, "BsmtFin SF 2", BsmtFinSF2)
+
+        # reemplaza la suma anterior por esta con Unf
+        if tbsmt is not None:
+            m.addConstr(tbsmt == BsmtFinSF1 + BsmtFinSF2 + BsmtUnfSF, name="7.8__bsmt_parts_sum")
+            _link_if_exists(m, x, "Total Bsmt SF", tbsmt)
+        # ===== PATCH B end =====
+
         m.addConstr(tbsmt <= U_bsmt * (1 - EXP["NA"]), name="7.18__bsmt_cap_if_not_na")
     m.addConstr(BsmtFinSF1 <= U_bsmt * phi1, name="7.18__sf1_cap_by_type")
     m.addConstr(BsmtFinSF2 <= U_bsmt * phi2, name="7.18__sf2_cap_by_type")
@@ -508,6 +522,28 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(BsmtHalfBath <= UbH * (1 - EXP["NA"]), name="7.18__bh_off_if_na")
     _link_if_exists(m, x, "Bsmt Full Bath", BsmtFullBath)
     _link_if_exists(m, x, "Bsmt Half Bath", BsmtHalfBath)
+
+    # ===== PATCH B extra: TotRms y min areas sobre rasante =====
+    # TotRms AbvGrd = dormitorios + cocinas + otras piezas (ajusta OtherRooms si ya lo tienes)
+    TotRms = _safe_get(x, "TotRms AbvGrd") or m.addVar(lb=0.0, name="TotRms")
+    m.addConstr(TotRms == Bedrooms + Kitchen + OtherRooms, name="7.xx__totrms_def")
+    _link_if_exists(m, x, "TotRms AbvGrd", TotRms)
+
+    # min areas por cuenta para evitar cuartos fantasma
+    m.addConstr(AreaFullBath >= 30 * FullBath,  name="7.xx__min_area_full_bath")
+    m.addConstr(AreaHalfBath >= 15 * HalfBath,  name="7.xx__min_area_half_bath")
+    m.addConstr(AreaKitchen  >= 120 * Kitchen,  name="7.xx__min_area_kitchen")
+    m.addConstr(AreaBedroom  >= 100 * Bedrooms, name="7.xx__min_area_bedroom")
+
+    # la suma de areas funcionales no puede pasar el total de 1ro+2do piso
+    if x1 is not None and x2 is not None:
+        m.addConstr(
+            AreaBedroom + AreaKitchen + AreaFullBath + AreaHalfBath + AreaOther1 + AreaOther2
+            <= x1 + x2,
+            name="7.xx__areas_leq_floors"
+        )
+    # ===== fin PATCH B extra =====
+
 
     # 7.15 exteriores 1st vs 2nd: flag mismo material
     SameMaterial = m.addVar(vtype=GRB.BINARY, name="SameMaterial")
@@ -570,45 +606,61 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(OtherRooms1 >= 1, name="7.22.2__other_min_on_1st")
     m.addConstr(OtherRooms2 <= 8 * Floor2, name="7.22.3__other_cnt_2nd_if_on")
 
-    # 7.23 area exterior porimetro (aprox simple)
+    # 7.23 area exterior y perimetros (lineal con big-M)
     smin, smax = 20.0, 70.0
 
     P1 = m.addVar(lb=0.0, name="P1")
     P2 = m.addVar(lb=0.0, name="P2")
     AreaExterior = m.addVar(lb=0.0, name="AreaExterior1st")
 
-    # UB seguro: usa smin, crece con area y no cruza con el LB constante
+    # bounds max de area por piso que ya tienes
+    U1 = getattr(ct, "alpha1", 0.6) * lot_area   # ej 0.6 * lot_area
+    U2 = getattr(ct, "alpha2", 0.5) * lot_area   # ej 0.5 * lot_area
+
+    # upper bound seguro de perimetro por piso (cuando el piso existe)
+    Uperim1 = 2 * ((U1 / smin) + smin)  # lineal en x1, constante en big-M
+    Uperim2 = 2 * ((U2 / smin) + smin)
+
     if x1 is not None:
-        # P1 <= 2 * (x1/smin + smin) cuando hay primer piso
-        m.addConstr(P1 <= 2 * ((x1 / smin) + smin) * Floor1, name="7.23__p1_ub_safe")
-        # LB constante seguro: si hay primer piso, a lo menos un rectangulo 2*smin por smin
-        m.addConstr(P1 >= 4 * smin * Floor1, name="7.23__p1_lb_safe")
+        # si hay 1er piso: P1 <= 2*(x1/smin + smin); si no hay: P1 <= 0
+        m.addConstr(P1 <= 2*((x1 / smin) + smin) + Uperim1*(1 - Floor1), name="7.23__p1_ub_linear")
+        m.addConstr(P1 <= Uperim1 * Floor1, name="7.23__p1_onoff")
+        # LB seguro cuando hay 1er piso
+        m.addConstr(P1 >= 4*smin * Floor1, name="7.23__p1_lb_linear")
 
     if x2 is not None:
-        # P2 <= 2 * (x2/smin + smin) cuando hay segundo piso
-        m.addConstr(P2 <= 2 * ((x2 / smin) + smin) * Floor2, name="7.23__p2_ub_safe")
-        # LB constante seguro en el segundo piso
-        m.addConstr(P2 >= 4 * smin * Floor2, name="7.23__p2_lb_safe")
+        # si hay 2do piso: P2 <= 2*(x2/smin + smin); si no hay: P2 <= 0
+        m.addConstr(P2 <= 2*((x2 / smin) + smin) + Uperim2*(1 - Floor2), name="7.23__p2_ub_linear")
+        m.addConstr(P2 <= Uperim2 * Floor2, name="7.23__p2_onoff")
+        # LB seguro cuando hay 2do piso
+        m.addConstr(P2 >= 4*smin * Floor2, name="7.23__p2_lb_linear")
 
-    # si hay segundo piso, exige P1 >= P2. si no hay, no impone nada
-    m.addConstr(P1 >= P2 * Floor2, name="7.23__p1_ge_p2_if_2nd")
+    # si hay segundo piso, exige P1 >= P2
+    m.addConstr(P1 >= P2 - Uperim2*(1 - Floor2), name="7.23__p1_ge_p2_if_2nd")
 
     # area de fachada exterior
     Hext = getattr(ct, "Hext", 7.0)
     m.addConstr(AreaExterior == Hext * (P1 + P2), name="7.23.1__area_ext")
 
-
+    # materiales de Exterior1st (usar el one-hot existente)
     ext1_opts = ["VinylSd","MetalSd","Wd Sdng","HdBoard","Stucco","Plywood","CemntBd","BrkFace","BrkComm","WdShing","AsbShng","Stone","ImStucc","AsphShn","CBlock"]
     W = {}
     Uext = getattr(ct, "Uext", 4500.0)
+
+    # IMPORTANTE: necesitas tener creado antes:
+    #   EXT1 = _one_hot(m, "Exterior1st", ext1_opts)
+    #   _tie_one_hot_to_x(m, x, "Exterior 1st", EXT1)
+
     for e1 in ext1_opts:
         w = m.addVar(lb=0.0, name=f"W__{e1}")
         W[e1] = w
-        b = EXT1[e1]  # usa el one-hot ya creado, evita getVarByName(None)
+        b = EXT1[e1]  # no uses getVarByName, usa el one-hot
         m.addConstr(w <= AreaExterior, name=f"7.23.1__w_leq_area__{e1}")
         m.addConstr(w <= Uext * b, name=f"7.23.1__w_leq_u__{e1}")
         m.addConstr(w >= AreaExterior - Uext * (1 - b), name=f"7.23.1__w_ge_lin__{e1}")
     m.addConstr(gp.quicksum(W.values()) == AreaExterior, name="7.23.1__w_sum")
+
+
 
  ##REVISAR. NO DBERIA NECESITAR ESTO SI ESTÁN BIEN PUESTAS LAAS RESTRICCIONES
     # === UBs seguros para variables X existentes ===
