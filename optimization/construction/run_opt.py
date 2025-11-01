@@ -40,7 +40,24 @@ def audit_cost_breakdown_vars(m: gp.Model, top: int = 20):
         vs = expr.getVars(); cs = expr.getCoeffs()
         X  = m.getAttr("X", vs)
     except Exception:
-        print("[COST-BREAKDOWN] no se pudo leer terminos")
+        # Fallback: usa _cost_terms si getVars falla
+        terms = getattr(m, "_cost_terms", [])
+        if not terms:
+            print("[COST-BREAKDOWN] no se pudo leer terminos")
+            return
+        rows = []
+        for label, coef, var in terms:
+            try:
+                xv = var.X if hasattr(var, "X") else float(var)
+                contr = float(coef) * float(xv)
+            except Exception:
+                continue
+            if abs(contr) > 1e-6:
+                rows.append((label, float(coef), float(xv), contr))
+        rows.sort(key=lambda t: abs(t[3]), reverse=True)
+        print("\n[COST-BREAKDOWN] top terminos de costo (fallback):")
+        for name, c, x, contr in rows[:top]:
+            print(f"  {name:<35s} coef={c:>10.4f} * X={x:>10.4f}  => {contr:>10.2f}")
         return
     rows = []
     for v, c, x in zip(vs, cs, X):
@@ -59,18 +76,34 @@ def audit_cost_breakdown_vars(m: gp.Model, top: int = 20):
 def audit_predict_outside(m: gp.Model, bundle: XGBBundle):
     """Predice fuera de Gurobi con el mismo X_in que vio el embed (si existe)."""
     X_in = getattr(m, "_X_input", None)
-    if X_in is None or getattr(X_in, "empty", True):
+    if X_in is None:
         print("[AUDIT] no hay _X_input para predecir fuera")
         return
-    # materializa Vars -> escalares
-    Z = X_in.copy()
-    for c in Z.columns:
-        v = Z.loc[0, c]
-        if hasattr(v, "X"):
+
+    # Soporta el formato dict {order: List[str], x: Dict[str, Var]}
+    if isinstance(X_in, dict) and "order" in X_in and "x" in X_in:
+        order = list(X_in["order"])  # tipo: List[str]
+        xvars = X_in["x"]             # tipo: Dict[str, gp.Var]
+        import pandas as pd
+        Z = pd.DataFrame([[0.0]*len(order)], columns=order)
+        for c in order:
+            v = xvars.get(c)
+            if v is None:
+                # puede existir con nombre aproximado
+                try:
+                    v = m.getVarByName(f"x_{c}") or m.getVarByName(f"x_const__{c}")
+                except Exception:
+                    v = None
             try:
-                Z.loc[0, c] = float(v.X)
+                Z.loc[0, c] = float(v.X) if hasattr(v, "X") else float(v)
             except Exception:
                 Z.loc[0, c] = 0.0
+    else:
+        # ya viene como DataFrame
+        Z = X_in.copy()
+        if getattr(Z, "empty", True):
+            print("[AUDIT] _X_input vacío")
+            return
     try:
         y_hat = float(bundle.predict(Z).iloc[0])
         print(f"[AUDIT] predict fuera = {y_hat:,.2f}")
@@ -90,6 +123,8 @@ def main():
     ap.add_argument("--budget", type=float, required=True)
     ap.add_argument("--basecsv", type=str, default=None, help="ruta alternativa al CSV base")
     ap.add_argument("--debug-xgb", action="store_true")
+    ap.add_argument("--fast", action="store_true", help="modo rápido (TimeLimit bajo)")
+    ap.add_argument("--deep", action="store_true", help="modo profundo (TimeLimit alto)")
     args = ap.parse_args()
 
     # datos del terreno/barrio, etc (parametros fijos)
@@ -108,8 +143,8 @@ def main():
             "LandSlope": "Gtl",
             "BldgType": "1Fam",
             "HouseStyle": "1Story",
-            "YearBuilt": 2005,
-            "YearRemodAdd": 2005,
+            "YearBuilt": 2025,
+            "YearRemodAdd": 2025,
             "Foundation": "PConc",
             "Condition 1": "Norm",
             "Condition 2": "Norm",
@@ -120,7 +155,7 @@ def main():
             "Bsmt Full Bath": 0,
             "Bsmt Half Bath": 0,
             "Month Sold": 6,
-            "Year Sold": 2008,
+            "Year Sold": 2025,
             "Sale Type": "WD",
             "Sale Condition": "Normal",
             # areas por defecto 0 para que el MIP las decida
@@ -146,11 +181,12 @@ def main():
         base_defaults.update({
             "OverallQual": 10,
             "OverallCond": 10,
-            "Exter Qual": "Ex",
-            "ExterCond": "Ex",
-            "Bsmt Qual": "Ex",
-            "Heating QC": "Ex",
-            "Kitchen Qual": "Ex",
+            "Exter Qual": 4,
+            "ExterCond": 4,
+            "Bsmt Qual": 4,
+            "Heating QC": 4,
+            "Kitchen Qual": 4,
+            "Utilities": 3,
             "Low Qual Fin SF": 0.0,
         })
 
@@ -173,13 +209,24 @@ def main():
     m: gp.Model = build_mip_embed(base_row=base_row, budget=args.budget, ct=ct, bundle=bundle)
 
     # parametros de solucion
+    # time limit según flags
+    time_limit = PARAMS.time_limit
+    if args.fast:
+        time_limit = 60
+    if args.deep:
+        time_limit = 900
+
     m.Params.MIPGap         = PARAMS.mip_gap
-    m.Params.TimeLimit      = PARAMS.time_limit
+    m.Params.TimeLimit      = time_limit
     m.Params.LogToConsole   = PARAMS.log_to_console
     m.Params.FeasibilityTol = 1e-7
     m.Params.IntFeasTol     = 1e-7
     m.Params.OptimalityTol  = 1e-7
     m.Params.NumericFocus   = 3
+    # Ayudas de búsqueda que no sacrifican optimalidad (solo guían el árbol y heurísticos)
+    m.Params.MIPFocus       = 1
+    m.Params.Heuristics     = 0.2
+    m.Params.Cuts           = 1
 
     m.optimize()
 
@@ -195,19 +242,19 @@ def main():
             dump_infeasibility_report(m, tag=tag)
         except Exception as e:
             print("[DEBUG] fallo dump_infeasibility_report:", e)
+        # Mensaje específico si el budget está en el IIS
+        try:
+            m.computeIIS()
+            flags = [c for c in m.getConstrs() if getattr(c, "IISConstr", 0)]
+            if any((getattr(c, "ConstrName", "") == "budget") for c in flags):
+                print("[BUDGET] Presupuesto insuficiente para la construcción mínima.")
+        except Exception:
+            pass
         # si quieres, puedes salir aqui
         return
 
     try:
-        picks, areas = summarize_solution(m)
-        print("\n[HOUSE SUMMARY]")
-        for k,v in picks.items():
-            if v is not None:
-                print(f"  {k:12s}: {v}")
-        if areas:
-            print("  areas (ft2):")
-            for k,v in areas.items():
-                print(f"    {k:15s} = {v:,.0f}")
+        summarize_solution(m)
     except Exception as e:
         print(f"[HOUSE SUMMARY] no disponible: {e}")
 
@@ -244,7 +291,7 @@ def main():
         pass
 
     # breakdown simple
-    audit_cost_breakdown_vars(m, top=25)
+    audit_cost_breakdown_vars(m, top=50)
     audit_predict_outside(m, bundle)
 
     print("\n" + "="*60)

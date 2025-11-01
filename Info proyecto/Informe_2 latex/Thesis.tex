@@ -1,0 +1,323 @@
+% Select one class
+%\documentclass{pucthesis}		% For DVI
+\documentclass[pdftex]{pucthesis}	% For pdfLaTeX
+%\documentclass[spanish]{pucthesis}		% For DVI, in spanish
+%\documentclass[pdftex,spanish]{pucthesis}	% For pdfLaTeX, in spanish
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      Nota: si usas español, algunos nombres      %
+%      debes cambiarlos manualmente en este     %
+%        documento. En teoría, nunca deberías       %
+%           modificar el archivo pucthesis.cls              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%
+%   Packages	 %
+%%%%%%%%%
+
+% Floats
+\usepackage{graphicx}
+\usepackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+\usepackage{subfigure}
+\usepackage{color}
+
+% Math packages
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+% Closest font to Times New Roman
+\usepackage{times}
+
+% To make pretty tables
+\usepackage{booktabs}
+\usepackage{multirow}
+
+% To avoid underfull errors in the bibliography
+\usepackage{etoolbox}
+\apptocmd{\sloppy}{\hbadness 10000\relax}{}{}
+
+% To make cites and references
+\usepackage[hidelinks,pdfusetitle,pdfdisplaydoctitle]{hyperref}
+\usepackage[notocbib]{apacite} 
+
+\usepackage{doi}
+\renewcommand{\doitext}{}
+
+
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{makecell}
+\sisetup{
+  output-decimal-marker = {,},
+  group-separator       = {.},
+  group-minimum-digits  = 4,
+  detect-all
+}
+
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{ltablex}   % tabularx + longtable
+\keepXColumns          % mantiene los anchos X en todas las páginas
+
+\usepackage{booktabs,array,tabularx} % ya los usas
+\usepackage{ragged2e}                % \RaggedRight con guionado
+\usepackage[final]{microtype}        % opcional, mejora cortes
+\setlength{\emergencystretch}{2em}   % evita espacios gigantes en líneas
+
+% preambulo
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=none,
+  numbers=none,
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,     % respeta espacios para la alineacion
+  xleftmargin=0pt,     % sin margen izquierdo extra
+  linewidth=\linewidth,
+  captionpos=b,
+  % mapear flechas y simbolos
+  literate=
+    {→}{{$\to$}}1
+    {⇒}{{$\Rightarrow$}}1
+    {←}{{$\leftarrow$}}1
+    {↔}{{$\leftrightarrow$}}1
+    {Δ}{{$\Delta$}}1
+    {≡}{{$\equiv$}}1
+    {–}{{-}}1
+    % extra: si tu salida usa ASCII, convertirlo a flecha bonita:
+    {->}{{$\to$}}2
+    {=>}{{$\Rightarrow$}}2
+}
+
+\usepackage[spanish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[final]{microtype}
+
+% dale más “aire” al ajuste de líneas
+\setlength{\emergencystretch}{3em} % prueba 3em–6em
+\tolerance=2000
+\hbadness=2000
+
+
+%--------- NEW ENVIRONMENTS --------- You are free to remove or use it
+\newtheorem{definition}{\bf Definition}[chapter]
+\newtheorem{property}{Property}[chapter]
+\newtheorem{claim}{Claim}[chapter]
+\newtheorem{lemma}{\bf Lemma}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{\noindent \bf Theorem}[chapter]
+\newtheorem{corollary}{\bf Corollary}[chapter]
+\newtheorem{pf}{Proof}[chapter]
+\newtheorem{example}{\bf Example}[chapter]
+\newtheorem{remark}{Remark}[chapter]
+
+% En caso de que el título sea muy largo, se puede ajustar el espacio
+% antes y después de este en las dos primeras páginas para que quede centrado.
+
+%\makeatletter
+%  \setlength{\beftitle}{105\p@\@plus24\p@}
+%  \setlength{\afttitle}{65\p@}
+%\makeatother
+
+\usepackage[titletoc]{appendix} % crea la sección "s" en el TOC
+% Si quieres textos en español:
+\renewcommand{\appendixname}{ANEXO}
+\renewcommand{\appendixtocname}{ANEXOS}
+\renewcommand{\appendixpagename}{ANEXOS}
+
+
+\begin{document}
+
+
+
+
+
+\mdate{Month Day, Year}         % date manuscript changed
+\version{1}                                     % manuscript version #
+
+\title[TASACIÓN DE VIVIENDAS Y DISEÑO DE LA “CASA ÓPTIMA\\ GRUPO 05]
+   {\bf TASACIÓN DE VIVIENDAS Y DISEÑO DE LA “CASA ÓPTIMA\\ GRUPO 05}       
+\author[Integrantes:]{Integrantes:\\
+\textnormal{\small{
+Josefa Abett de la Torre\\
+Ignacio Cuevas\\
+Valentina Díaz\\
+Arantxa Salas\\
+Rocío Toledo\\
+Sebastián Valdés\\
+Antonia Zumarán}
+}
+}
+
+\address{Escuela de Ingenier\'ia\\
+                   Pontificia Universidad Cat\'olica de Chile\\ 
+                   Vicu\~na Mackenna 4860\\
+                  Santiago, Chile\\
+                  {\it Tel.\/} : 56 (2) 354-2000}
+
+
+\advisor                    {\textbf{Profesor Guía:} Matías De Geyter}
+\ogrsmember                 {\textbf{Ayudante Tutor:} Alberto Ureta}
+\date                                 {Octubre 2025}
+\copyrightname             {Grupo 5}
+\copyrightyear               {2025}
+
+%%%%%%%%%%%%%%%%%%%%
+%       PRELIMINARIES                              %
+%----------------------------------------------------%
+%      page i & ii: cover page                   %
+%      page iii: dedication                         %
+%%%%%%%%%%%%%%%%%%%%
+
+\NoChapterPageNumber
+\pagenumbering{roman}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%
+%   EXTRA PAGES                                     %
+%----------------------------------------------------%
+%      page --: not used                             %
+%%%%%%%%%%%%%%%%%%%%
+
+%\newpage
+%\thispagestyle{empty}
+
+%----------------------------------------------------------------------%
+
+%----------------------------------------------------------------------%
+
+%%%%%%%%%%%%%%%%%%
+%          page v & up ---                      %
+%            Table of contents              %
+%            List of figures                     %
+%            List of tables                      %
+%%%%%%%%%%%%%%%%%%
+
+\pdfbookmark{\contentsname}{toc}
+\tableofcontents
+\phantomsection \label{listoffigures}
+\listoffigures
+\phantomsection \label{listoftables}
+\listoftables
+\cleardoublepage
+
+%----------------------------------------------------------------------%
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+%      page x & xi: ABSTRACT - RESUMEN        %
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+\phantomsection \label{resumen}
+\chapter*{RESUMEN}
+\input{./chapters/resumen.tex}
+\cleardoublepage
+
+%%%%%%%%%%%%%
+%   TEXT  OF THESIS     %
+%%%%%%%%%%%%%
+
+\pagenumbering{arabic}
+
+\par\bigskip     
+\begingroup 
+\let\clearpage\relax  
+\chapter[INTRODUCCIÓN]{INTRODUCCIÓN}
+\input{./chapters/introduction.tex}
+\endgroup
+
+\par\bigskip     
+\begingroup 
+\let\clearpage\relax  
+\chapter[DESCRIPCIÓN DEL PROBLEMA]{DESCRIPCIÓN DEL PROBLEMA} \label{ch1}
+\input{./chapters/chapter1.tex}
+\endgroup
+
+\par\bigskip     
+\begingroup
+\let\clearpage\relax  
+\chapter[DISCUSIÓN METODOLÓGICA]{DISCUSIÓN METODOLÓGICA} \label{ch2}
+\input{./chapters/chapter2.tex}
+\endgroup
+
+\par\bigskip     
+\begingroup
+\let\clearpage\relax  
+\chapter[TRABAJO DESARROLLADO]{TRABAJO DESARROLLADO} \label{ch3}
+\input{./chapters/chapter3.tex}
+\endgroup
+
+\par\bigskip     
+\begingroup
+\let\clearpage\relax 
+\chapter[RESULTADOS]{RESULTADOS} \label{ch4}
+\input{./chapters/chapter4.tex}
+\endgroup
+
+
+\par\bigskip     
+\begingroup
+\let\clearpage\relax 
+\chapter[CONCLUSIONES]{CONCLUSIONES}
+\input{./chapters/conclusions.tex}
+\endgroup
+
+%%%%%%%%%%%%%
+%       REFERENCES        %
+%%%%%%%%%%%%%
+
+\cleardoublepage
+\phantomsection \label{references}
+\bibliographystyle{apacite}
+\renewcommand{\bibname}{BIBLIOGRAFÍA}
+
+%%%% ACTIVAR SIGUIENTES 3 LINEAS SI POSTGRADO RECHAZA LA BIBLIOGRAFIA
+%\setlength{\bibleftmargin}{0em}
+%\setlength{\bibindent}{0em}
+%\setlength{\bibitemsep}{1em}
+
+
+\bibliography{Thesis}
+
+%%%%%%%%%%%%
+%      APPENDICES      %
+%%%%%%%%%%%%
+
+% --- FIN DEL CUERPO PRINCIPAL ---
+\clearpage            % cierra figuras/tablas pendientes
+\appendix             % cambia numeración de capítulos a A, B, ...
+
+\chapter{Tablas}\label{app:tablas}
+\input{./chapters/appendix1.tex}
+
+\chapter{Figuras}\label{app:figuras}
+\input{./chapters/appendix2.tex}
+
+\chapter{Árbol de decisión}\label{app:Árbol de decisión}
+\input{./chapters/appendix5.tex}
+
+\chapter{Modelo Remodelación}\label{app:Remodelación}
+\input{./chapters/appendix3.tex}
+
+\chapter{Modelo Construcción}\label{app:Construcción}
+\input{./chapters/appendix4.tex}
+
+\chapter{Código}\label{app:código}
+\input{./chapters/appendix6.tex}
+
+\chapter{Ecuaciones Varias}\label{app:eq}
+\input{./chapters/appendix7.tex}
+
+\chapter{Github}\label{app:Github}
+\input{./chapters/appendix8.tex}
+
+\end{document}

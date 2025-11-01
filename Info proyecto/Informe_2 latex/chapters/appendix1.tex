@@ -1,0 +1,1100 @@
+
+\keepXColumns
+\setlength{\tabcolsep}{5pt}     % padding lateral de columnas
+\renewcommand{\arraystretch}{1.15} % altura de fila
+
+
+% ---------- TABLA: Tratamiento de valores nulos y correcciones ----------
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\emergencystretch}{2em}
+
+\begin{tabularx}{\textwidth}{
+  >{\RaggedRight\hspace{0pt}\arraybackslash}p{4.0cm}  % Variable / Par
+  >{\RaggedRight\hspace{0pt}\arraybackslash}X         % Problema
+  >{\RaggedRight\hspace{0pt}\arraybackslash}p{3.0cm}  % Decisión
+  >{\RaggedRight\hspace{0pt}\arraybackslash}X         % Justificación
+}
+\caption{Resumen de valores nulos y correcciones aplicadas.}
+\label{tab:valores_nulos_y_correcciones}
+\\
+\toprule
+\makecell[tl]{\textbf{Variable /}\\\textbf{Par de variables}} &
+\textbf{Problema} &
+\textbf{Decisión} &
+\textbf{Justificación}
+\\
+\midrule
+\endfirsthead
+
+\toprule
+\makecell[tl]{\textbf{Variable /}\\\textbf{Par de variables}} &
+\textbf{Problema} &
+\textbf{Decisión} &
+\textbf{Justificación}
+\\
+\midrule
+\endhead
+
+\bottomrule
+\endlastfoot
+
+\textit{GarageYrBlt} &
+Datos faltantes cuando no hay \textit{garage}. &
+Reemplazar por 0. &
+Consistente: si no hay \textit{garage}, nunca se construyó. \\
+
+\textit{GarageYrBlt} &
+Error de \textit{input}: 2207 en vez de 2007. &
+Corregido a 2007. &
+Basado en año de construcción/remodelación reportado en la literatura. \\
+
+\textit{LotFrontage} &
+490 datos faltantes. &
+Imputación por mediana de vecindario; 3 filas sin información \textrightarrow{} eliminadas. &
+En viviendas contiguas la línea de frente es similar; la imputación por mediana de \textit{neighborhood} está respaldada en la literatura. \\
+
+\textit{Electrical} &
+1 fila con dato faltante. &
+Fila eliminada. &
+Impacto mínimo en el \textit{dataset}. \\
+
+\textit{MasVnrArea} y \textit{MasVnrType} &
+23 datos faltantes y alta colinealidad. &
+Eliminadas. &
+Información contenida por otras variables (p.\,ej., \textit{YearBuilt} y \textit{OverallQual}); se reduce colinealidad. \\
+
+\textit{GrLivArea} $>$ 4000 &
+5 \textit{outliers} extremos. &
+Filas eliminadas. &
+No representativos; generan distorsión en el ajuste. \\
+
+\textit{Bsmt Half Bath} y \textit{Bsmt Full Bath} &
+NA que significa “no tiene”. &
+Reemplazo por 0. &
+Consistente con la definición del \textit{dataset} (0 cuando no existe el ítem). \\
+
+\textit{Garage} (1 fila) &
+Falta de información en variables sobre el \textit{garage}. &
+Fila eliminada. &
+No hay información suficiente (excepto \textit{GarageType}); no es posible imputar de forma confiable. \\
+
+\textit{Bsmt} (5 filas) &
+Variables del sótano con datos faltantes imposibles de inferir. &
+Filas eliminadas. &
+Impacto en el precio promedio $\approx$ 30 USD; efecto insignificante y evita sesgo de imputación. \\
+\end{tabularx}
+\normalsize
+% ---------- FIN TABLA ----------
+
+% ---------- TABLA: Depuración y decisiones sobre variables numéricas ----------
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\emergencystretch}{2em}
+
+\begin{tabularx}{\textwidth}{
+  >{\RaggedRight\hspace{0pt}\arraybackslash}X         % Variable / Par
+  >{\RaggedRight\hspace{0pt}\arraybackslash}X         % Problema
+  >{\RaggedRight\hspace{0pt}\arraybackslash}p{2.8cm}  % Correlación (izquierda)
+  >{\RaggedRight\hspace{0pt}\arraybackslash}p{2.4cm}  % Decisión
+  >{\RaggedRight\hspace{0pt}\arraybackslash}X         % Justificación
+}
+\caption{Depuración y decisiones sobre variables numéricas.}
+\label{tab:depuracion_numericas}
+\\
+\toprule
+\makecell[tl]{\textbf{Variable /}\\\textbf{Par de variables}} &
+\textbf{Problema} &
+\makecell[l]{\textbf{Correlación}\\\textbf{con \textit{SalePrice}}} &
+\textbf{Decisión} &
+\textbf{Justificación} \\
+\midrule
+\endfirsthead
+
+\toprule
+\makecell[tl]{\textbf{Variable /}\\\textbf{Par de variables}} &
+\textbf{Problema} &
+\makecell[l]{\textbf{Correlación}\\\textbf{con \textit{SalePrice}}} &
+\textbf{Decisión} &
+\textbf{Justificación} \\
+\midrule
+\endhead
+
+\bottomrule
+\endlastfoot
+
+% --- FILAS ---
+
+
+\textit{Bsmt Fin SF 2} &
+Muchos \textit{outliers} (347) y baja correlación con \textit{SalePrice}. &
+0{,}006 &
+Eliminarla &
+Aporta poco valor explicativo y agrega ruido. En el cuerpo ya se muestra que de todas formas se elimina por redundancia.
+\\
+
+\(\textbf{Total Porch} = \textit{Screen Porch} + \textit{3Ssn Porch} + \textit{Open Porch SF} + \textit{Enclosed Porch}\) &
+Baja correlación individual con \textit{SalePrice} y la información queda dividida entre variables del mismo espacio. &
+\makecell[l]{Screen Porch: 0{,}12\\ 3Ssn Porch: 0{,}03\\ Open Porch SF: 0{,}32\\ Enclosed Porch: $-0{,}12$} &
+Sumar y crear \textbf{Total Porch} &
+El total es más relevante; se reduce multicolinealidad y doble conteo entre porches.
+\\
+
+\(\textit{Gr Liv Area}\) vs \(\textit{1st Flr SF} + \textit{2nd Flr SF}\) &
+Combinación lineal; ambas suman \textit{Gr Liv Area}. &
+\makecell[l]{Gr Liv: 0{,}72\\ 1st Flr: 0{,}64\\ 2nd Flr: 0{,}26} &
+Mantener \textit{Gr Liv Area} &
+Resumen más completo; mayor correlación con el precio. Disminuye redundancia.
+\\
+
+\(\textit{Gr Liv Area}\) vs \(\textit{TotRms AbvGrd}\) &
+Alta correlación (α≈0{,}81). &
+\makecell[l]{TotRms: 0{,}49} &
+Mantener \textit{Gr Liv Area} &
+Es la variable numérica más correlacionada con \textit{SalePrice}; \textit{TotRms} es menos informativa.
+\\
+
+\textit{Mas Vnr Area} y \textit{Mas Vnr Type} &
+Alta correlación con otras variables; además 23 faltantes. &
+— &
+Eliminar ambas &
+No son esenciales y se solapan con \textit{Year Built} y \textit{Overall Qual}; no se pierde información relevante.
+\\
+
+\textit{Garage Area} vs \textit{Garage Cars} &
+Correlación alta (0{,}86). &
+\makecell[l]{Area: 0{,}64\\ Cars: 0{,}65} &
+Mantener \textit{Garage Cars}; eliminar \textit{Garage Area} &
+Misma información práctica; \textit{Garage Cars} es más interpretable y correlaciona levemente mejor.
+\\
+
+\textit{Misc Val} &
+Baja correlación y 101 \textit{outliers}. &
+$-0{,}01$ &
+Eliminarla &
+Poco valor explicativo; nos quedamos con la categórica \textit{Misc Feature}.
+\\
+
+\textit{Pool Area} &
+Baja correlación; ligada a \textit{Pool QC}. &
+0{,}04 &
+Eliminarla &
+\textit{Pool QC} ya capta presencia/calidad; \textit{Pool Area}=0 suele implicar “no tiene piscina”.
+\\
+
+\textit{Mo Sold} y \textit{Yr Sold} &
+Baja correlación con \textit{SalePrice}; poca relevancia para el objetivo. &
+\makecell[l]{Mo Sold: 0{,}04\\ Yr Sold: $-0{,}03$} &
+Eliminar ambas &
+Mes y año de venta no son variables influyentes en este proyecto.
+\\
+% --- FIN FILAS ---
+\end{tabularx}
+\normalsize
+% ---------- FIN TABLA ----------
+
+
+
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+
+
+\begin{tabularx}{\textwidth}{
+  >{\raggedright\arraybackslash}p{3.1cm}  % Par / Variable (fijo)
+  >{\raggedright\arraybackslash}p{3.3cm}  % Problema (fijo)
+  >{\raggedright\arraybackslash}p{3.0cm}  % Decisión (fijo)
+  >{\raggedright\arraybackslash}X         % Justificación (flex)
+}
+\caption{Resumen de decisiones de depuración para variables cualitativas.}
+\label{tab:depuracion_cualitativas}
+\\
+\toprule
+\textbf{Par / Variable} & \textbf{Problema detectado} & \textbf{Decisión} & \textbf{Justificación} \\
+\midrule
+\endfirsthead
+
+\multicolumn{4}{c}{\footnotesize \emph{(Continúa de la página anterior)}}\\
+\toprule
+\textbf{Par / Variable} & \textbf{Problema detectado} & \textbf{Decisión} & \textbf{Justificación} \\
+\midrule
+\endhead
+
+\midrule
+\multicolumn{4}{r}{\footnotesize \emph{Continúa en la página siguiente}}\\
+\endfoot
+
+\bottomrule
+\endlastfoot
+
+% --- FILAS ---
+\textit{Street}                 & 99,6\% con \textit{Pave}           & Eliminada                    & Variable prácticamente constante; no aporta información. \\
+\textit{Utilities}              & 99\% \textit{AllPub}               & Eliminada                    & Sin variabilidad; literatura recomienda descartar \citep{marcelino2016}. \\
+\textit{Condition2}             & 99\% \textit{Norm}                 & Eliminada                    & Constante en casi todo el \textit{dataset}. \\
+\textit{RoofMatl}               & 98\% \textit{CompShg}              & Simplificada a binaria (0/1) & Consistencia; evita categorías con muy baja frecuencia. \\
+\textit{PoolQC}                 & 99,6\% ``No tiene''                & Simplificada a binaria (0/1) & Mantiene presencia/ausencia de piscina; la escala de calidad no es representativa. \\
+\textit{Alley}                  & Muchos NA (sin \textit{alley})     & Simplificada a binaria (0/1) & Presencia/ausencia mantiene información esencial. \\
+\textit{Fence}                  & Muchos NA (sin \textit{fence})     & Simplificada a binaria (0/1) & Consistencia; evita categorías muy infrecuentes. \\
+\textit{MiscFeature}            & Muchos NA (sin \textit{misc})      & Simplificada a binaria (0/1) & Misma razón anterior. \\
+\textit{PavedDrive}             & Codificada Y/N                     & Simplificada a binaria (0/1) & Versión binaria más interpretable. \\
+\textit{MSSubClass} vs \textit{BldgType} & Cramér's $V = 0{,}88$              & Mantener \texttt{MSSubClass} & Mayor relevancia para \textit{SalePrice}. \\
+\textit{MSSubClass} vs \textit{HouseStyle} & Cramér's $V = 0{,}83$            & Mantener \texttt{MSSubClass} & Literatura respalda eliminar \texttt{HouseStyle} \citep{cock2011,marcelino2016}. \\
+\textit{Exterior1st} vs \textit{Exterior2nd} & Cramér's $V = 0{,}74$          & Mantener \texttt{Exterior1st} & En Kaggle y literatura se elimina \texttt{Exterior2nd} \citep{marcelino2016}. \\
+\textit{GarageCond} vs \textit{GarageQual} & \textit{Spearman} $\rho \approx 0{,}77$   & Mantener \texttt{GarageQual}  & \texttt{GarageQual} presenta mayor correlación con \textit{SalePrice}. \\
+\textit{ExterQual} vs \textit{OverallQual} / \textit{KitchenQual} & \textit{Spearman} $\rho > 0{,}7$ con ambas
+                              & Eliminar \texttt{ExterQual}      & Redundante; \texttt{OverallQual} y \texttt{KitchenQual} capturan mejor la información. \\
+% --- FIN FILAS ---
+
+\end{tabularx}
+
+A continuación la tabla con Hiperparámetros identificados del método XGBoost: 
+
+
+\begin{table}[H] \centering \small 
+\caption{Descripción de Hiperparámetros comprometidos por XGBoost.} \label{tab:hiperparámetros} 
+\begin{tabular}{ll} \hline 
+\textbf{Hiperparámetro} & \textbf{Descripción resumida} \\ \hline $n\_estimators$ & Cantidad de árboles; mayor número = modelo más complejo. \\ $learning\_rate$ & Velocidad de aprendizaje; valores bajos reducen sobreajuste. \\ $max\_depth$ & Profundidad del árbol; profundidades altas capturan más complejidad. \\ $min\_child\_weight$ & Mínimo de observaciones para dividir; valores altos evitan sobreajuste. \\ $\gamma$ & Mejora mínima para dividir; mayor $\gamma$ = modelo más regularizado. \\ $subsample$ & Proporción de datos por árbol; valores < 1 reducen sobreajuste. \\ $colsample\_bytree$ & Proporción de columnas por árbol; controla variabilidad del modelo. \\ $reg\_\lambda$ & Regularización L2; suaviza el modelo. \\ $reg\_\alpha$ & Regularización L1; puede eliminar parámetros poco relevantes. \\ \hline \end{tabular} \end{table}
+
+
+
+
+
+
+Se define a continuación la tabla con todas las variables de la base de datos.
+\begin{longtable}{ | p{8cm} | p{5cm} | }
+    \caption{Descripción de las variables del conjunto de datos de Ames Housing.} \label{tab:variables_ames} \\
+    \hline
+    \textbf{Variable} & \textbf{Descripción}\\
+    \hline
+    $\boldsymbol{MSSubClass_{i, s}} \in \{0, 1\}$ \newline $s \in \{20, 30, 40, 45, 50, 60, 70, 75, 80, 85, 90, 120, 150,$\newline \hspace{1cm}$160, 180, 190\}$ & Identifica el tipo de vivienda involucrada en la venta.\\
+    \hline
+    $\boldsymbol{MSZoning_{i, z}} \in \{0,1\}$ \newline
+    $z \in \{A, C, FV, I, RH, RL, RP, RM\}$ & Identifica la clasificación general de zonificación de la venta.\\
+    \hline
+    $\boldsymbol{LotFrontage_{i}} \geq 0, \boldsymbol{LotFrontage_{i}} \in \mathbb{Z}$ & Pies lineales de calle conectados a la propiedad.\\
+    \hline
+    $\boldsymbol{LotArea_{i}} \geq 0, \boldsymbol{LotArea_{i}} \in \mathbb{Z}$ & Tamaño del lote en pies cuadrados.\\
+    \hline
+    $\boldsymbol{Street_{i, St}} \in \{0, 1\}$ \newline $St \in \{Grvl, Pave\}$ & Tipo de acceso vial a la propiedad.\\
+    \hline
+    $\boldsymbol{Alley_{i, Aly}} \in \{0, 1\}$ \newline $Aly \in \{Grvl, Pave, NA\}$ & Tipo de acceso por callejón a la propiedad.\\
+    \hline
+    $\boldsymbol{LotShape_{i, lot}} \in \{0, 1\}$ \newline $lot \in \{Reg, IR1, IR2, IR3\}$ & Forma general de la propiedad.\\
+    \hline
+    $\boldsymbol{LandContour_{i, land}} \in \{0, 1\}$ \newline $land \in \{Lvl, Bnk, HLS, Low\}$ & Nivelación de la propiedad.\\
+    \hline
+    $\boldsymbol{Utilities_{i,u}} \in \{0, 1\}$ \newline 
+    $u \in \{AllPub, NoSewr, NoSeWa, ELO\}$ & Tipo de servicios públicos disponibles.\\
+    \hline
+    $\boldsymbol{LotConfig_{i, config}} \in \{0, 1\}$ \newline $config \in \{Inside, Courner, CulDSac, FR2, FR3\}$ & Configuración del lote.\\
+    \hline
+    $\boldsymbol{LandSlope_{i, slope}} \in \{0, 1\}$ \newline $slope \in \{Gtl, Mod, Sev\}$ & Pendiente de la propiedad. \\
+    \hline
+    $\boldsymbol{Neighborhood_{i, n}} \in \{0, 1\}$ \newline $n \in \{Blmngtn, Blueste, BrDale, BrkSide, ClearCr,$\newline$CollgCr, Crawfor, Edwards, Gilbert, IDOTRR,$\newline$ MeadowV, Mitchel, Names, NoRidge, NPkVill,$\newline$ NridgHt, NWAmes, OldTown, SWISU, Sawyer,$\newline$ SawyerW, Somerst, StoneBr, Timber, Veenker\}$ & Ubicaciones físicas dentro de los límites de la ciudad de Ames. \\
+    \hline
+    $\boldsymbol{Condition1_{i, cond_{1}}} \in \{0, 1\}$ \newline $cond_{1} \in \{Artery, Feedr, Norm, RRNn, RRAn, PosN,$\newline$ PosA, RRNe, RRAe\}$ & Proximidad a diversas condiciones. \\
+    \hline
+    $\boldsymbol{Condition2_{i, cond_{2}}} \in \{0, 1\}$ \newline $cond_{2} \in \{Artery, Feedr, Norm, RRNn, RRAn, PosN,$\newline$ PosA, RRNe, RRAe\}$ & Proximidad a diversas condiciones (si hay más de una presente).\\
+    \hline
+    $\boldsymbol{BldgType_{i, b}} \in \{0, 1\}$ \newline $b\in \{1Fam, 2FmCon, Duplx, TwnhsE, TwnhsI\}$ & Tipo de vivienda. \\
+    \hline
+    $\boldsymbol{HouseStyle_{i, hs}} \in \{0, 1\}$ \newline $hs \in \{1Story, 1.5Fin, 1.5Unf, 2Story, 2.5Fin,$\newline $ 2.5Unf, SFoyer,SLvl\}$ & Estilo de vivienda.\\
+    \hline
+    $\boldsymbol{OverallQual_{i, overall}} \in \{0, 1\}$ \newline $overall \in \{10, 9, 8, 7, 6, 5, 4, 3, 2, 1\}$ & Evalúa el material y el acabado general de la casa. \\
+    \hline
+    $\boldsymbol{OverallCondl_{i, cond}} \in \{0, 1\}$ \newline $cond \in \{10, 9, 8, 7, 6, 5, 4, 3, 2, 1\}$ & Evalúa la condición general de la casa.\\
+    \hline
+    $\boldsymbol{YearBuild_{i}} \in \{1872, ..., 2010\}$ & Fecha de construcción original.\\
+    \hline
+    $\boldsymbol{YearRemodAdd_{i}} \in \{1950, ..., 2010\}$ & Fecha de remodelación (igual a la fecha de construcción si no hubo remodelaciones o ampliaciones).\\
+    \hline
+    $\boldsymbol{RoofStyle_{i,r}} \in \{0, 1\}$\newline 
+    $r \in \{Flat, Gable, Gambrel, Hip, Mansard, Shed\}$ & Tipo de techo.\\
+    \hline
+    $\boldsymbol{RoofMatl_{i,m}} \in \{0, 1\}$\newline 
+    $m \in \{ClyTile, CompShg, Membran, Metal, Roll,$ \newline \hspace{1cm}$TarGrv, WdShake, WdShngl\}$ & Material del techo.\\
+    \hline
+    $\boldsymbol{Exterior1st_{i,e_1}} \in \{0, 1\}$\newline 
+    $e_{1} \in \{AsbShng, AsphShn, BrkComm, BrkFace,$\newline 
+    \hspace{1cm} $CBlock, CemntBd, HdBoard, ImStucc,$\newline 
+    \hspace{1cm} $MetalSd, Other, Plywood, PreCast, Stone,$\newline 
+    \hspace{1cm}$Stucco, VinylSd, WdSdng, WdShing\}$ & Revestimiento exterior de la casa\\
+    \hline
+    $\boldsymbol{Exterior2nd_{i,e_2}} \in \{0, 1\}$\newline 
+    $e_{2} \in \{AsbShng, AsphShn, BrkComm, BrkFace,$\newline 
+    \hspace{1cm} $CBlock, CemntBd, HdBoard, ImStucc,$\newline 
+    \hspace{1cm} $MetalSd, Other, Plywood, PreCast, Stone,$\newline 
+    \hspace{1cm}$Stucco, VinylSd, WdSdng, WdShing\}$ & Revestimiento exterior de la casa (si hay más de un material).\\
+    \hline
+    $\boldsymbol{MasVnrType_{i,t}} \in \{0, 1\}$\newline 
+    $t \in \{BrkCmn, BrkFace, CBlock, None, Stone\}$ & Tipo de revestimiento de mampostería\\
+    \hline
+    $\boldsymbol{MasVnrArea_{i}} \geq 0, MasVnrArea_{i} \in \mathbb{Z}$ & Área de revestimiento de mampostería en pies cuadrados.\\
+    \hline
+    $\boldsymbol{ExterQual_{i,q}} \in \{0, 1\}$\newline $q \in \{Ex, Gd, TA, Fa, Po\}$ & Evalúa la calidad del material en el exterior.\\
+    \hline
+    $\boldsymbol{ExterCond_{i,cond}} \in \{0, 1\}$\newline $cond \in \{Ex, Gd, TA, Fa, Po\}$ & Evalúa la condición actual del material en el exterior.\\
+    \hline 
+    $\boldsymbol{Foundation_{i,f}} \in \{0, 1\}$\newline 
+    $f \in \{BrkTil, CBlock, PConc, Slab, Stone, Wood\}$ & Tipo de cimentación.\\
+    \hline
+    $\boldsymbol{BsmtQual_{i,bq}} \in \{0, 1\}$ \newline $bq \in \{Ex, Gd, TA, Fa, Po, NA\}$ & Evalúa la altura del sótano. \\
+    \hline
+    $\boldsymbol{BsmtCond_{i,bc}} \in \{0, 1\}$ \newline $bc \in \{Ex, Gd, TA, Fa, Po, NA\}$ & Evalúa la condición general del sótano. \\
+    \hline
+    $\boldsymbol{BsmtExpoure_{i,x}} \in \{0, 1\}$ \newline $x \in \{Gd, Av, Mn, No, NA\} $ & Se refiere a muros a nivel de jardín o de acceso.\\
+    \hline
+    $\boldsymbol{BsmtFinType1_{i, b1}} \in \{0, 1\}$ \newline $b1 \in \{GLQ, ALQ, BLQ, Rec, LwQ, Unf, NA\}$ & Clasificación del área terminada del sótano.\\
+    \hline
+    $\boldsymbol{BsmtFinSF1_{i}} \geq 0, \boldsymbol{BsmtFinSF1_{i}} \in \mathbb{Z}$ & Pies cuadrados terminados tipo 1.\\
+    \hline
+    $\boldsymbol{BsmtFinType2_{i,b2}}$\newline $b2 \in \{GLQ, ALQ, BLQ, Rec, LwQ, Unf, NA\}$ & Clasificación del área terminada del sótano (si hay varios tipos).\\
+    \hline
+    $\boldsymbol{BsmtFinSF2_{i}} \geq 0, BsmtFinSF2_{i} \in \mathbb{Z}$ & Pies cuadrados terminados tipo 2.\\
+    \hline
+    $\boldsymbol{BsmtUnfSF_{i}} \geq 0, BsmtUnfSF_{i} \in \mathbb{Z}$ & Pies cuadrados sin terminar del área del sótano.\\
+    \hline
+    $\boldsymbol{TotalBsmtSF_{i}} \geq 0, TotalBsmtSF_{i} \in \mathbb{Z}$ & Total de pies cuadrados del área del sótano.\\
+    \hline
+    $\boldsymbol{Heating_{i,h}} \in \{0, 1\}$\newline 
+    $h \in \{Floor, GasA, GasW, Grav, OthW, Wall\}$ & Tipo de calefacción.\\
+    \hline
+    $\boldsymbol{HeatingQC_{i,hqc}} \in \{0, 1\}$\newline $hqc \in \{Ex, Gd, TA, Fa, Po\}$ & Calidad y condición del sistema de calefacción.\\
+    \hline    
+    $\boldsymbol{CentralAir_{i,a}} \in \{0, 1\}$ \newline 
+    $a \in \{Yes, No\}$ & Aire acondicionado centralizado.\\
+    \hline
+    $\boldsymbol{Electrical_{i,e}} \in \{0, 1\}$\newline 
+    $e \in \{SBrkr, FuseA, FuseF, FuseP, Mix\}$ & Sistema eléctrico.\\
+    \hline
+    $\boldsymbol{1stFlrSF_{i}} \geq 0, 1stFlrSF{i} \in \mathbb{Z}$ & Pies cuadrados del primer piso.\\
+    \hline
+    $\boldsymbol{2ndFlrSF_{i}} \geq 0, 2ndFlrSF_{i} \in \mathbb{Z}$ & Pies cuadrados del segundo piso.\\
+    \hline
+    $\boldsymbol{LowQualFinSF_{i}} \geq 0, LowQualFinSF_{i} \in \mathbb{Z}$ & Pies cuadrados terminados de baja calidad (todos los pisos).\\
+    \hline
+    $\boldsymbol{GrLivArea_{i}} \geq 0, GrLivArea_{i} \in \mathbb{Z}$ & Superficie habitable sobre el nivel del suelo (pies cuadrados).\\
+    \hline
+    $\boldsymbol{BsmtFullBath_{i}} \geq 0, BsmtFullBath_{i} \in \mathbb{Z}$ & Baños completos en sótano.\\
+    \hline
+    $\boldsymbol{BsmtHalfBath_{i}} \geq 0, BsmtHalfBath_{i} \in \mathbb{Z}$ & Medios baños del sótano.\\
+    \hline
+    $\boldsymbol{FullBath_{i}} \geq 0, FullBath_{i} \in \mathbb{Z}$ & Baños completos sobre el nivel del suelo.\\
+    \hline
+    $\boldsymbol{HalfBath_{i}} \geq 0, HalfBath_{i} \in \mathbb{Z}$ & Medios baños sobre el nivel del suelo.\\
+    \hline
+    $\boldsymbol{Bedroom_{i}} \geq 0, Bedroom_{i} \in \mathbb{Z}$ & Dormitorios sobre el nivel del suelo (no incluye dormitorios en el sótano).\\
+    \hline
+    $\boldsymbol{Kitchen_{i} }\geq 0, Kitchen_{i} \in \mathbb{Z}$ & Cocinas sobre el nivel del suelo.\\
+    \hline
+    $\boldsymbol{Kitchen_{i,kqual}} \in \{0, 1\}$ \newline $kqual \in \{Ex, Gd, TA, Fa, Po\}$ & Calidad de la cocina.\\
+    \hline
+    $\boldsymbol{Functional_{i,func}} \in \{0, 1\}$ \newline $func \in \{Typ, Min1, Min2, Mod, Maj1, Maj2, $\newline$Sev, Sal\}$ & Funcionalidad del hogar (Se asume típica a menos que se justifiquen deducciones).\\
+    \hline
+    $\boldsymbol{TotRmsAbvGrd_{i}} \geq 0, TotRmsAbvGrd_{i} \in \mathbb{Z}$ & Total de habitaciones sobre el nivel del suelo (no incluye baños).\\
+    \hline
+    $\boldsymbol{Fireplaces_{i}} \geq 0, Fireplaces_{i} \in \mathbb{Z}$ & Número de chimeneas.\\
+    \hline
+    $\boldsymbol{FireplaceQual_{i,fqual}} \in \{0, 1\}$ \newline $fqual \in \{Ex, Gd, TA, Fa, Po, NA\}$ & Calidad de la chimenea.\\
+    \hline
+    $\boldsymbol{GarageType_{i,g}} \in \{0, 1\}$\newline 
+    $g \in \{2Types, Attchd, Basment, BuiltIn, CarPort,$\newline 
+    \hspace{1cm}$Detchd, NA\}$ & Ubicación del garaje.\\
+    \hline
+    $\boldsymbol{GarageYrBlt_{i}} \in $ \{1895, ..., 2010\}& Año en que se construyó el garaje.\\
+    \hline
+    $\boldsymbol{GarageFinish_{i,gf}} \in \{0, 1\}$\newline $gf \in \{Fin, RFn, Unf, NA\}$ & Acabado interior del garaje.\\
+    \hline
+    $\boldsymbol{GarageCars_{i}} \geq 0, GarageCars_{i} \in \mathbb{Z}$ & Tamaño del garaje en capacidad de coches.\\
+    \hline
+    $\boldsymbol{GarageArea_{i}} \geq 0, GarageArea_{i} \in \mathbb{Z}$ & Tamaño del garaje en pies cuadrados.\\
+    \hline
+    $\boldsymbol{GarageQual_{i,gqual}} \in \{0, 1\}$ \newline $gqual \in \{Ex, Gd, TA, Fa, Po, NA\}$ & Calidad del garage.\\
+    \hline
+    $\boldsymbol{GarageCond_{i,gcond}}$\newline $gcond \in \{Ex, Gd, TA, Fa, Po, NA\}$ & Condición del garage.\\
+    \hline
+    $\boldsymbol{PavedDrive_{i,p}} \in \{0, 1\}$\newline 
+    $p \in \{Paved, Partial Pavement, Dirt/Gravel\}$ & Camino de entrada pavimentado.\\
+    \hline
+    $\boldsymbol{WoodDeckSF_{i}} \geq 0, WoodDeckSF_{i} \in \mathbb{Z}$ & Área de cubierta de madera en pies cuadrados.\\
+    \hline
+    $\boldsymbol{OpenPorchSF_{i}} \geq 0, OpenPorchSF_{i} \in \mathbb{Z}$ & Área de porche abierto en pies cuadrados.\\
+    \hline
+    $\boldsymbol{EnclosedPorch_{i}} \geq 0, EnclosedPorch_{i} \in \mathbb{Z}$ & Área de porche cerrado en pies cuadrados.\\
+    \hline
+    $\boldsymbol{3SsnPorch_{i}} \geq 0, 3SsnPorch_{i} \in \mathbb{Z}$ & Área de porche de tres estaciones en pies cuadrado.\\
+    \hline
+    $\boldsymbol{ScreenPorch_{i}} \geq 0, ScreenPorch_{i} \in \mathbb{Z}$ & Área del porche con mosquitero en pies cuadrados.\\
+    \hline    
+    $\boldsymbol{PoolArea_{i}} \geq 0, PoolArea_{i} \in \mathbb{Z}$ & Área de la piscina en pies cuadrados.\\
+    \hline
+    $\boldsymbol{PoolQC_{i,pq}} \in \{0, 1\}$\newline $pq \in \{Ex, Gd, TA, Fa, NA\}$ & Calidad de la piscina.\\
+    \hline
+    $\boldsymbol{Fence_{i,fn}} \in \{0, 1\}$ \newline $fn \in \{GdPrv, MnPrv, GdWo, MnWw, NA\}$ & Calidad de la reja.\\
+    \hline
+    $\boldsymbol{MiscFeature_{i, misc}} \in \{0, 1\}$\newline 
+    $misc \in \{Elev, Gar2, Othr, Shed, TenC, NA\}$ & Características diversas no cubiertas en otras categorías.\\
+    \hline
+    $\boldsymbol{MiscVal_{i}} \geq 0, \boldsymbol{MiscVal_{i}} \in \mathbb{Z}$ & Valor de la característica miscelánea.\\ 
+    \hline
+    $\boldsymbol{MoSold_{i}} \in \{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12\}$ & Mes de venta (MM).\\
+    \hline
+    $\boldsymbol{YrSold_{i}} \in \{2006, 2007, 2008, 2009, 2010\}$ & Año de venta (YYY)\\
+    \hline
+    $\boldsymbol{SaleType_{i,st}} \in \{0, 1\}$ \newline $st \in \{WD, CWD, VWD, New, COD, Con, ConLw,$\newline$ ConLI, ConLD, Oth\}$ & Tipo de venta.\\
+    \hline
+    $\boldsymbol{SaleCondition_{i, sc}} \in \{0, 1\}$ \newline $sc \in \{Normal, Abnorml, AdjLand, Alloca, Family,$\newline$ Partial\}$& Condición de venta.\\
+    \hline
+\end{longtable}
+
+Modelo de Renovación:\\\\
+A continuación se detallan las variables que se utilizan para el modelo de renovación de una Vivienda $i \in \{1, ..., I\}.$ Para mayor entendimiento de los subindices de las variables pueden revisarlo en el archivo data\_description.txt. 
+\begin{longtable}{ | p{8cm} | p{5cm} | }
+    \caption{Variables utilizadas en el modelo de remodelación} \label{tab:variables remodelación} \\
+    \hline
+    \textbf{Variable} & \textbf{Descripción}\\
+    \hline
+    $\boldsymbol{Utilities_{i,u}} \in \{0, 1\}$ \newline 
+    $u \in \{AllPub, NoSewr, NoSeWa, ELO\}$ & Tipo de servicios públicos disponibles\\
+    \hline
+    $\boldsymbol{RoofStyle_{i,r}} \in \{0, 1\}$\newline 
+    $r \in \{Flat, Gable, Gambrel, Hip, Mansard, Shed\}$ & Tipo de techo\\
+    \hline
+    $\boldsymbol{RoofMatl_{i,m}} \in \{0, 1\}$\newline 
+    $m \in \{ClyTile, CompShg, Membran, Metal, Roll,$ \newline \hspace{1cm}$TarGrv, WdShake, WdShngl\}$ & Material del techo\\
+    \hline
+    $\boldsymbol{Exterior1st_{i,e_1}} \in \{0, 1\}$\newline 
+    $e_{1} \in \{AsbShng, AsphShn, BrkComm, BrkFace,$\newline 
+    \hspace{1cm} $CBlock, CemntBd, HdBoard, ImStucc,$\newline 
+    \hspace{1cm} $MetalSd, Other, Plywood, PreCast, Stone,$\newline 
+    \hspace{1cm}$Stucco, VinylSd, WdSdng, WdShing\}$ & Revestimiento exterior de la casa\\
+    \hline
+    $\boldsymbol{Exterior2nd_{i,e_2}} \in \{0, 1\}$\newline 
+    $e_{2} \in \{AsbShng, AsphShn, BrkComm, BrkFace,$\newline 
+    \hspace{1cm} $CBlock, CemntBd, HdBoard, ImStucc,$\newline 
+    \hspace{1cm} $MetalSd, Other, Plywood, PreCast, Stone,$\newline 
+    \hspace{1cm}$Stucco, VinylSd, WdSdng, WdShing\}$ & Revestimiento exterior de la casa (si hay más de un material).\\
+    \hline
+    $\boldsymbol{MasVnrType_{i,t}} \in \{0, 1\}$\newline 
+    $t \in \{BrkCmn, BrkFace, CBlock, None, Stone\}$ & Tipo de revestimiento de mampostería\\
+    \hline
+    $\boldsymbol{ExterQual_{i,eq}} \in \{0, 1\}$\newline 
+    $eq \in \{Ex, Gd, TA, Fa, Po\}$ & Evalua la calidad del material exterior\\
+    \hline
+    $\boldsymbol{ExterCond_{i,ec}} \in \{0, 1\}$\newline 
+    $ec \in \{Ex, Gd, TA, Fa, Po\}$ & Evalua la condición del material exterior\\
+    \hline
+    $\boldsymbol{BsmtCond_{i,b}} \in \{0, 1\}$\newline 
+    $b \in \{Ex, Gd, TA, Fa, Po, NA\}$ & Evalua la condición general del sótano\\
+    \hline
+    $\boldsymbol{BsmtFinType1_{i, b1}} \in \{0, 1\}$ \newline $b1 \in \{GLQ, ALQ, BLQ, Rec, LwQ, Unf, NA\}$ & Clasificación del área terminada del sótano.\\
+    \hline
+    $\boldsymbol{BsmtFinSF1_{i, sf1}} \geq 0, \boldsymbol{BsmtFinSF1_{i, sf1}} \in \mathbb{Z}$ & Pies cuadrados terminados tipo 1.\\
+    \hline
+    $\boldsymbol{BsmtFinType2_{i,b2}}$\newline $b2 \in \{GLQ, ALQ, BLQ, Rec, LwQ, Unf, NA\}$ & Clasificación del área terminada del sótano (si hay varios tipos).\\
+    \hline
+    $\boldsymbol{BsmtFinSF2_{i}} \geq 0, BsmtFinSF2_{i} \in \mathbb{Z}$ & Pies cuadrados terminados tipo 2.\\
+    \hline
+    $\boldsymbol{BsmtUnfSF_{i}} \geq 0, BsmtUnfSF_{i} \in \mathbb{Z}$ & Metros cuadrados sin terminar del área del sótano.\\
+    \hline
+    $\boldsymbol{Heating_{i,h}} \in \{0, 1\}$\newline 
+    $h \in \{Floor, GasA, GasW, Grav, OthW, Wall\}$ & Tipo de calefacción.\\
+    \hline
+    $\boldsymbol{HeatingQC_{i,hqc}} \in \{0, 1\}$\newline 
+    $hqc \in \{Ex, Gd, TA, Fa, Po\}$ & Calidad y condición de calefacción.\\
+    \hline
+    $\boldsymbol{CentralAir_{i,a}} \in \{0, 1\}$ \newline 
+    $a \in \{Yes, No\}$ & Aire acondicionado centralizado.\\
+    \hline
+    $\boldsymbol{Electrical_{i,e}} \in \{0, 1\}$\newline 
+    $e \in \{SBrkr, FuseA, FuseF, FuseP, Mix\}$ & Sistema eléctrico.\\
+    \hline
+    $\boldsymbol{1stFlrSF_{i}} \geq 0, 1stFlrSF{i} \in \mathbb{Z}$ & Pies cuadrados del primer piso.\\
+    \hline
+    $\boldsymbol{2ndFlrSF_{i}} \geq 0, 2ndFlrSF_{i} \in \mathbb{Z}$ & Pies cuadrados del segundo piso.\\
+    \hline
+    $\boldsymbol{GrLivArea_{i}} \geq 0, GrLivArea_{i} \in \mathbb{Z}$ & Superficie habitable sobre el nivel del suelo (pies cuadrados).\\
+    \hline
+    $\boldsymbol{BsmtFullBath_{i}} \geq 0, BsmtFullBath_{i} \in \mathbb{Z}$ & Baños completos en sótano.\\
+    \hline
+    $\boldsymbol{BsmtHalfBath_{i}} \geq 0, BsmtHalfBath_{i} \in \mathbb{Z}$ & Medios baños del sótano.\\
+    \hline
+    $\boldsymbol{FullBath_{i}} \geq 0, FullBath_{i} \in \mathbb{Z}$ & Baños completos sobre el nivel del suelo.\\
+    \hline
+    $\boldsymbol{HalfBath_{i}} \geq 0, HalfBath_{i} \in \mathbb{Z}$ & Medios baños sobre el nivel del suelo.\\
+    \hline
+    $\boldsymbol{Bedroom_{i}} \geq 0, Bedroom_{i} \in \mathbb{Z}$ & Dormitorios sobre el nivel del suelo (no incluye dormitorios en el sótano).\\
+    \hline
+    $\boldsymbol{Kitchen_{i} }\geq 0, Kitchen_{i} \in \mathbb{Z}$ & Cocinas sobre el nivel del suelo.\\
+    \hline
+    $\boldsymbol{KitchenQual_{i,k} }\in \{0, 1\}$\newline 
+    $k \in \{Ex, Gd, TA, Fa, Po\}$  & Calidad de la cocina.\\
+    \hline
+    $\boldsymbol{TotRmsAbvGrd_{i}} \geq 0, TotRmsAbvGrd_{i} \in \mathbb{Z}$ & Total de habitaciones sobre el nivel del suelo (no incluye baños).\\
+    \hline
+    $\boldsymbol{FireplacesQu_{i,f}} \in \{0, 1\}$\newline 
+    $f \in \{Ex, Gd, TA, Fa, Po, NA\}$ & Calidad de las chimeneas.\\
+    \hline
+    $\boldsymbol{GarageFinish_{i,gf}} \in \{0, 1\}$\newline $gf \in \{Fin, RFn, Unf, No aplica\}$ & Acabado interior del garaje.\\
+    \hline
+    $\boldsymbol{GarageArea_{i}} \geq 0, GarageArea_{i} \in \mathbb{Z}$ & Tamaño del garaje en pies cuadrados.\\
+    \hline
+    $\boldsymbol{GarageQual_{i,g}} \in \{0, 1\}$\newline 
+    $g \in \{Ex, Gd, TA, Fa, Po, NA\}$ & Calidad del garaje.\\
+    \hline
+    $\boldsymbol{GarageCond_{i,g}} \in \{0, 1\}$\newline 
+    $g \in \{Ex, Gd, TA, Fa, Po, NA\}$ & Condición del garaje.\\
+    \hline
+    $\boldsymbol{PavedDrive_{i,p}} \in \{0, 1\}$\newline 
+    $p \in \{Paved, Partial Pavement, Dirt/Gravel\}$ & Camino de entrada pavimentado.\\
+    \hline
+    $\boldsymbol{WoodDeckSF_{i}} \geq 0, WoodDeckSF_{i} \in \mathbb{Z}$ & Área de cubierta de madera en pies cuadrados.\\
+    \hline
+    $\boldsymbol{OpenPorchSF_{i}} \geq 0, OpenPorchSF_{i} \in \mathbb{Z}$ & Área de porche abierto en pies cuadrados.\\
+    \hline
+    $\boldsymbol{EnclosedPorch_{i}} \geq 0, EnclosedPorch_{i} \in \mathbb{Z}$ & Área de porche cerrado en pies cuadrados.\\
+    \hline
+    $\boldsymbol{3SsnPorch_{i}} \geq 0, 3SsnPorch_{i} \in \mathbb{Z}$ & Área de porche de tres estaciones en pies cuadrado.\\
+    \hline
+    $\boldsymbol{ScreenPorch_{i}} \geq 0, ScreenPorch_{i} \in \mathbb{Z}$ & Área del porche con mosquitero en pies cuadrados.\\
+    \hline    
+    $\boldsymbol{PoolArea_{i}} \geq 0, PoolArea_{i} \in \mathbb{Z}$ & Área de la piscina en pies cuadrados.\\
+    \hline    
+    $\boldsymbol{PoolQC_{i,p}} \in \{0, 1\}$\newline 
+    $p \in \{Ex, Gd, TA, Fa, NA\}$ &Calidad de la piscina.\\
+    \hline
+    $\boldsymbol{Fence_{i,fen}} \in \{0, 1\}$\newline 
+    $fen \in \{GdPrv,MnPrv,GdWo,MnWw, NA\}$ &Calidad de la cerca.\\
+    \hline
+\end{longtable}
+
+
+
+
+
+
+
+
+
+Se presenta la siguiente tabla con los costos de los distintos tipos de estilos, materiales y otros adicionales de la vivienda a traves de investigación bibliográfica. Se intento que los valores obtenidos fueran representativos de Estados Unidos. 
+
+Como supuesto se considera que para variables que no tienen información del área se ocupa un costo promedio de remodelar y no el costo en pies cuadrados. Dichos costos incluyen el reemplazo del material. Por ejemplo, la variable KitchenQual no tiene información de pies cuadrados, por ende para buscar su costo se identificó el precio de cada tipo de calidad posible y dentro de dicho precio se considera la construcción de ese tipo de calidad respectivamente. Entonces al momento de querer cambiar de calidad, se incurre en el costo correspondiente a la nueva calidad.
+
+Para pasos futuros queda como desafio hacer estos valores lo más realistas posibles mediante intervalos de confianza y ver como cambian los resultados adaptando los distintos costos y considerado además el tamaño de las viviendad.
+\begin{longtable}{ | p{6cm} | p{6cm} | }
+    \caption{Resumen de costos utilizados en los modelo de óptimización} \label{tab:costos} \\
+    \hline
+    \textbf{Costo} & \textbf{Descripción}\\
+    \hline
+    \textbf{Construcción} \newline
+    $C_{construcción} = \$230 $ & ''El costo promedio de construir una casa es de \$180 a \$280 por pie cuadrado para una casa básica de construcción con acabados estándar'' \cite{Cramer2025}.\\
+    \hline
+    \textbf{Ampliación}\newline
+    $C_{c}^{30} = \$130.70$ \newline
+    $C_{c}^{20} = \$106.49$\newline
+    $C_{c}^{10} = \$82.28$ & ''Costo de construir una ampliación de vivienda en Ames, Iowa \$106,49 por pie cuadrado para construcción de grado estándar (rango: \$82,28 - \$130,70)''. \cite{ProMatchers.f.}\\
+    \hline
+    \textbf{Demolición}\newline
+    $C_{demolición}  = \$1.65$ \newline
+    $C_{demolición}^{roof} = \$10,850$ &''Antes de comenzar la construcción de su nuevo dormitorio y baño, es necesario despejar completamente el espacio de elementos paisajísticos. El costo de demolición y preparación es de entre \$1.30 y \$2 por pie cuadrado''.
+    \cite{Cellucci2025}.\begin{itemize}
+        \item ''El costo promedio de retirar y reemplazar un techo es de \$5,700 a \$16,000'' \cite{Cramer2024}.
+    \end{itemize}\\
+    \hline
+    \textbf{Utilities: $C_{u}$}\newline 
+    $C_{AllPub} = \$31,750 $\newline 
+    $C_{NoSewr} = \$39,500 $\newline 
+    $C_{NoSeWa} = \$22,000 $\newline 
+    $C_{ELO} = \$20,000 $ & Costos promedios de los servicios públicos \begin{itemize}
+        \item Electricity: \$10,000–\$30,000
+        \item Gas: \$500–\$3,500
+        \item Water (Septic Tank): \$5,000–\$30,000
+        \item Water: \$1,000–\$6,000 
+        \item  Sewer: \$1,500–\$11,000
+    \end{itemize}
+    \cite{BigHow2025}. 
+    \\
+    \hline
+    \textbf{RoofMatl: $C_{m}$}\newline 
+    $C_{ClyTile} = \$17,352$\newline 
+    $C_{CompShg} = \$20,000 $\newline 
+    $C_{Membran} = \$8,011.95 $\newline 
+    $C_{Metal} = \$11,739 $\newline 
+    $C_{Roll} = \$7,600 $ \newline 
+    $C_{Tar\&Grv} = \$8,550 $\newline 
+    $C_{WdShake} = \$22,500 $\newline 
+    $C_{WdShngl} = \$19,500 $ & Costos de los materiales del techo promedio \begin{itemize}
+        \item ClyTile: ''Un techo de tejas cuesta un promedio de \$17,352'' \cite{HomeAdvisor2025c}.
+        \item CompShg: ''El costo promedio de un techo de tejas compuestas es de \$20,000 , con un rango de entre \$15,000 y \$25,000. Los techos compuestos cuestan un promedio de \$4 a \$8 por pie cuadrado. \cite{HomeAdvisor2025a}.
+        \item Membran: ''¿Cuánto cuesta un techo de membrana? \$6536.5 - \$9487.4'' \cite{Planner5Ds.f.}.
+        \item Metal: ''¿Cuánto cuesta un techo de metal en 2025?
+        Rango normal: \$5,739 - \$17,739'' \cite{HomeAdvisor2025b}.
+        \item Roll: ''El costo promedio de un techo enrollado es de \$2.00 a \$5.50 por pie cuadrado instalado, o de \$3,200 a \$12,000''. \cite{Carlson2023a}.
+    \end{itemize}\\
+    \hline
+    \textbf{RoofMatl: $C_{m}$} & 
+    \begin{itemize}
+        \item Tar\&Grv: ''Un techo de asfalto y grava cuesta entre \$3.50 y \$7.50 por pie cuadrado con instalación, o entre \$4,500 y \$12,600 en promedio''. \cite{Carlson2023}.
+        \item WdShake: ''En promedio, los propietarios pueden esperar pagar entre \$15,000 y \$30,000 por la instalación de un techo de tejas de cedro en una casa de tamaño estándar'' \cite{ShakeGuys2024}.
+        \item WdShngl: ''¿Cuánto cuestan las tejas de cedro? Costo promedio nacional: \$13,500–\$25,500'' \cite{Straughan2025}.
+    \end{itemize}\\
+    \hline
+    \textbf{RoofMatl}: $C{m_{ft}}$ \newline
+    $C_{m_{ft},ClyTile} = \$11.885$\newline 
+    $C_{m_{ft},CompShg} = \$6$\newline 
+    $C_{m_{ft},Membran} = \$6$\newline 
+    $C_{m_{ft},Metal} = \$8.9911$\newline 
+    $C_{m_{ft},Roll} = \$3.75$ \newline 
+    $C_{m_{ft},Tar\&Grv} = \$5.5$\newline 
+    $C_{m_{ft},WdShake} = \$11$\newline 
+    $C_{m_{ft},WdShngl} = \$6.3513$ & Costos de los materiales del techo por pie cuadrado 
+    \begin{itemize}
+        \item ClyTile: ”Los techos de tejas de arcilla cuestan entre \$9.72 y \$14.05 por pie cuadrado” \cite{Wasson2025}.
+        \item CompShg: ”Los techos compuestos cuestan un promedio de \$4 a \$8 por pie cuadrado. \cite{HomeAdvisor2025a}.
+        \item Membran: ”Costo promedio de un techo de membrana: \$4 a \$8 por pie cuadrado” \cite{Wallender2025}.
+        \item Metal: ”Costo de instalación de techos de metal \$899,11 por 100 pies cuadrados (Rango: \$778.88 -\$1,019.34)” \cite{ProMatchers.f.b}.
+        \item Roll: ''El costo promedio de un techo enrollado es de \$2.00 a \$5.50 por pie cuadrado instalado''. \cite{Carlson2023a}.
+    \end{itemize}\\
+    \hline
+    \textbf{RoofMatl}: $C{m_{ft}}$ & 
+    \begin{itemize}
+        \item Tar\&Grv: ”Un techo de asfalto y grava cuesta entre \$3.50 y \$7.50 por pie cuadrado con instalación”. \cite{Carlson2023}.
+        \item WdShake: ''Un techo de tejas de cedro cuesta en promedio entre \$7 y \$15 por pie cuadrado'' \cite{Cramer2024b}.
+        \item WdShngl: ''Techos de tejas de madera \$635,13 por 100 pies ''cuadrados” \cite{ProMatchers.f.b}
+    \end{itemize}\\
+    \hline
+    \textbf{Exterior1st y Exterior2nd}: $C_{e_1}, C_{e_2}$\newline 
+    $C_{AsbShng} = \$19,000 $ \newline
+    $C_{AsphShn} = \$22,500$ \newline
+    $C_{BrkComm} =  \$26,000$\newline 
+    $C_{BrkFace} = \$22,000 $ \newline
+    $C_{CBlock} =  \$10,300 $ \newline
+    $C_{CemntBd} = \$14,674 $ \newline 
+    $C_{HdBoard} = \$21,300$ \newline
+    $C_{ImStucc} = \$16,500 $ \newline
+    $C_{MetalSd} = \$11,196 $\newline
+    $C_{Other} = \$21,765.3125 $ \newline
+    $C_{Plywood} = \$3,461.81 $\newline
+    $C_{PreCast} = \$17,625 $ \newline
+    $C_{Stone} = \$106,250$ \newline
+    $C_{Stucco} = \$5,629 $ \newline
+    $C_{VinylSd} = \$17,410 $ \newline
+    $C_{Wd Sdng} = \$12,500 $ \newline
+    $C_{WdShing} = \$21,900 $ & Costos de los materiales del revestimiento exterior de la casa promedio 
+    \begin{itemize}
+        \item AsbShng: ''El costo promedio de reemplazar el revestimiento de asbesto es de \$19,000 , y la mayoría de los propietarios gastan entre \$16,000 y \$22,000. Los precios pueden variar entre \$8 y \$15 por pie cuadrado''. \cite{Angi2025}. Para este caso, fue dificil encontrar un costo de instalación de este tipo de material, ya que esta cada vez más restringido. ''EPA ha anunciado una norma definitiva para prohibir el uso continuo del asbesto crisotilo, la única forma conocida de asbesto que se utiliza actualmente en Estados Unidos o se importa a este país'' \cite{WLTeam2024}.
+        \item AsphShn: ''¿Cuánto cuesta un techo de tejas asfálticas? entre \$20,000 y \$25,000 en 2025'' \cite{Ragan2025}.
+    \end{itemize}\\
+    \hline
+    \textbf{Exterior1st y Exterior2nd}: $C_{e_1}, C_{e_2}$ &
+    \begin{itemize}
+        \item BrkComm: ''El costo promedio del revestimiento y enchapado de ladrillo es de \$22,500 a \$70,000, con un promedio nacional de \$26,000'' \cite{Lacoma2025}.
+        \item BrkFace: ''Cubrir todo el exterior de la casa con revestimiento de ladrillo cuesta entre \$8,000 y \$36,000+ en Promedio: \$22,000'' \cite{Carlson2025}.
+        \item CBlock: ''Construir una pared de bloques de hormigón cuesta un promedio de \$3,200 , pero podría pagar entre \$600 y \$20,000'' \cite{Bennett2025}.
+        \item CemntBd: ''El costo promedio del revestimiento de fibrocemento oscila entre \$5 y \$14 por pie cuadrado, con un promedio nacional por proyecto de \$14,674'' 
+        \cite{Minasian-Koncewicz2025}.
+        \item HdBoard: ''El revestimiento de tableros Hardie cuesta en promedio \$21,300'' \cite{Simms2025}.
+    \end{itemize}\\
+    \hline
+    \textbf{Exterior1st y Exterior2nd}: $C_{e_1}, C_{e_2}$ & \begin{itemize}
+        \item ImStucc: ''El costo de un sistema EIFS es entre \$12,000 y \$21,000'' \cite{HomeaAvisor2022}.
+        \item MetalSd: ''El costo promedio de instalar revestimiento de metal es de \$11,196'' \cite{HomeAdvisor2025h}.
+        \item Other: Al no saber a que material se refieren exactamente y no se puede llegar y borrar decidimos que sera el promedio de los demás materiales.
+        \item Plywood: ''¿Cuánto cuesta el revestimiento de madera contrachapada? \$2640.32 - \$4283.29 Precio por unidad'' \cite{Planner5Ds.f.b}.
+        \item PreCast: Se saco un promedio de la tabla del costo total de hormigon prefabricado obteniendo un costo de \$17,625 \cite{Noel2025}.
+        \item Stone: ''El costo promedio de instalar revestimiento de piedra oscila entre \$87,500 y \$125,000, con un promedio nacional de \$106,250'' \cite{Nati2024}.
+    \end{itemize}\\
+    \hline
+    \textbf{Exterior1st y Exterior2nd}: $C_{e_1}, C_{e_2}$ & \begin{itemize}
+        \item Stucco: ''La mayoría de los propietarios gastan un promedio de \$5,629 en la instalación de estuco'' \cite{HomeAdvisor2025i}.
+        \item VinylSd: ''El revestimiento de vinilo cuesta a los propietarios un promedio de \$17,410'' \cite{Minasian-Koncewicz2025b}.
+        \item WdSdng: ''La instalación de revestimiento de madera cuesta alrededor de \$12,500 para una casa de tamaño promedio'' \cite{Biermeier2025}.
+        \item WdShing: ''El costo de instalación del revestimiento de cedro para una vivienda promedio es de entre \$10,200 y \$33,600'' \cite{Farmer2023}.
+    \end{itemize}\\
+    \hline
+    \textbf{ExterQual y ExterCond}: $C_{Exter}$ \newline
+    $C_{Exter,Ex} = \$106,250$ \newline
+    $C_{Exter,Gd} = \$22,833.06$ \newline
+    $C_{Exter,TA} = \$18,833.75$ \newline
+    $C_{Exter,Fa} = \$14,558$ \newline
+    $C_{Exter,Po} = \$7,646.7025$ & Se dividio en quintiles debido a que son cinco categorias. \begin{itemize}
+        \item Ex: Stone
+        \item Gd: Other, WdShing, BrkFace, AsphShn, BrkComm
+        \item TA: VinylSd, PreCast, AsbShng, HdBoard
+        \item Fa: WdSdng, ImStucc, CemntBd
+        \item Po: Plywood, Stucco, CBlock, MetalSd, 
+    \end{itemize}
+    Esta parte se realizó en base a los valores encontrados en la casilla anterior para tener un criterio por el cual decidir. Los de mayor costo tendran una mejor calidad y los de menor costo menor calidad. Esto se debe a que no hay un criterio para considerar que es considerado bueno o malo a partir de la base de datos.\\
+    \hline
+    \textbf{Exterior en pies cuadrados}\newline
+    $C_{AsbShng} = \$11.5 $ \newline
+    $C_{AsphShn} = \$8.5$ \newline
+    $C_{BrkComm} = \$7$\newline 
+    $C_{BrkFace} = \$15$ \newline
+    $C_{CBlock} =  \$22.5$ \newline
+    $C_{CemntBd} = \$9.5$ \newline 
+    $C_{HdBoard} = \$9.5$ \newline
+    $C_{ImStucc} = \$8.5$ \newline
+    $C_{MetalSd} = \$11.5$\newline
+    $C_{Other} =  \$12.35$ \newline
+    $C_{Plywood} = \$4.75$\newline
+    $C_{PreCast} =  \$37.5$\newline
+    $C_{Stone} = \$19.75$ \newline
+    $C_{Stucco} = \$7.5$ \newline
+    $C_{VinylSd} = \$6.315$ \newline
+    $C_{WdSdng} = \$10$\newline
+    $C_{WdShing} = \$8.315$ & \begin{itemize}
+        \item AsbShng: ''El costo promedio de reemplazar el revestimiento de asbesto es de \$19,000, y la mayoría
+        de los propietarios gastan entre
+        \$16,000 y \$22,000. Los precios pueden variar entre \$8 y \$15 por pie cuadrado'' \cite{Angi2025}. Para este caso, fue dificil encontrar un costo de instalación de este tipo de material, ya que esta cada vez más restringido. ''EPA ha anunciado una norma definitiva para prohibir el uso continuo del asbesto crisotilo, la única forma conocida de asbesto que se utiliza actualmente en Estados Unidos'' \cite{WLTeam2024}.
+        \item AsphShn: ''El revestimiento de tejas cuesta entre \$6 y \$11 por pie cuadrado'' \cite{Simms2024}.
+        \item BrkComm: El revestimiento de ladrillo (...) en promedio, el precio por pie cuadrado oscila entre \$4.00 y \$10.00'' \cite{TexturePluss.f.}.
+    \end{itemize}\\
+    \hline
+    \textbf{Exterior en pies cuadrados} & \begin{itemize}
+        \item BrkFace: ''Revestimiento de ladrillo cara vista, cuesta entre \$12 y \$18 por pie cuadrado'' \cite{Carlson2025b}.
+        \item CBlock: ''Construir un muro de bloques de hormigón cuesta  entre \$60 y \$240 por pie lineal  o  entre \$15 y \$30 por pie cuadrado'' \cite{Noel2023}.
+        \item CemntBd: ''El costo promedio del revestimiento de fibrocemento oscila entre \$5 y \$14 por pie cuadrado'' \cite{Minasian-Koncewicz2025c}.
+        \item HdBoard: ''El precio del revestimiento de tableros Hardie oscila entre \$6 y \$13 por pie cuadrado'' \cite{Fann2025}.
+        \item ImStucc: ''El estuco sintético, o EIFS tiene un rango de costo por pie cuadrado de \$7 - \$10'' \cite{Angi2025d}.
+    \end{itemize}\\
+    \hline
+    \textbf{Exterior en pies cuadrados} &
+    \begin{itemize}
+        \item MetalSd: ''¿Cuánto cuesta el revestimiento metálico? \$7 – \$16 costo por pie cuadrado'' \cite{Cramer2023b}.
+        \item Other: Al no saber a que material se refieren exactamente y no se puede llegar y borrar decidimos que sera el promedio de los demás materiales
+        \item Plywood: ''El costo del revestimiento de madera contrachapada suele oscilar entre \$3 y \$6.50 por pie cuadrado'' \cite{VinylSidingCalculators.f.}.
+        \item PreCast: ''Los muros de hormigón prefabricado suelen tener un precio de entre \$25 y \$50 por pie cuadrado'' \cite{VintageCast2024}.
+        \item Stone: ''El revestimiento de piedra cuesta entre \$4,50 y \$35 por pie cuadrado'' \cite{Nati2024}.
+        \item Stucco: ''Estuco tradicional tiene un rango de costo por pie cuadrado de \$6 - \$9'' \cite{Angi2025d}.
+    \end{itemize}\\
+    \hline
+    \textbf{Exterior en pies cuadrados} &
+    \begin{itemize}
+        \item VinylSd: ''El costo de instalar revestimiento de vinilo en Estados Unidos (...) varía entre \$4.07 y \$8.56 por pie cuadrado'' \cite{HandDoffs.f.}.
+        \item WdSdng: ''¿Cuánto cuesta el revestimiento de madera? \$5 – \$15 costo por pie cuadrado'' \cite{Farmer2025}.
+        \item WdShing: ''Costo del revestimiento de tejas de madera \$6,97 - \$9,66 precio por pie cuadrado'' \cite{Planner5Ds.f.c}.
+    \end{itemize}\\
+    \hline
+    \textbf{ExterQual y Extercond en pies cuadrados}\newline
+    $C_{Exter,Ex} = \$26.583$ \newline
+    $C_{Exter,Gd} = \$12.5875$ \newline
+    $C_{Exter,TA} = \$9.667$ \newline
+    $C_{Exter,Fa} = \$8.20375$ \newline
+    $C_{Exter,Po} = \$6.022$ \ & Se dividio en quintiles por tener 5 categorias\begin{itemize}
+        \item Ex: Stone, CBlock, PreCast
+        \item Gd: AsbShng, MetalSd, Other, BrkFace
+        \item TA: CemntBd, HdBoard, WdSdng
+        \item Fa: Stucco, ImStucc, AsphShn, WdShing
+        \item Po: Plywood, VinylSd, BrkComm
+    \end{itemize}
+    Esta parte se realizó en base a los valores encontrados en la casilla anterior para tener un criterio por el cual decidir. Los de mayor costo tendran una mejor calidad y los de menor costo menor calidad. Esto se debe a que no hay un criterio para considerar que es considerado bueno o malo a partir de la base de datos.\\
+    \hline
+    \textbf{MasVnrType}: $C_{t}$ \newline
+    $C_{BrkCmn} $= \$1.21 \newline
+    $C_{BrkFace} = \$15 $\newline
+    $C_{CBlock} = \$22.5 $\newline
+    $C_{None} = 0$ \newline
+    $C_{Stone} = \$27.5$ & Costos del tipo de revestimiento de mampostería en pies cuadrados \begin{itemize}
+        \item BrkCmn: ''Un revestimiento de ladrillo cuesta un promedio de \$13 por metro cuadrado , aunque los precios pueden variar entre \$4 y \$22 por metro cuadrado'' \cite{Lacoma2025}.
+        \item BrkFace: ''Revestimiento de ladrillo cara vista, cuesta entre \$12 y \$18 por pie cuadrado instalado'' \cite{Carlson2025}
+        \item CBlock: ''Un muro de bloques de hormigón cuesta entre \$60 y \$240 por pie lineal o entre \$15 y \$30 por pie cuadrado” \cite{Noel2023}.
+        \item Stone: ''Costo promedio por pie cuadrado de revestimiento de piedra \$10 – \$45''. \cite{Cramer2024c}.
+    \end{itemize}\\
+    \hline
+    \textbf{Foundation}\newline
+    $C_{CBlock} = \$12 $ \newline
+    $C_{PConc} = \$10 $\newline
+    $C_{Slab} = \$10 $\newline
+    $C_{Stone} = \$23.5$\newline
+    $C_{Wood} = $ \$40 & Costo de cimentación por pie cuadrado \begin{itemize}
+        \item CBlock: ''Tipo de cimentación bloque (cemento o ceniza) promedio por pie cuadrado es de \$9–\$15'' \cite{HomeAdvisor2025h}.
+        \item PConc: ''El costo de una cimentación de losa o monolítica varía entre \$6 y \$14 por pie cuadrado''\cite{EstimatorsUSs.f.}.
+        \item Slab: ''Construir una cimentación de losa de hormigón cuesta, en promedio , entre \$6 y \$14 por pie cuadrados'' \cite{Carlson2025c}
+        \item Stone: ''Los cimientos de piedra cuestan entre \$12 y \$35 por pie cuadrado'' \cite{NuanceEnergys.f.}.
+        \item Wood: ''El costo promedio de una cimentación de madera es de alrededor de \$40,000 para una casa típica de 1,000 pies cuadrados'' \cite{Simms2023}.
+    \end{itemize}\\
+    \hline
+    \textbf{Heating}: $C_{h}\newline
+    $C_{Floor} = \$1,773$ \newline
+    $C_{GasA} = \$5,750$\newline
+    $C_{GasW} = \$8,500$\newline
+    $C_{Grav} = \$6,300 $\newline
+    $C_{OthW} = \$4,900$\newline
+    $C_{Wall} = \$3,700$ & Costos de calefacción \begin{itemize}
+        \item Floor: ''Un horno de gas para calefacción por suelo radiante?
+        \$1,773 (horno de gas de piso de 35,000 BTU/h - actualización 1) '' \cite{HowMuchs.f.}.
+        \item GasA: ''La mayoría de los propietarios de viviendas en EE. UU. gastan entre \$3,000 y \$8,500 en reemplazar un calefactor de aire forzado'' \cite{Langer2025}.
+        \item GasW: ''Una caldera de gas cuesta entre \$4,000 y \$9,000. Una caldera de gas requiere una línea de gas para su hogar y acceso a tuberías y conductos de ventilación'' \cite{HomeAdvisor2025j}.En promedio sería \$8,500 por una caldera de gas estándar.
+        \item Grav: ''En promedio, reemplazar un horno de gravedad cuesta \$6,300.'' \cite{Grant2025}.
+    \end{itemize}\\
+    \hline
+    \textbf{Heating}: $C_{h}$&\begin{itemize}
+        \item OthW: Mencionan que tiene que ser una calefacción distinta a gas, por lo tanto, decidimos que sería con electricidad que es el segundo con mayor porcentaje \cite{Statista2024}. ''Las calderas eléctricas son las más económicas de reemplazar que otros tipos, con precios desde \$1,800, pero algunos modelos pueden costar \$8,000 o más'' \cite{HomeAdvisor2025j}.
+        \item Wall: ''Total típico \$1,400–\$6,000 para una instalación sencilla de un horno de pared eléctrico o con ventilación directa'' \cite{Langer2025b}.
+    \end{itemize}\\
+    \hline
+    \textbf{HeatingQC}: $C_{hqc}$ \newline
+    $C_{h,Ex} = \$10,000$ \newline	
+    $C_{h,Gd} = \$8,250$\newline	
+    $C_{h,TA} = \$6,500$\newline	
+    $C_{h,Fa} = \$5,125$\newline	
+    $C_{h,Po} = \$3,750$ & Costos de calidad de la calefacción \begin{itemize}
+        \item Ex(5): Sistemas de alta gama: \$8,000–\$12,000+.
+        \item Gd(4): Interpolada (TA/Ex).
+        \item TA(3): Sistemas de gama media: \$5,000–\$8,000.
+        \item FA(2): Interpolada (Po/TA).
+        \item Po(1): Sistemas básicos: \$2,500–\$5,000.
+    \end{itemize}
+    \cite{Statons.f.}.\\
+    \hline
+    \textbf{CentralAir}\newline
+    $C_{CentralAir} = \$5,362$ & Costo aire acondicionado \newline  ''La mayoría de los propietarios pagaron un promedio de \$5,362.'' \cite{Mantas.f.}. \\
+    \hline
+    \textbf{Electrical: $C_{e}$}\newline
+    $C_{SBrkr} = \$1,587.5$\newline
+    $C_{FuseA} = \$2,500$\newline
+    $C_{FuseF} = \$1,675\newline
+    $C_{FuseP} = \$850$\newline
+    $C_{Mix} = \$1,075$ & Costos de sistema electrico \begin{itemize}
+        \item SBrkr: ''El costo de recablear una casa puede oscilar entre \$603 y \$2,592'' \cite{HomeAdvisor2025g}
+        \item FuseA: ''Un panel eléctrico varía entre \$850 y \$2,500'' \cite{Grupa2024b}.
+        \item FuseF: ''Un panel eléctrico varía entre \$850 y \$2,500'' \cite{Grupa2024b}.
+        \item FuseP: ''Un panel eléctrico varía entre \$850 y \$2,500'' \cite{Grupa2024b}.
+        \item Mix: ''El costo de un subpanel eléctrico varía entre \$400 y \$1,750'' \cite{Lacoma2025b}.
+    \end{itemize}
+    Esta variable al ser tan detallada no se encontro exactamente cada caso. Es por esto, que se decidio que se hara con información general y aproximada.\\
+    \hline
+    \textbf{MiscFeature}\newline
+    $C_{Elev} = \$48,000 $ \newline
+    $C_{Gar2} = \$32,100$ \newline
+    $C_{Shed} = \$5,631$ \newline
+    $C_{TenC} = \$15,774$ & Costos de características diversas no cubiertas en otras categorías \begin{itemize}
+        \item Elevator: ''Costo promedio nacional \$48,000.'' \cite{Cramer2023}.
+        \item 2nd Garage (if not described in garage section): ''El promedio nacional para construir un garaje independiente es  de entre \$19,200 y \$45,000, dependiendo del tipo de garaje, los materiales que prefiera, su lugar de residencia y si es necesario demoler un garaje anterior.'' \cite{HomeGo2022}.
+        \item Shed (over 100 SF): ''Para 100 pies cuadrados \$4,333 y para 240 pies cuadrados que es lo máximo que ofrece esta página \$6,929.'' \cite{ShedCrafterss.f.}.
+        \item Tenis court: ''Estas canchas de tenis cuestan un promedio de \$15,774.'' \cite{Angi2025b}.
+        \end{itemize}\\
+    \hline
+    \textbf{PavedDrive} : $C_{d}$ \newline
+    $C_{Y} = \$4,908  $ \newline
+    $C_{P} = \$3,354 $ \newline
+    $C_{N} = \$1,800$ & Costo de entrada pavimentada \begin{itemize}
+        \item Y: ''El costo promedio de pavimentar una entrada para autos es de \$4,908'' \cite{HomeAdvisor2025e}.
+        \item P: Se decidio sacar un promedio entre ambos extremos, ya que no se encontro un costo para una entrada parcialmente pavimentada. 
+        \item N: ''Las entradas de grava cuestan entre \$500 y \$3,500 , con un promedio nacional de \$1,800'' \cite{Angi2025c}.
+    \end{itemize}\\
+    \hline
+    \textbf{PavedDrive en pies cuadrados} \newline
+    $C_{Y} = \$9$ \newline
+    $C_{P} = \$5.25$ \newline
+    $C_{N} = \$1.5$ & Costo en pies cuadrados del camino de entrada \begin{itemize}
+        \item Y: ''¿Cuanto cuesta pavimentar un camino de entrada de asfalto? \$5 – \$12+ costo promedio por pie cuadrado'' \cite{Farmer2025b}.
+        \item P: Se decidio sacar un promedio entre ambos extremos, ya que no se encontro un costo para una entrada parcialmente pavimentada. 
+        \item N: ''Las entradas de grava cuestan un promedio de \$1 a \$2 por pie cuadrado'' \cite{Alexandre2025}.
+    \end{itemize}\\
+    \hline
+    \textbf{Basement} \newline
+    $C_{Bsmt}$ = \$15  & ''El costo por pie cuadrado para terminar un sótano varía entre \$7 y \$23.'' \cite{HomeAdvisor2025d}.\\
+    \hline
+    \textbf{BasementCond}: $C_{BsmtCond}$\newline
+    $C_{BsmtCond,Ex} = \$62,500$ \newline
+    $C_{BsmtCond,Gd} = \$51,750$ \newline
+    $C_{BsmtCond,TA} = \$41,000$ \newline
+    $C_{BsmtCond,Fa} = \$30,500$ \newline
+    $C_{BsmtCond,Po} = \$20,000$ \newline
+    $C_{BsmtCond,Na} = 0$ & Costo de la calidad del sótano\begin{itemize}
+        \item Ex(5): ''De primera calidad \$50,000-\$75,000''.
+        \item Gd(4): Interpolada (Ex/TA.)
+        \item TA(3): ''Gama media \$32,000-\$50,000''.
+        \item Fa(2): Interpolada (TA/Po)
+        \item Po(1): ''Acabado básico \$15,000-\$25,000''.
+    \end{itemize}
+    \cite{FindPross.f.}.\newline
+    Encontrar estas características tan especificas es de gran complejidad asi que lo haremos en base al acabado que tienen.\\
+    \hline
+    \textbf{BsmtFinType1 y BsmtFinType2}: $C_{BstmType}$\newline
+    \newline
+    $C_{BstmType, GLQ} = \$75,000$ \newline
+    $C_{BstmType,ALQ} = \$53,500$ \newline
+    $C_{BstmType,BLQ} = \$32,000$ \newline
+    $C_{BstmType,Rec} = \$23,500$ \newline
+    $C_{BstmType,LwQ} = \$15,000$ \newline
+    $C_{BstmType,Unf} = \$11,250$ \newline
+    $C_{BstmType,NA} = 0$ & Costos de calidad del sótano terminado\begin{itemize}
+        \item GLQ(6): ''El costo de terminar un sótano ronda los \$32,000 , con un rango promedio de \$15,000 a \$75,000'' \cite{Hoffman2025}.
+        \item ALQ(5): Interpolada (GLQ/BLQ)
+        \item BLQ(4): ''El costo de terminar un sótano ronda los \$32,000 , con un rango promedio de \$15,000 a \$75,000'' \cite{Hoffman2025}.
+        \item Rec(3): Interpolada (BLQ/LwQ)
+        \item LwQ(2): ''El costo de terminar un sótano ronda los \$32,000 , con un rango promedio de \$15,000 a \$75,000'' \cite{Hoffman2025}.
+        \item Unf(1): ''Terminar parcialmente un sótano cuesta entre \$2,500 y \$20,000'' \cite{Carlson2025d}.
+    \end{itemize}
+    Para este caso encontrar distintos tipos de sótano basado en su calidad de cuartos habitables no fue posible encontrarlos de manera directa. Asi que decidimos hacerlo en base en base a el rango de un sótano terminado.\\
+    \hline
+    \textbf{Construcción Kitchen}\newline
+    $C_{kitchen} = \$200$ & Costo promedio de construir una cocina en pies cuadrados \newline
+    \newline
+    ''Instalar una cocina nueva cuesta entre \$5,000 y \$125,000 , con un costo promedio de \$65,000 . El costo por pie cuadrado varía entre \$100 y \$300'' \cite{HomeAdvisor2025i}.\\
+    \hline
+    \textbf{KitchenQual}: $C_{k}$\newline
+    $C_{k,Ex} = \$180,000 $ \newline
+    $C_{k,Gd} = \$111,250$ \newline
+    $C_{k,TA} = \$42,500 $ \newline
+    $C_{k,Fa} = \$27,750$ \newline
+    $C_{k,Po} = \$13,000 $ & \begin{itemize}
+        \item Ex(5): ''Costo de remodelación de cocina de alta gama. Una remodelación importante de su cocina costará entre \$60,000 y \$300,000''. \cite{Billock2024}.
+        \item Gd(4): Interpolada (Ex/Ta) por falta de información.
+        \item TA(3): ''Costo de remodelación de cocina de gama media. Una remodelación moderada cuesta entre \$25,000 y \$60,000''. \cite{Billock2024}.
+        \item FA(2): Interpolada (Ta/Po) por falta de información.
+        \item Po(1): ''Costo de remodelación básica de la cocina. Una remodelación menor puede costar entre \$1,000 y \$25,000''. \cite{Billock2024}.
+    \end{itemize}\\
+    \hline
+    \textbf{Construcción HalfBath} \newline
+    $C_{halfbath,c} =$ \$10,000 & ''Su tamaño puede variar entre 15 y 25 pies cuadrados. Esto lo convierte en una opción económica y que ahorra espacio, con gastos que suelen oscilar entre \$5,000 y \$15,000'' \cite{BlockRenovation2025}.\\
+    \hline
+    \textbf{Construcción FullBath}\newline
+    $C_{Fullbath,c} =$ \$25,000 & ''Con una superficie típica de entre 40 y 60 pies cuadrados, es una adición versátil que puede servir como baño principal o como baño familiar compartido. El costo de añadir un baño completo suele oscilar entre \$15,000 y \$35,000'' \cite{BlockRenovation2025}.\\
+    \hline
+    \textbf{Construcción Bedroom}\newline
+    $C_{Bedroom} = \$325$ & ''El costo de añadir una habitación varía entre \$150 y \$500 o más por pie cuadrado'' \cite{Farmer2025c}.\\
+    \hline
+    \textbf{Remodelación Bath}\newline
+    $C_{Bath, r} = \$650 $ & \begin{itemize}
+        \item ''Conversión básica/de gama baja: \$250 – \$450 por pie cuadrado'' \cite{Cedreo2025}.
+        \item ''Ampliación de baño de gama media: \$500 – \$800 por pie cuadrado'' \cite{Cedreo2025}.
+        \item ''Lujo: \$850 – \$1200+ por pie cuadrado''  \cite{Cedreo2025}.
+    \end{itemize}
+    Para este caso, al no tener una variable que diga la calidad del baño, decidimos quedarnos con el costo de un baño medio.\\ 
+    \hline
+    \textbf{FireplaceQu}: $C_{f}$\newline
+    $C_{f,Ex} = \$4,550$ \newline
+    $C_{f,Gd} = \$3,525$ \newline
+    $C_{f,TA} = \$2,500$ \newline
+    $C_{f,Fa} = \$2,000$ \newline
+    $C_{f,Po} = \$1,500$ \newline
+    $C_{f,Na} = 0$ & Costos de calidad de chimenea \begin{itemize}
+        \item Ex: ''Una chimenea de mampostería cuesta  entre \$3,500 y \$5,600'' \cite{Grupa2024}.
+        \item Gd: Interpolada (Ex/TA)
+        \item TA: ''Una chimenea de ladrillo prefabricada cuesta entre  \$2,000 y \$3,000'' \cite{Stone2024}.
+        \item Fa:  Interpolada (TA/Po)
+        \item Po(1): ''Las estufas de leña básicas de hierro fundido pueden costar entre \$1,000 y \$2,000'' \cite{Roysters.f.}.
+    \end{itemize}
+    No tenemos información sobre el costo de chimeneas en base a la ubicación que se encuentran en la vivienda. Es por esto que decidimos hacerlo en base a los materiales y no al lugar en donde se encuentran ubicadas.\\
+    \hline
+    \textbf{GarageQual y GarageCond}: $C_{g}$\newline
+    $C_{g,Ex} = \$51,659$ \newline 
+    $C_{g,Gd} = \$37,849$ \newline 
+    $C_{g,TA} = \$24,038$ \newline 
+    $C_{g,Fa} = \$14,113$ \newline 
+    $C_{g,Po} = \$4,188$ \newline 
+    $C_{g,Na} = 0$ & Costos de calidad del garaje\newline
+    \begin{itemize}
+        \item Ex(5): Costo de gama alta \$51,659.
+        \item Gd(4): Interpolada (Ex/TA)
+        \item TA(3): Costo promedio \$24,038.
+        \item Fa(2): Interpolada (TA/Po)
+        \item Po(1): Costo de gama baja \$4,188.
+    \end{itemize}
+    \cite{Carthan2025}.\\
+    \hline
+    \textbf{GarageFinish}: $C_{GFin}$ \newline
+    $C_{GFin,Fin} = \$24,038$ \newline
+    $C_{GFin,RFin} = \$20,769$ \newline
+    $C_{GFin,Unf} = \$17,500 $ \newline
+    $C_{GFin,Na} = 0$ & Costo de acabado del garaje
+    \begin{itemize}
+        \item Fin: ''Costo promedio \$24,038'' \cite{Carthan2025}.
+        \item RFin: Se obtendra en base a los otros dos valores interpolando.
+        \item Unf: ''Un garaje sin terminar puede costar entre \$15,000 y \$20,000'' \cite{Cutterconstructions.f.}.
+    \end{itemize}\\
+    \hline    
+    \textbf{GarageArea} \newline
+    $C_{GarageArea} = \$47.5 $ & ''¿Cuánto cuesta construir un garaje? \$35 – \$60 costo por pie cuadrado'' \cite{Grupa2025}.\\
+    \hline
+    \textbf{OpenPorchSF}\newline
+    $C_{OpenPorch} = \$77.5$ & Costo del porche abierto en pies cuadrados.\begin{itemize}
+        \item ''Costo promedio de un porche es de \$23 a \$132 por pie cuadrado'' \cite{Africa2024}.
+    \end{itemize}\\
+    \hline
+    \textbf{EnclosedPorch}\newline
+    $C_{EnclosedPorch} = \$80$ & Costo del porche cerrado en pies cuadrados.\begin{itemize}
+        \item ''Un porche cubierto cuesta entre \$40 y \$120 por pie cuadrado'' \cite{HomeAdvisor2025f}.
+    \end{itemize}\\
+    \hline
+    \textbf{3SsnPorch} \newline
+    $C_{3SsnPorch} = \$157.5$ & Costo del porche de tres estaciones en pies cuadrados.\begin{itemize}
+        \item ''Porche multiestacional \$115–\$200'' \cite{Weimert2025}.
+    \end{itemize}\\
+    \hline
+    \textbf{ScreenPorch}\newline
+    $C_{ScreenPorch} = \$72.5$ & Costo del porche con mosquitero en pies cuadrados.\begin{itemize}
+        \item ''Un porche con mosquitero cuesta entre \$25 y \$120 por pie cuadrado'' \cite{HomeAdvisor2025f}.
+    \end{itemize}\\
+    \hline
+    \textbf{WoodDeckSF}\newline
+    $C_{WoodDeck} = \$50$ & ''Costo promedio por pie cuadrado de terraza instalada: entre \$20 y \$80 por pie cuadrado'' \cite{He2025}.\\
+    \hline
+    \textbf{Pool}: $C_{p}$\newline
+    $C_{PoolArea} = \$88 $ \newline
+    $C_{Pool,Ex} = \$135,000$ \newline
+    $C_{Pool,Gd} = \$96,333$ \newline
+    $C_{Pool,TA} = \$57,667$ \newline
+    $C_{Pool,Fa} = \$19,000$ \newline
+    $C_{Pool,NA} = 0$  
+    & \begin{itemize}
+        \item ''El presupuesto promedio es de \$88 por pie cuadrado para una piscina enterrada''.
+        \item Ex(4): ''Una piscina grande, personalizada, con características de lujo y materiales de alta gama podría costar más de \$135,000''.
+        \item Gd(3): Interpolada.
+        \item TA(2): Interpolada.
+        \item Fa(1): ''Una piscina pequeña y básica, hecha con materiales económicos, podría costar tan solo \$19,000''.
+    \end{itemize}
+    \cite{Loveland2025}.\\
+    \hline
+    \textbf{Fence}: $C_{Fence}$\newline
+    $C_{Fence} = \$40$ \newline
+    $C_{Fence,GdPrv} = \$6,300 $ \newline
+    $C_{Fence,MnPrv} = \$4,700 $ \newline
+    $C_{Fence,GdWo} = \$3,232  $ \newline
+    $C_{Fence,MnWw} = \$2,400$ \newline
+    $C_{Fence,NA} = 0$ & \begin{itemize}
+        \item ''Una cerca nueva cuesta  entre \$20 y \$60 por pie lineal'' \cite{Grupa2025b}.
+        \end{itemize}
+        ''Para las cercas de privacidad, las dos alturas estándar son 6 pies y 8 pies.'' \cite{Moore2025}.
+        \begin{itemize}
+            \item GdPrv: ''\$6,300 por una cerca de 8 pies de altura'' \cite{Moore2025}.
+            \item MnPrv: ''Pagar aproximadamente \$4,700 por una cerca de 6 pies de altura'' \cite{Moore2025}.
+            \item GdWo: ''El propietario promedio en Estados Unidos gasta aproximadamente \$3232 en instalar una cerca de madera'' \cite{Westerlund2025}.
+            \item MnWw: ''Precios de cercas de alambre: costo promedio nacional \$2,400'' \cite{Graham2025}.
+        \end{itemize}\\
+    \hline
+\end{longtable}
+
+
+\begin{table}[H]
+\centering
+\caption{Resumen de características medias por TOP 10 Neighborhood}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrrrrr}
+\hline
+ & \textbf{Precio base}  & \textbf{Utl. inc. (MIP)} & \textbf{Costos} & \textbf{YrBuilt} & \textbf{GrLivArea ($sf^2$)} & \textbf{OverallQual}\\
+\hline
+\textbf{NoRidge}  & \$493,429.0 & \$167,211.37 & \$49,265.0 & 1998.0 & 2,612.0 & 8.0\\
+\textbf{NridgHt}  & \$400,208.0 & \$161,860.35 & \$48,829.5 & 2005.0 & 1,943.0 & 8.0\\
+\textbf{Somerst}  & \$356,260.0 & \$128,970.01 & \$43,609.0 & 2005.5 & 1,581.0 & 7.5\\
+\textbf{StoneBr}  & \$401,078.5 & \$124,419.18 & \$47,940.5 & 1997.0 & 1,655.5 & 8.0\\
+\textbf{CollgCr}  & \$344,506.5 & \$123,154.10 & \$43,868.0 & 2002.5 & 1,890.0 & 7.0\\
+\textbf{Blmngtn}  & \$271,566.0 & \$118,569.36 & \$46,499.0 & 2006.0 & 1,258.0 & 7.0\\
+\textbf{SawyerW}  & \$295,363.0 & \$110,841.53 & \$31,180.0 & 1995.0 & 1,659.0 & 7.0\\
+\textbf{ClearCr}  & \$329,535.0 &  \$96,688.69 & \$10,598.0 & 1962.5 & 1,591.0 & 6.0\\
+\textbf{Gilbert}  & \$270,990.0 &  \$84,223.96 & \$21,680.0 & 1999.0 & 1,470.0 & 6.0\\
+\textbf{Edwards}  & \$172,086.5 &  \$82,408.37 & \$10,650.5 & 1948.5 & 1,185.5 & 5.0\\
+\hline
+\end{tabular}
+}
+\label{tab:caracteristicas_TOP10}
+\end{table}
+
+
+

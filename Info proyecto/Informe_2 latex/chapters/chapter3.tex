@@ -1,0 +1,130 @@
+Para nuestro proyecto, resulta importante entender cómo se relaciona Gurobi con las decisiones basadas en árboles. Esto se debe que queremos que se entreguen distintas decisiones para aumentar la rentabilidad de una vivienda.
+De esta manera, ''los árboles de decisión particionan recursivamente el espacio de características y asignan una etiqueta a cada partición resultante. Posteriormente, el árbol se utiliza para clasificar nuevos puntos de acuerdo con estas divisiones y etiquetas'' \cite{Bertsimas2017}. Se puede ver gráficamente en la figura \ref{fig:arboldecision}.
+
+Existen dos tipos de nodos en el árbol. ''Los nodos ramas $T_R$ que se basan en divisiones según $a^T x < b$ donde los puntos que cumplen la desigualdad se van por el lado izquierdo y los que no por la rama derecha. Por otro lado, los nodos hojas $T_H$ realizan predicciones de clase para cada punto que cae en el nodo hoja'' \cite{Bertsimas2017}. Para ver las principales restricciones que modelan cómo se toman las decisiones en el Anexo~\ref{app:Árbol de decisión}.
+
+Con el objetivo de encontrar una solución que permita abordar la problemática planteada, se propone dividir el modelo de optimización en dos componentes principales: la remodelación de una vivienda y la construcción de una nueva vivienda. En primera instancia, se desarrolla el modelo de remodelación, el cual se fundamenta en una serie de supuestos básicos que permiten establecer las condiciones necesarias para su correcta formulación y análisis. 
+
+En primer lugar, se establece que la vivienda puede ser objeto de ampliaciones. Estas se consideran en tres niveles: pequeña, moderada y grande. Las variables \texttt{GarageArea}, \texttt{WoodDeckSF}, \texttt{OpenPorchSF}, \texttt{EnclosedPorch}, \texttt{3SsnPorch}, \texttt{ScreenPorch} y \texttt{PoolArea} se incluyen dentro de este análisis, dado que se dispone de información sobre los $f^{2}$ disponibles del terreno total de la vivienda, y dichas variables representan áreas directamente relacionadas con ese espacio. Las ampliaciones pequeñas implican un incremento del 10\% del área, las ampliaciones moderadas un 20\%, y las grandes un 30\%. Se define un mínimo del 10\% como punto de partida, ya que este valor evita microajustes geométricos poco factibles de ejecutar en obra.
+
+Asimismo, es importante señalar que las ampliaciones se concentran exclusivamente en los espacios habitables del primer piso. Esto se debe a que las expansiones en niveles superiores requerirían un análisis estructural adicional de la vivienda, considerando aspectos como el soporte de carga y los métodos constructivos necesarios para su ejecución, lo cual excede el alcance del presente estudio. En segundo lugar, se determina que la vivienda puede incorporar agregados, es decir, la construcción de nuevos espacios habitables, dado que se dispone de información sobre los $f^{2}$ disponibles del terreno total de la propiedad. Estas expansiones se definen de acuerdo con las superficies mínimas habitables requeridas para cada tipo de recinto, de modo que, si se decide construir una nueva habitación, esta se ejecuta considerando los tamaños mínimos establecidos por normativa o estándares de diseño residencial. En este análisis se consideran los siguientes recintos: \texttt{BedRoom}, \texttt{Kitchen}, \texttt{HalfBath} y \texttt{FullBath}.
+
+El área mínima asignada a cada uno de estos espacios se basa en referencias normativas y estudios de diseño arquitectónico: una habitación (\texttt{BedRoom}) requiere al menos 70~ft$^{2}$, una cocina (\texttt{Kitchen}) 75~ft$^{2}$, un baño completo (\texttt{FullBath}) 40~ft$^{2}$ y un baño de visitas (\texttt{HalfBath}) 20~ft$^{2}$ \cite{InternationalResidentialCode2021}. No se incluyen recintos de superficie variable, ya que establecer límites máximos de área por tipo de espacio no resulta adecuado sin conocer la distribución interna de cada vivienda. Esta decisión responde, además, a las limitaciones de información presentes en la base de datos utilizada. Finalmente, las ampliaciones en el segundo piso se dejan como trabajo futuro, pues su incorporación implicaría modelar restricciones estructurales adicionales —como la existencia de soportes o muros de carga en el primer nivel— necesarias para asegurar la factibilidad constructiva.
+
+Por último, no se intervienen los elementos estructurales principales, como los cimientos y la altura del sótano, ya que su modificación implicaría una reconstrucción completa de la vivienda. Asimismo, se restringen ciertas mejoras debido a la falta de información precisa sobre su ubicación, estado actual o componentes internos, lo que impide una modelación confiable de dichos elementos. Para más detalles de supuestos de renovación puntuales revisar en la Sección~\ref{sec:supuestos remodelación} del Anexo~\ref{app:Remodelación}.
+
+Una vez establecido el contexto general, el modelo de optimización se formula con el objetivo de maximizar la rentabilidad de la propiedad. En términos generales, esto implica determinar la combinación de decisiones de remodelación que genere el mayor incremento en el valor de la vivienda, considerando los costos asociados a las intervenciones realizadas. Matemáticamente, el modelo se plantea de la siguiente forma:\\
+\textbf{Parámetros:}\\
+     -$V^{\text{init}}_i$: valor inicial de la propiedad $i$, $\quad \forall i \in \mathcal{I}$.\\
+    -$V^{\text{post}}_i$: valor posterior a la remodelación de la propiedad $i$, $\quad \forall i \in \mathcal{I}$.\\
+ \textbf{Función objetivo:}
+    $Max \; \Pi \;=\; V^{\text{post}}_i \;-\; V^{\text{init}}_i \;-\; C^{\text{Total}}_{i}$
+
+
+Donde $C^{\text{Total}}_{i}$ representa el costo total incurrido durante el proceso de renovación. El detalle de la composición de costos se presenta en la Sección~\ref{sec:costos remodelación} del Anexo~\ref{app:Remodelación} y el qué costos se consideraron con sus respectivos supuestos se encuentran en el Anexo~\ref{app:tablas} tabla ~\ref{tab:costos}. Teniendo esto en consideración, se procede a la formulación de las restricciones del modelo. Para ello, se realizó un análisis exhaustivo de la base de datos con el objetivo de identificar los elementos que deben ser tratados como parámetros y aquellos que corresponden a variables de decisión. Se parte del supuesto de que toda la información contenida en la base de datos representa los parámetros base del modelo. A partir de ello, se examinan los atributos disponibles para determinar cuáles pueden modificarse y cuáles deben permanecer fijos.
+
+En este contexto, las variables de decisión se asocian a aquellas características susceptibles de cambio, ya sea en términos de calidad, por ejemplo, \texttt{KitchenQual}, material como \texttt{Electrical}, ampliaciones como \texttt{PoolArea} o agregados como \texttt{BedRoom}. Por otro lado, se consideran como parámetros fijos aquellas propiedades estructurales o contextuales que no pueden ser modificadas, tales como el espacio disponible del terreno (\texttt{LotArea}) o el barrio donde se emplaza la vivienda (\texttt{Neighborhood}). El detalle completo de las variables definidas para este modelo se presenta en el Anexo~\ref{app:tablas} en la Tabla~\ref{tab:variables remodelación}.
+
+Una vez definidos los parámetros base, se establecen rangos de presupuesto que permitan delimitar el espacio de búsqueda del modelo. Estos valores se determinan en función del gasto promedio que los hogares estadounidenses destinan a la remodelación de sus viviendas, según datos actualizados de \cite{Noel2025a}. De acuerdo con dicha fuente, se consideran tres niveles de presupuesto: 
+bajo $[\$15{,}000 - \$40{,}000]$, 
+moderado $[\$40{,}000 - \$75{,}000]$ 
+y alto $[\$75{,}000 - \$200{,}000]$. 
+A partir de estos valores, el modelo implementado en Gurobi entrega información sobre los cambios efectuados en la vivienda, los costos asociados a cada intervención, el valor estimado posterior a la remodelación y la rentabilidad obtenida. Aclarado lo anterior, se procede a presentar las restricciones del modelo, las cuales se agrupan en cuatro categorías principales. Con el fin de facilitar su comprensión, se incluyen ejemplos representativos para cada tipo de restricción. El desarrollo matemático completo de todas las variables y restricciones puede consultarse en el Anexo~\ref{app:Remodelación} apartado ~\ref{sec:restricciones remodelación}.
+
+En primer lugar, se aborda el caso \textit{Cambio de calidad}, que considera aquellas variables cuya calidad puede mejorarse respecto a su valor original. En este escenario, si la calidad inicial de un parámetro se encuentra en estado promedio (\textit{Typical/Average}) o inferior, el modelo permite su actualización a una categoría superior. Este es el caso de la variable \texttt{KitchenQual}, cuya calidad puede incrementarse siempre que la condición base de la vivienda sea igual o peor que \textit{Average}. Para formalizar este comportamiento, se define el conjunto total de calidades posibles $\mathcal{K}$ y un subconjunto que agrupa aquellas consideradas promedio o inferiores:
+$\mathcal{K}^{\le Av} = \{\text{TA},\ \text{Fa},\ \text{Po}\}.$
+A continuación, se identifican los parámetros relevantes, los costos asociados a cada nivel de calidad y la calidad base de cada vivienda:
+$C_k \qquad \forall k \in \mathcal{K},
+\qquad
+k_i^{\text{base}} \in \mathcal{K} \qquad \forall i \in \mathcal{I}.$
+Las variables de decisión se definen como la selección de la calidad final de cocina y una variable auxiliar binaria que indica si se realiza una mejora:
+\[
+KitchenQual_{i,k} \in \{0,1\} \quad \forall i \in \mathcal{I},\ \forall k \in \mathcal{K},
+\qquad
+UpgKitch_i \in \{0,1\} \quad \forall i \in \mathcal{I}.
+\]
+Las restricciones asociadas aseguran la consistencia del modelo. En primer lugar, la activación de la variable binaria $UpgKitch_i$ ocurre únicamente cuando la calidad original se encuentra dentro del conjunto $\mathcal{K}^{\le Av}$, detalles en el Anexo~\ref{app:Remodelación} apartado ~\ref{sec:restricciones remodelación}. Además, solo puede seleccionarse una calidad final para cada vivienda:
+\[
+\sum_{k \in \mathcal{K}} KitchenQual_{i,k} = 1 \qquad \forall i \in \mathcal{I}.
+\]
+
+Posteriormente, se define el conjunto permitido de calidades en función del valor de $UpgKitch_i$. Este conjunto $\mathcal{K}_{i,\text{allow}}$ restringe las opciones de mejora a aquellas con un costo igual o superior al de la calidad base, más detalle en el Anexo~\ref{app:Remodelación} apartado ~\ref{sec:restricciones remodelación}. Finalmente, dentro del conjunto permitido se fuerza la selección de una única calidad final:
+\[
+\sum_{k \in \mathcal{K}_{i,\text{allow}}} KitchenQual_{i,k} = 1 \qquad \forall i \in \mathcal{I}.
+\]
+Si se produce una mejora en la calidad de la cocina ($UpgKitch_i = 1$), el modelo incorpora el costo correspondiente en la función objetivo.
+
+El segundo tipo de restricción corresponde al \textit{cambio de material}, el cual permite modificar el tipo de componente constructivo únicamente hacia alternativas de mayor costo o, en caso contrario, mantener el material base. Un ejemplo representativo de este caso es la variable \texttt{Electrical}, que describe el tipo de sistema eléctrico instalado en la propiedad. Para su modelación, se define un conjunto de posibles tipos de sistemas eléctricos $\mathcal{E}$ y un subconjunto que agrupa aquellos cuya instalación implica un costo mayor al sistema actual:
+$\mathcal{E}^+_i = \{\, e \in \mathcal{E} : C_e \ge C_{\,e_i^{\text{base}}} \,\}.$ Se consideran como parámetros tanto el tipo de sistema eléctrico base de cada vivienda como los costos unitarios asociados a cada alternativa disponible:
+$
+e_i^{\text{base}} \in \mathcal{E} \qquad \forall i \in \mathcal{I},
+\qquad
+C_e \qquad \forall e \in \mathcal{E}.$
+La variable de decisión se define como la selección del sistema eléctrico final para cada vivienda: $Electrical_{i,e} \in \{0,1\} \qquad \forall i \in \mathcal{I},\ \forall e \in \mathcal{E}^+_i.$
+Finalmente, se establece la restricción que garantiza la elección de un único tipo de sistema eléctrico dentro del subconjunto permitido:
+\[
+\sum_{e \in \mathcal{E}^+_i} Electrical_{i,e} = 1
+\qquad \forall i \in \mathcal{I}.
+\]
+En caso de realizarse el cambio de material eléctrico, el costo correspondiente se incorpora directamente en la función objetivo del modelo como parte de los costos totales de remodelación. El tercer grupo de restricciones corresponde al caso de \textit{ampliaciones y construcción}, el cual permite representar tanto la expansión de áreas existentes como la incorporación de nuevos espacios habitables según los supuestos planteados. Primero se define el conjunto que define los elementos sujetos a ampliación $\mathcal{C}$. Luego, los parámetros representan la información base del modelo, como las áreas iniciales y las dimensiones fijas de los agregados:
+\[
+(LotArea)_i, \ (1stFlrSF)_i^{base}, \ (c)_i^{base} \ \forall c \in \mathcal{C},
+\]
+\[
+A^{\text{Full}}=40,\quad A^{\text{Half}}=20,\quad A^{\text{Kitch}}=75,\quad A^{\text{Bed}}=70.
+\]
+Para las ampliaciones porcentuales se definen los incrementos según el tamaño original:
+\[
+\Delta^{10}_{i,c}=\lfloor 0.10(c)_i^{base}\rceil,\quad
+\Delta^{20}_{i,c}=\lfloor 0.20(c)_i^{base}\rceil,\quad
+\Delta^{30}_{i,c}=\lfloor 0.30(c)_i^{base}\rceil.
+\]
+
+Las variables de decisión indican si se agregan nuevas habitaciones o se realiza una ampliación en cada componente:
+\[
+AddFull_i, AddHalf_i, AddKitch_i, AddBed_i \in \{0,1\}, \qquad
+z^{10}_{i,c}, z^{20}_{i,c}, z^{30}_{i,c} \in \{0,1\}.
+\]
+Cada componente puede ampliarse a lo más en un nivel:
+\[
+z^{10}_{i,c} + z^{20}_{i,c} + z^{30}_{i,c} \le 1 \qquad \forall i,\ \forall c \in \mathcal{C}.
+\]
+
+Las restricciones garantizan la coherencia de las áreas y la factibilidad de las ampliaciones. En primer lugar, se actualizan las áreas finales según las ampliaciones realizadas:
+\[
+c_i = (c)_i^{base} + \Delta^{10}_{i,c}z^{10}_{i,c} + \Delta^{20}_{i,c}z^{20}_{i,c} + \Delta^{30}_{i,c}z^{30}_{i,c} \qquad \forall c \in \mathcal{C}.
+\]
+Luego, el área del primer piso se ajusta por los agregados:
+\[
+(1stFlrSF)_i = (1stFlrSF)_i^{base} + A^{\text{Kitch}}AddKitch_i + A^{\text{Bed}}AddBed_i + A^{\text{Full}}AddFull_i + A^{\text{Half}}AddHalf_i.
+\]
+Las restricciones complementarias que actualizan los contadores de habitaciones y baños se presentan en el Anexo~\ref{app:Remodelación} apartado ~\ref{sec:restricciones remodelación}. Finalmente, se asegura que las ampliaciones y construcciones no excedan el espacio disponible en el terreno:
+\[
+AreaLibre_i = AreaLibre_i^{base} - 
+\Big[ \sum_{c\in\mathcal{C}} (\Delta^{10}_{i,c}z^{10}_{i,c} + \Delta^{20}_{i,c}z^{20}_{i,c} + \Delta^{30}_{i,c}z^{30}_{i,c})
+\]
+\[
++ A^{\text{Full}}AddFull_i + A^{\text{Half}}AddHalf_i + A^{\text{Kitch}}AddKitch_i + A^{\text{Bed}}AddBed_i \Big],
+\]
+\[
+AreaLibre_i \ge 0.
+\]
+Si se realiza una ampliación o construcción, el modelo incorpora un costo proporcional al área añadida dentro de la función objetivo. Finalmente, se encuentra la restriccion de presupuesto, la cual indica que los costos totales no pueden sobrepasar el presupuesto inicial $P_i$:
+\[
+C_{Total} \;\le\; P_i
+\]
+
+A modo de extensión del modelo de ampliación, se propone un modelo de construcción. Los supuestos de este modelo son los siguientes: En primer lugar se asume que cada vivienda se construye desde cero, sobre un terreno definido cuyas características físicas son parámetros fijos y no pueden modificarse. El modelo busca maximizar la rentabilidad de la construcción. 
+
+En segundo lugar, todas las construcciones corresponden a nueva edificación, por lo que se asume que la  condición de todos los elementos estructurales es excelente. Además, solo puede seleccionarse una categoría por variable estructural o de sistema. En tercer lugar, todas las áreas modeladas corresponden a espacios terminados; no existen sectores sin finalizar. Solo se construyen viviendas con uno o dos pisos, exclusivamente. Se excluyen tipos de casas con pisos intermedios.
+
+En cuarto lugar, en viviendas tipo Duplex o Two-Family Conversion, se permite la replicación de ambientes equivalentes en el segundo piso (cocina, baño, dormitorios). Y si la vivienda tiene sótano, se permiten solo ciertos materiales. Si no tiene sótano, se permiten madera o losa. En quinto lugar, se asume que el área de cimentación es el área del primer piso, y para calcular costos de área de exterior se harán supuestos geométricos pertinentes y realistas. Para más detalles revisar Anexo 4. Por último, el área del techo se calculará en base al estilo de techo que es escoja y se multiplicará por un factor para simular la pendiente de este.
+
+En este caso, la función obejtivo se definirá de la siguiente manera:
+\begin{center}
+    $Max\hspace{5mm}\Pi=V_{i}^{Post}-C_{i}^{Total}$
+\end{center}
+Donde:
+ $C_i^{Total}=$Costos totales realizados en la construcción de la casa.
+\\
+Para una revisión más exhaustiva del modelo matemático ir a Anexo 4.

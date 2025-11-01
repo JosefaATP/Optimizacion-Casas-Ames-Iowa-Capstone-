@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import math, re
+import math, re, json
 from typing import Dict, Iterable, List, Tuple
 
 import gurobipy as gp
@@ -104,6 +104,97 @@ def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row, lot_area) -> tup
     return feat_order, x_vars
 
 
+# ===== bound tightening from Booster thresholds (reduce big-M) =====
+def _tighten_bounds_from_booster(m: gp.Model, bundle: XGBBundle,
+                                 feat_order: List[str], x: Dict[str, gp.Var],
+                                 tol: float = 1e-6) -> None:
+    try:
+        bst = bundle.reg.get_booster()
+    except Exception:
+        bst = getattr(bundle.reg, "_Booster", None)
+    if bst is None:
+        return
+
+    try:
+        dumps = bst.get_dump(with_stats=False, dump_format="json")
+    except Exception:
+        return
+
+    thr_map: Dict[int, List[float]] = {}
+    for js in dumps:
+        try:
+            node = json.loads(js)
+        except Exception:
+            continue
+
+        def walk(nd):
+            if "leaf" in nd:
+                return
+            try:
+                f_idx = int(str(nd.get("split", "")).replace("f", ""))
+                thr = float(nd.get("split_condition", float("nan")))
+            except Exception:
+                f_idx, thr = None, float("nan")
+            if f_idx is not None and math.isfinite(thr):
+                thr_map.setdefault(f_idx, []).append(thr)
+            for ch in nd.get("children", []):
+                walk(ch)
+        walk(node)
+
+    # columnas que fijamos por proyecto: NO estrechar (evita choques con valores fijos)
+    skip_cols = {
+        "Year Built", "Year Remod/Add", "Year Sold", "Month Sold",
+        "Overall Qual", "Overall Cond",
+        "Exter Qual", "Exter Cond", "Bsmt Qual", "Bsmt Cond", "Heating QC", "Kitchen Qual",
+        "Utilities", "Low Qual Fin SF",
+    }
+
+    for f_idx, thrs in thr_map.items():
+        if not thrs:
+            continue
+        col = feat_order[f_idx] if f_idx < len(feat_order) else None
+        if col is None or col not in x:
+            continue
+        if col in skip_cols:
+            # mantén bounds originales en columnas fijas por diseño
+            continue
+        v = x[col]
+        try:
+            vtype = getattr(v, "VType", GRB.CONTINUOUS)
+        except Exception:
+            vtype = GRB.CONTINUOUS
+        # Detectar dummies/OHE (trátalas como binarias 0..1; NO subas LB)
+        try:
+            cur_lb = float(getattr(v, "LB", 0.0))
+            cur_ub = float(getattr(v, "UB", float("inf")))
+        except Exception:
+            cur_lb, cur_ub = 0.0, float("inf")
+        is_binary_like = (cur_lb >= -tol) and (cur_ub <= 1.0 + tol)
+        tmin, tmax = min(thrs), max(thrs)
+
+        # margen pequeño (más grande si el rango es minúsculo)
+        pad = max(tol, 0.01 * (abs(tmax - tmin) + 1.0))
+        new_lb = tmin - pad
+        new_ub = tmax + pad
+
+        # Si binaria o dummy: respeta [0,1]
+        if vtype == GRB.BINARY or is_binary_like:
+            new_lb, new_ub = 0.0, 1.0
+        # Si entera, expande un poco
+        elif vtype == GRB.INTEGER:
+            new_lb = math.floor(new_lb - 2)
+            new_ub = math.ceil(new_ub + 2)
+
+        # No subir LB: mantener la libertad del diseño (x puede ser 0 si el modelo lo decide)
+        # Solo reducimos UBs para bajar big-M.
+        try:
+            if (not math.isfinite(float(v.UB))) or float(v.UB) > new_ub:
+                v.UB = float(new_ub)
+        except Exception:
+            pass
+    m.update()
+
+
 # ========================= embed del XGB (y_log, y_price) =========================
 
 def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
@@ -123,13 +214,13 @@ def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
     # embebe arboles (la implementacion en xgb_predictor evita 1 - z con binaria complemento)
     bundle.attach_to_gurobi(m, x_list_vars, y_log)
 
-    # map log -> price via PWL exp (si tu target fue log, usa exp; si fue log1p, usa expm1)
+    # map log -> price via PWL expm1 (tu entrenamiento usa log1p)
     y_price = m.addVar(lb=0.0, name="y_price")
 
     import numpy as np
     # rango razonable de log-precio, ajusta si quieres: p in [30k, 1.0M] -> log p en [10.3, 13.8]
     xs = np.linspace(10.3, 13.8, 40)
-    ys = np.exp(xs)  # si usaste log1p, cambia por: np.expm1(xs)
+    ys = np.expm1(xs)
 
     y_log.LB = float(min(xs)); y_log.UB = float(max(xs))
     y_price.LB = float(min(ys)); y_price.UB = float(max(ys))
@@ -157,13 +248,15 @@ def _build_cost_expr(m, x, ct):
         nonlocal cost
         cost += coef * var
 
+    # Construcción base por ft2
     c_base = float(getattr(ct, "construction_cost", 230.0))
     for nm in ("1st Flr SF", "2nd Flr SF", "Total Bsmt SF"):
         add(f"{nm} @construction", c_base, _safe_get(x, nm))
 
-    c_fin = float(getattr(ct, "basement_finish_cost", 0.0))
-    add("BsmtFin SF 1 @finish", c_fin, _safe_get(x, "BsmtFin SF 1"))
-    add("BsmtFin SF 2 @finish", c_fin, _safe_get(x, "BsmtFin SF 2"))
+    # Terminación de sótano acabado (usa tu clave exacta)
+    c_fin = float(getattr(ct, "finish_basement_per_f2", 0.0))
+    add("BsmtFin SF 1 @finish", c_fin, m.getVarByName("BsmtFinSF1"))
+    add("BsmtFin SF 2 @finish", c_fin, m.getVarByName("BsmtFinSF2"))
 
     add("Wood Deck SF", float(getattr(ct, "wooddeck_cost", 0.0)), _safe_get(x, "Wood Deck SF"))
     add("Open Porch SF", float(getattr(ct, "openporch_cost", 0.0)), _safe_get(x, "Open Porch SF"))
@@ -171,32 +264,120 @@ def _build_cost_expr(m, x, ct):
     add("3Ssn Porch", float(getattr(ct, "threessnporch_cost", 0.0)), _safe_get(x, "3Ssn Porch"))
     add("Screen Porch", float(getattr(ct, "screenporch_cost", 0.0)), _safe_get(x, "Screen Porch"))
     add("Pool Area", float(getattr(ct, "pool_area_cost", 0.0)), _safe_get(x, "Pool Area"))
-    add("Garage Area", float(getattr(ct, "garage_area_cost", 0.0)), _safe_get(x, "Garage Area"))
 
+    # Garage: si tienes costo por ft2, usa esa clave; si no, se costea por acabado (abajo)
+    if hasattr(ct, "garage_area_cost"):
+        add("Garage Area", float(getattr(ct, "garage_area_cost", 0.0)), _safe_get(x, "Garage Area"))
+
+    # Foundation por tipo si defines tabla per-ft2 (opcional)
     if hasattr(ct, "foundation_cost_per_sf"):
         for tag, unit in ct.foundation_cost_per_sf.items():
             add(f"FA {tag}", float(unit), m.getVarByName(f"FA__{tag}"))
 
-    if hasattr(ct, "roof_cost_by_material"):
-        gamma = getattr(ct, "gamma", {})
-        for mm, unit in ct.roof_cost_by_material.items():
-            for s in ["Flat","Gable","Gambrel","Hip","Mansard","Shed"]:
-                z = m.getVarByName(f"Z__{s}__{mm}")
-                if z is not None:
-                    g = float(gamma.get((s, mm), 1.10))
-                    add(f"Roof {s}-{mm}", float(unit) * g, z)
+    # Techo: costo fijo por material (tu tabla roof_matl_fixed)
+    if hasattr(ct, "roof_matl_fixed"):
+        for mm, lump in ct.roof_matl_fixed.items():
+            v = m.getVarByName(f"RoofMatl__{mm}")
+            add(f"RoofMatl {mm}", float(lump), v)
 
-    for nm, attr in (("AreaKitchen","kitchen_area_cost"),
-                     ("AreaFullBath","fullbath_area_cost"),
-                     ("AreaHalfBath","halfbath_area_cost"),
-                     ("AreaBedroom","bedroom_area_cost")):
-        add(nm, float(getattr(ct, attr, 0.0)), m.getVarByName(nm))
+    # Heating: costo por tipo seleccionado (lumpsum)
+    if hasattr(ct, "heating_type_costs"):
+        for h, unit in ct.heating_type_costs.items():
+            v = m.getVarByName(f"Heating__{h}")
+            if v is not None:
+                add(f"Heating {h}", float(unit), v)
+
+    # Central Air: costo de instalación si 'Y'
+    if hasattr(ct, "central_air_install"):
+        v = m.getVarByName("CentralAir__Y")
+        if v is not None:
+            add("CentralAir Install", float(getattr(ct, "central_air_install", 0.0)), v)
+
+    # Electrical: costo por tipo
+    if hasattr(ct, "electrical_type_costs"):
+        for e, unit in ct.electrical_type_costs.items():
+            v = m.getVarByName(f"Electrical__{e}")
+            if v is not None:
+                add(f"Electrical {e}", float(unit), v)
+
+    # Paved Drive: costo por categoría
+    if hasattr(ct, "paved_drive_costs"):
+        for d, unit in ct.paved_drive_costs.items():
+            v = m.getVarByName(f"PavedDrive__{d}")
+            if v is not None:
+                add(f"PavedDrive {d}", float(unit), v)
+
+    # Mampostería (Mas Vnr): costo por ft2 según tipo, multiplicado por área con MvProd
+    if hasattr(ct, "mas_vnr_costs_sqft"):
+        for t, unit in ct.mas_vnr_costs_sqft.items():
+            mv = m.getVarByName(f"MvProd__{t}")
+            if mv is not None:
+                add(f"MasVnr {t}", float(unit), mv)
+
+    # Exterior 1st: costo fijo por material seleccionado (lumpsum por frente en tu tabla)
+    if hasattr(ct, "exterior_matl_lumpsum"):
+        for e1, lump in ct.exterior_matl_lumpsum.items():
+            v = m.getVarByName(f"Exterior1st__{e1}")
+            add(f"Exterior1st {e1}", float(lump), v)
+
+    # Garage finish: costo fijo por acabado
+    if hasattr(ct, "garage_finish_costs_sqft"):
+        name_map = {"NA": "No aplica", "Fin": "Fin", "RFn": "RFn", "Unf": "Unf"}
+        for gf_code, label in name_map.items():
+            v = m.getVarByName(f"GarageFinish__{gf_code}")
+            if v is not None:
+                add(f"GarageFinish {gf_code}", float(ct.garage_finish_costs_sqft.get(label, 0.0)), v)
+
+    # Constante 1 por si falta Floor1 (fallback seguro para lumpsum)
+    ONE = m.getVarByName("CONST_ONE") or m.addVar(lb=1.0, ub=1.0, name="CONST_ONE")
+    gate_floor1 = m.getVarByName("Floor1") or ONE
+    # Utilities (lumpsum por categoría) – usamos AllPub (fijo a 3)
+    if hasattr(ct, "utilities_costs"):
+        add("Utilities AllPub", float(ct.util_cost("AllPub")), gate_floor1)
+
+    # Kitchen Qual (paquete): desactivado por ahora (se costea via area de cocina)
+    # if hasattr(ct, "kitchenQual_upgrade_EX"):
+    #     add("KitchenQual EX", float(getattr(ct, "kitchenQual_upgrade_EX", 0.0)), gate_floor1)
+
+    # Calidad/Condición exterior (fijas a Ex) – costos lumpsum anclados a Floor1
+    # Exterior Qual/Cond (lumpsum): desactivado para evitar doble conteo; el exterior se costea por material
+    # if hasattr(ct, "exter_qual_costs"):
+    #     add("ExterQual EX", float(ct.exter_qual_cost("Ex")), gate_floor1)
+    # if hasattr(ct, "exter_cond_costs"):
+    #     add("ExterCond EX", float(ct.exter_cond_cost("Ex")), gate_floor1)
 
     has_reja = m.getVarByName("HasReja")
     if has_reja is not None:
         add("Reja lineal",
-            float(getattr(ct, "fence_cost_per_ft", 0.0)) * float(getattr(ct, "lot_frontage_ft", 0.0)),
+            float(getattr(ct, "fence_build_cost_per_ft", 0.0)) * float(getattr(ct, "lot_frontage_ft", 0.0)),
             has_reja)
+
+    # 11.xx premiums y costos por área adicionales
+    try:
+        gate_floor1 = m.getVarByName("Floor1") or m.addVar(lb=1.0, ub=1.0, name="CONST_ONE_PREM")
+    except Exception:
+        gate_floor1 = None
+
+    # Kitchen premium por cocina
+    if hasattr(ct, "kitchenQual_upgrade_EX"):
+        kcnt = m.getVarByName("Kitchen") or gate_floor1
+        if kcnt is not None:
+            add("KitchenQual EX", float(getattr(ct, "kitchenQual_upgrade_EX", 0.0)), kcnt)
+
+    # Exterior premium (calidad y condición)
+    if hasattr(ct, "exter_qual_costs") and gate_floor1 is not None:
+        add("ExterQual EX", float(ct.exter_qual_cost("Ex")), gate_floor1)
+    if hasattr(ct, "exter_cond_costs") and gate_floor1 is not None:
+        add("ExterCond EX", float(ct.exter_cond_cost("Ex")), gate_floor1)
+
+    # Costos por área de ambientes
+    for nm, attr in (("AreaKitchen", "kitchen_area_cost"),
+                     ("AreaFullBath", "fullbath_area_cost"),
+                     ("AreaHalfBath", "halfbath_area_cost"),
+                     ("AreaBedroom",  "bedroom_area_cost")):
+        v = m.getVarByName(nm)
+        if v is not None:
+            add(nm, float(getattr(ct, attr, 0.0)), v)
 
     return cost
 
@@ -241,6 +422,33 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
             if col.startswith("Neighborhood_") and col in x:
                 m.addConstr(x[col] == (1.0 if col == picked else 0.0),
                             name=f"link__{col}__fix")
+
+    # === fijar columnas que son parametros del proyecto (nueva construcción) ===
+    def _fix_const(col_name: str, value: float):
+        key = _find_x_key(x, col_name)
+        if key is not None:
+            try:
+                m.addConstr(x[key] == float(value), name=f"fix__{_norm(col_name)}")
+            except Exception:
+                pass
+
+    # Años y meses (construcción y venta en 2025, sin remodel previo)
+    _fix_const("Year Built", getattr(ct, "build_year", 2025))
+    _fix_const("Year Remod/Add", getattr(ct, "remod_year", 2025))
+    _fix_const("Year Sold", getattr(ct, "sale_year", 2025))
+    _fix_const("Month Sold", getattr(ct, "sale_month", 6))
+
+    # Calidad/condición fijas a excelente (ordinal 4), y Overall a 10
+    _fix_const("Overall Qual", getattr(ct, "overall_qual", 10))
+    _fix_const("Overall Cond", getattr(ct, "overall_cond", 10))
+    for qcol in ["Exter Qual", "Exter Cond", "Bsmt Qual", "Bsmt Cond", "Heating QC", "Kitchen Qual"]:
+        _fix_const(qcol, 4)
+
+    # Utilities: AllPub (ordinal 3 según entrenamiento)
+    _fix_const("Utilities", 3)
+
+    # Sin terminación de baja calidad
+    _fix_const("Low Qual Fin SF", 0.0)
 
 
     # === variables de niveles por piso ===
@@ -323,6 +531,9 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
 
     m.addConstr(AreaFullBath == AreaFullBath1 + AreaFullBath2, name="7.1.4__AFullBath")
     m.addConstr(AreaHalfBath == AreaHalfBath1 + AreaHalfBath2, name="7.1.5__AHalfBath")
+    # 11.3 Consistencias por ambiente (áreas agregadas)
+    m.addConstr(AreaKitchen  == AreaKitchen1  + AreaKitchen2,  name="11.3__AKitchen")
+    m.addConstr(AreaBedroom  == AreaBedroom1  + AreaBedroom2,  name="11.3__ABedroom")
     m.addConstr(FullBath1 >= 1, name="7.1.6__fullbath_1min")
     m.addConstr(Kitchen1 >= 1, name="7.1.7__kitchen_1min")
 
@@ -343,6 +554,13 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     _link_if_exists(m, x, "Full Bath", FullBath)
     _link_if_exists(m, x, "Half Bath", HalfBath)
     _link_if_exists(m, x, "Kitchen AbvGr", Kitchen)
+    # 11.11 relaciones de baños: HalfBath <= FullBath
+    m.addConstr(HalfBath <= FullBath, name="11.11__half_leq_full")
+    # Binaria de presencia de cocina para gatear costo de calidad
+    HasKitchen = m.addVar(vtype=GRB.BINARY, name="HasKitchen")
+    UK = 2  # cota segura de cocinas totales (según K_max)
+    m.addConstr(HasKitchen <= Kitchen, name="11.xx__has_kitch_leq_cnt")
+    m.addConstr(HasKitchen - (Kitchen / UK) >= 0, name="11.xx__has_kitch_ge_frac")
 
     # 7.3 caps por tipo de edificio
     bldg_opts = ["1Fam","TwnhsE","TwnhsI","Duplex","2FmCon"]
@@ -380,6 +598,29 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(GarageCars <= int(getattr(ct, "max_garage_cars", 4)) * (1 - GT["NA"]), name="7.5.2__cap_cars_if_has")
     if xgar is not None:
         m.addConstr(xgar <= (0.2 * lot_area) * (1 - GT["NA"]), name="7.5.2__cap_area_if_has")
+
+    # 11.1 HouseStyle exclusividad + relación con pisos
+    hs_opts = ["1Story","2Story"]
+    HS = _one_hot(m, "HouseStyle", hs_opts)
+    _tie_one_hot_to_x(m, x, "HouseStyle", HS)
+    m.addConstr(Floor2 <= HS["2Story"], name="11.1__floor2_only_if_2story")
+
+    # 7.xx Exclusividades adicionales (Heating / Central Air / Electrical / PavedDrive)
+    heat_opts = ["Floor","GasA","GasW","Grav","OthW","Wall"]
+    HEAT = _one_hot(m, "Heating", heat_opts)
+    _tie_one_hot_to_x(m, x, "Heating", HEAT)
+
+    air_opts = ["N","Y"]
+    CA = _one_hot(m, "CentralAir", air_opts)
+    _tie_one_hot_to_x(m, x, "Central Air", CA)
+
+    elect_opts = ["SBrkr","FuseA","FuseF","FuseP","Mix"]
+    EL = _one_hot(m, "Electrical", elect_opts)
+    _tie_one_hot_to_x(m, x, "Electrical", EL)
+
+    pd_opts = ["Y","P","N"]
+    PD = _one_hot(m, "PavedDrive", pd_opts)
+    _tie_one_hot_to_x(m, x, "Paved Drive", PD)
 
     # 7.7 techos (plan vs actual, estilo y material)
     PR1 = m.addVar(lb=0.0, name="PR1")
@@ -547,7 +788,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
 
     # 7.15 exteriores 1st vs 2nd: flag mismo material
     SameMaterial = m.addVar(vtype=GRB.BINARY, name="SameMaterial")
-    ext1_opts = ["VinylSd","MetalSd","Wd Sdng","HdBoard","Stucco","Plywood","CemntBd","BrkFace","BrkComm","WdShing","AsbShng","Stone","ImStucc","AsphShn","CBlock"]
+    ext1_opts = ["VinylSd","MetalSd","Wd Sdng","HdBoard","Stucco","Plywood","CemntBd","BrkFace","BrkComm","WdShngl","AsbShng","Stone","ImStucc","AsphShn","CBlock"]
     ext2_opts = ext1_opts
     EXT1 = _one_hot(m, "Exterior1st", ext1_opts)
     EXT2 = _one_hot(m, "Exterior2nd", ext2_opts)
@@ -562,9 +803,21 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     MV = _one_hot(m, "MasVnrType", mas_opts)
     _tie_one_hot_to_x(m, x, "Mas Vnr Type", MV)
     MasVnrArea = _safe_get(x, "Mas Vnr Area") or m.addVar(lb=0.0, name="MasVnrArea")
-    Umas = 0.4 * ((x1 + x2) if (x1 is not None and x2 is not None) else lot_area)
+    # Umas = fmas * AreaExterior (usamos la misma variable 'AreaExterior1st')
+    AreaExterior_var = m.getVarByName("AreaExterior1st") or m.addVar(lb=0.0, name="AreaExterior1st")
+    fmas = float(getattr(ct, "fmas", 0.4))
+    Umas = fmas * AreaExterior_var
     m.addConstr(MasVnrArea <= Umas, name="7.16.1__mas_cap")
+    # Mínimo si se usa algún tipo distinto de None
     m.addConstr(MasVnrArea >= 20.0 * (1 - MV["None"]), name="7.16__mas_min_if_used")
+    # Variables auxiliares MvProd_t = MasVnrArea si se usa tipo t; 0 si no
+    MvProd = {}
+    for t in mas_opts:
+        v = m.addVar(lb=0.0, name=f"MvProd__{t}")
+        MvProd[t] = v
+        m.addConstr(v <= MasVnrArea, name=f"7.16__mv_leq_area__{t}")
+        m.addConstr(v <= Umas * MV[t], name=f"7.16__mv_leq_u_type__{t}")
+        m.addConstr(v >= MasVnrArea - Umas * (1 - MV[t]), name=f"7.16__mv_ge_area_u__{t}")
 
     # 7.20 fundacion
     f_opts = ["BrkTil","CBlock","PConc","Slab","Stone","Wood"]
@@ -596,8 +849,19 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(AreaHalfBath2 <= UHalfB2 * Floor2, name="7.21.2__ahb2_cap")
     m.addConstr(AreaKitchen2  <= UKitch2 * Floor2, name="7.21.2__ak2_cap")
     m.addConstr(AreaOther2    <= UOther2 * Floor2, name="7.21.2__aoth2_cap")
+    # Partición exacta de áreas por piso con remanentes no negativos
+    if x1 is not None:
+        Remainder1 = m.addVar(lb=0.0, name="Remainder1")
+        m.addConstr(
+            AreaBedroom1 + AreaKitchen1 + AreaHalfBath1 + AreaFullBath1 + AreaOther1 + Remainder1 == x1,
+            name="7.21.1__partition_1st",
+        )
     if x2 is not None:
-        m.addConstr(AreaBedroom2 + AreaKitchen2 + AreaHalfBath2 + AreaFullBath2 + AreaOther2 <= x2, name="7.21__sum_leq_2nd")
+        Remainder2 = m.addVar(lb=0.0, name="Remainder2")
+        m.addConstr(
+            AreaBedroom2 + AreaKitchen2 + AreaHalfBath2 + AreaFullBath2 + AreaOther2 + Remainder2 == x2,
+            name="7.21.2__partition_2nd",
+        )
 
     # 7.22 otros recintos
     m.addConstr(OtherRooms == OtherRooms1 + OtherRooms2, name="7.22.1__other_cnt_sum")
@@ -611,7 +875,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
 
     P1 = m.addVar(lb=0.0, name="P1")
     P2 = m.addVar(lb=0.0, name="P2")
-    AreaExterior = m.addVar(lb=0.0, name="AreaExterior1st")
+    AreaExterior = m.getVarByName("AreaExterior1st") or m.addVar(lb=0.0, name="AreaExterior1st")
 
     # bounds max de area por piso que ya tienes
     U1 = getattr(ct, "alpha1", 0.6) * lot_area   # ej 0.6 * lot_area
@@ -643,7 +907,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(AreaExterior == Hext * (P1 + P2), name="7.23.1__area_ext")
 
     # materiales de Exterior1st (usar el one-hot existente)
-    ext1_opts = ["VinylSd","MetalSd","Wd Sdng","HdBoard","Stucco","Plywood","CemntBd","BrkFace","BrkComm","WdShing","AsbShng","Stone","ImStucc","AsphShn","CBlock"]
+    ext1_opts = ["VinylSd","MetalSd","Wd Sdng","HdBoard","Stucco","Plywood","CemntBd","BrkFace","BrkComm","WdShngl","AsbShng","Stone","ImStucc","AsphShn","CBlock"]
     W = {}
     Uext = getattr(ct, "Uext", 4500.0)
 
@@ -706,6 +970,9 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m._lin_cost_expr  = cost_expr
     m._cost_terms     = getattr(m, "_cost_terms", [])  # para [COST-BREAKDOWN]
     m._X_input        = {"order": feat_order, "x": x} # para [AUDIT]
+
+    # estrechar bounds antes de embebido (reduce big-M)
+    _tighten_bounds_from_booster(m, bundle, feat_order, x)
 
     y_log, y_price = _attach_xgb_embed(m, bundle, feat_order, x)
 

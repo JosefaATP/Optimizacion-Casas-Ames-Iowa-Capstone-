@@ -1,0 +1,98 @@
+El problema de la tasación de viviendas se caracteriza por su alta complejidad, manifestada en la heterogeneidad de las variables, la multicolinealidad y la presencia de \textit{outliers}. Estas condiciones restringen severamente la eficacia de métodos tradicionales como la regresión lineal múltiple, la cual falla al asumir linealidad, requerir supuestos estadísticos rigurosos (como independencia y homocedasticidad) y mostrar inestabilidad frente a la alta correlación entre variables clave del sector inmobiliario. Esta limitación se hace evidente en el \textit{Ames Housing Dataset}, donde se observan $\mathbf{\text{relaciones no lineales}}$ y la violación de supuestos, como la heterocedasticidad en los precios de las casas más grandes y la asimetría de la variable dependiente.
+
+Por esta razón, la metodología finalmente seleccionada es $\mathbf{XGBoost}$ (Extreme  Gradient  Boosting), un algoritmo de ensamble avanzado que utiliza el concepto de \textit{boosting} para combinar secuencialmente múltiples árboles de decisión y minimizar los errores. $\mathbf{XGBoost}$ se posiciona como la alternativa más adecuada por varias razones, respaldadas por la literatura: no depende de supuestos de distribución, maneja eficientemente datos heterogéneos y es $\mathbf{\text{capaz de capturar las complejas interacciones y relaciones no lineales}}$ que los métodos lineales no logran, un factor crítico en la predicción de precios de viviendas. Investigaciones recientes con la base de datos de Ames confirman su $\mathbf{\text{desempeño superior}}$ en la predicción de precios, superando consistentemente a modelos lineales y de \textit{Random Forest}, alcanzando valores de $\mathbf{R^2}$ cercanos a 0,92.
+
+Esta capacidad predictiva de $\mathbf{XGBoost}$ se convierte en la base de la fase de optimización, donde se complementa con $\mathbf{Gurobi}$. La elección de $\mathbf{XGBoost}$ va más allá de la mera predicción de precios, ya que su estructura interna, basada en árboles de decisión, permite integrarlo en la $\mathbf{\text{formulación de problemas de optimización}}$ de programación mixta entera no lineal. $\mathbf{Gurobi}$ actuará como el \textit{solver} que ejecutará los dos modelos de optimización propuestos (Modelo de Renovación y Modelo de Construcción). Al aprovechar $\mathbf{XGBoost}$ para estimar el valor marginal que cada característica de la vivienda aporta, $\mathbf{Gurobi}$ podrá trabajar iterativamente, evaluando combinaciones de diseño y remodelación para $\mathbf{\text{seleccionar la configuración óptima}}$ que maximice la rentabilidad de la inversión bajo las restricciones de presupuesto y factibilidad. En síntesis, $\mathbf{XGBoost}$ provee la precisión en la tasación y $\mathbf{Gurobi}$ la lógica de decisión para alcanzar la casa óptima.
+
+\noindent\textbf{Preparación y limpieza de datos}
+
+En esta etapa se realizó nuevamente la limpieza de los datos. Se eliminaron los valores nulos y las columnas sin información relevante, como \textit{PID}. Además, a las variables categóricas se les aplicó el método \textit{one-hot encoding}, que transforma las categorías en variables numéricas para que el modelo de aprendizaje automático pueda interpretarlas correctamente.  Posteriormente, se normalizaron los datos y se reemplazaron los valores ausentes equivalentes a ``No aplica'' por ``NA'' en las columnas correspondientes.  
+
+El conjunto de datos se dividió en dos partes: un 80\% para el entrenamiento del modelo \textit{XGBoost} y un 20\% para las pruebas. El primero permitió que el modelo aprendiera cómo se comportan los datos y cómo cada variable influye en el precio de venta, mientras que el segundo se utilizó para evaluar la capacidad de generalización del modelo.  
+
+A continuación, se detalla el proceso de calibración de los parámetros y el entrenamiento del modelo \textit{XGBoost}. El entrenamiento se realizó sobre la variable \textit{SalePrice\_Present}, correspondiente al precio actual de la casa antes de ser remodelada.  Se utilizó un \textit{pipeline} de la librería \textit{scikit-learn}, que primero incluye un preprocesador encargado de normalizar y codificar las variables categóricas.  
+Posteriormente, a la hora de entrenar el modelo XGBoost, fue necesario investigar y seleccionar adecuadamente los parámetros más relevantes para su configuración. Entre ellos, se identificaron diversos hiperparámetros detallados en la Tabla~\ref{tab:hiperparámetros} de los cuales destaca el número de estimadores, la tasa de aprendizaje y la profundidad máxima por nodo.
+
+Con el fin de obtener un modelo con alto poder predictivo, pero a la vez lidiar con los posibles riesgos de sobreajuste, se definieron ciertos rangos basados en referencias bibliogr\'aficas, comentarios de fuentes como Stack Overflow y la propia l\'ogica del funcionamiento del modelo, buscando as\'i mantener un enfoque conservador.  
+
+Seg\'un lo planteado por Wang y Ni \cite{wang2019xgboost} en su paper \textit{``A xgboost risk model via feature selection and bayesian hyper-parameter optimization''}, cuyo objetivo era precisamente desarrollar un modelo conservador que abordara el sobreajuste, se determin\'o que el \textit{learning rate} deb\'ia mantenerse bajo, entre 0.005 y 0.2, para que el modelo aprendiera lentamente en cada iteraci\'on. En nuestro caso, se opt\'o por un rango m\'as acotado dentro de ese intervalo. Tambi\'en se ajustaron los l\'imites de \textit{max\_depth}, donde, en funci\'on de lo mencionado sobre este hiperpar\'ametro, se decidi\'o reducir los riesgos acotando el rango respecto al del paper, que a juicio propio permit\'ia una profundidad excesiva de hasta 30. Otro hiperpar\'ametro definido en base a este estudio fue \textit{min\_child\_weight}, para el cual se adopt\'o un enfoque algo m\'as exigente, ampliando en 4 los l\'imites con el fin de evitar que el modelo pudiera justificarse con muy pocas observaciones.  
+
+En cuanto a \textit{subsample}, \textit{colsample} y \textit{gamma}, tambi\'en se modificaron ligeramente los rangos, optando por una b\'usqueda m\'as amplia que priorizara la capacidad del modelo de no sobreajustarse, incluso a costa de una leve p\'erdida de precisi\'on. Respecto al resto de los hiperpar\'ametros, \textit{reg\_alpha} y \textit{lambda}, se ha se\~nalado que incrementar sus valores predeterminados contribuye a obtener un modelo m\'as conservador \citeA{xgboost_params}. En coherencia con todos los par\'ametros regulados bajo este enfoque, se defini\'o un rango de estimadores m\'as amplio respecto al l\'imite superior del n\'umero de observaciones, con el prop\'osito de evaluar qu\'e valor se adaptaba mejor al modelo y alcanzar una buena generalizaci\'on. Esto es com\'un en modelos donde se han tomado precauciones frente al sobreajuste (\cite{boehmke2020homl}). En la siguiente tabla se pueden apreciar los rangos utilizados:
+
+\begin{table}[H]
+\centering
+\caption{Rangos definidos para los hiperparámetros del modelo XGBoost.}
+\resizebox{0.6\textwidth}{!}{%
+\footnotesize
+\begin{tabular}{lclclcl}
+\hline
+$n\_estimators$ & [1200, 4000] &
+$learning\_rate$ & [0.02, 0.07] &
+$max\_depth$ & [3, 7] \\
+$min\_child\_weight$ & [4, 14] &
+$\gamma$ & [0.0, 3.0] &
+$subsample$ & [0.65, 1.0] \\
+$colsample\_bytree$ & [0.4, 1.0] &
+$reg\_\lambda$ & [0.5, 4.0] &
+$reg\_\alpha$ & [0.05, 1.2] \\
+\hline
+\end{tabular}%
+}
+\label{tab:rangos_xgb_horizontal}
+\end{table}
+
+Una vez determinados los rangos, se opt\'o por utilizar como m\'etodo para la b\'usqueda de los hiperpar\'ametros ideales el m\'etodo de optimizaci\'on bayesiana, que mediante un enfoque probabil\'istico que aprende de las combinaciones previas, busca de forma inteligente y r\'apida (\cite{datascientest_bayesiana})(4 minutos en nuestro caso) los mejores valores para el modelo. Este m\'etodo equilibra exploraci\'on y explotaci\'on, reduciendo, a diferencia de una b\'usqueda aleatoria, la cantidad de iteraciones y el costo computacional. Seg\'un los autores \cite{wang2019xgboost}, esta estrategia proporcion\'o modelos m\'as estables y precisos, con menor variabilidad entre cada ejecuci\'on, algo que coincid\'ia con nuestro objetivo de configuraci\'on: encontrar una configuraci\'on conservadora con alto desempe\~no.
+
+A partir de un análisis cualitativo de gráficas generadas adjuntas en las Figuras \ref{fig:r2_iter}, \ref{fig:mape_iter} y \ref{fig:rmse_iter}, se puede apreciar la evolucion de los respectivos kpi determinados con anterioridad. En donde
+el MAPE y el RMSE tienden a mostrar un comportamiento descendente, siendo m\'as frecuente que se ubiquen en valores m\'as bajos, mientras que el $R^{2}$ presenta un comportamiento generalmente ascendente, mejorando su precisi\'on por iteraci\'on. Los valores que a veces se desvían son perfectamente v\'alidos, debido a que la bayesiana est\'a constantemente explorando y aprendiendo, por lo que puede tender a equivocarse, pero finalmente implementar\'a una correcci\'on.
+
+Entre los resultados se obtuvo un $R^{2}$ DE 0.937, un MAPE de 7.148 y un RMSE de 30777.77. Los valores determinados para los hiperparametros fueron los siguientes:
+
+\begin{table}[H]
+\centering
+\caption{Mejores hiperparámetros encontrados mediante optimización bayesiana.}
+\resizebox{0.75\textwidth}{!}{%
+\footnotesize
+\begin{tabular}{lccccccccc}
+\hline
+\textbf{n\_estimators} & \textbf{lr} & \textbf{depth} & \textbf{mcw} & \textbf{$\gamma$} & \textbf{sub} & \textbf{cols} & \textbf{$\lambda$} & \textbf{$\alpha$} \\
+\hline
+3758 & 0.0368 & 4 & 5 & 0.0083 & 0.6783 & 0.4305 & 3.3643 & 0.0524 \\
+\hline
+\end{tabular}%
+}
+\label{tab:resumen_bayesiana}
+\end{table}
+
+Una vez obtenidos estos resultados, se realiz\'o una validaci\'on repetida de 10 pliegues. Esta validaci\'on, que tambi\'en fue realizada por Wang y Ni \cite{wang2019xgboost}, consist\'ia en dividir los datos en 10 partes iguales, para luego entrenar el modelo con 9 de estas y utilizar la restante para probar los resultados. Esto se repiti\'o 10 veces en total, cambiando aleatoriamente las divisiones de los datos. Este procedimiento se llev\'o a cabo para obtener una evaluaci\'on m\'as estable y confiable del modelo. Gracias a esto, obtuvimos un valor de $R^{2}$ m\'as bajo, as\'i como valores de MAPE y RMSE m\'as altos, pero aun as\'i se mantienen por sobre los resultados de la regresi\'on, aunque ahora respaldados por desviaciones est\'andar m\'inimas y con un riesgo de sobreajuste muy reducido.
+
+\begin{table}[H]
+\centering
+\caption{Métricas de desempeño del modelo XGBoost.}
+\resizebox{0.4\textwidth}{!}{%
+\footnotesize
+\begin{tabular}{lcc}
+\hline
+\textbf{Métrica} & \textbf{Media} & \textbf{Desviación estándar} \\
+\hline
+$R^{2}$ & 0.9318 & 0.0019 \\
+RMSE & 31{,}543.12 & 386.42 \\
+MAPE & 7.7574 & 0.0529 \\
+\hline
+\end{tabular}%
+}
+\label{tab:metricas_xgb}
+\end{table}
+
+El modelo entrenado fue exportado en formato \texttt{.json} para su conexi\'on con Gurobi durante el proceso de optimizaci\'on. Adem\'as, se implement\'o una clase auxiliar denominada \texttt{XBPredictor}, que permite cargar el modelo y generar predicciones tanto para la vivienda original como para las versiones remodeladas creadas por el optimizador.
+
+\noindent\textbf{Implementación de XGBoost en Gurobi}
+
+En primer lugar, se definieron las variables modificables —como \textit{FullBath}, \textit{GarageCars} y \textit{BedroomAbvGr}— y las no modificables —como \textit{Neighborhood} o \textit{YearBuilt}. Con el modelo predictivo entrenado, se implementó el modelo de optimización entera mixta para la remodelación de viviendas, estructurado en distintos archivos para mantener una arquitectura modular. En el archivo principal se definió la función \texttt{build\_mip\_embed(pid, budget)}, encargada de cargar los datos de la vivienda según su \textit{PID}, inicializar el modelo, declarar las variables de decisión y generar los parámetros fijos a partir de las variables no modificadas.  
+
+El modelo \textit{XGBoost} se integró dentro del optimizador \textit{Gurobi} mediante la librería \texttt{gurobi\_ml}, que traduce los árboles de decisión en un conjunto de restricciones lineales y variables binarias. Cada árbol se representa como nodos y hojas, donde una sola hoja puede activarse a la vez, definiendo una trayectoria de decisión. El valor predicho de la vivienda corresponde a la suma ponderada de las hojas activas de todos los árboles, modelada como una variable continua. Así, \textit{Gurobi} “razona” sobre la estructura del modelo \textit{XGBoost} dentro del MILP, optimizando las decisiones que maximizan la utilidad esperada considerando simultáneamente los costos de remodelación y las restricciones constructivas.  
+Esta integración permite que el modelo de optimización no solo opere sobre reglas predefinidas, sino que tome en cuenta la complejidad aprendida por \textit{XGBoost}, es decir, las relaciones no lineales y las interacciones entre variables.
+
+Por otro lado, aunque una regresión lineal múltiple permite obtener coeficientes que indican la influencia de cada variable sobre el precio, este tipo de modelo no resulta adecuado para integrarse al optimizador. En teoría, esos coeficientes podrían orientar decisiones de remodelación, pero la regresión lineal capta principalmente relaciones lineales entre las variables y el precio. Es complejo representar relaciones no lineales. Esto haría que el optimizador maximizara todas las variables sin restricciones lógicas, suponiendo que cada mejora siempre aumenta el precio de igual forma y sin considerar ni efectos contextuales.  
+
+En contraste, \textit{XGBoost} aprende automáticamente las relaciones no lineales y dependencias entre variables, permitiendo que el efecto de cada decisión dependa del contexto de cada vivienda. En consecuencia, la integración de \textit{XGBoost} dentro del modelo de optimización ofrece una representación más realista y flexible del mercado, asegurando que las recomendaciones finales sean factibles y económicamente coherentes.  

@@ -1,0 +1,1537 @@
+
+%renovación
+\section{Supuestos remodelación}
+\label{sec:supuestos remodelación}
+A continuación se detallan supuestos del modelo de remodelación.\\
+1. La variable Foundation indica los cimientos de la casa, por lo que se fija como parámetro, ya que cambiarla implicaría destruir la casa completa.\\ 
+2. La variable BsmtQual indica la altura del sótano y define su calidad según eso, no se procederá a cambiar esta calidad ya que implicaría cambiar la infraestructura de la casa. \\ 
+3. No se considera expanción del sótano de la casa, ya que implicaría destrucción de cimientos de la casa y evaluaciones de suelo de los cuales no tenemos información. Por ende es por limitación de la base de datos.\\ 
+4. No se agregaran chimeneas, ya que la variable Fireplaces contabiliza la cantidad total de chimeneas sin diferenciar cuales estan en la casa y cuáles en el sótano, por ende para restringir cúantas se puede agregar no se tendría un parámetro claro de máximo. Además, si se agregan no se sabría dónde por lo mismo. La desición esta tomada por la limitación de información de la base de datos.\\ 
+5. Las variables Overall Qual y Overall Cond no se cambiaran, ya que indican la calidad y condiciones generales de la casa, por lo que depende de todos los otros factores de calidad y condición de la casa.\\  
+6. La variable Functional que indica la evaluación cualitativa del estado funcional general de la vivienda no será modificada, esto debido a que no podemos hacer mejoras específicas si no tenemos conocimiento de qué es deficiente en particular. La desición esta tomada por la limitación de información de la base de datos.\\ 
+7. La variable LowQualFinSF que indica pies cuadrados de mala calidad en todos los pisos no se cambiará. No podemos hacer mejoras específicas si no tenemos conocimiento de qué es deficiente en particular.La desición esta tomada por la limitación de información de la base de datos.\\
+8. Para la renovación de espacios se considera que no se modificaran las habitaciones del interior de la casa, esto debido a que no existen especificaciones de los $f^{2}$ que hay de cada habitación, por ende esto limita su posible expansión y/o reducción. La desición esta tomada por la limitación de información de la base de datos.\\
+
+\section{Costos remodelación}
+\label{sec:costos remodelación}
+${C^{Total}_{i}}$= 
+\[
+\;\;
+\underbrace{\sum_{\substack{u \in \mathcal{U}^+_i \\ u \neq u_i^{\text{base}}}} \! C_u \; Utilities_{i,u}}_{\text{costo de nueva utility}}
+\;+\;
+\underbrace{
+C^{\text{Roof}}_{\text{demolición}}
+\;\sum_{\substack{m \in \mathcal{M}^+_i \\ m \neq m_i^{\text{base}}}}
+y_{i,m}
+}_{\text{demolición Roof}}
+\;+\;
+\underbrace{\sum_{\substack{m \in \mathcal{M}^+_i \\ m \neq m_i^{\text{base}}}} C_m\, y_{i,m}}_{\text{costo del nuevo material Roof}}
+\]
+
+\[
++\Bigg[
+\underbrace{C^{(1)}_{(e_1)^{base}_i}\, (UpgMat_i - Change1_i)}_{\text{reconstruir material base 1}}\\[4pt]
+\quad
++\underbrace{\sum_{\substack{e_1\in\mathcal{E}\\ e_1\neq (e_1)^{base}_i}}
+C^{(1)}_{e_1}\, Exterior1st_{i,e_1}}_{\text{cambiar a material más caro 1}}\\[6pt]
+\]
+\[
++\underbrace{Has2_i\Big(\,
+C^{(2)}_{(e_2)^{base}_i}\, (UpgMat_i - Change2_i)
++\,
+\sum_{\substack{e_2\in\mathcal{E}\\ e_2\neq (e_2)^{base}_i}}
+C^{(2)}_{e_2}\, Exterior2nd_{i,e_2}
+\Big)}_{\text{Exterior 2 (si existe)}}\\[6pt]
+\]
+
+\[
++\underbrace{\sum_{\substack{eq\in\mathcal{Q}\\ BaseQual_{i,eq}=0}} C^{Q}_{eq}\, ExterQualSel_{i,eq}
++\sum_{\substack{ec\in\mathcal{C}\\ BaseCond_{i,ec}=0}} C^{C}_{ec}\, ExterCondSel_{i,ec}}_{\text{mejorar calidad/condición Exterior 1 y Exterior 2}}
+\Bigg]
+\]
+\[
+\;+\;
+\underbrace{\sum_{\substack{t \in \mathcal{T}^+_i \\ t \neq t_i^{\text{base}}}}
+\Big( C_t \cdot \mathrm{MasVnrArea}_i \Big)\; MasVnrType_{i,t}}_{\text{cambiar MasVnrArea o construirlo si no hay}}
+\;+\;
+\underbrace{\sum_{\substack{e \in \mathcal{E}^+_i \\ e \neq e_i^{\text{base}}}}
+C_e\, Electrical_{i,e}}_{\text{costo del nuevo tipo Electrical}}
+\]
+\[
++\underbrace{\sum_{i \in \mathcal{I}:\ a_i^{\text{base}} = \text{No}} C_{\text{CentralAir}} \cdot CentralAir_{i,\text{Yes}}}_{\text{Costo de incluir CentralAir}}
+\]
+\[
++\underbrace{C_{\,h_i^{\text{base}}}\,(UpgType_i - ChangeType_i)}_{\text{reconstruir mismo tipo Heating}}\\[4pt]
++\underbrace{\sum_{h\in\mathcal{H}_i^+} C_h\, M^H_{i,h}\, Heating_{i,h}}_{\text{cambiar a tipo más caro de Heating}}\\[4pt]
++\underbrace{\sum_{q\in\mathcal{Q}_i^+} C_{hqc}\, M^{QC}_{i,q}\, HeatingQC_{i,q}}_{\text{cambiar calidad Heating}}
+\]
+\[
+\;+\;
+\underbrace{\sum_{\substack{k \in \mathcal{K}_{i,\text{allow}} \\ k \neq k_i^{\text{base}}}}
+C_k \;\, KitchenQual_{i,k}}_{\text{cambiar calidad cocina}}
+\;\;
++\underbrace{C_{\text{Bsmt}}
+\Big( x^{(1)}_i + x^{(2)}_i \Big)}_{\text{terminar el sótano}}
+\;+\;
+\underbrace{\sum_{\substack{b \in \mathcal{B}_{i,\text{allow}} \\ b \neq b_i^{\text{base}}}}
+C_b \;\, BsmtCond_{i,b}}_{\text{cambiar calidad sótano}}
+\]
+
+\[
++\underbrace{\sum_{b_1\in\mathcal{B}}
+C_{BstmType}\, M^{B1}_{i,b}\, BsmtFinType1_{i,b}}_{\text{Costo por mejora en BsmtFinType1}}\\[4pt]
++\underbrace{HasB2_i
+\sum_{b_2\in\mathcal{B}}
+C_{BstmType}\, M^{B2}_{i,b}\, BsmtFinType2_{i,b}}_{\text{Costo por mejora en BsmtFinType2 (si existe)}}
+\]
+
+\[
+\;+\;
+\underbrace{\sum_{\substack{fen \in \mathcal{F}_{i,\text{allow}} \\ fen \neq f_i^{\text{base}}}}
+C_{fen} \;\, FireplaceQu_{i,fen}}_{\text{Costo por mejorar Chimenea}}
+  \;+\;
+  \underbrace{\sum_{\substack{fen \in \mathcal{F}_{i,\text{allow}} \\ fen \neq f_i^{\text{base}}}}
+  C_{Fence, fen}\;\, Fence_{i,fen}}_{\text{Costo por mejorar Fence}}
+  \]
+
+\[
+  \;+\;
+   \underbrace{\sum_{i \in \mathcal{I}: \ f_i^{\text{base}}=\text{NA}}
+  C_{\text{Fence}} \cdot LotFrontage_i \cdot 
+  \Big( Fence_{i,\text{MnPrv}} + Fence_{i,\text{GdPrv}} \Big)}_{\text{Costo por construir Fence}}
++\underbrace{\sum_{\substack{d \in \mathcal{D}_{i,\text{allow}} \\ d \neq d_i^{\text{base}}}}
+C_d \; PavedDrive_{i,d}}_{\text{Costo por construir PavedDrive}}
+\]
+
+\[
+\underbrace{+\sum_{g\in \mathcal{G}^{Q}_{i,\text{allow}}}
+C_g\, M^{Q}_{i,g}\, GarageQual_{i,g}}_{\text{Costo por mejorar Calidad Garage}}
+\;+\;
+\underbrace{\sum_{g\in \mathcal{G}^{C}_{i,\text{allow}}}
+C_g\, M^{C}_{i,g}\, GarageCond_{i,g}}_{\text{Costo por mejorar Condición Garage}}
+\]
+
+
+\[
+\begin{aligned}
+&+\,
+\underbrace{
+C_{\text{construccion}}
+\Big(
+A^{\text{Full}}\,AddFull_i
++ A^{\text{Half}}\,AddHalf_i
++ A^{\text{Kitch}}\,AddKitch_i
++ A^{\text{Bed}}\,AddBed_i
+\Big)
+}_{\text{(costo por construir habitación en particular)}}
+\end{aligned}
+\]
+
+
+\[
+ \;+\;\underbrace{ \sum_{c\in\mathcal{C}}
+\Big( C^{10}_{c}\,\Delta^{10}_{i,c}\, z^{10}_{i,c} \;+\; C^{20}_{c}\,\Delta^{20}_{i,c}\, z^{20}_{i,c} \;+\; C^{30}_{c}\,\Delta^{30}_{i,c}\, z^{30}_{i,c} \Big)}_{\text{costo por ampliación}}
+\;\;
++\underbrace{\sum_{\substack{p \in \mathcal{P}_{i,\text{allow}} \\ p \neq p_i^{\text{base}}}}
+C_p \;\, PoolQC_{i,p}}_{\text{costo por mejorar la piscina}}
++\underbrace{\sum_{ga \in \mathcal{G}a}
+C_{GFin} \;\, M^{Ga}_{i,ga} \;\, gar_{i,ga}}_{\text{costo por terminar el Garage}}
+\]
+
+\section{Restricciones remodelación}
+\label{sec:restricciones remodelación}
+A continuación se presenta el modelo realizado para el caso de remodelación. Con el fin de que se entienda mejor, las restricciones se van explicando por variable. Se utilizó como ayuda la IA Chat GPT para implementar las restricciones generalizadas a cada caso específico, el detalle se enseña en el siguiente link: https://chatgpt.com/share/68eb241e-1070-8005-a699-6e5cda4677d7
+
+\begin{itemize}
+    \item Utilities: Se puede cambiar a alternativas que sean de costo mayor o mantenerse. El costo de construcción de una nueva Utilitie considera la destrucción del anterior. \\
+    - Parámetro de Utilitie original: 
+\[
+u_i^{\text{base}} \in u \qquad \forall i \in \mathcal{I}.
+\]
+ - Parámetro de Costo de la Utilitie original:
+ \[
+C_{u_i^{\text{base}}} \in u \qquad \forall i \in \mathcal{I}.
+\]
+ 
+-Definición de conjunto permitido de utilities 
+\[
+\mathcal{U}^+_i = \{\, u \in \{AllPub, NoSewr, NoSeWa, ELO\} : C_u \ge C_{u_i^{\text{base}}} \,\}.
+\]
+
+-Variables de decisión
+\[
+Utilities_{i,u} \in \{0,1\} \qquad \forall i \in \mathcal{I},\, \forall u \in \mathcal{U}^+_i.
+\]
+
+-Restricción
+\[
+\sum_{u \in \mathcal{U}^+_i} Utilities_{i,u} = 1 \qquad \forall i \in \mathcal{I}.
+\]
+
+-Si se realiza el cambio se incurre en un costo, en la FO agregar: 
+\[
+\text{CostoUtilities} \;=\;
+\underbrace{\sum_{\substack{u \in \mathcal{U}^+_i \\ u \neq u_i^{\text{base}}}} \! C_u \; Utilities_{i,u}}_{\text{costo de la nueva utility}}
+.
+\]
+
+    \item RoofStyle y RoofMatl:
+Se selecciona un tipo de \textit{roof style} y un tipo de \textit{roof material} compatibles entre sí. El material y el estilo pueden mantenerse o cambiarse a una alternativa de costo mayor, respetando las compatibilidades constructivas.\\
+
+    - Matriz de compatibilidad entre estilos y materiales:\\
+    La compatibilidad se representa mediante el parámetro binario $A_{s,m}$, donde $A_{s,m} = 1$ si el material $m$ puede ser utilizado con el estilo $s$, y $A_{s,m} = 0$ en caso contrario.
+    
+    \[
+    A_{s,m} =
+    \begin{array}{c|cccccc}
+     & \text{AsphaltShingle} & \text{Metal} & \text{ClayTile} & \text{WoodShingle} & \text{Slate} & \text{Membrane} \\
+    \hline
+    \text{Gable}   & 1 & 1 & 1 & 1 & 1 & 0 \\
+    \text{Hip}     & 1 & 1 & 1 & 1 & 1 & 0 \\
+    \text{Flat}    & 0 & 1 & 0 & 0 & 0 & 1 \\
+    \text{Mansard} & 1 & 1 & 1 & 1 & 1 & 0 \\
+    \text{Shed}    & 1 & 1 & 0 & 1 & 0 & 1 \\
+    \end{array}
+    \]
+    Esta matriz fue construida en base a compatibilidades constructivas reportadas en fuentes técnicas de cubiertas 
+    \cite{roofcrafters2024, renoworks2023, wikipediaFlatRoof2024}.\\
+
+    - Parámetro de Roof Style original:
+    \[
+    s_i^{\text{base}} \in s \qquad \forall i \in \mathcal{I}.
+    \]
+
+    - Parámetro de Roof Material original:
+    \[
+    m_i^{\text{base}} \in m \qquad \forall i \in \mathcal{I}.
+    \]
+
+    - Parámetro de costo de Roof Style y Roof Material:
+    \[
+    \, C_m \qquad \, \forall m \in m.
+    \]
+
+    - Definición de conjuntos permitidos:
+    \[
+    \mathcal{S}^+_i = \{\, s \in \{Flat, Gable, Gambrel, Hip, Mansard, Shed\} : C_s \ge C_{s_i^{\text{base}}} \,\}\]
+   \[
+    \mathcal{M}^+_i = \{\,m\in\{ClyTile, CompShg, Membran, Metal, Roll, TarGrv, WdShake, WdShngl\:C_m \ge C_{m_i^{\text{base}}} \,\}.
+    \]
+    - Variables de decisión:
+    \[
+    x_{i,s} \in \{0,1\} \qquad \forall i \in \mathcal{I},\, \forall s \in \mathcal{S}^+_i,
+    \]
+    \[
+    y_{i,m} \in \{0,1\} \qquad \forall i \in \mathcal{I},\, \forall m \in \mathcal{M}^+_i.
+    \]
+    - Restricción de selección única:
+    \[
+    \sum_{s \in \mathcal{S}^+_i} x_{i,s} = 1 \qquad \forall i \in \mathcal{I}, \qquad
+    \sum_{m \in \mathcal{M}^+_i} y_{i,m} = 1 \qquad \forall i \in \mathcal{I}.
+    \]
+
+    - Restricción de compatibilidad entre estilo y material según la matriz $A_{s,m}$.:
+    \[
+    x_{i,s} + y_{i,m} \le 1 
+    \qquad \forall i \in \mathcal{I},\, \forall s \in \mathcal{S}^+_i,\, \forall m \in \mathcal{M}^+_i : A_{s,m} = 0.
+    \]
+    
+    - Parámetro de costo de demolición grande:
+\[
+C^{\text{Roof}}_{\text{demolición}} \ge 0.
+\]
+
+- Si se realiza el cambio de material se incurre en costo, en la FO agregar:
+
+\[
+\text{CostoRoof}
+\;=\;
+\underbrace{
+C^{\text{Roof}}_{\text{demolición}}
+\;\sum_{\substack{m \in \mathcal{M}^+_i \\ m \neq m_i^{\text{base}}}}
+y_{i,m}
+}_{\text{demolición Roof}}
+\;+\;
+\underbrace{\sum_{\substack{m \in \mathcal{M}^+_i \\ m \neq m_i^{\text{base}}}} C_m\, y_{i,m}}_{\text{costo del nuevo material}}
+\]
+
+
+    \item Exterior1st, Exterior2nd, ExterQual, ExterCond: Si la calidad o condición del material exterior presenta un indice de Average/Typical o inferior, entonces se pueden seguir dos caminos. El primero es que el material del Exterior1st y el Exterior2nd pueden mantenerse recostruyendo cada uno denuevo o reemplazarse por otro de costo superior al actual. Exterior2nd solo aplica si existe un segundo material en la casa. El segundo es que ExterQual y ExterCond puedan cambiar aumentando su calidad y condición respectivamente.\\
+
+   - Materiales:
+\[
+\begin{aligned}
+\mathcal{E} = \{&
+\text{AsbShng},\ \text{AsphShn},\ \text{BrkComm},\ \text{BrkFace},\
+\text{CBlock},\ \text{CemntBd},\ \text{HdBoard},\ \text{ImStucc},\\
+&\text{MetalSd},\ \text{Other},\ \text{Plywood},\ \text{PreCast},\
+\text{Stone},\ \text{Stucco},\ \text{VinylSd},\ \text{WdSdng},\ \text{WdShing}\}.
+\end{aligned}
+\]
+
+
+- Parámetros de costos de materiales:
+\[
+C^{(1)}_e \ \forall e\in\mathcal{E}, \qquad
+C^{(2)}_e \ \forall e\in\mathcal{E}.
+\]
+- Parámetros de costos de calidad/condición:
+\[
+\mathcal{Q}=\{\text{Ex},\text{Gd},\text{TA},\text{Fa},\text{Po}\},\quad
+\mathcal{C}=\{\text{Ex},\text{Gd},\text{TA},\text{Fa},\text{Po}\},
+\]
+\[
+C^{Q}_{eq}\ \forall eq\in\mathcal{Q}, \qquad C^{C}_{ec}\ \forall ec\in\mathcal{C}.
+\]
+- Costos de demolición por frente (aplican sólo si se toma el camino material):
+\[
+C^{dem}_{1}\ge 0,\qquad C^{dem}_{2}\ge 0.
+\]
+
+- Parámetros base:
+\[
+(e_1)^{base}_i \in \mathcal{E}, \qquad
+(e_2)^{base}_i \in \mathcal{E}\ \ \text{si } Has2_i=1,
+\]
+\[
+BaseQual_{i,eq}\in\{0,1\},\ \sum_{eq\in\mathcal{Q}} BaseQual_{i,eq}=1,\qquad
+BaseCond_{i,ec}\in\{0,1\},\ \sum_{ec\in\mathcal{C}} BaseCond_{i,ec}=1,
+\]
+\[
+Has2_i\in\{0,1\}.
+\]
+- Subconjuntos “Average o peor”:
+\[
+\mathcal{Q}^{\le Av}=\{\text{TA},\text{Fa},\text{Po}\},\qquad
+\mathcal{C}^{\le Av}=\{\text{TA},\text{Fa},\text{Po}\}.
+\]
+- Parámetros costos base:
+\[
+C^{Q,\text{base}}_i=\sum_{eq} C^Q_{eq}\, BaseQual_{i,eq},\qquad
+C^{C,\text{base}}_i=\sum_{ec} C^C_{ec}\, BaseCond_{i,ec}.
+\]
+
+- Selección final de materiales:
+\[
+Exterior1st_{i,e_1}\in\{0,1\}\ \forall e_1\in\mathcal{E},\ \ 
+\sum_{e_1} Exterior1st_{i,e_1}=1,
+\]
+\[
+Exterior2nd_{i,e_2}\in\{0,1\}\ \forall e_2\in\mathcal{E},\ \
+\sum_{e_2} Exterior2nd_{i,e_2}=Has2_i.
+\]
+- Variables finales de calidad y condición:
+\[
+ExterQualSel_{i,eq}\in\{0,1\},\ \sum_{eq} ExterQualSel_{i,eq}=1,
+\]
+\[
+ExterCondSel_{i,ec}\in\{0,1\},\ \sum_{ec} ExterCondSel_{i,ec}=1.
+\]
+
+- Binarias de caminos y elegibilidad:
+\[
+UpgMat_i,\, UpgQC_i,\, Eligible_i \in\{0,1\}.
+\]
+- Detección de cambio de material:
+\[
+Change1_i,\, Change2_i \in \{0,1\}.
+\]
+
+-Activación binarias:
+\[
+Eligible_i \ \ge\ \sum_{eq\in\mathcal{Q}^{\le Av}} BaseQual_{i,eq},\qquad
+Eligible_i \ \ge\ \sum_{ec\in\mathcal{C}^{\le Av}} BaseCond_{i,ec},
+\]
+\[
+Eligible_i \ \le\ \sum_{eq\in\mathcal{Q}^{\le Av}} BaseQual_{i,eq}
+           + \sum_{ec\in\mathcal{C}^{\le Av}} BaseCond_{i,ec}.
+\]
+-Restricción de caminos excluyentes:
+\[
+UpgMat_i + UpgQC_i \ \le\ Eligible_i.
+\]
+
+-Restricción de que no empeora calidad ni condición:
+\[
+Exterior1st_{i,e_1}=0\ \ \forall e_1:\ C^{(1)}_{e_1} < C^{(1)}_{(e_1)^{base}_i},
+\]
+\[
+Exterior2nd_{i,e_2}=0\ \ \forall e_2:\ C^{(2)}_{e_2} < C^{(2)}_{(e_2)^{base}_i},
+\]
+\[
+ExterQualSel_{i,eq}=0\ \ \forall eq:\ C^Q_{eq} < C^{Q,\text{base}}_i,\qquad
+ExterCondSel_{i,ec}=0\ \ \forall ec:\ C^C_{ec} < C^{C,\text{base}}_i.
+\]
+
+-Restricciones material sólo cambia si se toma el camino material:
+\[
+\sum_{\substack{e_1\in\mathcal{E}\\ e_1\neq (e_1)^{base}_i}} Exterior1st_{i,e_1} \ \le\ UpgMat_i,
+\]
+\[
+\sum_{\substack{e_2\in\mathcal{E}\\ e_2\neq (e_2)^{base}_i}} Exterior2nd_{i,e_2} \ \le\ UpgMat_i \cdot Has2_i.
+\]
+
+\[
+\sum_{\substack{eq\in\mathcal{Q}\\ BaseQual_{i,eq}=0}} ExterQualSel_{i,eq} \ \le\ UpgQC_i,
+\]
+\[
+\sum_{\substack{ec\in\mathcal{C}\\ BaseCond_{i,ec}=0}} ExterCondSel_{i,ec} \ \le\ UpgQC_i.
+\]
+
+-Restricciones de exclusion:
+\[
+\sum_{\substack{eq\in\mathcal{Q}\\ BaseQual_{i,eq}=0}} ExterQualSel_{i,eq} \ \le\ 1 - UpgMat_i,
+\]
+\[
+\sum_{\substack{ec\in\mathcal{C}\\ BaseCond_{i,ec}=0}} ExterCondSel_{i,ec} \ \le\ 1 - UpgMat_i,
+\]
+\[
+\sum_{\substack{e_1\in\mathcal{E}\\ e_1\neq (e_1)^{base}_i}} Exterior1st_{i,e_1} \ \le\ 1 - UpgQC_i,
+\]
+\[
+\sum_{\substack{e_2\in\mathcal{E}\\ e_2\neq (e_2)^{base}_i}} Exterior2nd_{i,e_2} \ \le\ (1 - UpgQC_i)\cdot Has2_i.
+\]
+-Restricciones de cambio de material:
+\[
+Change1_i \ \ge\ Exterior1st_{i,e_1} \quad \forall e_1\neq (e_1)^{base}_i,\qquad
+Change1_i \ \le\ \sum_{\substack{e_1\in\mathcal{E}\\ e_1\neq (e_1)^{base}_i}} Exterior1st_{i,e_1},
+\]
+\[
+Change2_i \ \ge\ Exterior2nd_{i,e_2} \quad \forall e_2\neq (e_2)^{base}_i,\qquad
+Change2_i \ \le\ \sum_{\substack{e_2\in\mathcal{E}\\ e_2\neq (e_2)^{base}_i}} Exterior2nd_{i,e_2}.
+\]
+
+-Si se realiza el cambio se incurre en un costo, donde la construcción del nuevo material incluye el costo de demolición, en la FO agregar:\\
+
+\text{CostoMaterialExterior=}
+\[
+\begin{aligned}
+& \Bigg[
+\underbrace{C^{(1)}_{(e_1)^{base}_i}\, (UpgMat_i - Change1_i)}_{\text{reconstruir material base 1}}\\[4pt]
+&\quad
++\underbrace{\sum_{\substack{e_1\in\mathcal{E}\\ e_1\neq (e_1)^{base}_i}}
+C^{(1)}_{e_1}\, Exterior1st_{i,e_1}}_{\text{cambiar a material más caro 1}}\\[6pt]
+&\quad
++\underbrace{Has2_i\Big(
+C^{(2)}_{(e_2)^{base}_i}\, (UpgMat_i - Change2_i)
++\,
+\sum_{\substack{e_2\in\mathcal{E}\\ e_2\neq (e_2)^{base}_i}}
+C^{(2)}_{e_2}\, Exterior2nd_{i,e_2}
+\Big)}_{\text{frente 2 sólo si existe}}\\[6pt]
+&\quad
++\underbrace{\sum_{\substack{eq\in\mathcal{Q}\\ BaseQual_{i,eq}=0}} C^{Q}_{eq}\, ExterQualSel_{i,eq}
++\sum_{\substack{ec\in\mathcal{C}\\ BaseCond_{i,ec}=0}} C^{C}_{ec}\, ExterCondSel_{i,ec}}_{\text{mejorar calidad/condición}}
+\Bigg].
+\end{aligned}
+\]
+
+    \item MasVnrType: Se puede cambiar a alternativas de mayor costo o mantenerse. Si la tipología base es \text{None}, también se permite \emph{construir} una tipología distinta a \text{None} pagando su costo por pie cuadrado multiplicado por el área de revestimiento.
+
+
+- Parámetro de tipo original:
+\[
+  t_i^{\text{base}} \in t \qquad \forall i \in \mathcal{I}.
+\]
+
+- Costo por tipo (por ft$^2$):
+\[
+  C_t \qquad \forall t \in \{BrkCmn, BrkFace, CBlock, None, Stone\}.
+\]
+
+- Área de revestimiento a considerar (ft$^2$):
+\[
+  \mathrm{MasVnrArea}_i \ge 0 \qquad \forall i \in \mathcal{I}.
+\]
+
+- Conjunto permitido (quedarse o subir):
+\[
+  \mathcal{T}^+_i \;=\; \left\{\, t \in \{BrkCmn, BrkFace, CBlock, None, Stone\} \ :\ C_t \ge C_{\,t_i^{\text{base}}} \,\right\}.
+\]
+
+- Variables de decisión:
+\[
+  MasVnrType_{i,t} \in \{0,1\} \qquad \forall i \in \mathcal{I},\ \forall t \in \mathcal{T}^+_i.
+\]
+
+- Selección única:
+\[
+  \sum_{t \in \mathcal{T}^+_i} MasVnrType_{i,t} \;=\; 1
+  \qquad \forall i \in \mathcal{I}.
+\]
+
+- Si se realiza el cambio (o se construye desde \text{None}) se incurre en un costo proporcional al área. En la FO agregar:
+
+\[
+\text{CostoMasVnr}
+\;=\;
+\sum_{\substack{t \in \mathcal{T}^+_i \\ t \neq t_i^{\text{base}}}}
+\Big( C_t \cdot \mathrm{MasVnrArea}_i \Big)\; MasVnrType_{i,t}.
+\]
+
+ \item Electrical: Se puede cambiar a alternativas que sean de costo mayor o mantenerse.\\
+    -Conjunto:
+    \[
+      \mathcal{E} \;=\; \{SBrkr, FuseA, FuseF, FuseP, Mix\}.
+    \]
+    - Parámetro de tipo eléctrico original:
+    \[
+      e_i^{\text{base}} \in  \mathcal{E}\qquad \forall i \in \mathcal{I}.
+    \]
+    
+    - Parámetro de costo por tipo eléctrico:
+    \[
+      C_e \qquad \forall e \in \mathcal{E}.
+    \]
+
+    - Definición de conjunto permitido:
+    \[
+      \mathcal{E}^+_i \;=\; \{\, e \in \mathcal{E} : C_e \ge C_{\,e_i^{\text{base}}} \,\}.
+    \]
+
+    - Variables de decisión:
+    \[
+      Electrical_{i,e} \in \{0,1\} \qquad \forall i \in \mathcal{I},\, \forall e \in \mathcal{E}^+_i.
+    \]
+
+    - Restricción:
+    \[
+      \sum_{e \in \mathcal{E}^+_i} Electrical_{i,e} \;=\; 1
+      \qquad \forall i \in \mathcal{I}.
+    \]
+  
+     - Si se realiza el cambio se incurre en un costo, donde el costo de construcción incluye el costo de demolición, en la FO agregar:
+    \[
+\text{CostoElectrical}
+=
+\underbrace{\sum_{\substack{e \in \mathcal{E}^+_i \\ e \neq e_i^{\text{base}}}}
+C_e\, Electrical_{i,e}}_{\text{costo del nuevo tipo eléctrico}}
+\]
+
+\item CentralAir: Si la casa no tiene aire central, se permite mantener No o cambiar a Yes, incurriendo en el costo de implementación. Si la casa ya tiene aire central, se mantiene en Yes.
+
+    - Parámetro de estado original de Central Air:
+    \[
+      a_i^{\text{base}} \in a \qquad \forall i \in \mathcal{I}.
+    \]
+
+    - Costo de implementación de Central Air:
+    \[
+      C_{\text{CentralAir}}
+    \]
+    - Conjunto permitido por ítem:
+    \[
+      \mathcal{A}_{i,\text{allow}} =
+      \begin{cases}
+        \{\text{Yes}\} & \text{si } a_i^{\text{base}} = \text{Yes},\\[3pt]
+        \{\text{No},\, \text{Yes}\} & \text{si } a_i^{\text{base}} = \text{No}.
+      \end{cases}
+    \]
+    - Variables binarias:
+    \[
+      CentralAir_{i,a} \in \{0,1\}
+      \qquad \forall i \in \mathcal{I},\ \forall a \in \mathcal{A}_{i,\text{allow}}.
+    \]
+    - Selección única:
+    \[
+      \sum_{a \in \mathcal{A}_{i,\text{allow}}} CentralAir_{i,a} \;=\; 1
+      \qquad \forall i \in \mathcal{I}.
+    \]
+
+    - Si se realiza el cambio se incurre en un costo, en la FO agregar:
+    \[
+    \text{CostoCentralAir}
+=
+      \sum_{i \in \mathcal{I}:\ a_i^{\text{base}} = \text{No}} C_{\text{CentralAir}} \cdot CentralAir_{i,\text{Yes}}.
+    \]
+    
+    \item Heating y Heating QC: Si HeatingQC es \emph{Average/Typical} o peor, entonces pueden decidirse dos camino. EL primero es que el tipo de \textit{Heating} puede mantenerse construyéndolo denuevo o cambiarse a uno de mayor costo que el actual. El segundo, es que HeatingQC puede cambiar aumentando su calidad a una mejor.
+
+- Tipos de Heating:
+\[
+  \mathcal{H}=\{\text{Floor},\text{GasA},\text{GasW},\text{Grav},\text{OthW},\text{Wall}\}.
+\]
+- Calidades de HeatingQC:
+\[
+  \mathcal{Q}=\{\text{Ex},\ \text{Gd},\ \text{TA},\ \text{Fa},\ \text{Po}\},\qquad
+  \mathcal{Q}^{\le Av}=\{\text{TA},\ \text{Fa},\ \text{Po}\}.
+\]
+
+- Parámetros de costos:
+\[
+  C_h \ \ \forall h\in\mathcal{H}, \qquad C_{hqc} \ \ \forall hqc\in\mathcal{Q},\qquad
+  C_{\text{destrucción}} \ge 0.
+\]
+
+- Parámetros de tipo base y calidad base:
+\[
+  h_i^{\text{base}}\in\mathcal{H},\qquad
+  BaseQC_{i,q}\in\{0,1\},\ \sum_{q\in\mathcal{Q}} BaseQC_{i,q}=1.
+\]
+
+- Conjuntos “no empeorar” respecto a la base:
+\[
+  \mathcal{H}_i^+=\{\,h\in\mathcal{H}\ :\ C_h \ge C_{\,h_i^{\text{base}}}\,\},
+  \qquad
+  \mathcal{Q}_i^+=\{\,q\in\mathcal{Q}\ :\ C_{q} \ge \sum_{q'\in\mathcal{Q}} C_{q'}\, BaseQC_{i,q'}\,\}.
+\]
+
+- Parámetros máscara (para identificar opciones distintas del tipo o calidad base):
+\[
+M^H_{i,h} = 
+\begin{cases}
+1, & \text{si } h \neq h_i^{\text{base}},\\
+0, & \text{si } h = h_i^{\text{base}},
+\end{cases}
+\qquad
+M^{QC}_{i,q} = 1 - BaseQC_{i,q}.
+\]
+
+- Variables de decisión:
+\[
+  Heating_{i,h}\in\{0,1\}\ \ \forall h\in\mathcal{H}_i^+,\qquad
+  \sum_{h\in\mathcal{H}_i^+} Heating_{i,h}=1,
+\]
+\[
+  HeatingQC_{i,q}\in\{0,1\}\ \ \forall q\in\mathcal{Q}_i^+,\qquad
+  \sum_{q\in\mathcal{Q}_i^+} HeatingQC_{i,q}=1.
+\]
+
+- Binarias de \textit{caminos} (excluyentes) y elegibilidad:
+\[
+  UpgType_i,\ UpgQC_i,\ Eligible_i \in \{0,1\}\qquad \forall i.
+\]
+- Binaria auxiliar para detectar cambio de tipo:
+\[
+  ChangeType_i \in \{0,1\} \qquad \forall i.
+\]
+
+- Activación binaria:
+\[
+  Eligible_i \ \ge\ \sum_{q\in\mathcal{Q}^{\le Av}} BaseQC_{i,q},\qquad
+  Eligible_i \ \le\ \sum_{q\in\mathcal{Q}^{\le Av}} BaseQC_{i,q}.
+\]
+\[
+  UpgType_i + UpgQC_i \ \le\ Eligible_i.
+\]
+
+- Cambio de tipo o calidad sólo si se toma el camino correspondiente:
+\[
+  \sum_{h\in\mathcal{H}_i^+} M^H_{i,h}\, Heating_{i,h} \ \le\ UpgType_i,
+\]
+\[
+  \sum_{q\in\mathcal{Q}_i^+} M^{QC}_{i,q}\, HeatingQC_{i,q} \ \le\ UpgQC_i.
+\]
+
+- Exclusión de caminos simultáneos:
+\[
+  \sum_{q\in\mathcal{Q}_i^+} M^{QC}_{i,q}\, HeatingQC_{i,q} \ \le\ 1 - UpgType_i,
+\]
+\[
+  \sum_{h\in\mathcal{H}_i^+} M^H_{i,h}\, Heating_{i,h} \ \le\ 1 - UpgQC_i.
+\]
+
+- Definición exacta de cambio de tipo:
+\[
+ChangeType_i \;=\; \sum_{h\in\mathcal{H}_i^+} M^H_{i,h}\, Heating_{i,h}.
+\]
+
+- Si se realiza el cambio se incurre en un costo, donde el costo de construcción incluye el costo de demolición, en la FO agregar:
+
+\[
+\begin{aligned}
+&\text{CostoHeating}
+=\underbrace{C_{\,h_i^{\text{base}}}\,(UpgType_i - ChangeType_i)}_{\text{reconstruir mismo tipo}}\\[4pt]
+&\quad
++\underbrace{\sum_{h\in\mathcal{H}_i^+} C_h\, M^H_{i,h}\, Heating_{i,h}}_{\text{cambiar a tipo más caro}}\\[4pt]
+&\quad
++\underbrace{\sum_{q\in\mathcal{Q}_i^+} C_{hqc}\, M^{QC}_{i,q}\, HeatingQC_{i,q}}_{\text{cambiar calidad}}
+\end{aligned}
+\]
+
+    \item KitchenQual: La calidad de la cocina puede aumentar si es Typical/Average o peor.
+
+    - Conjunto de calidades posibles:
+    \[
+      \mathcal{K} = \{\text{Ex},\ \text{Gd},\ \text{TA},\ \text{Fa},\ \text{Po}\}.
+    \]
+
+    - Parámetro de costo:
+    \[
+      C_k \qquad \forall k \in \mathcal{K}.
+    \]
+
+    - Parámetro de categoría base por ítem:
+    \[
+      k_i^{\text{base}} \in \mathcal{K} \qquad \forall i \in \mathcal{I}.
+    \]
+    - Subconjunto “Average/Typical o peor”:
+    \[
+      \mathcal{K}^{\le Av} = \{\text{TA},\ \text{Fa},\ \text{Po}\}.
+    \]
+
+    - Variables binarias de estado de calidad:
+    \[
+      KitchenQual_{i,k} \in \{0,1\} \quad \forall i \in \mathcal{I},\ \forall k \in \mathcal{K}.
+    \]
+    \[
+      \sum_{k \in \mathcal{K}} KitchenQual_{i,k} = 1 \qquad \forall i \in \mathcal{I}.
+    \]
+
+    - Variable de activación de mejora:
+    \[
+      UpgKitch_i \in \{0,1\} \qquad \forall i \in \mathcal{I}.
+    \]
+
+    - Restricciones de activación:
+    \[
+      UpgKitch_i \;\ge\; KitchenQual_{i,k} \qquad \forall i \in \mathcal{I},\ \forall k \in \mathcal{K}^{\le Av},
+    \]
+    \[
+      UpgKitch_i \;\le\; \sum_{k \in \mathcal{K}^{\le Av}} KitchenQual_{i,k} \qquad \forall i \in \mathcal{I}.
+    \]
+    - Conjunto permitido dependiente de $UpgKitch_i$:
+    \[
+      \mathcal{K}_{i,\text{allow}} =
+      \begin{cases}
+        \{\, k_i^{\text{base}} \,\} & \text{si } UpgKitch_i = 0,\\[4pt]
+        \{\, k \in \mathcal{K} : C_k \ge C_{\,k_i^{\text{base}}} \,\} & \text{si } UpgKitch_i = 1.
+      \end{cases}
+    \]
+
+    - Variables binarias prefiltradas:
+    \[
+      KitchenQual_{i,k} \in \{0,1\} \qquad \forall i \in \mathcal{I},\ \forall k \in \mathcal{K}_{i,\text{allow}}.
+    \]
+    - Selección única dentro del conjunto permitido:
+    \[
+      \sum_{k \in \mathcal{K}_{i,\text{allow}}} KitchenQual_{i,k} = 1 \qquad \forall i \in \mathcal{I}.
+    \]
+
+    - Si se realiza el cambio se incurre en un costo, en la FO agregar:
+    \[
+      \text{CostoKitchen}
+      \;=\;
+      \sum_{\substack{k \in \mathcal{K}_{i,\text{allow}} \\ k \neq k_i^{\text{base}}}}
+      C_k \;\, KitchenQual_{i,k}.
+    \]
+
+    \item BsmtFinSF1, BsmtFinSF2, BsmtUnfSF, TotalBsmtSF: Si existe área no terminada del sótano (BsmtUnfSF $> 0$), se da la posibilida de terminarla, reasignando toda esa superficie a las zonas terminadas 1 y/o 2. Si se decide terminar, se termina completamente.
+
+  - Parámetros base por ítem:
+  \[
+    (BsmtFinSF1)_i^{base} \in \mathbb{Z}_{\ge 0},
+\]
+ \[
+    (BsmtFinSF2)_i^{base} \in \mathbb{Z}_{\ge 0},
+\]
+  \[
+    (BsmtUnfSF)_i^{base} \in \mathbb{Z}_{\ge 0},\quad
+    \]
+      \[
+    (TotalBsmtSF)_i^{base} \in \mathbb{Z}_{\ge 0},
+  \]
+  con
+  \[
+    (TotalBsmtSF)_i^{base}
+    \;=\;
+    (BsmtFinSF1)_i^{base}
+    + (BsmtFinSF2)_i^{base}
+    + (BsmtUnfSF)_i^{base}
+    \qquad \forall i \in \mathcal{I}.
+  \]
+
+  - Variables de desición:
+  \[
+    BsmtFinSF1_{i} \in \mathbb{Z}_{\ge 0},
+    BsmtFinSF2_{i} \in \mathbb{Z}_{\ge 0},\quad
+    BsmtUnfSF_{i} \in \mathbb{Z}_{\ge 0}
+    \qquad \forall i \in \mathcal{I}.
+  \]
+
+  - Variable binaria de decisión para “terminar completamente el sótano”:
+  \[
+    FinishBSMT_i \in \{0,1\} \qquad \forall i \in \mathcal{I}.
+  \]
+
+  - Variables de transferencia de superficie:
+  \[
+    x^{(1)}_{i},\, x^{(2)}_{i} \in \mathbb{Z}_{\ge 0} \qquad \forall i \in \mathcal{I}.
+  \]
+
+  - Conservación del total de sótano:
+  \[
+    BsmtFinSF1_i + BsmtFinSF2_i + BsmtUnfSF_i = (TotalBsmtSF)_i^{base}
+    \qquad \forall i \in \mathcal{I}.
+  \]
+
+  - Todo o nada sobre el área sin terminar:
+  \[
+    BsmtUnfSF_i = (1 - FinishBSMT_i)\,(BsmtUnfSF)_i^{base}
+    \qquad \forall i \in \mathcal{I}.
+  \]
+
+  - Definición de las zonas terminadas mediante la transferencia:
+  \[
+    BsmtFinSF1_i = (BsmtFinSF1)_i^{base} + x^{(1)}_i,\qquad
+    BsmtFinSF2_i = (BsmtFinSF2)_i^{base} + x^{(2)}_i
+    \qquad \forall i \in \mathcal{I}.
+  \]
+
+  - Si se termina, se transfiere \textbf{toda} el área no terminada:
+  \[
+    x^{(1)}_i + x^{(2)}_i = (BsmtUnfSF)_i^{base}\, FinishBSMT_i
+    \qquad \forall i \in \mathcal{I}.
+  \]
+  - Si se termina de construir el sótano se incurre en un costo por pie cuadrado construido ($C_{Bsmt}$), en la FO agregar:
+  \[
+    \text{CostoTerminarBsmt}
+    \;=\;
+    C_{\text{Bsmt}}
+    \Big( x^{(1)}_i + x^{(2)}_i \Big).
+  \]
+  
+
+  \item BsmtCond: Si la condición del sótano es \emph{Typical/Average} o peor, entonces puede mantenerse en su nivel base o mejorarse a Good (Gd) o Excellent (Ex), incurriendo en el costo correspondiente.
+
+  - Conjunto de categorías posibles:
+\[
+  \mathcal{B} = \{\text{Ex},\ \text{Gd},\ \text{TA},\ \text{Fa},\ \text{Po}\}.
+\]
+
+- Parámetro de costo:
+\[
+  C_{BsmtCond} \qquad \forall b \in \mathcal{B}.
+\]
+
+- Parámetro de categoría base por ítem:
+\[
+  b_i^{\text{base}} \in \mathcal{B} \qquad \forall i \in \mathcal{I}.
+\]
+
+- Subconjunto “Average/Typical o peor”:
+\[
+  \mathcal{B}^{\le Av} = \{\text{TA},\ \text{Fa},\ \text{Po}\}.
+\]
+
+- Variables binarias de estado de condición:
+\[
+  BsmtCond_{i,b} \in \{0,1\} \quad \forall i \in \mathcal{I},\ \forall b \in \mathcal{B}.
+\]
+\[
+  \sum_{b \in \mathcal{B}} BsmtCond_{i,b} = 1 \qquad \forall i \in \mathcal{I}.
+\]
+
+- Variable de activación de mejora:
+\[
+  UpgBsmt_i \in \{0,1\} \qquad \forall i \in \mathcal{I}.
+\]
+
+- Restricciones de activación:
+\[
+  UpgBsmt_i \;\ge\; BsmtCond_{i,b} \qquad \forall i \in \mathcal{I},\ \forall b \in \mathcal{B}^{\le Av},
+\]
+\[
+  UpgBsmt_i \;\le\; \sum_{b \in \mathcal{B}^{\le Av}} BsmtCond_{i,b} \qquad \forall i \in \mathcal{I}.
+\]
+
+- Definición de conjunto permitido dependiente de $UpgBsmt_i$:
+\[
+  \mathcal{B}_{i,\text{allow}} =
+  \begin{cases}
+    \{\, b_i^{\text{base}} \,\} & \text{si } UpgBsmt_i = 0,\\[4pt]
+    \{\, b \in \mathcal{B} : C_b \ge C_{\,b_i^{\text{base}}} \,\} & \text{si } UpgBsmt_i = 1.
+  \end{cases}
+\]
+
+- Variables binarias prefiltradas:
+\[
+  BsmtCond_{i,b} \in \{0,1\} \qquad \forall i \in \mathcal{I},\ \forall b \in \mathcal{B}_{i,\text{allow}}.
+\]
+- Selección única dentro del conjunto permitido:
+\[
+  \sum_{b \in \mathcal{B}_{i,\text{allow}}} BsmtCond_{i,b} = 1 \qquad \forall i \in \mathcal{I}.
+\]
+
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+\[
+  \text{CostoBsmtCond}
+  \;=\;
+  \sum_{\substack{b \in \mathcal{B}_{i,\text{allow}} \\ b \neq b_i^{\text{base}}}}
+  C_{BsmtCond} \;\, BsmtCond_{i,b},
+\]
+
+    \item BsmtFinType1 y BsmtFinType2: Si existe BsmtFinType1 y  BsmtFinType2, entonces si una tipología está en \emph{Rec} o peor (Rec/LwQ/Unf), se da la posibilidad de aumentar la calidad a una de mayor costo. Si la tipología está en \emph{NA}, no se hace nada se mantiene NA y no hay costo.
+- Conjunto de categorías:
+\[
+  \mathcal{B}=\{\text{GLQ},\text{ALQ},\text{BLQ},\text{Rec},\text{LwQ},\text{Unf},\text{NA}\}.
+\]
+- Subconjunto “Rec o peor”:
+\[
+  \mathcal{B}^{\le Rec}=\{\text{Rec},\text{LwQ},\text{Unf}\}.
+\]
+
+- Costos por categoría ($C_{\text{NA}}=0$):
+\[
+  C_{BstmType} \qquad \forall b\in\mathcal{B}.
+\]
+
+- Parámetros de la categoría base:
+\[
+  BaseB1_{i,b}\in\{0,1\},\ \sum_{b\in\mathcal{B}} BaseB1_{i,b}=1,\qquad
+  BaseB2_{i,b}\in\{0,1\},\ \sum_{b\in\mathcal{B}} BaseB2_{i,b}=HasB2_i.
+\]
+- Indicador de existencia de BsmtFinType2:
+\[
+  HasB2_i\in\{0,1\}.
+\]
+
+- Variables binarias:
+\[
+  BsmtFinType1_{i,b_1}\in\{0,1\} \quad \forall b_1\in\mathcal{B},\qquad
+  \sum_{b_1\in\mathcal{B}} BsmtFinType1_{i,b_1}=1,
+\]
+\[
+  BsmtFinType2_{i,b_2}\in\{0,1\} \quad \forall b_2\in\mathcal{B},\qquad
+  \sum_{b_2\in\mathcal{B}} BsmtFinType2_{i,b_2}=HasB2_i.
+\]
+
+- Binarias de activación:
+\[
+  UpgB1_i,\ UpgB2_i \in \{0,1\}.
+\]
+
+- Activación de binarias:
+\[
+  UpgB1_i \;\ge\; \sum_{b\in\mathcal{B}^{\le Rec}} BaseB1_{i,b},\qquad
+  UpgB1_i \;\le\; \sum_{b\in\mathcal{B}^{\le Rec}} BaseB1_{i,b},
+\]
+\[
+  UpgB2_i \;\ge\; \sum_{b\in\mathcal{B}^{\le Rec}} BaseB2_{i,b},\qquad
+  UpgB2_i \;\le\; \sum_{b\in\mathcal{B}^{\le Rec}} BaseB2_{i,b}.
+\]
+
+- Máscaras para excluir categorías base (1 si $b \neq b_{\text{base}}$):
+\[
+M^{B1}_{i,b} = 1 - BaseB1_{i,b},\qquad
+M^{B2}_{i,b} = 1 - BaseB2_{i,b}.
+\]
+
+- Conjuntos permitidos para BsmtFinType1 y BsmtFinType2:
+\[
+  \mathcal{B}^{(1)}_{i,\text{allow}} =
+  \begin{cases}
+    \{\text{NA}\} & \text{si } BaseB1_{i,\text{NA}}=1,\\[3pt]
+    \{\, b\in\mathcal{B}:\, C_b \ge \sum_{b'}C_{b'}\,BaseB1_{i,b'} \,\} & \text{si } BaseB1_{i,\text{NA}}=0 \text{ y } UpgB1_i=1,\\[3pt]
+    \{\, b\in\mathcal{B}:\, BaseB1_{i,b}=1 \,\} & \text{si } BaseB1_{i,\text{NA}}=0 \text{ y } UpgB1_i=0.
+  \end{cases}
+\]
+\[
+  \mathcal{B}^{(2)}_{i,\text{allow}} =
+  \begin{cases}
+    \emptyset & \text{si } HasB2_i=0,\\[3pt]
+    \{\text{NA}\} & \text{si } BaseB2_{i,\text{NA}}=1,\\[3pt]
+    \{\, b\in\mathcal{B}:\, C_b \ge \sum_{b'}C_{b'}\,BaseB2_{i,b'} \,\} & \text{si } BaseB2_{i,\text{NA}}=0 \text{ y } UpgB2_i=1,\\[3pt]
+    \{\, b\in\mathcal{B}:\, BaseB2_{i,b}=1 \,\} & \text{si } BaseB2_{i,\text{NA}}=0 \text{ y } UpgB2_i=0.
+  \end{cases}
+\]
+
+- Restricciones de selección única:
+\[
+  \sum_{b_1\in\mathcal{B}^{(1)}_{i,\text{allow}}} BsmtFinType1_{i,b_1}=1,\qquad
+  \sum_{b_2\in\mathcal{B}^{(2)}_{i,\text{allow}}} BsmtFinType2_{i,b_2}=HasB2_i.
+\]
+
+- Restricciones de mejora (sólo si la base está en Rec o peor):
+\[
+  \sum_{b_1\in\mathcal{B}} M^{B1}_{i,b_1}\,BsmtFinType1_{i,b_1} \;\le\; UpgB1_i,
+\]
+\[
+  \sum_{b_2\in\mathcal{B}} M^{B2}_{i,b_2}\,BsmtFinType2_{i,b_2} \;\le\; UpgB2_i \cdot HasB2_i.
+\]
+
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+\[
+\begin{aligned}
+\text{CostoBsmtType}
+&=
+\underbrace{\sum_{b_1\in\mathcal{B}}
+C_{BstmType}\, M^{B1}_{i,b}\, BsmtFinType1_{i,b}}_{\text{Costo por mejora en BsmtFinType1}}\\[4pt]
+&\quad
++\underbrace{HasB2_i
+\sum_{b_2\in\mathcal{B}}
+C_{BstmType}\, M^{B2}_{i,b}\, BsmtFinType2_{i,b}}_{\text{Costo por mejora en BsmtFinType2 (si existe)}}
+\end{aligned}
+\]
+
+    \item FireplaceQu: Si la calidad de la chimenea es TA, se permite mantener o subir a Gd o Ex. Si es Po, se permite mantener o subir a Fa. Si es NA, no se hace nada.
+
+- Conjunto de categorías:
+\[
+  \mathcal{F}=\{\text{Ex},\ \text{Gd},\ \text{TA},\ \text{Fa},\ \text{Po},\ \text{NA}\}.
+\]
+- Costo por categoría (definir $C_{\text{NA}}=0$ para conveniencia):
+\[
+  C_f \qquad \forall f \in \{\text{Ex},\ \text{Gd},\ \text{TA},\ \text{Fa},\ \text{Po}\}.
+\]
+
+- Categoría base por ítem:
+\[
+  f_i^{\text{base}} \in \mathcal{F} \qquad \forall i \in \mathcal{I}.
+\]
+
+- Conjunto permitido dependiente de $f_i^{\text{base}}$:
+\[
+  \mathcal{F}_{i,\text{allow}} =
+  \begin{cases}
+    \{\text{NA}\} & \text{si } f_i^{\text{base}}=\text{NA},\\[4pt]
+    \{\text{TA},\ \text{Gd},\ \text{Ex}\} & \text{si } f_i^{\text{base}}=\text{TA},\\[4pt]
+    \{\text{Po},\ \text{Fa}\} & \text{si } f_i^{\text{base}}=\text{Po},\\[4pt]
+    \{f_i^{\text{base}}\} & \text{si } f_i^{\text{base}}\in\{\text{Fa},\ \text{Gd},\ \text{Ex}\}.
+  \end{cases}
+\]
+
+- Variables binarias:
+\[
+  FireplaceQu_{i,f} \in \{0,1\} \qquad \forall i \in \mathcal{I},\ \forall f \in \mathcal{F}_{i,\text{allow}}.
+\]
+- Selección única:
+\[
+  \sum_{f \in \mathcal{F}_{i,\text{allow}}} FireplaceQu_{i,f} = 1 \qquad \forall i \in \mathcal{I}.
+\]
+
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+\[
+  \text{CostoFireplaceQu}
+  \;=\;
+  \sum_{\substack{f \in \mathcal{F}_{i,\text{allow}} \\ f \neq f_i^{\text{base}}}}
+  C_f \;\, FireplaceQu_{i,f}.
+\]
+
+    \item Fence: Si la cerca es GdWo o MnWw, se permite mantener o subir a MnPrv o GdPrv. Si es NA, se permite construir con costo por pie cuadrado proporcional a $LotFrontage_i$. 
+
+- Conjunto de categorías:
+\[
+  \mathcal{F}=\{\text{GdPrv},\ \text{MnPrv},\ \text{GdWo},\ \text{MnWw},\ \text{NA}\}.
+\]
+
+- Costo por categoría de calidad (definir $C_{\text{NA}}=0$):
+\[
+  C_{Fence, fen} \qquad \forall fen \in \mathcal{F}.
+\]
+
+- Costo de construcción por pie cuadrado:
+\[
+  C_{\text{Fence}}
+\]
+
+- Parámetro de largo del frontis de la casa:
+\[
+  LotFrontage_i \ge 0 \qquad \forall i \in \mathcal{I}.
+\]
+
+- Categoría base:
+\[
+  f_i^{\text{base}} \in \mathcal{F} \qquad \forall i \in \mathcal{I}.
+\]
+
+- Conjunto permitido dependiente de $f_i^{\text{base}}$:
+\[
+  \mathcal{F}_{i,\text{allow}} =
+  \begin{cases}
+    \{\text{NA},\ \text{MnPrv},\ \text{GdPrv}\} 
+      & \text{si } f_i^{\text{base}}=\text{NA},\\[4pt]
+    \{f_i^{\text{base}},\ \text{MnPrv},\ \text{GdPrv}\} 
+      & \text{si } f_i^{\text{base}}\in\{\text{GdWo},\ \text{MnWw}\},\\[4pt]
+    \{f_i^{\text{base}}\}
+      & \text{si } f_i^{\text{base}}\in\{\text{MnPrv},\ \text{GdPrv}\}.
+  \end{cases}
+\]
+
+- Variables binarias:
+\[
+  Fence_{i,fen} \in \{0,1\} 
+  \qquad \forall i \in \mathcal{I},\ \forall fen \in \mathcal{F}_{i,\text{allow}}.
+\]
+- Selección única:
+\[
+  \sum_{fen \in \mathcal{F}_{i,\text{allow}}} Fence_{i,fen} = 1
+  \qquad \forall i \in \mathcal{I}.
+\]
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+\[
+  \text{CostoFence}^{\text{cat}}
+  \;=\;
+  \sum_{\substack{fen \in \mathcal{F}_{i,\text{allow}} \\ fen \neq f_i^{\text{base}}}}
+  C_{Fence, fen}\;\, Fence_{i,fen}.
+\]
+- Si se decide construir se incurre en un costo, en la FO agregar:
+\[
+  \text{CostoFence}^{\text{build}}
+  \;=\;
+  \sum_{i \in \mathcal{I}: \ f_i^{\text{base}}=\text{NA}}
+  C_{\text{Fence}} \cdot LotFrontage_i \cdot 
+  \Big( Fence_{i,\text{MnPrv}} + Fence_{i,\text{GdPrv}} \Big).
+\]
+
+    \item Paved Drive: Si es P:Partial Pavement se puede subir a Y: Paved. Si es N: Dirt/Gravel  se puede subir a P o Y. 
+
+- Conjunto de categorías:
+\[
+  \mathcal{D} = \{\text{Y},\ \text{P},\ \text{N}\}.
+\]
+
+- Parámetro de costo por categoría:
+\[
+  C_d \qquad \forall d \in \mathcal{D}.
+\]
+
+- Categoría base:
+\[
+  d_i^{\text{base}} \in \mathcal{D} \qquad \forall i \in \mathcal{I}.
+\]
+- Conjuntos permitidos:
+\[
+  \mathcal{D}_{i,\text{allow}} =
+  \begin{cases}
+    \{\text{Y}\} & \text{si } d_i^{\text{base}}=\text{Y},\\[3pt]
+    \{\text{P},\ \text{Y}\} & \text{si } d_i^{\text{base}}=\text{P},\\[3pt]
+    \{\text{N},\ \text{P},\ \text{Y}\} & \text{si } d_i^{\text{base}}=\text{N}.
+  \end{cases}
+\]
+
+- Variables:
+\[
+  PavedDrive_{i,d} \in \{0,1\} \qquad \forall i \in \mathcal{I},\ \forall d \in \mathcal{D}_{i,\text{allow}},
+\]
+-Restricción:
+\[
+  \sum_{d \in \mathcal{D}_{i,\text{allow}}} PavedDrive_{i,d} = 1 \qquad \forall i \in \mathcal{I}.
+\]
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+\[
+  \text{CostoPaved}
+  =
+  \sum_{\substack{d \in \mathcal{D}_{i,\text{allow}} \\ d \neq d_i^{\text{base}}}}
+  C_d \; PavedDrive_{i,d}.
+\]
+
+    \item GarageQual y GarageCond: Si alguno es Typical/Average o peor (TA/Fa/Po), entonces ambos pueden mantenerse o subir a una categoría de mayor costo 
+
+- Conjunto de categorías:
+\[
+  \mathcal{G}=\{\text{Ex},\ \text{Gd},\ \text{TA},\ \text{Fa},\ \text{Po},\ \text{NA}\}.
+\]
+- Subconjunto “Average/Typical o peor”:
+\[
+  \mathcal{G}^{\le Av}=\{\text{TA},\ \text{Fa},\ \text{Po}\}.
+\]
+- Costos por categoría (definir $C_{\text{NA}}=0$):
+\[
+  C_g \ \forall g\in\mathcal{G} \quad \text{(GarageQual)} 
+  =
+  C_g \ \forall g\in\mathcal{G} \quad \text{(GarageCond)}.
+\]
+- Parámetros de costos base (para “no empeorar”):
+\[
+  C^{Q,\text{base}}_i \ \forall i\in\mathcal{I}, 
+  \qquad
+  C^{C,\text{base}}_i \ \forall i\in\mathcal{I}.
+\]
+
+- Parámetros base (one-hot):
+\[
+  BaseGQual_{i,g}\in\{0,1\},\ \sum_{g\in\mathcal{G}} BaseGQual_{i,g}=1,
+ \qquad
+  BaseGCond_{i,g}\in\{0,1\},\ \sum_{g\in\mathcal{G}} BaseGCond_{i,g}=1.
+\]
+
+- Variables de decisión:
+\[
+  GarageQual_{i,g}\in\{0,1\},\ \sum_{g\in\mathcal{G}} GarageQual_{i,g}=1,
+  \qquad
+  GarageCond_{i,g}\in\{0,1\},\ \sum_{g\in\mathcal{G}} GarageCond_{i,g}=1.
+\]
+
+- Variable de activación:
+\[
+  UpgGar_i \in \{0,1\} \qquad \forall i\in\mathcal{I}.
+\]
+- Restricciones de activación:
+\[
+  UpgGar_i \;\ge\; BaseGQual_{i,g} \quad \forall g\in\mathcal{G}^{\le Av}, 
+  \qquad
+  UpgGar_i \;\ge\; BaseGCond_{i,g} \quad \forall g\in\mathcal{G}^{\le Av},
+\]
+\[
+  UpgGar_i \;\le\; \sum_{g\in\mathcal{G}^{\le Av}}\!\Big( BaseGQual_{i,g}+BaseGCond_{i,g}\Big)
+  \qquad \forall i\in\mathcal{I}.
+\]
+
+- Máscaras (parámetros):
+\[
+M^{Q}_{i,g} := 1 - BaseGQual_{i,g},\qquad
+M^{C}_{i,g} := 1 - BaseGCond_{i,g}.
+\]
+
+- Conjuntos permitidos (no empeorar respecto al costo base):
+\[
+  \mathcal{G}^{Q}_{i,\text{allow}}=
+  \begin{cases}
+    \{\text{NA}\} & \text{si } BaseGQual_{i,\text{NA}}=1,\\[4pt]
+    \{\, g:\, C^Q_g \ge C^{Q,\text{base}}_i \,\} & \text{si } BaseGQual_{i,\text{NA}}=0 \text{ y } UpgGar_i=1,\\[4pt]
+    \{\, g:\, BaseGQual_{i,g}=1 \,\} & \text{si } BaseGQual_{i,\text{NA}}=0 \text{ y } UpgGar_i=0.
+  \end{cases}
+\]
+\[
+  \mathcal{G}^{C}_{i,\text{allow}}=
+  \begin{cases}
+    \{\text{NA}\} & \text{si } BaseGCond_{i,\text{NA}}=1,\\[4pt]
+    \{\, g:\, C^C_g \ge C^{C,\text{base}}_i \,\} & \text{si } BaseGCond_{i,\text{NA}}=0 \text{ y } UpgGar_i=1,\\[4pt]
+    \{\, g:\, BaseGCond_{i,g}=1 \,\} & \text{si } BaseGCond_{i,\text{NA}}=0 \text{ y } UpgGar_i=0.
+  \end{cases}
+\]
+
+- Restringir a conjuntos permitidos y selección única:
+\[
+  GarageQual_{i,g}=0 \ \ \forall g\notin \mathcal{G}^{Q}_{i,\text{allow}}, \quad
+  \sum_{g\in \mathcal{G}^{Q}_{i,\text{allow}}} GarageQual_{i,g}=1,
+\]
+\[
+  GarageCond_{i,g}=0 \ \ \forall g\notin \mathcal{G}^{C}_{i,\text{allow}}, \quad
+  \sum_{g\in \mathcal{G}^{C}_{i,\text{allow}}} GarageCond_{i,g}=1.
+\]
+
+- Cambio sólo si corresponde:
+\[
+  \sum_{g\in\mathcal{G}} M^{Q}_{i,g}\, GarageQual_{i,g} \ \le\ UpgGar_i,
+  \qquad
+  \sum_{g\in\mathcal{G}} M^{C}_{i,g}\, GarageCond_{i,g} \ \le\ UpgGar_i.
+\]
+
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+\[
+  \text{CostoGarCyQ=} \
+    \sum_{g\in \mathcal{G}^{Q}_{i,\text{allow}}}
+      C_g\, M^{Q}_{i,g}\, GarageQual_{i,g}
+    \;+\;
+    \sum_{g\in \mathcal{G}^{C}_{i,\text{allow}}}
+      C_g\, M^{C}_{i,g}\, GarageCond_{i,g}
+\]
+
+    \item Área libre y decisiones de ampliación/agregado: Para agregados se toman en consideración BedRoom, Kitchen, HalfBath y FullBath, los cuales si hay espacio disponible se pueden agregar en orden de uno, es decir uno de cada uno. Este tipo de habitación se agregan según el área mínima habitable permitida. Para ampliaciones se consideraron GarageArea, WoodDeckSF, OpenPorchSF, EnclosedPorch, 3SsnPorch, ScreenPorch y PoolArea. A estos espacios se les permite ampliar en una escala de 3. Ampliaciones pequeñas involucran un aumento del 10\%, ampliaciones moderadas de un 20\% y ampliaciones grandes de un 30\%.  
+
+- Parámetros base:
+\[
+(LotArea)_i \in \mathbb{Z}_{\ge 0},
+\]
+\[
+(1stFlrSF)_i^{base} \in \mathbb{Z}_{\ge 0},
+\]
+\[
+(GarageArea)_i^{base} \in \mathbb{Z}_{\ge 0},
+\]
+\[
+(WoodDeckSF)_i^{base} \in \mathbb{Z}_{\ge 0},
+\]
+\[
+(OpenPorchSF)_i^{base} \in \mathbb{Z}_{\ge 0},
+\]
+\[
+(EnclosedPorch)_i^{base} \in \mathbb{Z}_{\ge 0},
+\]
+\[
+(3SsnPorch)_i^{base} \in \mathbb{Z}_{\ge 0},
+\]
+\[
+(ScreenPorch)_i^{base} \in \mathbb{Z}_{\ge 0},
+\]
+\[
+(PoolArea)_i^{base} \in \mathbb{Z}_{\ge 0}.
+\]
+
+- Área libre \emph{base} (parámetro calculado):
+
+\begin{align*}
+(\mathrm{AreaLibre})_i^{\mathrm{base}}
+  &= (\mathrm{LotArea})_i
+   - \Big[ (\mathrm{1stFlrSF})_i^{\mathrm{base}}
+   + (\mathrm{GarageArea})_i^{\mathrm{base}}
+   + (\mathrm{WoodDeckSF})_i^{\mathrm{base}} \\[-2pt]
+  &\qquad\quad
+   + (\mathrm{OpenPorchSF})_i^{\mathrm{base}}
+   + (\mathrm{EnclosedPorch})_i^{\mathrm{base}}
+   + (3\mathrm{SsnPorch})_i^{\mathrm{base}} \\[-2pt]
+  &\qquad\quad
+   + (\mathrm{ScreenPorch})_i^{\mathrm{base}}
+   + (\mathrm{PoolArea})_i^{\mathrm{base}}
+   \Big].
+\end{align*}
+
+- Superficies fijas de los agregados (ft\(^2\)):
+\[
+A^{\text{Full}}=40,\qquad A^{\text{Half}}=20,\qquad A^{\text{Kitch}}=75,\qquad A^{\text{Bed}}=70.
+\]
+
+- Ampliaciones porcentuales: para evitar no-enteros,
+definir como parámetros
+\[
+\Delta^{10}_{i,c}=\left\lfloor0.10\cdot (c)_i^{base}\right\rceil,\quad
+\Delta^{20}_{i,c}=\left\lfloor0.20\cdot (c)_i^{base}\right\rceil,\quad
+\Delta^{30}_{i,c}=\left\lfloor0.30\cdot (c)_i^{base}\right\rceil,
+\]
+ \(c\in\mathcal{C}=\{\text{GarageArea},\text{WoodDeckSF},\text{OpenPorchSF},\text{EnclosedPorch},\\
+\text{3SsnPorch},\text{ScreenPorch},\text{PoolArea}\}\).\\
+(\(\lfloor\cdot\rceil\) indica redondeo a entero)\\
+
+- Binarias para agregados puntuales, es decir a lo más se agrega 1 de cada una de las siguientes habitaciones:
+\[
+AddFull_i,\, AddHalf_i,\, AddKitch_i,\, AddBed_i \in \{0,1\} \qquad \forall i.
+\]
+
+- Ampliaciones porcentuales, a lo más se realiza una ampliación por componente:
+\[
+z^{10}_{i,c},\, z^{20}_{i,c},\, z^{30}_{i,c} \in \{0,1\} \qquad \forall i,\ \forall c\in\mathcal{C},
+\]
+\[
+z^{10}_{i,c}+z^{20}_{i,c}+z^{30}_{i,c} \le 1 \qquad \forall i,\ \forall c\in\mathcal{C}.
+\]
+
+- Variables de áreas finales post ampliación:
+\[
+\begin{aligned}
+&(\mathrm{1stFlrSF})_i,\, (\mathrm{GarageArea})_i,\, (\mathrm{WoodDeckSF})_i,\, 
+(\mathrm{OpenPorchSF})_i,\, (\mathrm{EnclosedPorch})_i,\\[-2pt]
+&\qquad
+(3\mathrm{SsnPorch})_i,\, (\mathrm{ScreenPorch})_i,\, (\mathrm{PoolArea})_i,\,
+(\mathrm{AreaLibre})_i \in \mathbb{Z}_{\ge 0}.
+\end{aligned}
+\]
+
+
+- Variables contadores de ambientes finales: 
+\[
+FullBath_i,\, HalfBath_i,\, Bedroom_i,\, Kitchen_i \in \mathbb{Z}_{\ge 0}.
+\]
+
+- Vincular agregados al living area y a contadores:
+\[
+\begin{aligned}
+(\mathrm{1stFlrSF})_i
+  &= (\mathrm{1stFlrSF})_i^{\mathrm{base}}
+  + A^{\text{Kitch}}\,(\mathrm{AddKitch})_i
+  + A^{\text{Bed}}\,(\mathrm{AddBed})_i \\[4pt]
+  &\quad
+  + A^{\text{Full}}\,(\mathrm{AddFull})_i
+  + A^{\text{Half}}\,(\mathrm{AddHalf})_i.
+\end{aligned}
+\]
+\[
+FullBath_i \;=\; (FullBath)_i^{base} + AddFull_i,\qquad
+HalfBath_i \;=\; (HalfBath)_i^{base} + AddHalf_i,
+\]
+\[
+Bedroom_i \;=\; (Bedroom)_i^{base} + AddBed_i,\qquad
+Kitchen_i \;=\; (Kitchen)_i^{base} + AddKitch_i.
+\]
+
+- Vincular ampliaciones porcentuales a áreas finales (cada componente \(c\)):
+\[
+c_i \;=\; (c)_i^{base} \;+\; \Delta^{10}_{i,c}\, z^{10}_{i,c} \;+\; \Delta^{20}_{i,c}\, z^{20}_{i,c} \;+\; \Delta^{30}_{i,c}\, z^{30}_{i,c}
+\qquad \forall c\in\mathcal{C}.
+\]
+
+-Actualización y capacidad de AreaLibre, no se agrega ni amplia si no hay suficiente espacio:
+\[
+\begin{aligned}
+(\mathrm{AreaLibre})_i
+  &= (\mathrm{AreaLibre})_i^{\mathrm{base}}
+   - \Big[ A^{\text{Full}}\,(\mathrm{AddFull})_i
+   + A^{\text{Half}}\,(\mathrm{AddHalf})_i
+   + A^{\text{Kitch}}\,(\mathrm{AddKitch})_i \\[-2pt]
+  &\qquad\quad
+   + A^{\text{Bed}}\,(\mathrm{AddBed})_i \Big] \\[-2pt]
+  &\qquad
+   - \sum_{c\in\mathcal{C}}
+     \Big[ \Delta^{10}_{i,c}\, z^{10}_{i,c}
+          + \Delta^{20}_{i,c}\, z^{20}_{i,c}
+          + \Delta^{30}_{i,c}\, z^{30}_{i,c} \Big].
+\end{aligned}
+\]
+
+\[
+AreaLibre_i \;\ge\; 0.
+\]
+
+
+- Si se realiza una construcción se incurre en un costo por f$^2$, en la FO agregar:
+\[
+\begin{aligned}
+\text{CostoConstruccion}
+&=\,
+C_{\text{construccion}}
+\Big(
+A^{\text{Full}}\,AddFull_i
++ A^{\text{Half}}\,AddHalf_i\\[4pt]
+&\quad
++ A^{\text{Kitch}}\,AddKitch_i
++ A^{\text{Bed}}\,AddBed_i
+\Big).
+\end{aligned}
+\]
+
+-Si se realiza una ampliación se incurre en un costo por por ampliaciones porcentuales, en la FO agregar:
+\[
+\text{CostoAmpliación} \;=\; \sum_{c\in\mathcal{C}}
+\Big( C^{10}_{c}\,\Delta^{10}_{i,c}\, z^{10}_{i,c} \;+\; C^{20}_{c}\,\Delta^{20}_{i,c}\, z^{20}_{i,c} \;+\; C^{30}_{c}\,\Delta^{30}_{i,c}\, z^{30}_{i,c} \Big).
+\]
+
+    \item PoolQC:  La calidad de la piscina puede aumentar si es Typical/Average o peor (TA/Fa/Po). 
+
+- Conjunto de categorías:
+\[
+  \mathcal{P} = \{\text{Ex},\ \text{Gd},\ \text{TA},\ \text{Fa},\ \text{Po},\ \text{NA}\}.
+\]
+
+- Parámetro de costo por categoría ($C_{\text{NA}}=0$):
+\[
+  C_p \qquad \forall p \in \mathcal{P}.
+\]
+
+- Categoría base por ítem:
+\[
+  p_i^{\text{base}} \in \mathcal{P} \qquad \forall i \in \mathcal{I}.
+\]
+
+- Subconjunto “Average/Typical o peor”:
+\[
+  \mathcal{P}^{\le Av} = \{\text{TA},\ \text{Fa},\ \text{Po}\}.
+\]
+
+- Variables binarias de estado de calidad:
+\[
+  PoolQC_{i,p} \in \{0,1\} \quad \forall i \in \mathcal{I},\ \forall p \in \mathcal{P},
+\qquad
+\sum_{p \in \mathcal{P}} PoolQC_{i,p} = 1 \quad \forall i \in \mathcal{I}.
+\]
+
+- Variable de activación de mejora:
+\[
+  UpgPool_i \in \{0,1\} \qquad \forall i \in \mathcal{I}.
+\]
+
+- Restricciones de activación:
+\[
+  UpgPool_i \;\ge\; PoolQC_{i,p} \qquad \forall i \in \mathcal{I},\ \forall p \in \mathcal{P}^{\le Av},
+\]
+\[
+  UpgPool_i \;\le\; \sum_{p \in \mathcal{P}^{\le Av}} PoolQC_{i,p} \qquad \forall i \in \mathcal{I}.
+\]
+
+- Conjunto permitido:
+\[
+  \mathcal{P}_{i,\text{allow}} =
+  \begin{cases}
+    \{\text{NA}\} & \text{si } p_i^{\text{base}}=\text{NA},\\[4pt]
+    \{\, p_i^{\text{base}} \,\} & \text{si } p_i^{\text{base}}\neq \text{NA} \text{ y } UpgPool_i=0,\\[4pt]
+    \{\, p \in \mathcal{P}\setminus\{\text{NA}\} : C_p \ge C_{\,p_i^{\text{base}}} \,\} & \text{si } p_i^{\text{base}}\neq \text{NA} \text{ y } UpgPool_i=1.
+  \end{cases}
+\]
+
+- Prefiltrado y selección única:
+\[
+  PoolQC_{i,p} = 0 \ \ \forall p \notin \mathcal{P}_{i,\text{allow}}, 
+\qquad
+\sum_{p \in \mathcal{P}_{i,\text{allow}}} PoolQC_{i,p} = 1 \quad \forall i \in \mathcal{I}.
+\]
+
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+\[
+  \text{CostoPool}
+  \;=\;
+  \sum_{\substack{p \in \mathcal{P}_{i,\text{allow}} \\ p \neq p_i^{\text{base}}}}
+  C_p \;\, PoolQC_{i,p}.
+\]
+
+    \item GarageFinish: Si el acabado del garaje es RFn: Rough Finished o Unf: Unfinished, se puede subir Fin: Finished. 
+
+- Conjunto de categorías:
+\[
+  \mathcal{G}a=\{\text{Fin},\ \text{RFn},\ \text{Unf},\ \text{NA}\}.
+\]
+- Subconjunto “RFn o peor”:
+\[
+  \mathcal{G}a^{\le \text{RFn}}=\{\text{RFn},\ \text{Unf}\}.
+\]
+- Costo por categoría ($C_{\text{NA}}=0$):
+\[
+  C_{GFin} \qquad \forall GFin \in \mathcal{G}a.
+\]
+- Categoría base (one-hot desde datos):
+\[
+  BaseGa_{i,ga}\in\{0,1\},\qquad \sum_{ga\in\mathcal{G}a} BaseGa_{i,ga}=1 \quad \forall i \in \mathcal{I}.
+\]
+- Máscara (parámetro) para excluir la base:
+\[
+  M^{Ga}_{i,ga} := 1 - BaseGa_{i,ga}.
+\]
+
+- Variables de decisión y selección única:
+\[
+  gar_{i,ga}\in\{0,1\} \quad \forall i \in \mathcal{I},\ \forall ga\in\mathcal{G}a,\qquad
+  \sum_{ga\in\mathcal{G}a} gar_{i,ga}=1.
+\]
+
+- Variable de activación:
+\[
+  UpgGa_i \in \{0,1\} \qquad \forall i \in \mathcal{I}.
+\]
+- Restricciones de activación:
+\[
+  UpgGa_i \;\ge\; BaseGa_{i,\text{RFn}},\qquad
+  UpgGa_i \;\ge\; BaseGa_{i,\text{Unf}},
+\]
+\[
+  UpgGa_i \;\le\; BaseGa_{i,\text{RFn}} + BaseGa_{i,\text{Unf}}
+  \qquad \forall i \in \mathcal{I}.
+\]
+
+- Conjuntos permitidos / fijaciones (implementadas con restricciones lineales):
+\[
+\begin{cases}
+\text{Si } BaseGa_{i,\text{NA}}=1: 
+& gar_{i,\text{NA}}=1,\quad gar_{i,ga}=0\ \forall ga\neq\text{NA}.\\[4pt]
+\text{Si } BaseGa_{i,\text{Fin}}=1: 
+& gar_{i,\text{Fin}}=1,\quad gar_{i,ga}=0\ \forall ga\neq\text{Fin}.\\[4pt]
+\text{Si } BaseGa_{i,\text{RFn}}=1 \text{ o } BaseGa_{i,\text{Unf}}=1:
+& gar_{i,\text{Fin}} \le UpgGa_i,\\
+& \sum_{ga\in\mathcal{G}a^{\le \text{RFn}}} gar_{i,ga} \le 1 - UpgGa_i,\\
+& \sum_{ga\in\mathcal{G}a} gar_{i,ga}=1.
+\end{cases}
+\]
+
+\[
+\sum_{ga\in\mathcal{G}a} M^{Ga}_{i,ga}\, gar_{i,ga} \;\le\; UpgGa_i
+\qquad \text{(sólo cambia si } \text{RFn/Unf)}.
+\]
+
+- Si se realiza el cambio se incurre en un costo, en la FO agregar:
+\[
+  \text{CostoGaFin}
+  =
+  \sum_{ga \in \mathcal{G}a}
+  C_{GFin} \;\, M^{Ga}_{i,ga} \;\, gar_{i,ga}.
+\]
+
+\item Restricción de presupuesto:\\
+-Se define un parámetro $P_i$ como el presupuesto inicial máximo disponible para la remodelación.  
+
+\[
+P_i \ge 0.
+\]
+
+-Restricción que los costos no pueden sobrepasar el presupuesto inicial:
+\[
+C^{Total}_i\;\le\; P_i
+\]
+ 
+\end{itemize}

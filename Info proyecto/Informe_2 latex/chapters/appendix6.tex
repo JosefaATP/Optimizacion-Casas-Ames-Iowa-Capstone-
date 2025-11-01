@@ -1,0 +1,35 @@
+
+
+\begin{lstlisting}[caption={Salida del MIP. Notar que \textit{Gr Liv Area} y \textit{1st Floor SF} no llevan precio dircto, pues sus cambios están explicados por \textit{AddKitch}, \textit{AddBed} y \textit{AddFull}}]
+============================================================
+               RESULTADOS DE LA OPTIMIZACION
+============================================================
+
+PID: 527127150 – StoneBr | Presupuesto: $100,000
+Modelo: remodel_embed
+Tiempo total: 5.42s | MIP Gap: 0.0000%
+
+RESUMEN ECONOMICO
+  Precio casa base:                $305,800
+  Precio casa remodelada:          $506,192
+  Δ Precio:                        $200,392
+  Costos totales (modelo):         $98,001
+  Valor objetivo (MIP):            $102,391.35   
+  Uplift vs base:                  66%
+  % del precio final por mejoras:  40%
+  ROI %:                           104%
+  Slack presupuesto:               $1,999.34
+
+CAMBIOS HECHOS EN LA CASA
+  - Exterior 1st: CemntBd → BrkFace (costo $22,000)
+  - Exterior 2nd: CemntBd → AsbShng (costo $19,000)
+  - Basement finish (ft^2): base → +722 ft^2 (costo $10,830)
+  - 1st Flr SF: 1338.0 → 1523.0
+  - Gr Liv Area: 1338.0 → 1523.0
+  - AddFull (+40 ft^2): - → +40 ft^2 (costo $9,200)
+  - AddKitch (+75 ft^2): - → +75 ft^2 (costo $17,250)
+  - AddBed (+70 ft^2): - → +70 ft^2 (costo $16,100)
+  - Enclosed Porch +20%: 170.0 → 204.0 (costo $3,621)
+
+
+\end{lstlisting}

@@ -7,6 +7,11 @@ class CostTables:
     # ====== OBRA GRUESA Y AREAS ======
     construction_cost: float = 230.0           # USD/ft2
     finish_basement_per_f2: float = 15.0       # USD/ft2 (terminar sotano acabado)
+    # Ambientes (USD/ft2)
+    kitchen_area_cost: float = 200.0           # Appendix: C_kitchen = $200/ft2
+    fullbath_area_cost: float = 500.0          # Aprox 25k/50ft2
+    halfbath_area_cost: float = 500.0          # Aprox 10k/20ft2
+    bedroom_area_cost: float = 325.0           # Appendix: $325/ft2
 
     # ====== COCINA (paquetes) ======
     kitchenQual_upgrade_TA: float = 42500.0
@@ -105,6 +110,13 @@ class CostTables:
     fence_build_cost_per_ft: float = 40.0
     def fence_category_cost(self, f: str) -> float:
         return float(self.fence_category_costs.get(f, 0.0))
+
+    # ====== PORCHES / DECK (USD/ft2) ======
+    wooddeck_cost: float = 50.0
+    openporch_cost: float = 77.5
+    enclosedporch_cost: float = 80.0
+    threessnporch_cost: float = 157.5
+    screenporch_cost: float = 72.5
 
     # ====== EXTERIOR: materiales (lumpsum por frente) ======
     exterior_matl_lumpsum: Dict[str, float] = field(default_factory=lambda: {

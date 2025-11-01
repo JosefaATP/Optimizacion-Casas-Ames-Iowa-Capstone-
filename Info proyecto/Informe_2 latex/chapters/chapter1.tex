@@ -1,0 +1,100 @@
+\section{Problema \label{sec:sec1}}
+Uno de los principales problemas del mercado inmobiliario global es la inexactitud en la tasación de viviendas, la cual genera brechas significativas entre el valor real y el valor estimado de los inmuebles en los procesos de compraventa. La literatura advierte que los métodos tradicionales de valoración, como el enfoque comparativo de ventas, dependen en exceso de información limitada y de variables imprecisas, muchas veces de carácter cualitativo, lo que puede transformar la tasación en una simple ``opinión de precio'' más que en una estimación objetiva de mercado \cite{appraisersblogs2015}. A ello se suman sesgos cognitivos como el \emph{anchoring}\footnote{Anchoring: en un contexto de tasación, hace referencia a cuando el evaluador se ancla o fija en un valor de referencia previo del inmueble.} o la sobredependencia de valores previos, los cuales distorsionan la objetividad del cálculo y producen resultados inconsistentes \cite{evans2019}. En conjunto, la mala tasación constituye un problema estructural del mercado inmobiliario, pues limita transacciones justas, reduce la rentabilidad y debilita la confianza entre los agentes del sector.
+
+Por otro lado, los propietarios enfrentan el desafío de definir un diseño de vivienda óptimo, ya sea para habitarla o remodelarla con el propósito de incrementar su valor de venta. El concepto de \emph{casa óptima} implica alcanzar un equilibrio entre funcionalidad, confort y valor económico acorde al mercado, lo que obliga a los propietarios a tomar decisiones informadas bajo restricciones presupuestarias, buscando maximizar la rentabilidad o asegurar un espacio adecuado a sus necesidades habitacionales. No obstante, como plantea \citeA{yun2025}, la rentabilidad real de una remodelación varía ampliamente según el tipo de proyecto, ya que ciertos trabajos presentan altas tasas de recuperación del costo, mientras que otros, como las ampliaciones o remodelaciones interiores mayores, apenas logran recuperar parcialmente la inversión. Esto refleja la complejidad de decidir en qué invertir y el riesgo asociado a no alcanzar el retorno esperado.
+
+Los riesgos asociados a la inversión en diseño y remodelación de viviendas constituyen un desafío significativo para el sector inmobiliario. A esta complejidad se suman factores como las condiciones del mercado, las normativas de construcción y las necesidades cambiantes de los compradores, los cuales influyen directamente en la rentabilidad de las mejoras. En consecuencia, la toma de decisiones respecto al diseño y remodelación se torna altamente difícil y, si no se gestiona adecuadamente, puede derivar en pérdidas financieras considerables. Como señala \citeA{macek2024}, los proyectos de construcción y renovación están expuestos a múltiples riesgos financieros, técnicos y regulatorios, lo que refuerza la necesidad de adoptar enfoques más analíticos y predictivos en la planificación de estas inversiones. Así, se vuelve indispensable contar con herramientas capaces de predecir el impacto que tendrán determinadas intervenciones sobre el valor de reventa de la propiedad y sobre el cumplimiento del presupuesto disponible.
+
+El modelo de tasación y diseño de viviendas debe construirse sobre una base que considere restricciones presupuestarias, técnicas y geométricas, garantizando que la vivienda propuesta sea factible tanto en términos económicos como constructivos. En esta etapa surge otro desafío a la modelación, en donde se debe integrar múltiples variables de carácter multifactorial, como ubicación, superficie, distribución interna, restricción de habitaciones, percepción del vecindario, entre otras. Para que el modelo sea efectivo, resulta indispensable distinguir entre aquellas variables que son verdaderamente relevantes en la determinación del valor y la satisfacción del comprador, y aquellas que tienen escasa o nula incidencia, de manera de simplificar el problema sin sacrificar precisión en la búsqueda de la solución óptima. En dicho filtro se requiere un estudio exhaustivo de variables a analizar según su relevancia, lo que aumenta la dificultad del modelo a optimizar.
+
+
+
+\section{Análisis de datos: Ames Housing \label{sec:sec2}}
+La base de datos utilizada corresponde al \textit{Ames Housing Dataset}, recopilado por la Oficina de Tasación de la ciudad de Ames, Iowa, y organizada por \citeA{decock2011} como una alternativa moderna al clásico \textit{Boston Housing Dataset}. Contiene 2930 observaciones de ventas residenciales entre 2006 y 2010, cada una representando una transacción con información estructural, de entorno y de mercado.  
+
+La base de datos incluye 80 variables explicativas y una dependiente (\textit{SalePrice}), que abarcan aspectos físicos, cualitativos y contextuales. Entre ellas, variables continuas (superficie de terreno o área habitable), discretas (número de habitaciones o baños) y categóricas (calidad de cocina, tipo de vecindario o condición de la piscina).
+Este nivel de detalle introduce desafíos técnicos como la multicolinealidad y la asimetría en la distribución del precio, cuyos valores fluctúan entre 34.900 y 755.000 dólares estadounidenses \cite{ozdemir2022}.
+Asimismo, existen efectos espaciales donde ciertos vecindarios aumentan o reducen significativamente el valor de las propiedades.Adicionalmente, la base de datos presenta una elevada correlación entre múltiples variables, lo que da lugar a relaciones complejas y no lineales entre atributos de la vivienda y sus precios \cite{decock2011}, lo que evidencia la necesidad de métodos más robustos que capturen relaciones no lineales y dependencias espaciales.
+
+El tratamiento de los datos se realizó en distintas etapas. Primero, se depuraron los datos (errores, valores atípicos o faltantes), y se analizaron correlaciones para preparar un caso base mediante regresión lineal y así entender de mejor manera el comportamiento de cada variable sobre el precio; además de poder ver la precisión que alcanza una regresión para estimar el precio de una vivienda. Al iniciar el proceso, se identificaron valores codificados como “NA” o \textit{“None”} que representaban ausencia de una característica y no datos faltantes reales. Estos se reemplazaron por “No aplica” en variables cualitativas y por 0 en cuantitativas. Por ejemplo, en \textit{PoolQC}, el código ‘NA’ se interpretó correctamente como “No aplica”.  
+
+Los nulos reales se abordaron caso a caso. En \textit{LotFrontage} (490 nulos), se aplicó la metodología de \citeA{ozdemir2022}, imputando con la mediana del vecindario (\textit{Neighborhood}). También se corrigieron errores, como la observación con \textit{Garage Year Blt}=2207 reemplazada por 2007 \cite{marcelino2017}, y se eliminaron cinco viviendas con más de 4000 pies cuadrados por considerarse ventas atípicas \cite{decock2011}. Las decisiones completas se resumen en la Tabla~\ref{tab:valores_nulos_y_correcciones} del Anexo~\ref{app:tablas}. A continuación, para armar el caso base se analizan las variables cuantitativas y categóricas de forma separada, pues el método usado depende del tipo de variable. 
+
+
+%Una vez realizada esta separación, se abordaron los nulos verdaderos. El criterio fue analizar caso a caso si resultaba más adecuado imputar o eliminar registros. Entre las decisiones principales destacan: 
+
+%\begin{itemize}
+    %\item \textit{GarageYrBuilt}: gran parte de los valores faltantes correspondían a casas que no tenían garaje (\textit{GarageType} = “No aplica”). En consecuencia, se reemplazaron estos nulos con cero, manteniendo la coherencia de la variable numérica. 
+
+    %\item \textit{LotFrontage}: se observaron 490 nulos. Siguiendo la metodología propuesta en “\textit{House Price Prediction Using Machine Learning: A Case in Iowa}” \citeyear{ozdemir2022}, se calculó la mediana de la variable por vecindario (\textit{Neighborhood}) y se utilizó ese valor para imputar los faltantes. 
+
+    %\item \textit{MasVnrType} y \textit{MasVnrArea}: se identificaron 23 nulos, pero no se imputaron debido a que en la literatura se señala que estas variables no tienen gran relevancia en los modelos de predicción de precios de vivienda, además de que presentan alta correlación con otras variables más robustas, como \textit{OverallQual} y \textit{GarageYrBuilt} \cite{marcelino2017}. 
+%\end{itemize}
+
+%A continuación, para armar el caso base se analizan las variables cuantitativas y categóricas de forma separada, pues el método usado depende del tipo de variable. 
+
+\subsection{Variables Cuantitativas \label{sec:sub1}}
+
+Se analizó la correlación entre variables mediante Spearman, ya que no asume normalidad ni linealidad \cite{datascience2023}. Se consideró alta correlación cuando $|\rho|>0.7$, umbral recomendado en análisis multivariados porque indica fuerte relación entre variables y riesgo de multicolinealidad \cite{chicco2021}. Este valor se validó empíricamente en el propio dataset: los pares con correlaciones superiores a 0.7, como \textit{Garage Cars–Garage Area}, aportaban información redundante, lo que justificó su eliminación. Las variables más relacionadas con el precio fueron \textit{Gr Liv Area}, \textit{Total Bsmt SF} y \textit{Garage Cars}, con correlaciones mayores a 0.65  como se muestra en los gráficos~\ref{fig:grafico numericas y SalePrice} y \ref{fig:graficocuantitativospear} en el Anexo~\ref{app:figuras}. 
+
+Se eliminaron aquellas con alta correlación con otras variables pero baja con \textit{SalePrice}, manteniendo las de mayor relevancia.
+Un caso en específico son las variables \textit{Garage Yr Blt} y \textit{Year Build}, que tienen una correlación alta igual a 0,86 y una correlación con \textit{SalePrice} de 0,25 y 0,56 respectivamente. En consecuencia, la variable eliminada fue \textit{Garage Yr build}, dado que presenta una menor asociación con precio de la vivienda y está altamente correlacionada con el año que fue construida la casa. Adicionalmente, se llevó a cabo un análisis de redundancia entre variables, como en el caso de  \textit{Bsmt Fin SF 1}, \textit{Fin SF 2} y \textit{Bsmt Unf }, la suma de estas tres variables da como resultado la variable \textit{Total Bsmt SF}. Por esta razón, se conservó solo esta última, debido a que representa de mejor manera al sótano y su correlación con la variable \textit{SalePrice} es mayor a 0,6 mientras que las otras variables presentan correlaciones menores.
+
+Se eliminaron además variables con baja correlación y numerosos outliers, como \textit{Misc Val} (corr.=–0.01). Sin embargo, se conservó \textit{Misc Feature}, su versión categórica, ya que captura información cualitativa sobre elementos misceláneos (por ejemplo, cobertizos o canchas) que pueden incidir en la percepción del valor final. Estas y el resto de las variables cuantitativas eliminadas y redundantes se encuentran detalladas en la Tabla~\ref{tab:depuracion_numericas} en el Anexo~\ref{app:tablas}.  
+
+\subsection{Variables Categóricas \label{sec:sub2}}
+
+Las variables categóricas se clasificaron en nominales y ordinales. Se aplicó la misma lógica utilizada con las variables numéricas: realizar una comparación con \textit{SalePrice} y ver la correlación entre variables dentro de un mismo grupo. 
+Para las nominales se aplicó ANOVA ($\eta^2$), que mide la proporción de varianza en \textit{SalePrice} explicada por cada variable, y Cramér’s V, que evalúa la asociación entre pares de variables (0: sin relación, 1: relación perfecta) \cite{datascience2023}. Estas herramientas permitieron identificar redundancias y multicolinealidades. Los resultados se presentan en las Figuras~\ref{fig:asociación categórica nominal con SP} y \ref{fig:cramerV nominales} para las nominales, y Figura~\ref{fig:precio con categorica ordinal} y \ref{fig:spearman categórica ordinal}  del Anexo~\ref{app:figuras}.  
+
+Previo a hacer la separación definitiva, en variables con una distribución extremadamente desbalanceada (ej. \textit{PoolQC}, donde 99,6\% corresponde a “No aplica”), la escala de calidad completa o presencia de múltiples atributos no era representativa. Por lo tanto, se optó por simplificarlas a variables binarias (presencia/ausencia o atributo/otro). En la práctica, este tratamiento no altera la decisión final de mantener o descartar la variable, sino que busca mejorar la estabilidad del modelo evitando categorías con muy pocos casos. 
+
+Con respecto a las variables categóricas nominales, con base en Cramér’s V, se consideraron redundantes aquellos pares con valores V $\geq$ 0,7, dado que este rango indica alta superposición de información. En tales casos, se retuvo la variable con mayor relevancia frente a \textit{SalePrice} según $\eta^{2}$ y se descartó la otra. Un ejemplo de esto es el par \textit{MSSubClass–BldgType}, que presentó V = 0,88. Ambas variables describen características similares de la vivienda, pero se decidió conservar \textit{MSSubClass}, ya que mostró mayor poder explicativo en relación con el precio. 
+
+Con respecto a las variables ordinales, se codificaron numéricamente según el orden de calidad definido en la base de datos, lo que permitió aplicar correlación de Spearman. Se eliminaron variables con alta correlación y bajo aporte individual. Un ejemplo de este proceso se observa en \textit{ExterQual}, que presentó una correlación superior a 0,7 tanto con \textit{OverallQual} como con \textit{KitchenQual}. Aunque \textit{ExterQual} mostraba una mayor asociación con el precio que \textit{KitchenQual}, se optó por eliminarla para evitar redundancia, dado que \textit{OverallQual} y \textit{KitchenQual} en conjunto capturan mejor la variabilidad de la calidad de la vivienda.  
+
+Para finalizar el análisis, se revisaron nuevamente aquellas variables categóricas identificadas como extremadamente desbalanceadas. En estos casos, la falta de variabilidad reducía su valor explicativo, por lo que se optó por eliminarlas. Un ejemplo es \textit{Utilities}, donde el atributo \textit{''AllPub''} representaba aproximadamente el 99\% de los registros, convirtiéndola en una variable prácticamente constante. Las variables descartadas por redundancia u otras razones se detallan en la Tabla~\ref{tab:depuracion_cualitativas} del Anexo~\ref{app:tablas}; tras la depuración, el caso base quedó con 2914 observaciones y 53 variables. 
+%Las demás variables descartadas, ya sea por redundancia o por las razones previamente expuestas, se encuentran detalladas en el Tabla~\ref{tab:depuracion_cualitativas} en el Anexo~\ref{app:tablas} 
+
+%Al finalizar con la depuración de los datos, el caso base queda con un total de  2914 observaciones y 53 variables. 
+
+Si bien parte de las decisiones metodológicas se basan en recomendaciones de estudios previos (por ejemplo, \citeA{decock2011}; \citeA{marcelino2017}; \citeA{ozdemir2022}), todas fueron testeadas sobre nuestra base depurada. Para ello, se verificó que la aplicación de estos criterios efectivamente mejorara el \textit{dataset}. De esta forma, se asegura que las decisiones no provienen únicamente de la literatura, sino de la validación directa sobre el conjunto de datos trabajado por el grupo. % agregado
+
+
+\subsection{Caso Base \label{sec:sub3}}
+
+Luego del análisis de la base de datos, se construyó un caso base para estudiar el comportamiento de los precios de las viviendas. Para llevar los valores a precios actuales, se ajustó la variable \textit{SalePrice} utilizando el Índice de Precios al Consumidor (IPC) del \textit{Federal Reserve Bank of St. Louis}, lo que permite homogeneizar las transacciones históricas (2006–2010) a valores comparables en dólares de 2025. Se definió un diccionario con los índices anuales del período y se usó el valor 320 como referencia para 2025. El ajuste se aplicó mediante la Ecuación~\ref{app:eq} adjunta en el Anexo.
+
+Cada precio histórico se multiplicó por el factor de actualización correspondiente, obteniendo su valor equivalente en dólares de 2025. Así se generó la variable \textit{SalePrice\_present}, que refleja el valor actual de las viviendas. El precio promedio anual de venta y su evolución se muestran en la Figura~\ref{fig:Preciooriginalvsajustado} del Anexo \ref{app:figuras}, donde se observa un aumento cercano al 55\%, consistente con la inflación acumulada del período. Este ajuste permite que el modelo se adapte a las condiciones del mercado vigente y sea comparable con precios reales observados en plataformas actuales.
+
+Posteriormente, se construyó un modelo de regresión lineal multivariable para analizar la significancia de las variables cuyo gráfico se puede observar en la Figura \ref{fig:regresioninicial} en el Anexo~\ref{app:figuras}. Dado el comportamiento y la distribución de los datos, se aplicó una transformación logarítmica con el fin de mejorar el ajuste del modelo, el gráfico puede observarse en la Figura~\ref{fig:grafico logSalePrice con precio} en el Anexo~\ref{app:figuras}. Se evaluaron los \textit{p-values} para determinar la relevancia de cada variable, eliminando las no significativas para el modelo (\(p-value>0.05\)): \textit{Lot Config} (\(p-value=0.18\)), \textit{Roof Style} (\(p-value=0.095\)), \textit{Sale Type} (\(p-value=0.183\)) y \textit{Lot Shape} (\(p-value=0.275\)). 
+
+Los resultados comparativos obtenidos de la regresión lineal antes y después de eliminar las variables menos significativas se presentan en la suiguiente tabla.
+ 
+\begin{table}[H]
+  \centering
+  \caption[Resultados Regresiones]{Resultados de la Regresión Lineal Multivariable con y sin eliminación de variables.}
+  \resizebox{0.45\textwidth}{!}{%
+  \begin{tabular}{@{}l S[table-format=2.3] S[table-format=2.3]@{}}
+    \toprule
+    \textbf{Métrica}
+      & \multicolumn{1}{c}{\makecell[ct]{\textbf{Regresión Lineal}\\\textbf{Multivariable}}}
+      & \multicolumn{1}{c}{\makecell[ct]{\textbf{Regresión Lineal Multivariable}\\\textbf{al eliminar variables}}} \\ 
+    \midrule
+    {$R^2$}      & 0.925    & 0.924 \\
+    {MAPE (\%)}  & 7.98     & 8.04  \\
+    {RMSE}       & 29419.15 & 29871.62 \\
+    {Skewness}   & -1.444   & -1.417 \\
+    {Curtosis}   & 18.453   & 14.982 \\ 
+    \bottomrule
+  \end{tabular}%
+  }
+  \label{tab:regresiones}
+\end{table}
+
+
+
+El modelo explicó un 92,5\% de la variabilidad de los precios ajustados ($R^2=0.925$) con un MAPE de 7,98\% y un RMSE de 29.419, lo que representa un error promedio cercano al 8\%. Los residuos presentan asimetría negativa (\textit{skewness} = –1.444), indicando que el modelo sobreestima precios bajos y subestima los altos, además de colas pesadas en la distribución (\textit{curtosis} = 18.453), como se muestra en el Anexo~\ref{app:figuras}, Figura \ref{fig:distribucionderesiduoscon log}
+. 
+
+Si bien al eliminar las variables no significativas $R^2$, MAPE y RMSE empeoran levemente, el modelo resultante es más simple y de interpretación más directa. De esta manera, el análisis de eliminación de variables no significativas resalta la importancia de seleccionar cuidadosamente las variables que aportan información relevante y simplicidad para una mejor interpretabilidad o más información y mayor complejidad.\\

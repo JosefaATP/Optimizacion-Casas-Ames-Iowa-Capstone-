@@ -1,0 +1,57 @@
+Para la obtención de resultados, inicialmente se ejecutó la optimización sobre una vivienda en particular, indicando su \texttt{pid} y el \texttt{budget} correspondiente, con el fin de visualizar el \textit{output} detallado del optimizador (ver en el Anexo~\ref{app:código}). 
+Posteriormente, se corrió la optimización para 100 viviendas, considerando tres niveles de presupuesto, con el objetivo de analizar el comportamiento promedio de las soluciones y la rentabilidad alcanzada.  Los resultados incluyen el costo total utilizado, el aumento en el valor estimado de la vivienda y el retorno sobre la inversión (\textit{ROI}), entre otros.
+
+\noindent\textbf{Comportamiento general por nivel de presupuesto}
+
+\begin{table}[H]
+\centering
+\scriptsize % <-- reduce tamaño harto (puedes cambiar a \tiny si necesitas más)
+\setlength{\tabcolsep}{4pt} % <-- reduce espacio horizontal entre columnas
+\renewcommand{\arraystretch}{0.8} % <-- reduce espacio vertical entre filas
+\caption{Tabla resumen de media de resultados por presupuesto}
+\begin{tabular}{lrrr}
+\hline
+\textbf{Tier} & \textbf{\$18,000} & \textbf{\$50,000} & \textbf{\$120,000} \\
+\hline
+Utilidad Incremental (MIP) & \$83,331.84 & \$90,169.55 & \$92,854.16 \\
+ROI \% & 897.31\% & 737.87\% & 737.53\% \\
+$\Delta$ Precio & \$92,907.51 & \$112,980.81 & \$125,814.94 \\
+\% Mej/final & 26.89\% & 29.94\% & 31.41\% \\
+Uplift \% & 37.69\% & 43.92\% & 47.54\% \\
+Budget usado & \$9,575.69 & \$22,811.29 & \$32,960.77 \\
+MIP Gap \% & 0.00\% & 0.00\% & 0.00\% \\
+\hline
+\end{tabular}
+\label{tab:resumen_por_precio}
+\end{table}
+
+
+Las fórmulas utilizadas para los cálculos se indican en el Anexo~\ref{app:eq}. La Tabla~\ref{tab:resumen_por_precio} muestra que, al aumentar el presupuesto, la utilidad incremental (\textit{MIP}) también crece. Sin embargo, este crecimiento no es proporcional: cada salto de presupuesto aporta una utilidad adicional menor que el anterior.  
+
+Conel gráfico \ref{fig:costo vs utilidad} de costo-utilidad en el Anexo~\ref{app:figuras} se confirma este patrón: las pendientes disminuyen de 20.000 a 10.000 util/10k entre los niveles \textit{LOW}, \textit{MID} y \textit{HIGH}, mostrando que cada dólar adicional rinde menos utilidad. En términos económicos, la función es cóncava: más inversión no implica más ganancia proporcional.  
+
+El Gráfico Boxplot MIP (Gráfico~\ref{fig:boxplotMIP}) del Anexo~\ref{app:figuras} complementa este análisis. Las medianas son similares entre niveles, lo que indica que la mayoría de las viviendas obtiene utilidades comparables, aunque en \textit{MID} y \textit{HIGH} aparecen valores atípicos más altos. Esto sugiere que los mayores presupuestos no elevan las utilidades de forma generalizada, sino que benefician a ciertos casos excepcionales. El modelo, por tanto, mantiene estabilidad global pero muestra mayor dispersión en los niveles altos, donde emergen los llamados proyectos “estrella”, explicados más adelante.
+
+\noindent\textbf{Saturación del modelo y restricción presupuestaria}
+
+El gráfico de saturación (barras) en el Anexo~\ref{app:figuras} (Gráfico~\ref{fig:slackssaturados}) muestra que la proporción de ejecuciones con \textit{slack}\footnote{Slack = presupuesto máximo menos costo total utilizado} mayor a \$5.000 —presupuesto no utilizado— aumenta de 66\% a 98\% entre \textit{LOW} y \textit{HIGH}. Esto indica que en los niveles altos el presupuesto deja de ser restrictivo, pues ya se implementaron todas las mejoras rentables. El modelo entra así en una zona de \textbf{saturación}, donde agregar recursos no mejora significativamente la utilidad, coherente con las pendientes más bajas del gráfico costo-utilidad.
+
+\vspace{-0.8em}
+\subsection*{Heterogeneidad}
+\vspace{-0.7em}
+
+El boxplot \textit{Uplift} (Gráfico~\ref{fig:uplift}) del Anexo~\ref{app:figuras} muestra que la revalorización promedio sube de 38\% a 48\% entre \textit{LOW} y \textit{HIGH}, con mayor dispersión y más outliers. Esto refuerza la existencia de proyectos “estrella”: viviendas con características especialmente favorables —como buena ubicación, alta calidad o superficie ampliable— que obtienen incrementos de valor muy superiores al promedio. Por ello, la selección de casos es más relevante en los niveles \textit{MID} y \textit{HIGH}, donde la variabilidad de resultados es mayor.
+
+\noindent\textbf{Interpretación económica general}
+
+Desde la teoría económica, estos resultados se pueden interpretar de la siguiente manera:
+En primer lugar, la utilidad adicional por cada dólar invertido disminuye al aumentar el presupuesto. En segundo lugar, más inversión no implica más utilidad en igual proporción. Por último en el tramo \textit{HIGH}, el presupuesto deja de ser restrictivo (98\% saturado), consistente con los rendimientos decrecientes. Esto sugiere concentrar los primeros \$10.000–\$20.000 en mejoras de alta rentabilidad marginal (como terminaciones de sótano o ampliaciones de superficie útil) y ser más selectivos en niveles de presupuesto medio o alto, priorizando las viviendas y barrios donde las mejoras se capitalizan mejor.
+
+\noindent\textbf{Análisis por vecindario}
+
+La Tabla~\ref{tab:caracteristicas_TOP10} en el Anexo~\ref{app:tablas} y Figura~\ref{fig:top10NB} en Anexo~\ref{app:figuras}, correspondiente al \textit{Top 10 Neighborhoods}, muestra que \textit{NoRidge} y \textit{NridgHt} lideran en utilidad promedio (\textit{MIP}), seguidos de \textit{Somerst}, \textit{StoneBr} y \textit{CollgCr}. Estos barrios presentan mayor precio base, superficie habitable (\textit{GrLivArea}) y calidad constructiva (\textit{OverallQual}). Las viviendas en zonas de alto valor y buena calidad capitalizan mejor las inversiones, logrando mayor utilidad con el mismo gasto.  
+Se recomienda priorizar proyectos en \textit{NoRidge}, \textit{NridgHt} y \textit{StoneBr} cuando el presupuesto es \textit{MID} o \textit{HIGH}, donde el retorno marginal es más alto.
+
+\noindent\textbf{Consideraciones finales}
+
+Estos resultados deben interpretarse considerando ciertas limitaciones. El modelo se ejecutó sobre 100 viviendas, por lo que una muestra más amplia podría modificar algunas tendencias. Además, los resultados dependen de los costos supuestos y la calidad de los datos disponibles. Como trabajo futuro, sería útil comparar una vivienda remodelada con una vivienda existente, para verificar el comportamiento del modelo frente a precios y alternativas reales. Esto permitiría validar la coherencia de los resultados y evaluar si las recomendaciones del optimizador se alinean con escenarios de mercado.\\

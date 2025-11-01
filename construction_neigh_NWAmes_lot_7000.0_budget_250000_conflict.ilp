@@ -3,16 +3,15 @@
 Maximize
  
 Subject To
- 7.4__first_floor_always: Floor1 = 1
- 7.23__p1_ub_plain: - 0.1 x_1st_Flr_SF + P1 <= 40
- 7.23__p1_lb_if_on: - 0.0285714285714286 x_1st_Flr_SF - 460 Floor1 + P1
-   >= -320
+ 7.1.8__1st_min_if_on: x_1st_Flr_SF - 450 Floor1 >= 0
  def_cost_model: - 230 x_Total_Bsmt_SF - 230 x_1st_Flr_SF
-   - 230 x_2nd_Flr_SF - 88 x_Pool_Area + cost_model = 0
+   - 230 x_2nd_Flr_SF - 50 x_Wood_Deck_SF - 77.5 x_Open_Porch_SF
+   - 80 x_Enclosed_Porch - 157.5 x_3Ssn_Porch - 72.5 x_Screen_Porch
+   - 88 x_Pool_Area - 424250 CONST_ONE + cost_model = 0
  budget: cost_model <= 250000
 Bounds
  x_1st_Flr_SF free
- P1 free
+ CONST_ONE >= 1
  cost_model free
 Binaries
  Floor1

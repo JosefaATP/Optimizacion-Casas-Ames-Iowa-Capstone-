@@ -1,0 +1,1858 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Construcción}
+\author{Grupo 5 Capstone}
+\date{October 2025}
+
+\begin{document}
+
+\maketitle
+
+\[
+\min_{F}\; Z(F)
+= \frac{1}{2}\sum_{a\in A}
+\left[
+  \int_{0}^{f_a} c_a(x,f_{a'})\,dx
+  + 
+  \int_{0}^{f_a} c_a(x,0)\,dx
+\right].
+\]
+\section{Introduction}
+\section{Supuestos}
+1. Se asume que cada vivienda se construye desde cero, sobre un terreno definido cuyas características físicas son parámetros fijos y no pueden modificarse. El modelo busca maximizar la rentabilidad de la construcción, definida como la diferencia entre la tasación post-construcción y el costo total de edificación, sujeto a las restricciones físicas, estructurales y de consistencia espacial de la vivienda.\\
+\\ 
+2. Todas las construcciones corresponden a nueva edificación, por lo que se asume que la calidad y condición de todos los elementos estructurales es excelente:
+
+OverallQual = 10, OverallCond = 10
+
+ExterQual = Ex, ExterCond = Ex
+
+BsmtQual = Ex, HeatingQC = Ex
+
+KitchenQual = Ex
+
+Esto implica que no existen depreciaciones asociadas a desgaste, y que los costos reflejan materiales y terminaciones de alta gama.
+\\
+\\
+3. Solo puede seleccionarse una categoría por variable estructural o de sistema, tales como:
+
+Foundation, RoofStyle, RoofMatl, Heating, Electrical, GarageType, Exterior1st, HouseStyle, entre otras.
+
+Esta exclusividad asegura consistencia constructiva y evita configuraciones físicamente imposibles (por ejemplo, combinar techos de distintos materiales o cimentaciones incompatibles).\\
+\\
+4. Todas las áreas modeladas corresponden a espacios terminados; no existen sectores sin finalizar.
+Se imponen las siguientes condiciones:
+
+BsmtUnfSF = 0, LowQualFinSF = 0.
+
+Los tipos de sótano Unf o NA implican área de acabado nula.
+
+Los estilos de vivienda con niveles “parciales” (1.5Fin, 2.5Fin, etc.) son excluidos.
+
+Así, cada espacio construido contribuye a la superficie útil total y tiene costo de terminación asociado.\\
+\\
+5. Las viviendas pueden tener uno o dos pisos completos, sin niveles medios ni áticos.\\
+
+El área de cimentación y la huella de construcción equivalen al área del primer piso ($AreaFoundation_i = 1stFlrSF_i$).
+Las áreas asociadas al segundo piso (baños, cocinas, dormitorios, otros) se activan solo si Floor2_i = 1, con cotas máximas realistas.\\
+Estas cotas derivan de proporciones típicas de distribución de superficie habitacional según U.S. DOE (2024).\\
+\\
+6. El tipo de cimentación (Foundation) define la base estructural del edificio:
+
+Si la vivienda tiene sótano, se permiten solo BrkTil, CBlock, PConc, o Stone.
+
+Si no tiene sótano, se permiten Slab o Wood.
+
+El área de cimentación se iguala al área del primer piso y su costo depende del tipo seleccionado.\\
+
+7. Se considera al menos una cocina y un baño completo en el primer piso, con límites superiores de repetición por tipo de vivienda.\\
+
+En viviendas tipo Duplex o Two-Family Conversion, se permite la replicación de ambientes equivalentes en el segundo piso (cocina, baño, dormitorios).\\
+\\
+8. El área real del techo se calcula como
+ActualRoofArea_i = Σ_s Σ_m γ_{s,m}·Z_{i,s,m},
+donde γ_{s,m} es un factor de pendiente (1.1–1.4).
+\section{Función Objetivo}
+\begin{center}
+    $\max \; \Pi = V_{i}^{post} - C^{Total}$
+\end{center}
+Donde:\\
+\begin{itemize}
+    \item $\Pi$= Rentabilidad
+    \item $V_{i}^{post}=$Valor de la casa construida.
+    \item $C_{i}^{Total}=$Costo Total construcción
+\end{itemize}
+$C_{i}^{Total}=C_{i}^{Foundation}+C_i^{Roof}+C_{i}^{Heating}+C_{i}^{CentralAir}+C_{i}^{Electrical}+C_{i}^{PavedDrive}+C_{i}^{Kitchen}+C_{i}^{HalfBaths}+C_{i}^{FullBaths}+C_{i}^{Bedroom}+C_{i}^{Garage}+C_{i}^{Porch}+C_{i}^{WoodDeck}+C_{i}^{Reja} + C{i}^{Basement}+C_{i}^{MasVnr}+C_{i}^{Exterior}+C_{i}^{MiscFeature} +C_{i}^{FirePlaces}$\\
+\\
+\begin{itemize}
+    \item $C_{i}^{Foundation}=\sum _{f} L_{i,f}\cdot C_{f}$
+    \item $C_i^{Roof}= \sum_{s} \sum_{m} C_{m}\cdot (\gamma_{s,m}\cdot Z_{i,s,m})$
+    \item $C_{i}^{Heating}=\sum_{h} C_{h,Ex}\cdot HasHeating_{i,h}$
+    \item $C_{i}^{CentralAir}= \sum_{a} C_{i,a}$
+    \item $C_{i}^{Electrical}=\sum_{e} C_{e} \cdot Electrical_{i,e}$
+    \item $C_{i}^{PavedDrive}= \sum_{d} C_{d}\cdot PavedDrive_{i,d}$
+    \item $C_{i}^{Kitchen}=\sum_{k}C_{k,Ex}\cdot AreaKitchen_{i}$
+    \item $C_{i}^{HalfBaths}= C_{HalfBath}\cdot AreaHalfBath_{i}$
+    \item $C_{i}^{FullBaths}= C_{FullBath}\cdot AreaFullBath_{i}$
+    \item $C_{i}^{Bedroom}= C_{Bedroom}\cdot AreaBedroom_{i}$
+    \item $C_{i}^{Garage}=C_{Garage}\cdot GarageArea_{i}$
+    \item $C_{i}^{Porch}= OpenPorch_{i}\cdot C_{OpenPorch}+EnclosedPorch_{i}\cdot C_{EnclosedPorch}+3SsnPorch_{i}\cdot C_{3SsnPorch}+ScreenPorch_{i} \cdot C_{ScreenPorch}$
+    \item $C_{i}^{WoodDeck}=WoodDesk\cdot C_{WoodDeck}$
+    \item $C_{i}^{Fence}=L_{i}\cdot C_{Fence}$
+    \item $C_{i}^{Exterior}=C_{e1} \cdot AreaExterior1st_{i,e1}$
+    \item $C_i^{MasVnr}=\sum _{t}MvProd_{i,t}\cdot C_{t}$
+    \item $C_{i}^{Garage}= \sum_{g} GA_{i,g}\cdot C_{garage}$
+    \item $C_{i}^{FirePlaces}=C_{f,Ex}\cdot FirePlaces_{i}$
+    \item $C_{i}^{Basement}=$
+\end{itemize}
+
+\section{Variables Binarias:}
+\begin{itemize}
+
+    \item $Floor1_{i} \in 0,1 \hspace{5mm} \forall i \in \mathcal{I}$: Casa i tiene 1 piso
+    \item $Floor2_{i} \in 0,1 \hspace{5mm} \forall i \in \mathcal{I}$: Casa tiene 2 pisos
+    \item $SameMaterial_{i} \in 0,1$
+    \item $HasReja_{i} \in 0,1$
+
+\end{itemize}
+\section{Variables de área}
+\begin{itemize}
+    \item $AreaBedrooms_{i} \in \mathbf{Z}_{\geq 0}$
+    \item $AreaBedroom1_{i}$
+    \item $AreaBedroom2_{i}$
+    \item $AreaMasterBedroom_{i}$
+    \item $AreaOtherRooms1_{i}$
+    \item $AreaOtherRooms2_{i}$
+    \item $AreaOther_{i}$
+    \item $AreaKitchen_{i} \in \mathbf{Z}_{\geq 0}$
+    \item $AreaFullBath_{i} \in \mathbf{Z}_{\geq 0}$
+    \item $AreaHalfBath_{i} \in \mathbf{Z}_{\geq 0}$
+    \item $AreaKitchen1_{i} \in \mathbf{Z}_{\geq 0}$
+    \item $AreaKitchen2_{i}\in \mathbf{Z}_{\geq 0}$
+    \item $AreaFullBath1_{i}\in \mathbf{Z}_{\geq 0}$
+    \item $AreaFullBath2_{i}\in \mathbf{Z}_{\geq 0}$
+    \item $AreaHalfBath1_{i}\in \mathbf{Z}_{\geq 0}$
+    \item $AreaHalfBath2_{i}\in \mathbf{Z}_{\geq 0}$
+    \item $AreaFoundation_{i}\in \mathbf{Z}_{\geq 0}$
+    \item $AreaRoof_{i} \in \mathbf{Z}_{\geq 0}$
+    \item $PR1_i,\, PR2_i \ge 0$ \quad (\textit{auxiliares para linealizar $AreaRoof_i$})
+    \item $PR1_{i}:$ Área del primer piso que se cubre con techo, si vivienda tiene 1 piso
+    \item $PR2_{i}$ Area del segundo piso que se cubre con techo, si vivienda tiene 2 pisos4
+    \item $P_{i}^{(1)}$
+    \item $P_{i}^{(2)}$
+    \item $W_{i,e1}:$ cuanta área exterior de la casa se cubre con el material e1
+    \item $GA_{i,g}$: área del garage tipo g
+\end{itemize}
+
+\section{Variables de conteo}
+\begin{itemize}
+    \item $FullBath1_{i}\in \mathbf{Z}$ cantidad de Full Baths en primer piso
+    \item $FullBath2_{i}$ cantidad de FullBath en segundo piso
+    \item $HalfBath1_{i} \in \mathbf{Z}_{\geq 0}$
+    \item $HalfBath2_{i} \in \mathbf{Z}_{\geq 0}$
+    \item $Kitchen1_{i} \in \mathbf{Z}_{\geq 0}$
+    \item $Kitchen2_{i} \in \mathbf{Z}_{\geq 0}$
+    \item $Bedroom1_{i}$
+    \item $Bedroom2_{i}$
+    \item $OtherRooms1_{i}$
+    \item $OtherRooms2_{i}$
+    \item $OtherRooms_{i}$
+\end{itemize}
+
+\section{Restricciones}
+\subsubsection{Restricciones de exclusividad}
+\begin{align}
+    &\sum_{s} MSSubClass_{i,s}=1 \hspace{5mm} \forall i \in \mathcal{I} \\
+    \\
+    & \sum_{\mathcal{B}\in b} BldgType_{i,b}= 1 \hspace{5mm} \forall i \in \mathcal{I}\\
+    \\
+    & \sum _{hs} HouseStyle_{i,hs}=1\\
+    \\
+    &\sum_{r} RoofStyle_{i,r}=1\\
+    \\
+    &\sum_{m} RoofMatl_{i,m}=1\\
+    \\
+    &\sum_{e1} Exterior1st_{i,e1}=1,\\
+    \\
+    &\sum_{e2} Exterior2nd_{i,e2}=1\\
+    \\
+    &\sum_{t} MasVnrType_{i,t}=1\\
+    \\
+    &\sum_{f} Foundation_{i,f}=1\\
+    \\
+    &\sum_{x} BsmtExpoure_{i,x}=1\\
+    \\
+    &\sum_{b1} BsmtFinType1_{i,b1}=1\\
+    \\
+    &\sum_{b2} BsmtFinType2_{i,b2}=1\\
+    \\
+    &\sum_{h} Heating_{i,h}= 1\\
+    \\
+    &\sum_{a} CentralAir_{i,a}=1\\
+    \\
+    &\sum_{e} Electrical_{i,e}=1\\
+    \\
+    &\sum_{g} GarageType_{i,g}=1\\
+    \\
+    &\sum_{gf} GarageFinish_{i,gf}=1\\
+    \\
+    &\sum_{p} PavedDrive_{i,p}=1\\
+    \\
+    &\sum_{misc} MiscFeature_{i,misc}=1\\
+    
+    
+\end{align}
+
+\subsection{Consistencia de Áreas}
+\subsubsection{Áreas construidas no pueden sobrepasar el área del terreno}\\
+\begin{align}
+    &1stFlrSF_{i} + TotalPorchSF_{i} + AreaPool_{i} \leq LotArea_{i}, \hspace{5mm}\forall i \in \mathcal{I} \\
+\end{align}
+\begin{align}
+& \boxed{LotOc_i \;=\; 1stFlrSF_i \;+\; TotalPorchSF_i \;+\; WoodDeckSF_i \;+\; AreaPool_i \;+\; GarageArea_i \hspace {5mm} \forall i \in \mathcal{I}}
+\end{align}
+\subsubsection{El segundo piso no puede ser más grande que el primero}
+\begin{align}
+    
+&2ndFlrSF_{i} \leq 1stFlrSF_{i} \hspace{5mm}\forall i \in \mathcal{I}
+\end{align}
+\subsubsection{Area Habitable}
+\begin{align}
+    &GrLivArea = 1stFlrSF_{i} + 2ndFlrSF_{i}
+\end{align}
+\subsubsection{Area Total FullBath  es igual al area baños 1er piso + area baños 2do piso}
+\begin{align}
+    &AreaFullBath_{i}=AreaFullBath1_{i}+ AreaFullBath2_{i}
+\end{align}
+\subsubsection{Area Total HalfBath es igual al area baños 1er piso + Area baños 2do piso}
+\begin{align}
+    &AreaHalfBath_{i}=AreaHalfBath1_{i}+AreaHalfBath2_{i}
+\end{align}
+\subsubsection{Tiene que haber un baño en el primer piso}
+\begin{align}
+    FullBath1_{i}\geq 1
+\end{align}
+
+\subsubsection{Tiene que haber una cocina en el primer piso}
+\begin{align}
+    Kitchen1_{i}\geq 1
+\end{align}
+
+\subsubsection{Areas Primer y segundo piso}
+\begin{align}
+    &2ndFlrSF_{i}\leq M_{max}^{2ndFlrSF} \cdot Floor2_{i}\\
+    &2ndFlrSF_{i}\geq \epsilon \cdot Floor2_{i}\\
+    &1stFlrSF_{i}\geq \epsilon´\cdot (Floor1_{i}+Floor2_{i})
+\end{align}\\
+Donde:
+\begin{itemize}
+    \item $\epsilon=450$
+    \item $\epsilon ´=350$
+\end{itemize}
+\subsection{Consistencia Cantidades}
+\subsubsection{Cantidad total de FullBaths}
+    \[
+FullBath_i \;=\; FullBath1_i + FullBath2_i \hspace{8mm} \forall i.
+\]
+\subsubsection{Cantidad Total de HalfBath}
+    \[
+HalfBath_i \;=\; HalfBath1_i + HalfBath2_i \hspace{8mm} \forall i.
+\]
+
+\subsubsection{Cantidad Total de Cocinas}
+\[
+Kitchen_i \;=\; Kitchen1_i + Kitchen2_i \hspace{8mm} \forall i.
+\]
+
+\subsection{Máximo de repeticiones}
+\begin{itemize}
+    \item Parámetros para Bedrooms según tipo de vivienda
+    \begin{itemize}
+        \item $Bed_{max}^{1Fam}=6$\\
+        \item $Bed_{max}^{TwnhsE}=4$\\
+        \item $Bed_{max}^{TwnhsI}=4$\\
+        \item $Bed_{max}^{Dplx}=5$\\
+        \item $Bed_{max}^{2FmCon}=8$
+    \end{itemize}
+    \subsubsection{Máxima cantidad de habitaciones:}
+    \begin{align}
+        Bedrooms_{i}\leq \sum_{b \in \mathcal{B}}Bed_{max}^{b} \cdot BldgType_{i,b} \hspace{5mm } \forall i \in \mathcal{I}
+    \end{align}
+    \item  Parametros para FullBaths:
+    \begin{itemize}
+        \item $F_{max}^{1Fam}=4$\\
+        \item $F_{max}^{TwnhsE}=3$\\
+        \item $F_{max}^{TwnhsI}=3$\\
+        \item $F_{max}^{Dplx}=4$\\
+        \item $F_{max}^{2FmCon}=6$
+    \end{itemize}
+    \subsubsection{Máxima cantidad de FullBaths:}
+    \begin{align}
+        FullBath_{i} \leq \sum_{b} F_{max}^{b} \cdot BldgType_{i,b}
+    \end{align}
+    \item Parámetros HalfBath:
+    \begin{itemize}
+        \item $H_{max}^{1Fam}=2$\\
+        \item $H_{max}^{TwnhsE}=2$\\
+        \item $H_{max}^{TwnhsI}=2$\\
+        \item $H_{max}^{Dplx}=2$\\
+        \item $H_{max}^{2FmCon}=3$
+    \end{itemize}
+    \subsubsection{Máxima cantidad de HalfBaths:}
+    \begin{align}
+        HalfBath_{i} \leq \sum_{b} H_{max}^{b} \cdot BldgType_{i,b}
+    \end{align}
+    \item Parámetros Cocina:
+    \begin{itemize}
+        \item $K_{max}^{1Fam}=1$\\
+        \item $K_{max}^{TwnhsE}=1$\\
+        \item $K_{max}^{TwnhsI}=1$\\
+        \item $K_{max}^{Dplx}=2$\\
+        \item $K_{max}^{2FmCon}=2$
+    \end{itemize}
+    \subsubsection{Máxima cantidad de Cocinas:}
+    \begin{align}
+        Kitchen_{i}\leq \sum _{b} K_{max}^{b} BldgType_{i,b}
+    \end{align}
+    \item Parámetros Chimenea:
+    \begin{itemize}
+        \item $Ch_{max}^{1Fam}=1$\\
+        \item $Ch_{max}^{TwnhsE}=1$\\
+        \item $Ch_{max}^{TwnhsI}=1$\\
+        \item $Ch_{max}^{Dplx}=1$\\
+        \item $Ch_{max}^{2FmCon}=2$ 
+    \end{itemize}
+    \subsubsection{Máxima cantidad de chimeneas:}
+    \begin{align}
+        FirePlaces_{i} \leq \sum_{b} Ch_{max}^{b} BldgType_{i,b}
+    \end{align}
+\end{itemize}
+\subsection{Casa solo puedo tener 1 ó 2 pisos}
+\begin{align}
+    &Floor1_{i} +Floor2_{i}=1 \hspace{5mm} \forall i \in \mathcal{I}
+\end{align}
+\subsection{Garage}
+\subsubsection{Consistencia Areas Garage}
+\begin{align}
+    150\cdot GarageCars_{i} \leq GarageArea_{i}\leq 250 \cdot GarageCars_{i}
+\end{align}
+\subsubsection{Existencias de activación}
+\begin{align}
+& GarageCars_i \le \overline{C}^{\text{cars}} \,\big(1 - GarageType_{i,NA}\big) \qquad \forall i,\\
+& GarageArea_i \le \overline{A}^{\text{garage}}_i \,\big(1 - GarageType_{i,NA}\big) \qquad \forall i.
+\end{align}
+Donde:
+\begin{itemize}
+    \item $\bar{C}_{i}^{cars}=4$
+    \item $\bar{A}_{i}^{garage}=0.2 LotArea_{i}$
+\end{itemize}
+\subsubsection{Acabados}
+\begin{align}
+& GarageFinish_{i,NA} = GarageType_{i,NA} \qquad \forall i,\\
+& GarageFinish_{i,\text{Fin}} + GarageFinish_{i,\text{RFn}} 
+  = 1 - GarageType_{i,NA} \qquad \forall i.
+\end{align}
+
+
+\subsubsection{Mínimo Funcional}
+\begin{align}
+& GarageCars_i \ge 1 - GarageType_{i,NA} \qquad \forall i.
+\end{align}
+\subsection{Cerca}
+\begin{itemize}
+    \item Parámetros:
+    \begin{itemize}
+        \item $L^{Reja}_{i}=LotFrontage_{i}$
+    \end{itemize}
+\end{itemize}
+\begin{align}
+    C_{i}^{Reja}=
+\end{align}
+
+\subsection{Area Techo}
+
+% Techo en planta: AreaRoof_i = 1stFlrSF_i*Floor1_i + 2ndFlrSF_i*Floor2_i
+% con auxiliares PR1_i, PR2_i:
+\subsubsection{Area techo}
+\begin{align}
+    &PR1_{i} \leq 1stFloorSF_{i}\\
+    &PR1_{i} \leq U_{i}^{(1)}\cdot Floor1_{i}\\
+    &PR1_{i} \geq 1stFloorSF_{i}-U_{i}^{(1)}\cdot (1-Floor_{i})\\
+    &PR2_{i} \leq 2ndFloorSF_{i},\\
+    &PR2_{i} \leq U_{i}^{(2)}\cdot Floor2_{i}\\
+    &PR2_{i} \geq 2ndFloorSF_{i}-U_{i}^{(2)}\cdot (1-Floor2_{i})\\
+\end{align}
+\\
+Donde:
+\begin{itemize}
+    \item $U_{i}^{(1)}\geq 1stFlrSF_{i}$
+    \item $U_{i}^{(2)}\geq 2ndFlrSF_{i}$
+    \item $U_{i}^{plan} \geq max\{1stFlrSF_{i},2ndFlrSF_{i}\}$: cota superior
+\end{itemize}
+\\
+\subsubsection{Área que debe ser cubierta}\\
+\begin{align}
+    PlanRoofArea_{i}=PR1_{i}+PR2_{i}\\
+\end{align}
+\subsubsection{Área real de techo que se debe construir de acuerdo a pendiente del tipo de techo}\\
+\begin{align}
+    ActualRoofArea_{i}=\sum_{s}\sum_{m} \gamma_{s,m} \cdot Z_{i,s,m}\\
+\end{align}
+\\
+Donde:
+\begin{itemize}
+    \item $\gamma_{s,m} \geq 1$. Factor de expansión según estilo
+    \item  $Z_{i,s,m}$ variable auxiliar que linealiza 
+    \item $Y_{i,s,m} \in 0,1$ toma valor 1 cuando se selecciona el estilo s y material m de la casa i
+\end{itemize}
+
+
+\subsubsection{Combinacion estilo y material:Exclusividad}
+%-------------------------------
+% Conjunción estilo–material (AND lógico)
+%-------------------------------
+\begin{align}
+& Y_{i,s,m} \le RoofStyle_{i,s} \qquad \forall s\in S,\ \forall m\in M, \\[2pt]
+& Y_{i,s,m} \le RoofMatl_{i,m} \qquad \forall s\in S,\ \forall m\in M, \\[2pt]
+& Y_{i,s,m} \ge RoofStyle_{i,s} + RoofMatl_{i,m} - 1 \qquad \forall s\in S,\ \forall m\in M, \\[4pt]
+& \sum_{s}\sum_{m} Y_{i,s,m} = 1.
+\end{align}
+\subsubsection{Restricciones lineales de techo}
+%-------------------------------
+% Área real de techo (opcional) y su linealización
+%-------------------------------
+% Z_{i,s,m} ≈ PlanRoofArea_i * Y_{i,s,m}
+\begin{align}
+& Z_{i,s,m} \le PlanRoofArea_i \qquad \forall s,m, \\[2pt]
+& Z_{i,s,m} \le U^{\text{plan}}_i \, Y_{i,s,m} \qquad \forall s,m, \\[2pt]
+& Z_{i,s,m} \ge PlanRoofArea_i - U^{\text{plan}}_i \,(1 - Y_{i,s,m}) \qquad \forall s,m, \\[2pt]
+& Z_{i,s,m} \ge 0 \qquad \forall s,m, \\[6pt]
+
+
+
+%-----------------------------------------------------
+% Notas:
+% - Si decides NO usar área real (pendiente/solapes), omite \eqref{eq:actual-roof}
+%   y las restricciones de Z; trabaja solo con PlanRoofArea_i (o AreaRoof_i).
+% - Las cotas U^{(1)}_i, U^{(2)}_i, U^{plan}_i están alineadas con tus límites
+%   globales (p.ej. 1stFlrSF_i ≤ 0.6 LotArea_i, etc.).
+% - Si prefieres dependencia solo por estilo (sin material), reemplaza γ_{s,m} por α_s
+%   y elimina el índice m en Y y Z (mecánica análoga).
+%-----------------------------------------------------
+
+\subsection{Consistencias Áreas Globales}
+\begin{align}
+
+& TotalBsmtSF_i = BsmtFinSF1_i + BsmtFinSF2_i,\\
+& TotalArea_i = 1stFlrSF_i + 2ndFlrSF_i + TotalBsmtSF_i
+\end{align}
+
+\subsection{Límites de ocupación}
+\begin{align}
+& 1stFlrSF_i \le M_{max}^{1stFlrSF},\quad \\2ndFlrSF_i \le M_{max}^{2ndFlrSF},\\
+& TotalBsmtSF_i \le M_{max}^{TotalBasmt},\\ \quad 
+& GarageArea_i \le M_{max}^{GarageArea}
+\end{align}
+\\
+Donde:
+\begin{itemize}
+    \item $M_{max}^{1stFlrSF}= 0.6LotArea$
+    \item $M_{max}^{2ndFlrSF}=0.5 LotArea$
+    \item $M_{max}^{TotalBasmt}= 0.5LotArea$
+    \item $M_{max}^{GarageArea}= 0.2LotArea$
+\end{itemize}
+\subsection{Baños por cada Dormitorio}
+\begin{align}
+& 3\,FullBath_i \ge 2\,Bedroom_i
+\end{align}
+
+\subsection{Piscina}\\
+\subsubsection{El área de la piscina tiene que acotarse al espacio que queda}
+
+\begin{align}
+& AreaPool_i \le \Big(LotArea_i - 1stFlrSF_i - GarageArea_i - WoodDeckSF_i - OpenPorchSF_i - EnclosedPorch_i - ScreenPorch_i - 3SsnPorch_i\Big)\cdot HasPool_i,\\
+\\
+& AreaPool_i \le U_{max}^{Pool}\cdot HasPool_i,\qquad\\
+  AreaPool_i \ge U_{min}^{Pool} HasPool_i,\qquad\\
+  AreaPool_i \ge 0
+\end{align}
+\\
+Donde:
+\begin{itemize}
+    \item $U_{min}^{Pool}=160$
+    \item $U_{max}^{Pool}= 0.1 LotArea$
+\end{itemize}
+
+\subsection{Porch}\\
+\subsubsection{Área total del Porch es la suma de todos los Porch}
+\begin{align}
+& TotalPorchSF_i = OpenPorchSF_i + EnclosedPorch_i + ScreenPorch_i + 3SsnPorch_i,\\
+\\
+& TotalPorchSF_i \le U_{max}^{TotPorch},\\
+\\
+& TotalPorchSF_i \le 1stFlrSF_i\\
+\end{align}
+\\
+Donde: 
+\begin{itemize}
+    \item $U_{max}^{TotPorch} \leq 0.25 LotArea$\\
+
+\subsubsection{Mínimos funcionales por tipo (activados por las binarias que ya declaraste)}\\
+\end{itemize}
+ 
+\begin{align}
+& OpenPorchSF_i \ge 40 \cdot HasOpenPorch_i,\\
+\\
+& EnclosedPorch_i \ge 60 \cdot HasEnclosedPorch_i,\\
+\\
+& ScreenPorch_i \ge 40 \cdot HasScreenPorch_i,\\
+\\
+& 3SsnPorch_i \ge 80 \cdot Has3SsnPorch_i\\
+\end{align}
+
+\subsubsection{Compatibilidad de espacios exteriores}\\
+\begin{align}
+& WoodDeckSF_i + TotalPorchSF_i + AreaPool_i \le U_{max}^{AreaExt},\\
+& WoodDeckSF_i + OpenPorchSF_i \le U_{max}^{WDyPorch}
+\end{align}\\
+Donde:\\
+\begin{itemize}
+    \item $U_{max}^{AreaExt}=0.35LotArea$
+    \item $U_{max}^{WDyPorch}=0.2LotArea$
+\end{itemize}
+\subsection{Deck}\\
+\begin{align}
+& U_{min}^{WD} \cdot HasWoodDeck_i \leq WoodDeckSF_i \leq  U_{max}^{WD}\,LotArea_i \cdot HasWoodDeck_i\\
+
+\end{align}
+Donde:\\
+\begin{itemize}
+    \item $U_{min}^{WD}=40$ valor mínimo de WoodDeck
+    \item $U_{max}^{WD}=0.15LotArea$: valor máximo de WoodDeck
+\end{itemize}
+
+\subsection{Acabados}
+\begin{align}
+& TotalBsmtSF_i \;\le\; 0.5\,LotArea_i \,\big(1 - BsmtExposure_{i,NA}\big). \label{eq:bsmt-cap}
+\end{align}
+
+ (3) Partición de áreas terminadas (2 canales) --
+\begin{align}
+& BsmtFinSF1_i + BsmtFinSF2_i \;=\; TotalBsmtSF_i. \label{eq:bsmt-sum}
+% Si manejas área sin terminar explícita, usa en su lugar:
+% BsmtFinSF1_i + BsmtFinSF2_i + BsmtUnfSF_i = TotalBsmtSF_i.
+\end{align}
+
+%--- (4) Activación de áreas terminadas por selección de tipo (sin nuevas binarias)
+%     Canal 1: cualquier tipo distinto de NA permite área; "acabado real" = en Bfin
+\begin{align}
+& BsmtFinSF1_i \;\le\; 0.5\,LotArea_i \!\!\!\sum_{b_1\in \Buno\setminus\{\text{NA}\}}\!\! BsmtFinType1_{i,b_1}, \label{eq:fin1-on}\\
+& BsmtFinSF2_i \;\le\; 0.5\,LotArea_i \!\!\!\sum_{b_2\in \Buno\setminus\{\text{NA}\}}\!\! BsmtFinType2_{i,b_2}. \label{eq:fin2-on}
+\end{align}
+
+%--- (5) (Opcional) Mínimos funcionales de acabado sólo si el tipo es "acabado" (no Unf ni NA)
+\begin{align}
+& BsmtFinSF1_i \;\ge\; A^{fin}_{\min} \!\!\sum_{b_1\in \Bfin}\! BsmtFinType1_{i,b_1}, \qquad
+  BsmtFinSF2_i \;\ge\; A^{fin}_{\min} \!\!\sum_{b_2\in \Bfin}\! BsmtFinType2_{i,b_2}. \label{eq:fin-min}
+\end{align}
+
+%--- (6) Baños en sótano sólo si hay ALGÚN acabado real (en cualquiera de los dos canales)
+\begin{align}
+& BsmtFullBath_i \;\le\; 2 \left(
+     \sum_{b_1\in \Bfin}\! BsmtFinType1_{i,b_1}
+   + \sum_{b_2\in \Bfin}\! BsmtFinType2_{i,b_2} \right), \label{eq:bbath-full}\\
+& BsmtHalfBath_i \;\le\; 1 \left(
+     \sum_{b_1\in \Bfin}\! BsmtFinType1_{i,b_1}
+   + \sum_{b_2\in \Bfin}\! BsmtFinType2_{i,b_2} \right). \label{eq:bbath-half}
+\end{align}
+
+%--- (7) Apagado total si Exposure = NA (refuerzo, redundante con \eqref{eq:bsmt-cap})
+\begin{align}
+& BsmtFinSF1_i \;\le\; 0.5\,LotArea_i \,\big(1 - BsmtExposure_{i,NA}\big), \\
+& BsmtFinSF2_i \;\le\; 0.5\,LotArea_i \,\big(1 - BsmtExposure_{i,NA}\big), \\
+& BsmtFullBath_i \;\le\; 2\,\big(1 - BsmtExposure_{i,NA}\big), \qquad
+  BsmtHalfBath_i \;\le\; 1\,\big(1 - BsmtExposure_{i,NA}\big).
+\end{align}
+
+% Nota:
+%  - \eqref{eq:exp-onehot} y \eqref{eq:exp-exist} reemplazan la lógica con HasBasement_i.
+%  - \eqref{eq:bsmt-cap} sustituye TotalBsmtSF_i \le 0.5 LotArea_i * HasBasement_i.
+%  - \eqref{eq:fin1-on}–\eqref{eq:fin2-on} sustituyen las restricciones con HasBsmtFin1_i / HasBsmtFin2_i.
+%  - \eqref{eq:bbath-full}–\eqref{eq:bbath-half} reemplazan los límites de baños usando sólo la selección de tipos "acabados".
+
+
+\subsection{Exterior}
+\begin{align}
+& \sum_{e_1} Exterior1st_{i,e_1} = UseExterior1st_i \qquad (\text{si decides usar }UseExterior1st_i),\\
+& \sum_{e_2} Exterior2nd_{i,e_2} = UseExterior2nd_i,\\
+& SameMaterial_i \ge Exterior1st_{i,e_1} + Exterior2nd_{i,e_2} - 1 \quad \forall e_1,e_2,\\
+& UseExterior2nd_i \le 1 - SameMaterial_i
+\end{align}
+\subsection{Mamposteria}
+\subsubsection{Cota superior Mampostería}
+\begin{align}
+    MasVnrArea_{i}\leq U_{i}^{mas}
+\end{align}\\
+Donde:
+\begin{itemize}
+    \item $U_{i}^{mas}=f_{max}^{mas}\cdot AreaExterior_{i}$
+    \item $f_{max}^{mas}=0.4$
+\end{itemize}
+\begin{align}
+    &MasVnrArea_{i}\geq A_{min}^{MasVnr}\cdot (1-MasVnrType_{i,None})
+\end{align}\\
+Variable auxiliar:\\
+\begin{align}
+    &MvProd_{i,t}\leq MasVnrArea_{i}\\
+    &MvProd_{i,t}\equiv MasVnrArea_{i} \cdot MasVnrType_{i,t}\\
+    &MvProd_{i,t} \leq U_{i}^{mas}\cdot MasVnrType_{i,t}\\
+    &MvProd_{i,t}\geq MasVnrArea_{i} - U_{i}^{mas}\cdot (1-MasVnrType_{i,t})\\
+    &MvProd_{i,t}\geq 0
+\end{align}
+
+Donde:\\
+\begin{align}
+
+& MasVnrArea_i \le TotalArea_i,\\ \quad MasVnrArea_i \ge 0
+\end{align}\\
+Donde:\\
+\begin{itemize}
+    \item $A_{min}^{MasVnr}=20 $ft, Cota inferior Area mampostería
+    \item $A_{max}^{MasVnr}=2000$
+\end{itemize}
+
+
+\subsection{Garage}
+
+\begin{align}
+& GarageCars_i \le \overline{C}^{\text{cars}} \,\big(1 - GarageType_{i,NA}\big) \qquad \forall i,\\
+& GarageArea_i \le \overline{A}^{\text{garage}}_i \,\big(1 - GarageType_{i,NA}\big) \qquad \forall i.
+\end{align}
+\begin{align}\\
+& GarageCars_i \ge 1 - GarageType_{i,NA} \qquad \forall i.
+\end{align}\\
+\begin{align}
+& GarageFinish_{i,NA} = GarageType_{i,NA} \qquad \forall i,\\
+& GarageFinish_{i,\text{Fin}} + GarageFinish_{i,\text{RFn}} 
+  = 1 - GarageType_{i,NA} \qquad \forall i.
+\end{align}
+Donde:
+\begin{itemize}
+    \item $\bar{C}_{i}^{cars}=4$
+    \item $\bar{A}_{i}^{garage}=0.2 LotArea$
+\end{itemize}
+\begin{align}
+    &GarageType_{i,NoAplica}=GarageFinish_{i,NoAplica}
+\end{align}\\
+Ahora es necesario linealizar para calcular los costos:
+\\
+\begin{align}
+    GA_{i,g}\leq GarageArea_{i}\\
+    GA_{i,g}\leq \bar A_{i}^{Garage}\cdot GarageType_{i,g}\\
+    GA_{i,g}\geq GarageArea_{i}-\bar A_{i}^{Garage}(1-GarageType_{i,g})\\
+    GA_{i,g}\geq 0
+\end{align}
+
+\subsection{basement}
+\textbf{Parámetros:}
+\[
+U^{bsmt}_i = 0.5\cdot LotArea_i,\qquad
+U^{bF}=2,\qquad
+U^{bH}=1,\qquad
+A^{fin}_{\min}\ge 0 \;.
+\]
+\subsubsection{Capacidad Máxima del Sótano}
+% Variables (ya declaradas en tu documento)
+% BsmtFinType1_{i,b1}, BsmtFinType2_{i,b2}, BsmtExposure_{i,x} binarias one–hot
+% TotalBsmtSF_i, BsmtFinSF1_i, BsmtFinSF2_i, BsmtUnfSF_i \ge 0
+% BsmtFullBath_i, BsmtHalfBath_i enteras \ge 0
+
+% One–hot
+\begin{align}
+    &BsmtFinSF1_{i}+BsmtFinSF2_{i}=TotalBsmtSF_{i}\\
+\end{align}\\
+\\
+\begin{align}
+    &TotalBsmtSF_{i}\leq 0.5 LotArea_{i}(1-BsmtExpoure_{i,NA})\\
+\end{align}\\
+
+
+% Existencia sótano via NA en exposición
+\textbf{Existencia de sótano vía exposición \texttt{NA}:}\\
+\begin{align}
+& TotalBsmtSF_i \;\le\; U^{bsmt}_i \big(1 - BsmtExposure_{i,NA}\big). \label{eq:b-exist}
+\end{align}\\
+Donde:
+\begin{itemize}
+    \item $U_{i}^{bsmt}=0.5LotArea$
+\end{itemize}
+% Partición de áreas
+
+
+% Activadores no–NA y de acabado real
+\textbf{Activadores (definición auxiliar):}
+\[
+\phi^{(1)}_i \;=\; \sum_{b_1\in B_1\setminus\{\text{NA}\}} BsmtFinType1_{i,b_1}, \qquad
+\phi^{(2)}_i \;=\; \sum_{b_2\in B_2\setminus\{\text{NA}\}} BsmtFinType2_{i,b_2},
+\]
+\[
+\psi^{(1)}_i \;=\; \sum_{b_1\in \{\text{GLQ, ALQ, BLQ, Rec, LwQ}\}} BsmtFinType1_{i,b_1}, \qquad \\
+\\ \psi^{(2)}_i \;=\; \sum_{b_2\in \{\text{GLQ, ALQ, BLQ, Rec, LwQ}\}} BsmtFinType2_{i,b_2}.
+\]
+Donde:
+\begin{itemize}
+    \item $\phi_{i}^{(1)}, \phi_{i}^{(2)}$ indicadores de existencia de cualquier tipo de acabado menos NA
+    \item $\psi _{i}^{(1)}, \psi_{i}^{(2)}$: indicadores de existencia de acabado real.
+\end{itemize}
+% Activación de áreas terminadas por canal
+\textbf{Activación y mínimos de acabados por canal:}\\
+\begin{align}
+& BsmtFinSF1_i \;\le\; U^{bsmt}_i\, \phi^{(1)}_i, \qquad\\
+  BsmtFinSF2_i \;\le\; U^{bsmt}_i\, \phi^{(2)}_i, \label{eq:b-on}\\
+& BsmtFinSF1_i \;\ge\; A^{fin}_{\min}\, \psi^{(1)}_i, \qquad\\
+  BsmtFinSF2_i \;\ge\; A^{fin}_{\min}\, \psi^{(2)}_i. \label{eq:b-min}
+\end{align}\\
+
+% Baños condicionados a acabado real
+\textbf{Baños en sótano sólo si hay acabado real:}\\
+\\
+\begin{align}
+& BsmtFullBath_i \;\le\; U^{bF}\,\big(\psi^{(1)}_i + \psi^{(2)}_i\big), \qquad \\
+  BsmtHalfBath_i \;\le\; U^{bH}\,\big(\psi^{(1)}_i + \psi^{(2)}_i\big). \label{eq:b-baths}
+\end{align}
+
+% Apagado completo si exposición NA
+\textbf{Apagado completo si \texttt{BsmtExposure\_NA}=1:}\\
+\begin{align}
+& BsmtFinSF1_i \;\le\; U^{bsmt}_i \big(1 - BsmtExposure_{i,NA}\big), \qquad \\
+  BsmtFinSF2_i \;\le\; U^{bsmt}_i \big(1 - BsmtExposure_{i,NA}\big), \\
+& BsmtFullBath_i \;\le\; U^{bF}\big(1 - BsmtExposure_{i,NA}\big), \qquad \\
+  BsmtHalfBath_i \;\le\; U^{bH}\big(1 - BsmtExposure_{i,NA}\big). \label{eq:b-off}
+\end{align}
+\begin{itemize}
+  \item $U^{\text{bF}}\in\mathbb{Z}_{\ge 0}$: cota superior de baños completos en sótano (p.ej. $2$).
+  \item $U^{\text{bH}}\in\mathbb{Z}_{\ge 0}$: cota superior de medios baños en sótano (p.ej. $1$).
+  \item $A^{\text{fin}}_{\min}\ge 0$: área mínima funcional para declarar un acabado “real” (p.ej. $100~\text{ft}^2$).
+\end{itemize}
+
+%-------------------------------
+% (1) Exposición: selección única y existencia vía NA
+%-------------------------------
+\begin{align}
+
+& \sum_{x\in \{\text{Gd,Av,Mn,No}\}} BsmtExposure_{i,x}
+   \;=\; 1 - BsmtExposure_{i,NA}. \label{eq:exp-exist}
+\end{align}\\
+\\
+
+%-------------------------------
+% (2) Capacidad de área total condicionada por NA
+%-------------------------------
+\begin{align}
+& TotalBsmtSF_i \;\le\; U_{i}^{\text{bsmt}}\,\big(1 - BsmtExposure_{i,NA}\big). \label{eq:bsmt-cap}
+\end{align}
+
+%-------------------------------
+% (3) Partición de áreas terminadas (2 canales)
+%     (ajusta si modelas BsmtUnfSF_i explícito)
+%-------------------------------
+\begin{align}
+& BsmtFinSF1_i + BsmtFinSF2_i \;=\; TotalBsmtSF_i. \label{eq:bsmt-sum}
+\end{align}
+
+%-------------------------------
+% (4) Activación de áreas por selección de tipo (sin nuevas binarias)
+%     Cualquier tipo distinto de NA permite área en el canal
+%-------------------------------
+
+%-------------------------------
+% (5) Mínimos funcionales SOLO para acabados “reales” (no Unf, no NA)
+%-------------------------------
+\begin{align}
+& BsmtFinSF1_i \;\ge\; A^{\text{fin}}_{\min}\; \sum_{b_1\in \Bfin} BsmtFinType1_{i,b_1}, 
+\qquad
+  BsmtFinSF2_i \;\ge\; A^{\text{fin}}_{\min}\; \sum_{b_2\in \Bfin} BsmtFinType2_{i,b_2}. \label{eq:fin-min}
+\end{align}
+
+%-------------------------------
+% (6) Baños en sótano sólo si hay ALGÚN acabado real (en alguno de los canales)
+%-------------------------------
+\begin{align}
+& BsmtFullBath_i \;\le\; U^{\text{bF}} \left(
+     \sum_{b_1\in \Bfin} BsmtFinType1_{i,b_1}
+   + \sum_{b_2\in \Bfin} BsmtFinType2_{i,b_2} \right), \label{eq:bbath-full} \\[6pt]
+& BsmtHalfBath_i \;\le\; U^{\text{bH}} \left(
+     \sum_{b_1\in \Bfin} BsmtFinType1_{i,b_1}
+   + \sum_{b_2\in \Bfin} BsmtFinType2_{i,b_2} \right). \label{eq:bbath-half}
+\end{align}
+
+%-------------------------------
+% (7) Apagado total si Exposure = NA (refuerzos útiles)
+%-------------------------------
+\begin{align}
+& BsmtFinSF1_i \;\le\; \phi^{\text{bsmt}}\; LotArea_i \,\big(1 - BsmtExposure_{i,NA}\big), \\[6pt]
+& BsmtFinSF2_i \;\le\; \phi^{\text{bsmt}}\; LotArea_i \,\big(1 - BsmtExposure_{i,NA}\big), \\[6pt]
+& BsmtFullBath_i \;\le\; U^{\text{bF}}\,\big(1 - BsmtExposure_{i,NA}\big), 
+\qquad
+  BsmtHalfBath_i \;\le\; U^{\text{bH}}\,\big(1 - BsmtExposure_{i,NA}\big).
+\end{align}
+
+\subsection{Forzar Material Principal}
+\begin{align}
+    &Exterior1st_{i}=Exterior2nd_{i}
+\end{align}
+
+
+\subsection{Foundation}
+Si la casa es de madera o Slab no puede tener sótano segpun expertos\\
+\begin{align}
+    Foundation_{i,Slab}\leq BsmtExposure_{i,NA}\\
+    Foundation_{i,Wood}\leq BsmtExposure_{i,NA}\\
+\end{align}
+
+\begin{align}
+    AreaFoundation_{i}=1stFlrSF_{i}\\
+    
+\end{align}
+Hacemos linealización:\\
+
+\\
+\begin{align}
+    &FA_{i,f}\leq AreaFoundation_{i}\\
+    &FA_{i,f}\leq U_{i}^{Found}\cdot Foundation_{i,f}\\
+    &FA_{i,f}\geq AreaFoundation_{i} - U_{i}^{Found} \cdot (1-Foundation_{i,f})\\
+    &FA_{i,f}\geq 0
+\end{align}
+
+Donde:
+\begin{itemize}
+    \item $U_{i}^{foundation}= 0.6LotArea_{i}$
+
+\end{itemize}
+
+
+\subsection{Dormitorios}
+
+\subsubsection{Dormitorios 1er piso}
+\begin{align}
+    &AreaBedroom1_{i} \leq U_{max}^{Bed1} \cdot Floor1_{i}\\
+    &AreaFullBath1_{i} \leq U_{max}^{FullB1} \cdot Floor1_{i}\\
+    &AreaHalfBath1_{i} \leq U_{max}^{HalfB1} \cdot Floor1_{i}\\
+    &AreaKitchen1_{i} \leq U_{max}^{Kitchen1} \cdot Floor1_{i}\\
+    &AreaOther1_{i} \leq U_{max}^{Other1} \cdot Floor1_{i}\\
+\end{align}
+
+\subsubsection{Dormitorios segundo piso}
+\begin{align}
+    &AreaBedroom2_{i} \leq U_{max}^{Bed2} \cdot Floor2_{i}\\
+    &AreaFullBath2_{i} \leq U_{max}^{FullB2} \cdot Floor2_{i}\\
+    &AreaHalfBath2_{i} \leq U_{max}^{HalfB2} \cdot Floor2_{i}\\
+    &AreaKitchen2_{i} \leq U_{max}^{Kitchen2} \cdot Floor2_{i}\\
+    &AreaOther2_{i} \leq U_{max}^{Other2} \cdot Floor2_{i}\\
+\end{align}
+\\
+Donde:
+\begin{itemize}
+    \item $U_{max}^{Bed2}=200 ft$
+    \item $U_{max}^{FullB2}=60$
+    \item $U_{max}^{HalfB2}=20$
+    \item $U_{max}^{Kitchen2}=$
+    \item $$
+\end{itemize}
+\\
+\begin{align}
+    AreaBedroom2_{i}+AreaKitchen2_{i}+AreaHalfBath2_{i}+AreaFullBath2_{i}+AreaOther2_{i}\leq 2ndFlrSF_{i}
+\end{align}
+\\
+\begin{align}
+    Remainder2_{i}\geq 0\\
+    AreaBedroom2_{i}+AreaKitchen2_{i}+AreaHalfBath2_{i}+AreaFullBath2_{i}+AreaOther2_{i}+Remainder2_{i}= 2ndFlrSF_{i}
+\end{align}\\
+Donde:
+\begin{itemize}
+    \item $Remainder2_{i}$ Representa pasillos, closets
+\end{itemize}
+\\
+
+\subsection{Area Living/Recreación}
+\begin{align}
+    &OtherRooms_{i}=OtherRooms1_{i}+OtherRooms2_{i}\\
+    &AreaOther_{i}=AreaOther1_{i}+AreaOther2_{i}
+\end{align}
+Donde:\\
+\begin{itemize}
+    \item $a_{min}^{other}=100$
+    \item $R_{max}^{others}=8$
+    \item $U_{i}^{others}=2ndFlrSF_{i}$
+\end{itemize}
+\subsubsection{Incluir estas areas en pisos}
+\begin{align}
+    TotalRmsAbvGrd_{i}=Bedroom_{i}+FullBath_{i}+HalfBath_{i}+OtherRooms_{i}\\
+    OtherRooms_{i}=OtherRooms1_{i}+OtherRooms2_{i}\\
+    AreaOther_{i}=AreaOther1_{i}+AreaOther2_{i}
+\end{align}
+\subsubsection{Presencia mínima en primer piso}
+\begin{align}
+    OtherRooms1_{i}\geq 1
+\end{align}
+\subsubsection{Activación en segundo piso}
+\begin{align}
+    OtherRooms2_{i}\leq R_{max}^{Other}\cdot Floor2_{i}\\
+    AreaOther2_{i}\leq U_{i}^{Other2}
+\end{align}
+\subsubsection{Mínimo de area}
+\begin{align}
+    AreaOther1_{i}\geq a_{min}^{other}\cdot OtherRooms1_{i}\\
+    AreaOther2_{i} \geq a_{min}^{other}\cdot OtherRooms2_{i}
+\end{align}
+
+
+\subsection{Perímetro casa para calcular Exterior}
+\begin{align}
+    &P_{i}^{(1)}\geq P_{i}^{(2)}
+\end{align}
+\subsubsection{Area Exterior a curbir}
+\begin{align}
+    AreaExterior_{i}=H^{ext}\cdot (P_{i}^{(1)}+P_{i}^{(2)})
+\end{align}
+Donde:
+\begin{itemize}
+    \item $H^{ext}$=7 ft
+    \item $P_{i}^{(1)}\leq 2\cdot \Big ( \frac{1stFlrSF_{i}}{s_{min}}+s_{min}\Big)\cdot Floor1_{i}$
+    \item $P_{i}^{(2)}\leq 2\cdot \Big ( \frac{2ndFlrSF_{i}}{s_{min}}+s_{min}\Big)\cdot Floor2_{i}$
+    \item $P_{i}^{(1)}\geq 2\cdot \Big ( \frac{1stFlrSF_{i}}{s_{max}}+s_{max}\Big)\cdot Floor1_{i}$
+    \item $P_{i}^{(2)}\geq2\cdot \Big ( \frac{2ndFlrSF_{i}}{s_{max}}+s_{max}\Big)\cdot Floor2_{i}$
+    \item $s_{min}=20$
+    \item $s_{max}=70$
+\end{itemize}
+Este tipo de relación es estándar en la literatura de geometría arquitectónica y modelación espacial (Shpuza, 2006; Smith, 2017; March, 1972; Gero & Rosenman, 1985), donde el perímetro se expresa como una función del área y la proporción mínima de lados para mantener formas constructivamente viables.\\
+\\
+Hago nueva variable W para linealizar:\\
+\begin{align}
+    &W_{i,e1}\leq AreaExterior_{i}\\
+    &W_{i,e1}\leq U_{i}^{ext}\cdot Exterior1st_{i,e1}\\
+    &W_{i,e1}\geq AreaExterior_{i}-U_{i}^{ext}(1-Exterior1st_{i,e1})\\
+    &\sum_{e1}W_{i,e1}=AreaExterior_{i}
+\end{align}\\
+Donde:\\
+\begin{itemize}
+    \item $U_{i}^{ext}=4500$
+\end{itemize}
+
+
+
+
+\subsection*{Parámetros de superficie real del techo}
+
+El parámetro $\gamma_{s,m}$ ajusta el área en planta cubierta por el techo
+($PlanRoofArea_i$) para reflejar el área real de material requerido, considerando
+la pendiente, el solape y la geometría asociada al estilo y material del techo.
+Los valores se basan en estándares de la \textit{National Association of Home Builders} (NAHB, 2023),
+la \textit{Asphalt Roofing Manufacturers Association} (ARMA, 2021) y el
+\textit{Roofing Alliance Technical Guide} (2022).
+
+\begin{table}[H]
+\centering
+\caption{Factores de superficie real del techo ($\gamma_{s,m}$) según estilo y material.}
+\label{tab:roof_gamma}
+\begin{tabular}{lllcc}
+\toprule
+\textbf{Estilo ($s$)} & \textbf{Material ($m$)} & \textbf{Descripción} & $\boldsymbol{\gamma_{s,m}}$ & \textbf{Fuente}\\
+\midrule
+Flat        & Membran      & Techo plano o de losa con mínima pendiente & 1.00 & NAHB (2023)\\
+Flat        & CompShg      & Plano con tejas asfálticas & 1.05 & ARMA (2021)\\
+Gable       & CompShg      & A dos aguas estándar (4:12–6:12 pitch) & 1.10 & NAHB (2023)\\
+Gable       & Metal        & A dos aguas con panel metálico & 1.12 & Roofing Alliance (2022)\\
+Hip         & CompShg      & A cuatro aguas (moderada pendiente) & 1.15 & NAHB (2023)\\
+Hip         & Metal        & A cuatro aguas con panel metálico & 1.18 & Roofing Alliance (2022)\\
+Gambrel     & WdShake      & Tipo granero, tejas de madera & 1.25 & NAHB (2023)\\
+Mansard     & CompShg      & Mansarda con inclinación alta & 1.28 & NAHB (2023)\\
+Shed        & Metal        & Techo inclinado de una sola vertiente & 1.12 & ARMA (2021)\\
+Gable       & ClyTile      & A dos aguas con tejas de arcilla & 1.20 & Roofing Alliance (2022)\\
+Hip         & TarGrv       & A cuatro aguas con grava asfáltica & 1.10 & NAHB (2023)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Los valores típicos oscilan entre $1.00$ (techo plano) y $1.30$ (techo muy inclinado
+o con múltiples vertientes). En la práctica, $\gamma_{s,m}$ puede estimarse como:
+\[
+\gamma_{s,m} \approx 1 + 0.1 \cdot \tan(\theta_s)
+\]
+donde $\theta_s$ es el ángulo medio de pendiente del estilo de techo.
+
+\paragraph{Fuentes bibliográficas:}
+\begin{itemize}
+    \item National Association of Home Builders (NAHB). (2023). \textit{Residential Construction Guidelines, 2023 Edition.} Washington, D.C.
+    \item Asphalt Roofing Manufacturers Association (ARMA). (2021). \textit{Residential Asphalt Roofing Manual, 2021 Edition.}
+    \item Roofing Alliance. (2022). \textit{Technical Guide to Roof System Performance and Design.} National Roofing Contractors Association.
+\end{itemize}
+
+\paragraph{Conjuntos} 
+$S$: estilos de techo;\quad $M$: materiales de techo.
+
+\paragraph{Parámetros (dados)}
+\[
+U^{(1)}_i = \bar{\alpha}_{1}\, LotArea_i,\qquad
+U^{(2)}_i = \bar{\alpha}_{2}\, LotArea_i,\qquad
+U^{\text{plan}}_i = \bar{\alpha}_{\text{plan}}\, LotArea_i,
+\]
+\[
+\gamma_{s,m}\ge 1\quad \forall s\in S,\, m\in M,
+\]
+donde típicamente $\bar{\alpha}_{1}=0.6,\ \bar{\alpha}_{2}=0.5,\ \bar{\alpha}_{\text{plan}}=0.6$ (ajustables). 
+% (Opcional) Matriz de compatibilidad estilo–material: A_{s,m}\in\{0,1\}.
+
+\paragraph{Variables}
+\[
+Floor1_i,\, Floor2_i \in \{0,1\};\quad
+PR1_i,\, PR2_i \ge 0;\quad
+PlanRoofArea_i \ge 0;\quad
+ActualRoofArea_i \ge 0;
+\]
+\[
+RoofStyle_{i,s}\in\{0,1\}\ \forall s\in S;\quad
+RoofMatl_{i,m}\in\{0,1\}\ \forall m\in M;
+\]
+\[
+Y_{i,s,m}\in\{0,1\},\ Z_{i,s,m}\ge 0\quad \forall s\in S,\ \forall m\in M.
+\]
+
+%==============================
+% Restricciones
+%==============================
+
+% (1) Elección de número de pisos
+\[
+Floor1_i + Floor2_i = 1. 
+\]\\[6pt]
+
+% (2) Área en planta a cubrir por el techo (linealización)
+\[
+PR1_i \le 1stFlrSF_i,\qquad 
+PR1_i \le U^{(1)}_i\, Floor1_i,
+\]
+\[
+PR1_i \ge 1stFlrSF_i - U^{(1)}_i(1-Floor1_i),\qquad 
+PR1_i \ge 0,
+\]\\[6pt]
+\[
+PR2_i \le 2ndFlrSF_i,\qquad 
+PR2_i \le U^{(2)}_i\, Floor2_i,
+\]
+\[
+PR2_i \ge 2ndFlrSF_i - U^{(2)}_i(1-Floor2_i),\qquad 
+PR2_i \ge 0,
+\]\\[6pt]
+\[
+PlanRoofArea_i = PR1_i + PR2_i,\qquad 
+0 \le PlanRoofArea_i \le U^{\text{plan}}_i.
+\]\\[10pt]
+
+% (3) Selección única de estilo y material
+\[
+\sum_{s\in S} RoofStyle_{i,s} = 1,\qquad 
+\sum_{m\in M} RoofMatl_{i,m} = 1.
+\]\\[6pt]
+
+% (Opcional) Compatibilidad estilo–material
+% \[
+% Y_{i,s,m} \le A_{s,m}\quad \forall s,m.
+% \]\\[6pt]
+
+% (4) Conjunción estilo–material (AND lógico)
+\[
+Y_{i,s,m} \le RoofStyle_{i,s},\qquad 
+Y_{i,s,m} \le RoofMatl_{i,m}\quad \forall s,m,
+\]
+\[
+Y_{i,s,m} \ge RoofStyle_{i,s} + RoofMatl_{i,m} - 1\quad \forall s,m,
+\]
+\[
+\sum_{s\in S}\sum_{m\in M} Y_{i,s,m} = 1.
+\]\\[10pt]
+
+% (5) Linealización de Z_{i,s,m} \approx PlanRoofArea_i \cdot Y_{i,s,m}
+\[
+Z_{i,s,m} \le PlanRoofArea_i,\qquad 
+Z_{i,s,m} \le U^{\text{plan}}_i\, Y_{i,s,m}\quad \forall s,m,
+\]
+\[
+Z_{i,s,m} \ge PlanRoofArea_i - U^{\text{plan}}_i(1 - Y_{i,s,m})\quad \forall s,m,
+\]
+\[
+Z_{i,s,m} \ge 0\quad \forall s,m.
+\]\\[10pt]
+
+% (6) Área real de techo (igualdad principal)
+\[
+ActualRoofArea_i \;=\; \sum_{s\in S}\sum_{m\in M} \gamma_{s,m}\, Z_{i,s,m}.
+\]\\[8pt]
+
+% (Opcional) Fortalecimientos por acotación (si conoces \gamma_{\max}=\max_{s,m}\gamma_{s,m})
+% \[
+% ActualRoofArea_i \ge PlanRoofArea_i,\qquad 
+% ActualRoofArea_i \le \gamma_{\max}\, PlanRoofArea_i.
+% \]\\[6pt]
+
+% (Opcional) Costo del techo
+% \[
+% C^{techo}_i = c^{roof}\cdot ActualRoofArea_i.
+% \]
+
+
+
+\\
+\\
+\\
+\section{Variables Binarias}
+\begin{itemize}
+    \item $Floor1_{i},\, Floor2_{i}$ (piso único / dos pisos)
+    \item $HasPool_{i}$, $HasWoodDeck_{i}$
+    \item $HasOpenPorch_{i}$, $HasEnclosedPorch_{i}$, $Has3SsnPorch_{i}$, $HasScreenPorch_{i}$
+    \item $HasFireplaces_{i}$, $HasPavedDrive_{i}$, $HasReja_{i}$
+    \item $SameMaterial_{i}$ (revestimientos exterior1/exterior2 iguales)
+    % Estilo y material de techo; sistemas; etc. se definen como one–hot en las restricciones
+\end{itemize}
+
+\section{Variables de Área}
+\begin{itemize}
+    \item $AreaBedrooms_{i} \in \mathbb{Q}_{\ge 0}$
+    \item $AreaKitchen_{i},\; AreaFullBath_{i},\; AreaHalfBath_{i}$
+    \item $AreaKitchen1_{i},\; AreaKitchen2_{i}$
+    \item $AreaFullBath1_{i},\; AreaFullBath2_{i}$
+    \item $AreaHalfBath1_{i},\; AreaHalfBath2_{i}$
+    \item $AreaFoundation_{i}$
+    \item $AreaRoof_{i}$ \; (área en planta a cubrir por el techo)
+    \item $PR1_i,\, PR2_i \ge 0$ \quad (\textit{auxiliares para linealizar $AreaRoof_i$})
+    \item $OpenPorchSF_{i},\; EnclosedPorch_{i},\; ScreenPorch_{i},\; 3SsnPorch_{i},\; WoodDeckSF_{i}$
+    \item $TotalPorchSF_{i},\; AreaPool_{i}$
+\end{itemize}
+
+\section{Variables de Conteo}
+\begin{itemize}
+    \item $FullBath1_{i},\, FullBath2_{i}$ \quad (baños completos por piso)
+    \item $HalfBath1_{i},\, HalfBath2_{i}$ \quad (medios baños por piso)
+    \item $Kitchen1_{i},\, Kitchen2_{i}$ \quad (cocinas por piso)
+\end{itemize}
+
+% ============================
+% EXCLUSIVIDADES (ONE-HOT)
+% ============================
+\section{Restricciones}
+\subsection{Exclusividades (one–hot)}
+\begin{align}
+  &\sum_{s} MSSubClass_{i,s}=1, \quad
+  \sum_{u} Utilities_{i,u}=1, \quad
+  \sum_{b} BldgType_{i,b}= 1, \quad
+  \sum_{hs} HouseStyle_{i,hs}=1, \\[4pt]
+  &\sum_{r} RoofStyle_{i,r}=1, \quad
+  \sum_{m} RoofMatl_{i,m}=1, \quad
+  \sum_{e1} Exterior1st_{i,e1}=1, \quad
+  \sum_{e2} Exterior2nd_{i,e2}=1, \\[4pt]
+  &\sum_{t} MasVnrType_{i,t}=1, \quad
+  \sum_{f} Foundation_{i,f}=1, \quad
+  \sum_{x} BsmtExposure_{i,x}=1, \\[4pt]
+  &\sum_{b1} BsmtFinType1_{i,b1}=1, \quad
+  \sum_{b2} BsmtFinType2_{i,b2}=1, \\[4pt]
+  &\sum_{h} Heating_{i,h}= 1,\quad
+  \sum_{a} CentralAir_{i,a}=1, \quad
+  \sum_{e} Electrical_{i,e}=1, \\[4pt]
+  &\sum_{g} GarageType_{i,g}=1,\quad
+  \sum_{gf} GarageFinish_{i,gf}=1,\quad
+  \sum_{p} PavedDrive_{i,p}=1,\quad
+  \sum_{misc} MiscFeature_{i,misc}=1.
+\end{align}
+
+% ============================
+% CONSISTENCIA DE ÁREAS
+% ============================
+\subsection{Consistencia de Áreas}
+\subsubsection{Construido vs. Lote}
+\begin{align}
+1stFlrSF_{i} + TotalPorchSF_{i} + AreaPool_{i} \leq LotArea_{i} \qquad \forall i.
+\end{align}
+
+\subsubsection{Segundo piso no mayor al primero}
+\begin{align}
+2ndFlrSF_{i} \leq 1stFlrSF_{i} \qquad \forall i.
+\end{align}
+
+\subsubsection{Área habitable}
+\begin{align}
+GrLivArea_{i} = 1stFlrSF_{i} + 2ndFlrSF_{i} \qquad \forall i.
+\end{align}
+
+% ============================
+% CONSISTENCIAS DE ÁREAS POR AMBIENTE
+% ============================
+\subsection{Consistencias por Ambiente}
+\begin{align}
+AreaFullBath_{i} &= AreaFullBath1_{i}+ AreaFullBath2_{i}, \\[2pt]
+AreaHalfBath_{i} &= AreaHalfBath1_{i}+ AreaHalfBath2_{i}.
+\end{align}
+
+% ============================
+% FUNCIONALIDAD MÍNIMA
+% ============================
+\subsection{Funcionalidad mínima}
+\begin{align}
+FullBath1_{i}\geq 1, \qquad Kitchen1_{i}\geq 1 \qquad \forall i.
+\end{align}
+
+% ============================
+% CONSISTENCIA DE CANTIDADES
+% ============================
+\subsection{Consistencias de Cantidades}
+\begin{align}
+FullBath_i &= FullBath1_i + FullBath2_i, \\[2pt]
+HalfBath_i &= HalfBath1_i + HalfBath2_i, \\[2pt]
+Kitchen_i  &= Kitchen1_i  + Kitchen2_i \qquad \forall i.
+\end{align}
+
+% ============================
+% MÁXIMOS POR TIPO DE VIVIENDA
+% ============================
+\subsection{Máximo de Repeticiones por Tipo}
+\paragraph{Parámetros}
+\begin{align*}
+&B_{\max}^{1Fam}=6,\; B_{\max}^{TwnhsE}=4,\; B_{\max}^{TwnhsI}=4,\; B_{\max}^{Dplx}=5,\; B_{\max}^{2FmCon}=8,\\
+&F_{\max}^{1Fam}=4,\; F_{\max}^{TwnhsE}=3,\; F_{\max}^{TwnhsI}=3,\; F_{\max}^{Dplx}=4,\; F_{\max}^{2FmCon}=6,\\
+&H_{\max}^{1Fam}=2,\; H_{\max}^{TwnhsE}=2,\; H_{\max}^{TwnhsI}=2,\; H_{\max}^{Dplx}=2,\; H_{\max}^{2FmCon}=3,\\
+&K_{\max}^{1Fam}=1,\; K_{\max}^{TwnhsE}=1,\; K_{\max}^{TwnhsI}=1,\; K_{\max}^{Dplx}=2,\; K_{\max}^{2FmCon}=2,\\
+&Ch_{\max}^{1Fam}=1,\; Ch_{\max}^{TwnhsE}=1,\; Ch_{\max}^{TwnhsI}=1,\; Ch_{\max}^{Dplx}=1,\; Ch_{\max}^{2FmCon}=2.
+\end{align*}
+\paragraph{Restricciones}
+\begin{align}
+Bedrooms_{i}&\leq \sum_{b} B_{\max}^{b}\, BldgType_{i,b},\\
+FullBath_{i}&\leq \sum_{b} F_{\max}^{b}\, BldgType_{i,b},\\
+HalfBath_{i}&\leq \sum_{b} H_{\max}^{b}\, BldgType_{i,b},\\
+Kitchen_{i}&\leq \sum_{b} K_{\max}^{b}\, BldgType_{i,b},\\
+FirePlaces_{i}&\leq \sum_{b} Ch_{\max}^{b}\, BldgType_{i,b}.
+\end{align}
+
+% ============================
+% GARAGE
+% ============================
+\subsection{Garage}
+\paragraph{Consistencia área–capacidad}
+\begin{align}
+150 \cdot GarageCars_{i} \;\le\; GarageArea_{i} \;\le\; 250 \cdot GarageCars_{i} \qquad \forall i.
+\end{align}
+\paragraph{Sin binaria HasGarage (vía tipo NA)}
+\begin{align}
+GarageCars_i &\le \overline{C}^{\text{cars}} \,\big(1 - GarageType_{i,NA}\big),\\
+GarageArea_i &\le \overline{A}^{\text{garage}}_i \,\big(1 - GarageType_{i,NA}\big),\\
+GarageCars_i &\ge 1 - GarageType_{i,NA},\\
+GarageFinish_{i,NA} &= GarageType_{i,NA},\\
+GarageFinish_{i,\text{Fin}} + GarageFinish_{i,\text{RFn}} + GarageFinish_{i,\text{Unf}}
+  &= 1 - GarageType_{i,NA}.
+\end{align}
+\textbf{Parámetros:}\;
+$\overline{C}^{\text{cars}}=4,$\quad $\overline{A}^{\text{garage}}_i=0.2\,LotArea_i$.
+
+% ============================
+% CERCA / REJA
+% ============================
+\subsection{Cerca / Reja}
+\paragraph{Parámetro} $C^{\text{Fence}}$ (costo por pie lineal).
+\begin{align}
+C^{\text{Reja}}_{i} \;=\; C^{\text{Fence}}\cdot LotFrontage_{i}\cdot HasReja_{i}.
+\end{align}
+
+% ============================
+% TECHO
+% ============================
+\subsection{Techo: definición de áreas y dependencia de estilo/material}
+
+\paragraph{Conjuntos} 
+$S$: estilos de techo;\quad $M$: materiales de techo.
+
+\paragraph{Parámetros (dados)}
+\begin{align*}
+&U^{(1)}_i = \bar{\alpha}_{1}\, LotArea_i,\qquad
+U^{(2)}_i = \bar{\alpha}_{2}\, LotArea_i,\qquad
+U^{\text{plan}}_i = \bar{\alpha}_{\text{plan}}\, LotArea_i,\\
+&\bar{\alpha}_{1}=0.6,\;\bar{\alpha}_{2}=0.5,\;\bar{\alpha}_{\text{plan}}=0.6\; (\text{ajustables}),\\
+&\gamma_{s,m}\ge 1\quad \forall s\in S,\, m\in M.
+\end{align*}
+
+\paragraph{Variables}
+\begin{align*}
+&Floor1_i,\, Floor2_i \in \{0,1\},\quad
+PR1_i,\, PR2_i \ge 0,\quad
+PlanRoofArea_i \ge 0,\quad
+ActualRoofArea_i \ge 0,\\
+&RoofStyle_{i,s}\in\{0,1\}\ \forall s\in S,\quad
+RoofMatl_{i,m}\in\{0,1\}\ \forall m\in M,\\
+&Y_{i,s,m}\in\{0,1\},\quad Z_{i,s,m}\ge 0\quad \forall s,m.
+\end{align*}
+
+\paragraph{Elección de número de pisos}
+\begin{align}
+Floor1_i + Floor2_i = 1.
+\end{align}
+
+\paragraph{Área en planta a cubrir por el techo (linealización)}
+\begin{align}
+PR1_i &\le 1stFlrSF_i, &
+PR1_i &\le U^{(1)}_i\, Floor1_i,\\
+PR1_i &\ge 1stFlrSF_i - U^{(1)}_i(1-Floor1_i), &
+PR1_i &\ge 0, \\[6pt]
+PR2_i &\le 2ndFlrSF_i, &
+PR2_i &\le U^{(2)}_i\, Floor2_i,\\
+PR2_i &\ge 2ndFlrSF_i - U^{(2)}_i(1-Floor2_i), &
+PR2_i &\ge 0, \\[6pt]
+PlanRoofArea_i &= PR1_i + PR2_i, \qquad 0 \le PlanRoofArea_i \le U^{\text{plan}}_i.
+\end{align}
+
+\paragraph{Alias}
+\begin{align}
+AreaRoof_i \;\equiv\; PlanRoofArea_i.
+\end{align}
+
+\paragraph{Selección única de estilo y material}
+\begin{align}
+\sum_{s\in S} RoofStyle_{i,s} = 1, \qquad 
+\sum_{m\in M} RoofMatl_{i,m} = 1.
+\end{align}
+
+\paragraph{Conjunción estilo–material (AND lógico)}
+\begin{align}
+Y_{i,s,m} &\le RoofStyle_{i,s}, &
+Y_{i,s,m} &\le RoofMatl_{i,m} \qquad \forall s,m,\\
+Y_{i,s,m} &\ge RoofStyle_{i,s} + RoofMatl_{i,m} - 1 \qquad \forall s,m,\\
+\sum_{s\in S}\sum_{m\in M} Y_{i,s,m} &= 1.
+\end{align}
+
+\paragraph{Linealización de $Z_{i,s,m}\approx PlanRoofArea_i\cdot Y_{i,s,m}$}
+\begin{align}
+Z_{i,s,m} &\le PlanRoofArea_i, &
+Z_{i,s,m} &\le U^{\text{plan}}_i\, Y_{i,s,m} \qquad \forall s,m,\\
+Z_{i,s,m} &\ge PlanRoofArea_i - U^{\text{plan}}_i(1 - Y_{i,s,m}) \qquad \forall s,m,\\
+Z_{i,s,m} &\ge 0 \qquad \forall s,m.
+\end{align}
+
+\paragraph{Área real de techo (igualdad principal)}
+\begin{align}
+ActualRoofArea_i \;=\; \sum_{s\in S}\sum_{m\in M} \gamma_{s,m}\, Z_{i,s,m}.
+\end{align}
+
+\paragraph{(Opcional) Costo de techo}
+\begin{align}
+C^{\text{techo}}_i = c^{\text{roof}} \cdot ActualRoofArea_i.
+\end{align}
+
+\subsection*{Parámetros de superficie real del techo}
+
+El parámetro $\gamma_{s,m}$ ajusta $PlanRoofArea_i$ para reflejar el área real de material requerido, considerando
+pendiente, solapes y geometría (estilo y material).
+\begin{table}[H]
+\centering
+\caption{Factores de superficie real del techo ($\gamma_{s,m}$) según estilo y material.}
+\label{tab:roof_gamma}
+\begin{tabular}{lllcc}
+\toprule
+\textbf{Estilo ($s$)} & \textbf{Material ($m$)} & \textbf{Descripción} & $\boldsymbol{\gamma_{s,m}}$ & \textbf{Fuente}\\
+\midrule
+Flat        & Membran      & Techo plano o de losa con mínima pendiente & 1.00 & NAHB (2023)\\
+Flat        & CompShg      & Plano con tejas asfálticas & 1.05 & ARMA (2021)\\
+Gable       & CompShg      & A dos aguas estándar (4:12–6:12) & 1.10 & NAHB (2023)\\
+Gable       & Metal        & A dos aguas con panel metálico & 1.12 & Roofing Alliance (2022)\\
+Hip         & CompShg      & A cuatro aguas (moderada pendiente) & 1.15 & NAHB (2023)\\
+Hip         & Metal        & A cuatro aguas con panel metálico & 1.18 & Roofing Alliance (2022)\\
+Gambrel     & WdShake      & Tipo granero, tejas de madera & 1.25 & NAHB (2023)\\
+Mansard     & CompShg      & Mansarda con inclinación alta & 1.28 & NAHB (2023)\\
+Shed        & Metal        & Una sola vertiente & 1.12 & ARMA (2021)\\
+Gable       & ClyTile      & A dos aguas con teja de arcilla & 1.20 & Roofing Alliance (2022)\\
+Hip         & TarGrv       & A cuatro aguas con grava asfáltica & 1.10 & NAHB (2023)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Valores típicos: $1.00$ (plano) a $1.30$ (inclinación alta/múltiples vertientes). Una estimación simple:
+\[
+\gamma_{s,m} \approx 1 + 0.1 \cdot \tan(\theta_s),
+\]
+donde $\theta_s$ es el ángulo medio de pendiente del estilo de techo.
+
+\paragraph{Fuentes bibliográficas:}
+\begin{itemize}
+    \item National Association of Home Builders (NAHB). (2023). \textit{Residential Construction Guidelines, 2023 Edition.}
+    \item Asphalt Roofing Manufacturers Association (ARMA). (2021). \textit{Residential Asphalt Roofing Manual, 2021 Edition.}
+    \item Roofing Alliance. (2022). \textit{Technical Guide to Roof System Performance and Design.}
+\end{itemize}
+
+% ============================
+% LÍMITES GLOBALES
+% ============================
+\subsection{Consistencias y Límites Globales}
+\begin{align}
+TotalBsmtSF_i &= BsmtFinSF1_i + BsmtFinSF2_i,\\
+TotalArea_i   &= 1stFlrSF_i + 2ndFlrSF_i + TotalBsmtSF_i,
+\end{align}
+\begin{align}
+1stFlrSF_i &\le 0.6\,LotArea_i, &
+2ndFlrSF_i &\le 0.5\,LotArea_i,\\
+TotalBsmtSF_i &\le 0.5\,LotArea_i, &
+GrLivArea_i &\le 0.8\,LotArea_i,\\
+GarageArea_i &\le 0.2\,LotArea_i. &&
+\end{align}
+
+% ============================
+% REGLAS DE BAÑOS
+% ============================
+\subsection{Relaciones de baños}
+\begin{align}
+HalfBath_i \le FullBath_i, \qquad 3\,FullBath_i \ge 2\,Bedroom_i \qquad \forall i.
+\end{align}
+
+% ============================
+% PISCINA
+% ============================
+\subsection{Piscina}
+\begin{align}
+AreaPool_i &\le \Big(LotArea_i - 1stFlrSF_i - GarageArea_i - WoodDeckSF_i - OpenPorchSF_i - EnclosedPorch_i - ScreenPorch_i - 3SsnPorch_i\Big)\cdot HasPool_i,\\
+AreaPool_i &\le 0.1\,LotArea_i \cdot HasPool_i,\\
+AreaPool_i &\ge 160 \cdot HasPool_i,\\
+AreaPool_i &\ge 0.
+\end{align}
+
+% ============================
+% PORCHES Y DECK
+% ============================
+\subsection{Porches y Deck}
+\begin{align}
+TotalPorchSF_i &= OpenPorchSF_i + EnclosedPorch_i + ScreenPorch_i + 3SsnPorch_i,\\
+TotalPorchSF_i &\le 0.25\,LotArea_i,\\
+TotalPorchSF_i &\le 1stFlrSF_i,
+\end{align}
+\begin{align}
+OpenPorchSF_i &\ge 40 \cdot HasOpenPorch_i,\\
+EnclosedPorch_i &\ge 60 \cdot HasEnclosedPorch_i,\\
+ScreenPorch_i &\ge 40 \cdot HasScreenPorch_i,\\
+3SsnPorch_i &\ge 80 \cdot Has3SsnPorch_i,
+\end{align}
+\begin{align}
+WoodDeckSF_i + TotalPorchSF_i + AreaPool_i &\le 0.35\,LotArea_i,\\
+WoodDeckSF_i + OpenPorchSF_i &\le 0.20\,LotArea_i,
+\end{align}
+\begin{align}
+WoodDeckSF_i &\ge 40 \cdot HasWoodDeck_i,\\
+WoodDeckSF_i &\le 0.15\,LotArea_i \cdot HasWoodDeck_i.
+\end{align}
+
+% ============================
+% SÓTANO SIN HasBasement
+% ============================
+\subsection{Sótano (sin binaria HasBasement)}
+\paragraph{Conjuntos}
+$B_1,B_2=\{\text{GLQ, ALQ, BLQ, Rec, LwQ, Unf, NA}\}$;\;
+$X=\{\text{Gd, Av, Mn, No, NA}\}$;\;
+$B_{\mathrm{fin}}=\{\text{GLQ, ALQ, BLQ, Rec, LwQ}\}$.
+
+\paragraph{Parámetros}
+\[
+U^{bsmt}_i = 0.5\cdot LotArea_i,\qquad
+U^{bF}=2,\qquad
+U^{bH}=1,\qquad
+A^{fin}_{\min}\ge 0 \;(\text{p.ej. }100\text{ ft}^2).
+\]
+
+\paragraph{Selección única y existencia vía NA}
+\begin{align}
+\sum_{b_1\in B_1} BsmtFinType1_{i,b_1} &= 1, &
+\sum_{b_2\in B_2} BsmtFinType2_{i,b_2} &= 1, &
+\sum_{x\in X} BsmtExposure_{i,x} &= 1,\\
+\sum_{x\in \{\text{Gd,Av,Mn,No}\}} BsmtExposure_{i,x}
+   &= 1 - BsmtExposure_{i,NA}. &&
+\end{align}
+
+\paragraph{Capacidad de área total condicionada por NA}
+\begin{align}
+TotalBsmtSF_i \;\le\; U^{bsmt}_i \big(1 - BsmtExposure_{i,NA}\big).
+\end{align}
+
+\paragraph{Partición de áreas}
+\begin{align}
+BsmtFinSF1_i + BsmtFinSF2_i = TotalBsmtSF_i.
+\end{align}
+
+\paragraph{Activación por selección de tipo (sin nuevas binarias)}
+\begin{align}
+BsmtFinSF1_i &\le U^{bsmt}_i \!\!\!\sum_{b_1\in B_1\setminus\{\text{NA}\}}\!\! BsmtFinType1_{i,b_1},\\
+BsmtFinSF2_i &\le U^{bsmt}_i \!\!\!\sum_{b_2\in B_2\setminus\{\text{NA}\}}\!\! BsmtFinType2_{i,b_2}.
+\end{align}
+
+\paragraph{Mínimos funcionales sólo si hay acabado real}
+\begin{align}
+BsmtFinSF1_i &\ge A^{fin}_{\min} \sum_{b_1\in B_{\mathrm{fin}}} BsmtFinType1_{i,b_1},\\
+BsmtFinSF2_i &\ge A^{fin}_{\min} \sum_{b_2\in B_{\mathrm{fin}}} BsmtFinType2_{i,b_2}.
+\end{align}
+
+\paragraph{Baños en sótano sólo si hay acabado real}
+\begin{align}
+BsmtFullBath_i &\le U^{bF}\!\left(
+     \sum_{b_1\in B_{\mathrm{fin}}} BsmtFinType1_{i,b_1}
+   + \sum_{b_2\in B_{\mathrm{fin}}} BsmtFinType2_{i,b_2} \right),\\
+BsmtHalfBath_i &\le U^{bH}\!\left(
+     \sum_{b_1\in B_{\mathrm{fin}}} BsmtFinType1_{i,b_1}
+   + \sum_{b_2\in B_{\mathrm{fin}}} BsmtFinType2_{i,b_2} \right).
+\end{align}
+
+\paragraph{Apagado completo si Exposure=NA (refuerzo)}
+\begin{align}
+BsmtFinSF1_i &\le U^{bsmt}_i \big(1 - BsmtExposure_{i,NA}\big),\\
+BsmtFinSF2_i &\le U^{bsmt}_i \big(1 - BsmtExposure_{i,NA}\big),\\
+BsmtFullBath_i &\le U^{bF}\big(1 - BsmtExposure_{i,NA}\big),\qquad
+BsmtHalfBath_i \le U^{bH}\big(1 - BsmtExposure_{i,NA}\big).
+\end{align}
+
+\section*{Resumen de Parámetros del Modelo de Construcción}
+
+\begin{table}[H]
+\centering
+\caption{Definición y valores de referencia de los parámetros del modelo.}
+\begin{tabular}{lllcl}
+\toprule
+\textbf{Símbolo} & \textbf{Descripción} & \textbf{Unidades} & \textbf{Valor típico} & \textbf{Fuente / Observación} \\
+\midrule
+$A_{\min}^{\text{fin}}$ & Área mínima para considerar un acabado real en el sótano &
+ft$^2$ & 100 &
+NAHB (2023), HUD (2020) \\
+
+$U^{bF}$ & Cota superior de baños completos en sótano &
+conteo & 2 &
+Código IRC Sección R305, práctica común\\
+
+$U^{bH}$ & Cota superior de medios baños en sótano &
+conteo & 1 &
+Práctica residencial estándar \\
+
+$U^{\text{bsmt}}_i$ & Cota superior del área total de sótano ($=\phi^{\text{bsmt}}\cdot LotArea_i$) &
+ft$^2$ & $0.5\cdot LotArea_i$ &
+IRC (2021), NAHB (2023) \\
+
+$\phi^{\text{bsmt}}$ & Proporción máxima del lote que puede ocupar el sótano &
+-- & 0.5 &
+Criterio típico de edificaciones unifamiliares \\
+
+$U^{(1)}_i$ & Cota superior para área del primer piso ($=\bar\alpha_1\cdot LotArea_i$) &
+ft$^2$ & $0.6\cdot LotArea_i$ &
+HUD (2020), NAHB (2023) \\
+
+$U^{(2)}_i$ & Cota superior para área del segundo piso ($=\bar\alpha_2\cdot LotArea_i$) &
+ft$^2$ & $0.5\cdot LotArea_i$ &
+HUD (2020), NAHB (2023) \\
+
+$U^{\text{plan}}_i$ & Cota superior del área en planta cubierta por el techo &
+ft$^2$ & $0.6\cdot LotArea_i$ &
+Proporción coherente con primer piso \\
+
+$\bar\alpha_1,\bar\alpha_2,\bar\alpha_{\text{plan}}$ & Coeficientes de área máxima relativa por piso &
+-- & 0.6,\ 0.5,\ 0.6 &
+Ajustables según normativa o base empírica \\
+
+$\gamma_{s,m}$ & Factor de superficie real del techo según estilo $s$ y material $m$ &
+-- & 1.00–1.30 &
+NAHB (2023), ARMA (2021), Roofing Alliance (2022) \\
+
+$c^{\text{roof}}$ & Costo unitario del techo por ft$^2$ de superficie real &
+USD/ft$^2$ & 5–15 &
+Estimado según material y mano de obra \\
+
+$C^{\text{Fence}}$ & Costo unitario de instalación de cerca perimetral &
+USD/ft lineal & 20–40 &
+NAHB Remodeling Guidelines (2023) \\
+
+$\overline{C}^{\text{cars}}$ & Capacidad máxima de autos por garaje &
+autos & 4 &
+Límite típico en Ames Housing \\
+
+$\overline{A}^{\text{garage}}_i$ & Área máxima de garaje ($0.2\cdot LotArea_i$) &
+ft$^2$ & $0.2\cdot LotArea_i$ &
+Límite empírico (De Cock, 2011) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Notas:}
+\begin{itemize}
+    \item Los valores pueden calibrarse según zonificación, estándares de diseño o distribución empírica de la base \textit{Ames Housing}.
+    \item Los parámetros $\bar\alpha$ y $\phi^{\text{bsmt}}$ definen proporciones máximas de ocupación del terreno por nivel o sótano, mientras que $A_{\min}^{\text{fin}}$ y $U^{bF}$–$U^{bH}$ controlan viabilidad y consistencia funcional interna.
+    \item Los factores $\gamma_{s,m}$ permiten convertir el área en planta del techo ($PlanRoofArea_i$) en el área real de material considerando inclinación y tipo constructivo.
+\end{itemize}
+
+\paragraph{Fuentes:}
+\begin{itemize}
+    \item International Code Council (2021). \textit{International Residential Code for One- and Two-Family Dwellings (IRC 2021)}.
+    \item U.S. Department of Housing and Urban Development (2020). \textit{Minimum Property Standards for One- and Two-Family Dwellings (HUD Handbook 4910.1)}.
+    \item National Association of Home Builders (NAHB). (2023). \textit{Residential Construction Guidelines, 2023 Edition}.
+    \item Asphalt Roofing Manufacturers Association (ARMA). (2021). \textit{Residential Asphalt Roofing Manual}.
+    \item Roofing Alliance. (2022). \textit{Technical Guide to Roof System Performance and Design}.
+    \item De Cock, D. (2011). \textit{Ames, Iowa: Alternative to the Boston Housing Data}. Iowa State University.
+\end{itemize}
+section{Función objetivo}
+\begin{center}
+    \(\displaystyle \max\ \Pi \;=\; V^{post}_{i} \;-\; C^{Total}\)
+\end{center}
+
+\vspace{-2mm}
+\noindent
+\textbf{Donde:} \(C^{Total}=\) (costos de construcción, materiales, mano de obra, instalaciones, etc.).
+
+
+% ===========================
+% DOMINIOS
+% ===========================
+\subsection{Dominios}
+\begin{align}
+& Bedroom_i,\, FullBath_i,\, HalfBath_i,\, Kitchen_i,\, GarageCars_i \in \mathbb{Z}_{\ge 0},\\
+& Floor1_i,\, Floor2_i,\, HasPool_i,\, HasWoodDeck_i,\, HasOpenPorch_i,\, HasEnclosedPorch_i,\, Has3SsnPorch_i,\, HasScreenPorch_i \in \{0,1\}.
+\end{align}
+
+
+% ===========================
+% PARÁMETROS GLOBALES (con citas inmediatas)
+% ===========================
+\subsection{Parámetros globales con cotas en función del lote}
+\label{sec:param-global}
+\begin{align}
+& U^{(1)}_i \;=\; \bar{\alpha}_1\, LotArea_i,\quad
+  U^{(2)}_i \;=\; \bar{\alpha}_2\, LotArea_i,\quad
+  U^{\text{plan}}_i \;=\; \bar{\alpha}_{\text{plan}}\, LotArea_i. \\
+& \bar{\alpha}_1=0.6,\ \bar{\alpha}_2=0.5,\ \bar{\alpha}_{\text{plan}}=0.6.
+\end{align}
+\noindent\textit{\footnotesize Fuente: NAHB (2023), HUD (2020), IRC (2021). Valores de ocupación del lote del 50–65\% para vivienda unifamiliar y límites prudentes por piso/techo.}
+
+\vspace{2mm}
+\noindent
+\textbf{Promedio de superficie por barrio}
+\begin{align}
+& GrLivArea_{i,z} \;\le\; \bar{A}^{prom}_z, \qquad \forall i,z.
+\end{align}
+\noindent\textit{\footnotesize Fuente: De Cock (2011) (Ames Housing), usado como cota empírica intra-barrio.}
+
+\vspace{2mm}
+\noindent
+\textbf{Factor de superficie real de techo (pendiente/solapes)}
+\begin{align}
+& \gamma_{s,m}\ \ge 1 \qquad \forall s\in S,\ \forall m\in M.
+\end{align}
+\noindent\textit{\footnotesize Fuente: NAHB (2023), ARMA (2021), Roofing Alliance (2022).}
+
+% ===========================
+% RESTRICCIONES DE ÁREA Y CONSTRUCCIÓN
+% ===========================
+\subsection{Restricciones de Área y Construcción}
+\begin{align}
+& 1stFlrSF_{i} + TotalPorchSF_{i} + AreaPool_{i} \;\le\; LotArea_{i}, \quad \forall i,\\[2pt]
+& 2ndFlrSF_{i} \;\le\; 1stFlrSF_{i}, \quad \forall i,\\[2pt]
+& GrLivArea_{i,z} \;=\; 1stFlrSF_{i} + 2ndFlrSF_{i}, \quad \forall i.
+\end{align}
+
+
+% ===========================
+% VARIABLES DE ÁREA POR AMBIENTE
+% ===========================
+\subsection{Variables de Área por Ambiente}
+\textbf{Variables (todas \(\ge 0\)):}
+\[
+AreaKitchen_i,\ AreaFullBath_i,\ AreaHalfBath_i,\ AreaBedroom_i,\ 
+AreaFoundation_i,\ AreaPool_i,\ AreaExterior1st_i,\ AreaExterior2nd_i,\ AreaMasonry_i.
+\]
+\textbf{Consistencias:}
+\begin{align}
+& TotalBsmtSF_i \;=\; BsmtFinSF1_i + BsmtFinSF2_i,\\
+& TotalArea_i \;=\; 1stFlrSF_i + 2ndFlrSF_i + TotalBsmtSF_i.
+\end{align}
+
+
+% ===========================
+% LÍMITES MÁXIMOS POR TIPO DE VIVIENDA
+% ===========================
+\subsection{Máximo de ambientes repetidos según tipo de vivienda}
+\textbf{Parámetros (máximos):}
+\begin{align}
+& B_{\max}^{1Fam}=6,\ B_{\max}^{TwnhsE}=4,\ B_{\max}^{TwnhsI}=4,\ B_{\max}^{Duplx}=5,\ B_{\max}^{2FmCon}=8,\\
+& F_{\max}^{1Fam}=4,\ F_{\max}^{TwnhsE}=3,\ F_{\max}^{TwnhsI}=3,\ F_{\max}^{Duplx}=4,\ F_{\max}^{2FmCon}=6,\\
+& H_{\max}^{1Fam}=2,\ H_{\max}^{TwnhsE}=2,\ H_{\max}^{TwnhsI}=2,\ H_{\max}^{Duplx}=2,\ H_{\max}^{2FmCon}=3,\\
+& K_{\max}^{1Fam}=1,\ K_{\max}^{TwnhsE}=1,\ K_{\max}^{TwnhsI}=1,\ K_{\max}^{Duplx}=2,\ K_{\max}^{2FmCon}=2,\\
+& Ch_{\max}^{1Fam}=1,\ Ch_{\max}^{TwnhsE}=1,\ Ch_{\max}^{TwnhsI}=1,\ Ch_{\max}^{Duplx}=1,\ Ch_{\max}^{2FmCon}=2.
+\end{align}
+\noindent\textit{\footnotesize Fuente: De Cock (2011) (distribuciones observadas Ames) y criterios de escala funcional NAHB (2023).}
+
+\textbf{Límites:}
+\begin{align}
+& Bedrooms_i \;\le\; \sum_b B_{\max}^{b} \, BldgType_{i,b},\\
+& FullBath_i \;\le\; \sum_b F_{\max}^{b} \, BldgType_{i,b},\\
+& HalfBath_i \;\le\; \sum_b H_{\max}^{b} \, BldgType_{i,b},\\
+& Kitchen_i \;\le\; \sum_b K_{\max}^{b} \, BldgType_{i,b},\\
+& FirePlaces_i \;\le\; \sum_b Ch_{\max}^{b} \, BldgType_{i,b}.
+\end{align}
+
+
+% ===========================
+% MÍNIMOS FUNCIONALES DE ÁREA (con cita)
+% ===========================
+\subsection{Áreas mínimas por ambiente}
+\begin{align}
+& AreaFullBath_i \;\ge\; 40\cdot FullBath_i, \qquad
+  AreaHalfBath_i \;\ge\; 20\cdot HalfBath_i,\\
+& AreaBedroom_i \;\ge\; 70\cdot Bedroom_i, \qquad
+  AreaKitchen_i \;\ge\; 75\cdot Kitchen_i.
+\end{align}
+\noindent\textit{\footnotesize Fuente: HUD (2020) y NAHB (2023) (superficies mínimas funcionales típicas).}
+
+
+% ===========================
+% PISOS Y TECHO (linealizado) + citas
+% ===========================
+\subsection{Pisos y techo: definición de áreas y dependencia estilo/material}
+\textbf{Elección de pisos:}
+\begin{align}
+& Floor1_i + Floor2_i = 1.
+\end{align}
+
+\textbf{Área en planta a cubrir por el techo (linealización):}
+\begin{align}
+& PR1_i \le 1stFlrSF_i,\quad PR1_i \le U^{(1)}_i\, Floor1_i,\quad
+  PR1_i \ge 1stFlrSF_i - U^{(1)}_i(1-Floor1_i),\quad PR1_i \ge 0,\\
+& PR2_i \le 2ndFlrSF_i,\quad PR2_i \le U^{(2)}_i\, Floor2_i,\quad
+  PR2_i \ge 2ndFlrSF_i - U^{(2)}_i(1-Floor2_i),\quad PR2_i \ge 0,\\
+& PlanRoofArea_i = PR1_i + PR2_i,\qquad 0 \le PlanRoofArea_i \le U^{\text{plan}}_i.
+\end{align}
+\noindent\textit{\footnotesize Fuente: NAHB (2023), HUD (2020), IRC (2021) para proporciones máximas por piso y cubierta.}
+
+\textbf{Selección estilo y material (one–hot):}
+\begin{align}
+& \sum_{s\in S} RoofStyle_{i,s} = 1,\qquad \sum_{m\in M} RoofMatl_{i,m} = 1.
+\end{align}
+
+\textbf{Conjunción estilo–material y área real:}
+\begin{align}
+& Y_{i,s,m} \le RoofStyle_{i,s},\quad Y_{i,s,m} \le RoofMatl_{i,m},\\
+& Y_{i,s,m} \ge RoofStyle_{i,s} + RoofMatl_{i,m} - 1,\qquad
+  \sum_{s,m} Y_{i,s,m}=1,\\[2pt]
+& Z_{i,s,m} \le PlanRoofArea_i,\quad Z_{i,s,m} \le U^{\text{plan}}_i Y_{i,s,m},\\
+& Z_{i,s,m} \ge PlanRoofArea_i - U^{\text{plan}}_i(1-Y_{i,s,m}),\quad Z_{i,s,m}\ge 0,\\
+& ActualRoofArea_i \;=\; \sum_{s,m} \gamma_{s,m}\, Z_{i,s,m}.
+\end{align}
+\noindent\textit{\footnotesize Fuente: ARMA (2021), Roofing Alliance (2022) para \(\gamma_{s,m}\) (pendiente/solapes).}
+
+
+% ===========================
+% PORCHES (con citas)
+% ===========================
+\subsection{Restricciones de Porches}
+\textbf{Parámetros (mínimos funcionales y cotas por tipo):}
+\[
+a_{\min}^{open}=40,\quad a_{\min}^{encl}=60,\quad a_{\min}^{3ssn}=80,\quad a_{\min}^{screen}=40.
+\]
+\[
+U^{open}_i=0.10\,LotArea_i,\;\;
+U^{encl}_i=0.10\,LotArea_i,\;\;
+U^{3ssn}_i=0.10\,LotArea_i,\;\;
+U^{screen}_i=0.05\,LotArea_i,\;\;
+U^{porch,total}_i=0.25\,LotArea_i.
+\]
+\noindent\textit{\footnotesize Fuente: NAHB (2023) lineamientos residenciales; límites proporcionales de ocupación exterior.}
+
+\textbf{Definición y activación:}
+\begin{align}
+& TotalPorchSF_i = OpenPorchSF_i + EnclosedPorch_i + 3SsnPorch_i + ScreenPorch_i,\\
+& a_{\min}^{open} HasOpenPorch_i \le OpenPorchSF_i \le U^{open}_i HasOpenPorch_i,\\
+& a_{\min}^{encl} HasEnclosedPorch_i \le EnclosedPorch_i \le U^{encl}_i HasEnclosedPorch_i,\\
+& a_{\min}^{3ssn} Has3SsnPorch_i \le 3SsnPorch_i \le U^{3ssn}_i Has3SsnPorch_i,\\
+& a_{\min}^{screen} HasScreenPorch_i \le ScreenPorch_i \le U^{screen}_i HasScreenPorch_i,\\
+& TotalPorchSF_i \le U^{porch,total}_i,\qquad TotalPorchSF_i \le 1stFlrSF_i.
+\end{align}
+\noindent\textit{\footnotesize Fuente: NAHB (2023) para mínimos funcionales y compatibilidad estructural con primer piso.}
+
+\textbf{Compatibilidad con deck y piscina:}
+\begin{align}
+& WoodDeckSF_i + TotalPorchSF_i + AreaPool_i \le 0.35\, LotArea_i,\qquad
+  WoodDeckSF_i + OpenPorchSF_i \le 0.20\, LotArea_i.
+\end{align}
+\noindent\textit{\footnotesize Fuente: NAHB (2023) (capacidad conjunta de espacios exteriores).}
+
+
+% ===========================
+% SÓTANO SIN HasBasement (vía NA en exposición) + citas
+% ===========================
+\subsection{Restricciones de Sótano (sin $HasBasement$)}
+\textbf{Parámetros:}
+\[
+U^{bsmt}_i = 0.5\,LotArea_i,\quad
+U^{bF}=2,\quad U^{bH}=1,\quad
+A^{fin}_{\min}=100\ \text{ft}^2.
+\]
+\noindent\textit{\footnotesize Fuente: IRC (2021), HUD (2020) (capacidad de sótano y baños), NAHB (2023) (mínimos funcionales de acabado).}
+
+\textbf{Exposición (one–hot) \& existencia:}
+\begin{align}
+& \sum_{x\in\{Gd,Av,Mn,No,NA\}} BsmtExposure_{i,x} = 1,\\
+& \sum_{x\in\{Gd,Av,Mn,No\}} BsmtExposure_{i,x} = 1 - BsmtExposure_{i,NA}.
+\end{align}
+
+\textbf{Capacidad, partición y activación por tipo:}
+\begin{align}
+& TotalBsmtSF_i \le U^{bsmt}_i\,(1-BsmtExposure_{i,NA}),\\
+& BsmtFinSF1_i + BsmtFinSF2_i = TotalBsmtSF_i,\\
+& BsmtFinSF1_i \le U^{bsmt}_i \!\!\sum_{b_1\neq NA} BsmtFinType1_{i,b_1},\quad
+  BsmtFinSF2_i \le U^{bsmt}_i \!\!\sum_{b_2\neq NA} BsmtFinType2_{i,b_2},\\
+& BsmtFinSF1_i \ge A^{fin}_{\min} \!\!\sum_{b_1\in\{\text{GLQ,ALQ,BLQ,Rec,LwQ}\}} \!\! BsmtFinType1_{i,b_1},\\
+& BsmtFinSF2_i \ge A^{fin}_{\min} \!\!\sum_{b_2\in\{\text{GLQ,ALQ,BLQ,Rec,LwQ}\}} \!\! BsmtFinType2_{i,b_2}.
+\end{align}
+
+\textbf{Baños en sótano sólo con acabado real:}
+\begin{align}
+& BsmtFullBath_i \le U^{bF}\!\left(
+\sum_{b_1\in\{\text{GLQ,ALQ,BLQ,Rec,LwQ}\}} \!\! BsmtFinType1_{i,b_1} +
+\sum_{b_2\in\{\text{GLQ,ALQ,BLQ,Rec,LwQ}\}} \!\! BsmtFinType2_{i,b_2} \right),\\
+& BsmtHalfBath_i \le U^{bH}\!\left(
+\sum_{b_1\in\{\text{GLQ,ALQ,BLQ,Rec,LwQ}\}} \!\! BsmtFinType1_{i,b_1} +
+\sum_{b_2\in\{\text{GLQ,ALQ,BLQ,Rec,LwQ}\}} \!\! BsmtFinType2_{i,b_2} \right).
+\end{align}
+\noindent\textit{\footnotesize Fuente: IRC (2021), HUD (2020), NAHB (2023).}
+
+
+% ===========================
+% GARAGE (con cita)
+% ===========================
+\subsection{Garage}
+\textbf{Parámetros:}
+\[
+\overline{C}^{\text{cars}}=4,\qquad
+\overline{A}^{\text{garage}}_i = 0.2\, LotArea_i.
+\]
+\noindent\textit{\footnotesize Fuente: De Cock (2011) (Ames Housing) para conteos; NAHB (2023) para proporción de área.}
+
+\textbf{Capacidades básicas:}
+\begin{align}
+& GarageCars_i \le \overline{C}^{\text{cars}} \,(1 - GarageType_{i,NA}),\\
+& GarageArea_i \le \overline{A}^{\text{garage}}_i \,(1 - GarageType_{i,NA}).
+\end{align}
+\textbf{Acabado sólo si hay garage:}
+\begin{align}
+& GarageFinish_{i,NA} = GarageType_{i,NA},\\
+& GarageFinish_{i,\text{Fin}} + GarageFinish_{i,\text{RFn}} + GarageFinish_{i,\text{Unf}}
+  = 1 - GarageType_{i,NA}.
+\end{align}
+
+
+% ===========================
+% BIBLIOGRAFÍA MÍNIMA
+% ===========================
+\subsection*{Fuentes}
+\begin{itemize}\setlength\itemsep{0pt}
+\item International Code Council (2021). \textit{International Residential Code (IRC 2021).}
+\item U.S. HUD (2020). \textit{Minimum Property Standards (Handbook 4910.1).}
+\item NAHB (2023). \textit{Residential Construction Guidelines.}
+\item ARMA (2021). \textit{Residential Asphalt Roofing Manual.}
+\item Roofing Alliance (2022). \textit{Technical Guide to Roof System Performance.}
+\item De Cock, D. (2011). \textit{Ames, Iowa: Alternative to the Boston Housing Data.}
+\end{itemize}
+
+\end{document}

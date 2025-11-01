@@ -1,0 +1,40 @@
+Para algunas de las restricciones más relevantes que se presentan a continuación nos basamos en lo que mencionan \cite{Bertsimas2017}.\\
+- $x_{i} \in [0, 1]^{p}$\\
+- $z_{it}$: binaria que indica si $x_{i}$ esta en el nodo t.\\
+- $l_t$: binaria que indica si la hoja t contiene algún punto. \\
+- $N_{\min}$: número mínimo de puntos en cada hoja.\\
+- $c_{kt}$: binaria que indica si la clase asignada al nodo t es k.\\
+- $p_{t}:$ predicción del nodo t.\\
+- $A_{L}(t):$ conjunto de ancestros de t cuya rama izquierda se ha seguido en el camino desde el nodo raíz hasta t.\\
+- $A_{R}(t):$ conjunto de ancestros de la rama derecha.\\
+- $T_{H}:$ nodos hoja.\\
+- $T_{R}:$ nodos rama.\\
+- $M_{1}, M_{2}$: número ssuficientemente grandes.\\
+- $\epsilon > 0$
+\begin{itemize}
+    \item Número mínimo de puntos en cada hoja.\[
+z_{it} \le l_t, \qquad \forall t \in T_R
+\]
+    \[
+\sum_{i=1}^{n} z_{it} \ge N_{\min} \, l_t, \qquad \forall t \in T_R
+\]
+    \item Cada punto se asigna a una hoja.
+    \[
+\sum_{t \in T_H} z_{it} = 1, \quad i = 1, \dots, n
+\]
+    \item Divisiones estructurales para la estructura del árbol al asignar puntos a las hojas.\[
+a_{m}^{T} x_i \ge b_{m} - M_{2}(1 - z_{it}), \quad i = 1,\ldots,n,\ \forall t \in T_R,\ \forall m \in A_R(t)
+\]
+    No se puede quedar como inecuación por eso se agrega un $\epsilon$ que es un párametro pequeño para este otro caso.
+    \[
+a_{m}^{T} x_i + \varepsilon \le b_{m} + M_{1}(1 - z_{it}), 
+\quad i = 1,\ldots,n,\ \forall t \in T_R,\ \forall m \in A_L(t)
+\]
+    \item Solo una predicción de clase en cada nodo hoja que contenga puntos. \[
+\sum_{k=1}^{K} c_{kt} = l_t, \qquad \forall t \in T_H
+\]
+    \item Predicción para cada i.
+    \[
+    \sum_{t \in T_{H}}p_{t} z_{it}, \quad  i = 1, \ldots,n\
+    \]
+\end{itemize}

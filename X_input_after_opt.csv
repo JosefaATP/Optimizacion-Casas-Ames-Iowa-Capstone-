@@ -1,49 +1,49 @@
 idx,feature,value,LB,UB
-0,Lot Frontage,99.0,0.0,inf
+0,Lot Frontage,104.0,0.0,153.31
 1,Lot Area,7000.0,7000.0,7000.0
-2,Utilities,-1.0,-1.0,8.0
+2,Utilities,3.0,-1.0,8.0
 3,Overall Qual,10.0,0.0,inf
-4,Overall Cond,7.0,0.0,inf
-5,Year Built,2008.0,0.0,inf
-6,Year Remod/Add,2008.0,0.0,inf
-7,Mas Vnr Area,32.0,0.0,inf
-8,Exter Qual,3.0,0.0,inf
-9,Exter Cond,2.0,0.0,inf
+4,Overall Cond,10.0,0.0,inf
+5,Year Built,2025.0,0.0,inf
+6,Year Remod/Add,2025.0,0.0,inf
+7,Mas Vnr Area,528.0,0.0,931.2
+8,Exter Qual,4.0,0.0,inf
+9,Exter Cond,4.0,0.0,inf
 10,Bsmt Qual,4.0,0.0,inf
-11,Bsmt Cond,3.0,0.0,inf
-12,BsmtFin SF 1,0.0,0.0,inf
-13,BsmtFin SF 2,0.0,0.0,inf
-14,Bsmt Unf SF,0.0,0.0,inf
-15,Total Bsmt SF,0.0,0.0,3500.0
+11,Bsmt Cond,4.0,0.0,inf
+12,BsmtFin SF 1,0.0,0.0,1749.17
+13,BsmtFin SF 2,0.0,0.0,839.26
+14,Bsmt Unf SF,0.0,0.0,1854.09
+15,Total Bsmt SF,0.0,0.0,2242.79
 16,Heating QC,4.0,0.0,inf
-17,1st Flr SF,450.0,0.0,4200.0
-18,2nd Flr SF,0.0,0.0,3500.0
-19,Low Qual Fin SF,108.0,0.0,inf
-20,Gr Liv Area,450.0,0.0,5600.0
-21,Bsmt Full Bath,0.0,0.0,inf
-22,Bsmt Half Bath,0.0,0.0,inf
+17,1st Flr SF,450.0,0.0,2383.68
+18,2nd Flr SF,0.0,0.0,1625.45
+19,Low Qual Fin SF,0.0,0.0,inf
+20,Gr Liv Area,450.0,0.0,3110.15
+21,Bsmt Full Bath,0.0,0.0,2.02
+22,Bsmt Half Bath,0.0,0.0,1.01
 23,Full Bath,3.0,-0.0,6.0
-24,Half Bath,1.0,-0.0,6.0
-25,Bedroom AbvGr,0.0,-0.0,10.0
-26,Kitchen AbvGr,2.0,-0.0,3.0
+24,Half Bath,1.0,-0.0,5.0
+25,Bedroom AbvGr,0.0,-0.0,8.0
+26,Kitchen AbvGr,2.0,-0.0,5.0
 27,Kitchen Qual,4.0,0.0,inf
-28,TotRms AbvGrd,3.0,0.0,inf
-29,Fireplaces,2.0,-0.0,3.0
-30,Fireplace Qu,2.0,0.0,inf
-31,Garage Yr Blt,2007.0,0.0,inf
-32,Garage Cars,3.0,-0.0,4.0
-33,Garage Area,504.0,0.0,1400.0
-34,Garage Qual,2.0,0.0,inf
-35,Garage Cond,2.0,0.0,inf
-36,Wood Deck SF,371.0,0.0,1050.0
-37,Open Porch SF,225.0,0.0,1750.0
-38,Enclosed Porch,39.0,0.0,1750.0
-39,3Ssn Porch,23.0,0.0,1750.0
-40,Screen Porch,161.0,0.0,1750.0
+28,TotRms AbvGrd,3.0,0.0,12.09
+29,Fireplaces,2.0,-0.0,5.0
+30,Fireplace Qu,2.0,0.0,4.05
+31,Garage Yr Blt,2007.0,0.0,2010.15
+32,Garage Cars,3.0,-0.0,6.0
+33,Garage Area,470.0,0.0,1163.75
+34,Garage Qual,2.0,0.0,3.03
+35,Garage Cond,2.0,0.0,2.02
+36,Wood Deck SF,0.0,0.0,526.0
+37,Open Porch SF,4.0,0.0,322.16
+38,Enclosed Porch,39.0,0.0,292.75
+39,3Ssn Porch,0.0,0.0,183.6
+40,Screen Porch,0.0,0.0,314.73
 41,Pool Area,0.0,0.0,700.0
 42,Pool QC,0.0,0.0,inf
-43,Misc Val,54.0,0.0,inf
-44,Yr Sold,2008.0,0.0,inf
+43,Misc Val,54.0,0.0,1514.47
+44,Yr Sold,2007.0,0.0,2010.04
 45,MS SubClass_20,1.0,0.0,1.0
 46,MS SubClass_30,1.0,0.0,1.0
 47,MS SubClass_40,0.0,0.0,1.0
@@ -143,13 +143,13 @@ idx,feature,value,LB,UB
 141,House Style_1Story,1.0,0.0,1.0
 142,House Style_2.5Fin,0.0,0.0,1.0
 143,House Style_2.5Unf,0.0,0.0,1.0
-144,House Style_2Story,1.0,0.0,1.0
+144,House Style_2Story,0.0,0.0,1.0
 145,House Style_SFoyer,0.0,0.0,1.0
 146,House Style_SLvl,1.0,0.0,1.0
 147,Roof Style_Flat,0.0,0.0,1.0
-148,Roof Style_Gable,1.0,0.0,1.0
+148,Roof Style_Gable,0.0,0.0,1.0
 149,Roof Style_Gambrel,0.0,0.0,1.0
-150,Roof Style_Hip,0.0,0.0,1.0
+150,Roof Style_Hip,1.0,0.0,1.0
 151,Roof Style_Mansard,0.0,0.0,1.0
 152,Roof Style_Shed,0.0,0.0,1.0
 153,Roof Matl_ClyTile,0.0,0.0,1.0
@@ -175,7 +175,7 @@ idx,feature,value,LB,UB
 173,Exterior 1st_Stucco,0.0,0.0,1.0
 174,Exterior 1st_VinylSd,0.0,0.0,1.0
 175,Exterior 1st_Wd Sdng,0.0,0.0,1.0
-176,Exterior 1st_WdShing,0.0,0.0,1.0
+176,Exterior 1st_WdShing,1.0,0.0,1.0
 177,Exterior 2nd_AsbShng,1.0,0.0,1.0
 178,Exterior 2nd_AsphShn,0.0,0.0,1.0
 179,Exterior 2nd_Brk Cmn,0.0,0.0,1.0
@@ -226,14 +226,14 @@ idx,feature,value,LB,UB
 224,BsmtFin Type 2_Unf,1.0,0.0,1.0
 225,Heating_Floor,0.0,0.0,1.0
 226,Heating_GasA,1.0,0.0,1.0
-227,Heating_GasW,1.0,0.0,1.0
+227,Heating_GasW,0.0,0.0,1.0
 228,Heating_Grav,0.0,0.0,1.0
 229,Heating_OthW,0.0,0.0,1.0
 230,Heating_Wall,0.0,0.0,1.0
 231,Central Air_N,1.0,0.0,1.0
-232,Central Air_Y,1.0,0.0,1.0
-233,Electrical_FuseA,1.0,0.0,1.0
-234,Electrical_FuseF,1.0,0.0,1.0
+232,Central Air_Y,0.0,0.0,1.0
+233,Electrical_FuseA,0.0,0.0,1.0
+234,Electrical_FuseF,0.0,0.0,1.0
 235,Electrical_FuseP,0.0,0.0,1.0
 236,Electrical_Mix,0.0,0.0,1.0
 237,Electrical_SBrkr,1.0,0.0,1.0
@@ -256,7 +256,7 @@ idx,feature,value,LB,UB
 254,Garage Finish_No aplica,0.0,0.0,1.0
 255,Garage Finish_RFn,1.0,0.0,1.0
 256,Garage Finish_Unf,0.0,0.0,1.0
-257,Paved Drive_N,1.0,0.0,1.0
+257,Paved Drive_N,0.0,0.0,1.0
 258,Paved Drive_P,1.0,0.0,1.0
 259,Paved Drive_Y,1.0,0.0,1.0
 260,Fence_GdPrv,1.0,0.0,1.0
