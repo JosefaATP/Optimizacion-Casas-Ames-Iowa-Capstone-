@@ -53,6 +53,34 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
         if roof:
             print("roof:", ", ".join(roof))
 
+        # categorias elegidas clave (Heating/Electrical/PavedDrive/Exterior/Foundation)
+        def chosen(prefix, opts):
+            for o in opts:
+                v = m.getVarByName(f"{prefix}__{o}")
+                if v is not None and getattr(v, 'X', 0.0) > 0.5:
+                    return o
+            return None
+        heating = chosen('Heating', ['Floor','GasA','GasW','Grav','OthW','Wall'])
+        electrical = chosen('Electrical', ['SBrkr','FuseA','FuseF','FuseP','Mix'])
+        paved = chosen('PavedDrive', ['Y','P','N'])
+        ext1 = chosen('Exterior1st', ['VinylSd','MetalSd','Wd Sdng','HdBoard','Stucco','Plywood','CemntBd','BrkFace','BrkComm','WdShngl','AsbShng','Stone','ImStucc','AsphShn','CBlock'])
+        ext2 = chosen('Exterior2nd', ['VinylSd','MetalSd','Wd Sdng','HdBoard','Stucco','Plywood','CemntBd','BrkFace','BrkComm','WdShngl','AsbShng','Stone','ImStucc','AsphShn','CBlock'])
+        fnd = chosen('Foundation', ['BrkTil','CBlock','PConc','Slab','Stone','Wood'])
+        try:
+            area_fnd = m.getVarByName(f"FA__{fnd}")
+            area_fnd = float(getattr(area_fnd, 'X', 0.0)) if area_fnd is not None else 0.0
+        except Exception:
+            area_fnd = 0.0
+        feats = []
+        if heating: feats.append(f"heating={heating}")
+        if electrical: feats.append(f"electrical={electrical}")
+        if paved: feats.append(f"paved={paved}")
+        if ext1: feats.append(f"ext1={ext1}")
+        if ext2: feats.append(f"ext2={ext2}")
+        if fnd: feats.append(f"foundation={fnd} ({area_fnd:.0f} ft2)")
+        if feats:
+            print("features:", ", ".join(feats))
+
         # economia
         yp = getattr(m, "_y_price_var", None)
         yl = getattr(m, "_y_log_var", None)
@@ -60,6 +88,26 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
             print(f"precio_predicho = {yp.X:,.0f}")
         if yl is not None:
             print(f"log_precio = {yl.X:.4f}")
+
+        # detalle de áreas por piso y por ambiente (si existen)
+        try:
+            names = [
+                ("AreaKitchen1","AreaKitchen2","AreaKitchen"),
+                ("AreaFullBath1","AreaFullBath2","AreaFullBath"),
+                ("AreaHalfBath1","AreaHalfBath2","AreaHalfBath"),
+                ("AreaBedroom1","AreaBedroom2","AreaBedroom"),
+                ("AreaOther1","AreaOther2",None),
+            ]
+            print("\n-- areas por ambiente (ft2) --")
+            for n1,n2,ntot in names:
+                v1 = m.getVarByName(n1); v2 = m.getVarByName(n2); vt = m.getVarByName(ntot) if ntot else None
+                a1 = float(getattr(v1,'X',0.0)) if v1 is not None else 0.0
+                a2 = float(getattr(v2,'X',0.0)) if v2 is not None else 0.0
+                at = float(getattr(vt,'X',a1+a2)) if vt is not None else a1+a2
+                label = (ntot or n1.replace('1','')).replace('Area','')
+                print(f"{label:<12s}: 1st={a1:6.1f}  2nd={a2:6.1f}  total={at:6.1f}")
+        except Exception:
+            pass
 
         # costos top
         if hasattr(m, "_cost_terms"):
@@ -95,7 +143,7 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
                 ub  = float(getattr(v, "UB", float("nan"))) if v is not None else float("nan")
                 rows.append((i, col, val, lb, ub))
             print("\n-- XGB INPUT (primeras 30) --")
-            for i, col, val, lb, ub in rows[:30]:
+            for i, col, val, lb, ub in rows[:70]:
                 print(f"{i:3d} {col:25s} = {val:8.3f}  [{lb:,.1f},{ub:,.1f}]")
             # escribe CSV
             try:

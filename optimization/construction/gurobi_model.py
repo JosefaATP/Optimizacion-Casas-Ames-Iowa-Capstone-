@@ -41,9 +41,54 @@ def _one_hot(m: gp.Model, name: str, options: Iterable[str]) -> Dict[str, gp.Var
 
 def _tie_one_hot_to_x(m: gp.Model, x: Dict[str, gp.Var], feat_name: str, B: Dict[str, gp.Var]):
     for opt, b in B.items():
+        # intenta match directo; si falla, usa alias comunes (None/NA <-> No aplica)
         key = _find_x_key(x, feat_name, opt)
+        if key is None:
+            opt_norm = _norm(opt)
+            aliases = []
+            if opt_norm in ("none",):
+                aliases = ["No aplica", "None"]
+            elif opt_norm in ("na",):
+                aliases = ["No aplica", "NA"]
+            for alt in aliases:
+                key = _find_x_key(x, feat_name, alt)
+                if key is not None:
+                    break
         if key is not None:
             m.addConstr(x[key] == b, name=f"link__{_norm(feat_name)}__{_norm(opt)}")
+
+
+def _fix_ohe_group(m: gp.Model, x: Dict[str, gp.Var], feat_order: list[str], group: str, chosen: str):
+    """Fija un grupo one-hot en X (solo para columnas OHE del XGB) con nombre tipo 'Group_Label'.
+    - Establece la columna del label elegido a 1 y el resto del grupo a 0.
+    - Robusto a espacios vs guiones bajos en los nombres de columnas del XGB.
+    """
+    # Variantes de prefijo que observamos en columnas OHE del XGB
+    prefixes = [f"{group}_", f"{group} "]
+    cols = [c for c in feat_order if any(c.startswith(p) for p in prefixes) and c in x]
+    if not cols:
+        return
+    # Busca la columna elegida
+    pick = None
+    for c in cols:
+        tail = c[len(group):].strip(" _")
+        if tail == chosen:
+            pick = c
+            break
+    # Si no encontramos el nombre exacto, intenta match lax normalizado
+    if pick is None:
+        want = _norm(chosen)
+        for c in cols:
+            tail = c[len(group):].strip(" _")
+            if _norm(tail) == want:
+                pick = c
+                break
+    # Fija elegido=1 y resto=0
+    for c in cols:
+        try:
+            m.addConstr(x[c] == (1.0 if c == pick else 0.0), name=f"link__fix_ohe__{_norm(group)}__{_norm(c)}")
+        except Exception:
+            pass
 
 
 # ===================== inputs en el orden del XGB (features) ======================
@@ -144,6 +189,7 @@ def _tighten_bounds_from_booster(m: gp.Model, bundle: XGBBundle,
     # columnas que fijamos por proyecto: NO estrechar (evita choques con valores fijos)
     skip_cols = {
         "Year Built", "Year Remod/Add", "Year Sold", "Month Sold",
+        "Yr Sold", "Mo Sold", "Garage Yr Blt", "Garage Yr Built",
         "Overall Qual", "Overall Cond",
         "Exter Qual", "Exter Cond", "Bsmt Qual", "Bsmt Cond", "Heating QC", "Kitchen Qual",
         "Utilities", "Low Qual Fin SF",
@@ -235,8 +281,14 @@ def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
 # =============================== costos (LinExpr) =================================
 
 def _build_cost_expr(m, x, ct):
+    # Asegura que getVarByName vea variables recién creadas
+    try:
+        m.update()
+    except Exception:
+        pass
     cost = gp.LinExpr(0.0)
     m._cost_terms = []
+    dbg_counts = {"roof":0,"ext1":0,"ext2":0,"heat":0,"elec":0,"paved":0,"found":0,"areas":0}
 
     def add(label, coef, var):
         if var is None: 
@@ -248,10 +300,37 @@ def _build_cost_expr(m, x, ct):
         nonlocal cost
         cost += coef * var
 
+    def add_if_missing(label, coef, var):
+        if var is None:
+            return
+        try:
+            if any(lab == label for (lab, _, _) in m._cost_terms):
+                return
+        except Exception:
+            pass
+        add(label, coef, var)
+
     # Construcción base por ft2
+    # Cobrar SOLO la parte no cubierta por costos específicos. Aquí consideramos:
+    # - Remainders (partición por piso)
+    # - Área "Other" (recintos genéricos) por piso
+    # - Sótano sin terminar
     c_base = float(getattr(ct, "construction_cost", 230.0))
-    for nm in ("1st Flr SF", "2nd Flr SF", "Total Bsmt SF"):
-        add(f"{nm} @construction", c_base, _safe_get(x, nm))
+    rem1 = m.getVarByName("Remainder1")
+    rem2 = m.getVarByName("Remainder2")
+    if rem1 is not None:
+        add("Remainder1 @construction", c_base, rem1)
+    if rem2 is not None:
+        add("Remainder2 @construction", c_base, rem2)
+    aoth1 = m.getVarByName("AreaOther1")
+    aoth2 = m.getVarByName("AreaOther2")
+    if aoth1 is not None:
+        add("AreaOther1 @construction", c_base, aoth1)
+    if aoth2 is not None:
+        add("AreaOther2 @construction", c_base, aoth2)
+    bsmt_unf = m.getVarByName("BsmtUnfSF") or _safe_get(x, "Bsmt Unf SF")
+    if bsmt_unf is not None:
+        add("Bsmt Unf SF @construction", c_base, bsmt_unf)
 
     # Terminación de sótano acabado (usa tu clave exacta)
     c_fin = float(getattr(ct, "finish_basement_per_f2", 0.0))
@@ -273,12 +352,19 @@ def _build_cost_expr(m, x, ct):
     if hasattr(ct, "foundation_cost_per_sf"):
         for tag, unit in ct.foundation_cost_per_sf.items():
             add(f"FA {tag}", float(unit), m.getVarByName(f"FA__{tag}"))
+            dbg_counts["found"] += 1
 
     # Techo: costo fijo por material (tu tabla roof_matl_fixed)
     if hasattr(ct, "roof_matl_fixed"):
         for mm, lump in ct.roof_matl_fixed.items():
             v = m.getVarByName(f"RoofMatl__{mm}")
             add(f"RoofMatl {mm}", float(lump), v)
+            dbg_counts["roof"] += 1
+    # Techo: costo por estilo (opcional, si defines ct.roof_style_costs)
+    if hasattr(ct, "roof_style_costs"):
+        for s, unit in getattr(ct, "roof_style_costs", {}).items():
+            v = m.getVarByName(f"RoofStyle__{s}")
+            add(f"RoofStyle {s}", float(unit), v)
 
     # Heating: costo por tipo seleccionado (lumpsum)
     if hasattr(ct, "heating_type_costs"):
@@ -286,6 +372,7 @@ def _build_cost_expr(m, x, ct):
             v = m.getVarByName(f"Heating__{h}")
             if v is not None:
                 add(f"Heating {h}", float(unit), v)
+                dbg_counts["heat"] += 1
 
     # Central Air: costo de instalación si 'Y'
     if hasattr(ct, "central_air_install"):
@@ -299,6 +386,7 @@ def _build_cost_expr(m, x, ct):
             v = m.getVarByName(f"Electrical__{e}")
             if v is not None:
                 add(f"Electrical {e}", float(unit), v)
+                dbg_counts["elec"] += 1
 
     # Paved Drive: costo por categoría
     if hasattr(ct, "paved_drive_costs"):
@@ -306,6 +394,7 @@ def _build_cost_expr(m, x, ct):
             v = m.getVarByName(f"PavedDrive__{d}")
             if v is not None:
                 add(f"PavedDrive {d}", float(unit), v)
+                dbg_counts["paved"] += 1
 
     # Mampostería (Mas Vnr): costo por ft2 según tipo, multiplicado por área con MvProd
     if hasattr(ct, "mas_vnr_costs_sqft"):
@@ -319,6 +408,14 @@ def _build_cost_expr(m, x, ct):
         for e1, lump in ct.exterior_matl_lumpsum.items():
             v = m.getVarByName(f"Exterior1st__{e1}")
             add(f"Exterior1st {e1}", float(lump), v)
+            dbg_counts["ext1"] += 1
+
+    # Exterior 2nd: costo fijo por material seleccionado
+    if hasattr(ct, "exterior_matl_lumpsum"):
+        for e2, lump in ct.exterior_matl_lumpsum.items():
+            v2 = m.getVarByName(f"Exterior2nd__{e2}")
+            add(f"Exterior2nd {e2}", float(lump), v2)
+            dbg_counts["ext2"] += 1
 
     # Garage finish: costo fijo por acabado
     if hasattr(ct, "garage_finish_costs_sqft"):
@@ -352,23 +449,33 @@ def _build_cost_expr(m, x, ct):
             float(getattr(ct, "fence_build_cost_per_ft", 0.0)) * float(getattr(ct, "lot_frontage_ft", 0.0)),
             has_reja)
 
+    # Fireplace: costo por chimenea con calidad excelente (si así lo decides)
+    if hasattr(ct, "fireplace_costs"):
+        fp_cnt = m.getVarByName("Fireplaces") or _safe_get(x, "Fireplaces")
+        try:
+            unit_fp = float(ct.fireplace_cost("Ex"))
+            if fp_cnt is not None and unit_fp:
+                add("Fireplace EX", unit_fp, fp_cnt)
+        except Exception:
+            pass
+
     # 11.xx premiums y costos por área adicionales
     try:
         gate_floor1 = m.getVarByName("Floor1") or m.addVar(lb=1.0, ub=1.0, name="CONST_ONE_PREM")
     except Exception:
         gate_floor1 = None
 
-    # Kitchen premium por cocina
-    if hasattr(ct, "kitchenQual_upgrade_EX"):
-        kcnt = m.getVarByName("Kitchen") or gate_floor1
-        if kcnt is not None:
-            add("KitchenQual EX", float(getattr(ct, "kitchenQual_upgrade_EX", 0.0)), kcnt)
+    # [CONSTRUCCION] Premiums de Kitchen/Exterior apagados (se usan en REMODEL)
+    # if hasattr(ct, "kitchenQual_upgrade_EX"):
+    #     kcnt = m.getVarByName("Kitchen") or gate_floor1
+    #     if kcnt is not None:
+    #         add("KitchenQual EX", float(getattr(ct, "kitchenQual_upgrade_EX", 0.0)), kcnt)
 
     # Exterior premium (calidad y condición)
-    if hasattr(ct, "exter_qual_costs") and gate_floor1 is not None:
-        add("ExterQual EX", float(ct.exter_qual_cost("Ex")), gate_floor1)
-    if hasattr(ct, "exter_cond_costs") and gate_floor1 is not None:
-        add("ExterCond EX", float(ct.exter_cond_cost("Ex")), gate_floor1)
+    # if hasattr(ct, "exter_qual_costs") and gate_floor1 is not None:
+    #     add("ExterQual EX", float(ct.exter_qual_cost("Ex")), gate_floor1)
+    # if hasattr(ct, "exter_cond_costs") and gate_floor1 is not None:
+    #     add("ExterCond EX", float(ct.exter_cond_cost("Ex")), gate_floor1)
 
     # Costos por área de ambientes
     for nm, attr in (("AreaKitchen", "kitchen_area_cost"),
@@ -378,6 +485,49 @@ def _build_cost_expr(m, x, ct):
         v = m.getVarByName(nm)
         if v is not None:
             add(nm, float(getattr(ct, attr, 0.0)), v)
+            dbg_counts["areas"] += 1
+
+    # MiscFeature (lumpsum por categoría)
+    if hasattr(ct, "misc_feature_costs"):
+        for k, unit in ct.misc_feature_costs.items():
+            v = m.getVarByName(f"MiscFeature__{k}")
+            if v is not None:
+                add(f"MiscFeature {k}", float(unit), v)
+
+    # Redundancy guard: si por cualquier motivo algún bloque anterior no anexó términos,
+    # refuerza aquí con add_if_missing. (Evita duplicar si ya están.)
+    try:
+        # Heating / Electrical / PavedDrive
+        for h, unit in getattr(ct, "heating_type_costs", {}).items():
+            add_if_missing(f"Heating {h}", float(unit), m.getVarByName(f"Heating__{h}"))
+        for e, unit in getattr(ct, "electrical_type_costs", {}).items():
+            add_if_missing(f"Electrical {e}", float(unit), m.getVarByName(f"Electrical__{e}"))
+        for d, unit in getattr(ct, "paved_drive_costs", {}).items():
+            add_if_missing(f"PavedDrive {d}", float(unit), m.getVarByName(f"PavedDrive__{d}"))
+        # Roof / Exterior
+        for mm, lump in getattr(ct, "roof_matl_fixed", {}).items():
+            add_if_missing(f"RoofMatl {mm}", float(lump), m.getVarByName(f"RoofMatl__{mm}"))
+        for e1, lump in getattr(ct, "exterior_matl_lumpsum", {}).items():
+            add_if_missing(f"Exterior1st {e1}", float(lump), m.getVarByName(f"Exterior1st__{e1}"))
+            add_if_missing(f"Exterior2nd {e1}", float(lump), m.getVarByName(f"Exterior2nd__{e1}"))
+        # Foundation per tipo (por área)
+        for f, unit in getattr(ct, "foundation_cost_per_sf", {}).items():
+            add_if_missing(f"FA {f}", float(unit), m.getVarByName(f"FA__{f}"))
+        # Áreas de ambientes
+        for nm, attr in (("AreaKitchen", "kitchen_area_cost"),
+                         ("AreaFullBath", "fullbath_area_cost"),
+                         ("AreaHalfBath", "halfbath_area_cost"),
+                         ("AreaBedroom",  "bedroom_area_cost")):
+            v = m.getVarByName(nm)
+            add_if_missing(nm, float(getattr(ct, attr, 0.0)), v)
+        # Basement finished areas
+        c_fin = float(getattr(ct, "finish_basement_per_f2", 0.0))
+        add_if_missing("BsmtFin SF 1 @finish", c_fin, m.getVarByName("BsmtFinSF1"))
+        add_if_missing("BsmtFin SF 2 @finish", c_fin, m.getVarByName("BsmtFinSF2"))
+    except Exception:
+        pass
+
+    # debug opcional desactivado
 
     return cost
 
@@ -423,20 +573,70 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
                 m.addConstr(x[col] == (1.0 if col == picked else 0.0),
                             name=f"link__{col}__fix")
 
+    # === fijar OHE de MS SubClass (dato base, no decisión) ===
+    try:
+        ms_cols = [c for c in feat_order if c.startswith("MS SubClass_") and c in x]
+        if ms_cols:
+            # usa valor de base_row si existe, si no, 20
+            ms_val = str(int(base_row.get("MS SubClass", 20)))
+            pick_ms = f"MS SubClass_{ms_val}"
+            for c in ms_cols:
+                m.addConstr(x[c] == (1.0 if c == pick_ms else 0.0), name=f"link__ms_subclass__fix__{c}")
+    except Exception:
+        pass
+
+    # === fijar OHE de Fence (por defecto: No aplica) para coherencia del XGB ===
+    try:
+        fence_cols = [c for c in feat_order if c.startswith("Fence_") and c in x]
+        if fence_cols:
+            for c in fence_cols:
+                m.addConstr(x[c] == (1.0 if c.endswith("No aplica") else 0.0), name=f"link__fence__fix__{c}")
+    except Exception:
+        pass
+
     # === fijar columnas que son parametros del proyecto (nueva construcción) ===
     def _fix_const(col_name: str, value: float):
-        key = _find_x_key(x, col_name)
-        if key is not None:
+        # Fija SOLO si existe variable exacta; evita emparejar OHE por contiene
+        if col_name in x:
             try:
-                m.addConstr(x[key] == float(value), name=f"fix__{_norm(col_name)}")
+                m.addConstr(x[col_name] == float(value), name=f"fix__{_norm(col_name)}")
+            except Exception:
+                pass
+
+    def _fix_either_numeric_or_ohe(col_name: str, value: float | int | str):
+        # Si existe columna numérica exacta, fíjala; si no, intenta fijar grupo OHE col_name_* al valor
+        if col_name in x:
+            _fix_const(col_name, value)  # exacto
+        else:
+            try:
+                _fix_ohe_group(m, x, feat_order, col_name, str(value))
             except Exception:
                 pass
 
     # Años y meses (construcción y venta en 2025, sin remodel previo)
     _fix_const("Year Built", getattr(ct, "build_year", 2025))
     _fix_const("Year Remod/Add", getattr(ct, "remod_year", 2025))
-    _fix_const("Year Sold", getattr(ct, "sale_year", 2025))
-    _fix_const("Month Sold", getattr(ct, "sale_month", 6))
+    _fix_either_numeric_or_ohe("Year Sold", getattr(ct, "sale_year", 2025))
+    _fix_either_numeric_or_ohe("Month Sold", getattr(ct, "sale_month", 6))
+    _fix_either_numeric_or_ohe("Yr Sold", getattr(ct, "sale_year", 2025))
+    _fix_either_numeric_or_ohe("Mo Sold", getattr(ct, "sale_month", 6))
+
+    # Fijar categorías del terreno y entorno a valores típicos (no decisiones de construcción)
+    try:
+        _fix_ohe_group(m, x, feat_order, "MS Zoning", "RL")
+        _fix_ohe_group(m, x, feat_order, "Street", "Pave")
+        _fix_ohe_group(m, x, feat_order, "Alley", "No aplica")
+        _fix_ohe_group(m, x, feat_order, "Lot Shape", "Reg")
+        _fix_ohe_group(m, x, feat_order, "LandContour", "Lvl")
+        _fix_ohe_group(m, x, feat_order, "LotConfig", "Inside")
+        _fix_ohe_group(m, x, feat_order, "LandSlope", "Gtl")
+        _fix_ohe_group(m, x, feat_order, "Condition 1", "Norm")
+        _fix_ohe_group(m, x, feat_order, "Condition 2", "Norm")
+        _fix_ohe_group(m, x, feat_order, "Functional", "Typ")
+        _fix_ohe_group(m, x, feat_order, "Sale Type", "WD")
+        _fix_ohe_group(m, x, feat_order, "Sale Condition", "Normal")
+    except Exception:
+        pass
 
     # Calidad/condición fijas a excelente (ordinal 4), y Overall a 10
     _fix_const("Overall Qual", getattr(ct, "overall_qual", 10))
@@ -599,6 +799,53 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     if xgar is not None:
         m.addConstr(xgar <= (0.2 * lot_area) * (1 - GT["NA"]), name="7.5.2__cap_area_if_has")
 
+    # Garage quality/condition: EX si hay garage (sin costo extra)
+    for qcol in ["Garage Qual", "Garage Cond"]:
+        vq = _safe_get(x, qcol)
+        if vq is not None:
+            Uq = 4.0
+            try:
+                m.addConstr(vq >= 4.0 * (1 - GT["NA"]), name=f"11.xx__{_norm(qcol)}_ge_ex_if_has")
+                m.addConstr(vq <= 4.0 + Uq * GT["NA"], name=f"11.xx__{_norm(qcol)}_le_ex_or_free_if_na")
+            except Exception:
+                pass
+
+    # Amarrar OHE del XGB a one-hot interno para Garage Type/Finish (evita múltiple 1s en CSV)
+    for lab, var in {
+        "Garage Type_2Types": GT["2Types"],
+        "Garage Type_Attchd": GT["Attchd"],
+        "Garage Type_Basment": GT["Basment"],
+        "Garage Type_BuiltIn": GT["BuiltIn"],
+        "Garage Type_CarPort": GT["CarPort"],
+        "Garage Type_Detchd": GT["Detchd"],
+        "Garage Type_No aplica": GT["NA"],
+    }.items():
+        if lab in x:
+            m.addConstr(x[lab] == var, name=f"link__x__{_norm(lab)}")
+
+    for lab, var in {
+        "Garage Finish_Fin": GF["Fin"],
+        "Garage Finish_RFn": GF["RFn"],
+        "Garage Finish_Unf": GF["Unf"],
+        "Garage Finish_No aplica": GF["NA"],
+    }.items():
+        if lab in x:
+            m.addConstr(x[lab] == var, name=f"link__x__{_norm(lab)}")
+
+    # Garage Yr Built: igual al Year Built si hay garage; 0 si GarageType=NA
+    try:
+        gyb = _safe_get(x, "Garage Yr Built") or _safe_get(x, "Garage Yr Blt") or _safe_get(x, "GarageYrBlt")
+        yb  = _safe_get(x, "Year Built")
+        if gyb is not None and yb is not None:
+            Uyr = 2100.0
+            # Si no hay garage (GT['NA']=1) ⇒ gyb = 0
+            m.addConstr(gyb <= Uyr * (1 - GT["NA"]), name="11.xx__gar_yr_zero_if_na")
+            # Si hay garage ⇒ gyb = yb (con big-M)
+            m.addConstr(gyb >= yb - Uyr * GT["NA"], name="11.xx__gar_yr_ge_yb_if_has")
+            m.addConstr(gyb <= yb + Uyr * GT["NA"], name="11.xx__gar_yr_le_yb_if_has")
+    except Exception:
+        pass
+
     # 11.1 HouseStyle exclusividad + relación con pisos
     hs_opts = ["1Story","2Story"]
     HS = _one_hot(m, "HouseStyle", hs_opts)
@@ -660,6 +907,12 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
             m.addConstr(z <= PlanRoofArea, name=f"7.7.5__z_leq_plan__{s}_{mm}")
             m.addConstr(z <= Uplan * y, name=f"7.7.5__z_leq_u_y__{s}_{mm}")
             m.addConstr(z >= PlanRoofArea - Uplan * (1 - y), name=f"7.7.5__z_ge_plan_u__{s}_{mm}")
+            # Indicadores más fuertes: y=1 => z=PlanRoofArea; y=0 => z=0
+            try:
+                m.addGenConstrIndicator(y, True,  z == PlanRoofArea, name=f"7.7.5__z_eq_plan_if_y__{s}_{mm}")
+                m.addGenConstrIndicator(y, False, z == 0.0,          name=f"7.7.5__z_eq_0_if_noty__{s}_{mm}")
+            except Exception:
+                pass
     m.addConstr(gp.quicksum(Y.values()) == 1, name="7.7.4__one_y")
 
     gamma = getattr(ct, "gamma", {})
@@ -682,8 +935,10 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         if xgar is not None:
             m.addConstr(xgar <= 0.2 * lot_area, name="7.9__cap_garage")
 
-    # 7.10 relacion banos vs dormitorios
-    m.addConstr(3 * FullBath >= 2 * Bedrooms, name="7.10__baths_vs_bed")
+    # 7.10 relacion banos vs dormitorios (tope razonable) y mínimos básicos
+    m.addConstr(3 * FullBath <= 2 * Bedrooms, name="7.10__baths_vs_bed")
+    m.addConstr(FullBath >= 1, name="11.xx__fullbath_min1")
+    m.addConstr(Bedrooms >= 1, name="11.xx__bedrooms_min1")
 
     # 7.11 piscina
     if all(v is not None for v in [x1,xgar,xdeck,xopen,xencl,xscreen,x3ssn,xpool]):
@@ -771,10 +1026,11 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     _link_if_exists(m, x, "TotRms AbvGrd", TotRms)
 
     # min areas por cuenta para evitar cuartos fantasma
-    m.addConstr(AreaFullBath >= 30 * FullBath,  name="7.xx__min_area_full_bath")
-    m.addConstr(AreaHalfBath >= 15 * HalfBath,  name="7.xx__min_area_half_bath")
-    m.addConstr(AreaKitchen  >= 120 * Kitchen,  name="7.xx__min_area_kitchen")
-    m.addConstr(AreaBedroom  >= 100 * Bedrooms, name="7.xx__min_area_bedroom")
+    # 11.20 Áreas mínimas por ambiente (alineado con PDF)
+    m.addConstr(AreaFullBath >= 40 * FullBath,  name="11.20__min_area_full_bath")
+    m.addConstr(AreaHalfBath >= 20 * HalfBath,  name="11.20__min_area_half_bath")
+    m.addConstr(AreaKitchen  >= 75 * Kitchen,   name="11.20__min_area_kitchen")
+    m.addConstr(AreaBedroom  >= 70 * Bedrooms,  name="11.20__min_area_bedroom")
 
     # la suma de areas funcionales no puede pasar el total de 1ro+2do piso
     if x1 is not None and x2 is not None:
@@ -808,6 +1064,9 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     fmas = float(getattr(ct, "fmas", 0.4))
     Umas = fmas * AreaExterior_var
     m.addConstr(MasVnrArea <= Umas, name="7.16.1__mas_cap")
+    # Si MasVnrType == None → Ã¡rea 0
+    if "None" in MV:
+        m.addConstr(MasVnrArea <= Umas * (1 - MV["None"]), name="7.16.1__mas_zero_if_none")
     # Mínimo si se usa algún tipo distinto de None
     m.addConstr(MasVnrArea >= 20.0 * (1 - MV["None"]), name="7.16__mas_min_if_used")
     # Variables auxiliares MvProd_t = MasVnrArea si se usa tipo t; 0 si no
@@ -909,7 +1168,8 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # materiales de Exterior1st (usar el one-hot existente)
     ext1_opts = ["VinylSd","MetalSd","Wd Sdng","HdBoard","Stucco","Plywood","CemntBd","BrkFace","BrkComm","WdShngl","AsbShng","Stone","ImStucc","AsphShn","CBlock"]
     W = {}
-    Uext = getattr(ct, "Uext", 4500.0)
+    # Cota más apretada para W__e1: AreaExterior <= Hext*(Uperim1+Uperim2)
+    Uext = Hext * (Uperim1 + Uperim2)
 
     # IMPORTANTE: necesitas tener creado antes:
     #   EXT1 = _one_hot(m, "Exterior1st", ext1_opts)
@@ -922,7 +1182,24 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         m.addConstr(w <= AreaExterior, name=f"7.23.1__w_leq_area__{e1}")
         m.addConstr(w <= Uext * b, name=f"7.23.1__w_leq_u__{e1}")
         m.addConstr(w >= AreaExterior - Uext * (1 - b), name=f"7.23.1__w_ge_lin__{e1}")
+        # Indicadores: b=1 => w=AreaExterior; b=0 => w=0
+        try:
+            m.addGenConstrIndicator(b, True,  w == AreaExterior, name=f"7.23.1__w_eq_area_if_b__{e1}")
+            m.addGenConstrIndicator(b, False, w == 0.0,         name=f"7.23.1__w_eq_0_if_notb__{e1}")
+        except Exception:
+            pass
     m.addConstr(gp.quicksum(W.values()) == AreaExterior, name="7.23.1__w_sum")
+
+    # 11.xx Fence (selección de categoría) y HasReja
+    fence_opts = ["GdPrv","MnPrv","GdWo","MnWw","No aplica"]
+    FENCE = _one_hot(m, "Fence", fence_opts)
+    _tie_one_hot_to_x(m, x, "Fence", FENCE)
+    if "No aplica" in FENCE:
+        m.addConstr(HasReja == 1 - FENCE["No aplica"], name="11.xx__hasreja_from_fence")
+    # MiscFeature (decisión) y costo opcional
+    misc_opts = ["Elev","Gar2","Othr","Shed","TenC","No aplica"]
+    MISC = _one_hot(m, "MiscFeature", misc_opts)
+    _tie_one_hot_to_x(m, x, "Misc Feature", MISC)
 
 
 
@@ -970,6 +1247,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m._lin_cost_expr  = cost_expr
     m._cost_terms     = getattr(m, "_cost_terms", [])  # para [COST-BREAKDOWN]
     m._X_input        = {"order": feat_order, "x": x} # para [AUDIT]
+    m._ct             = ct  # acceso a tablas de costos desde auditorías
 
     # estrechar bounds antes de embebido (reduce big-M)
     _tighten_bounds_from_booster(m, bundle, feat_order, x)

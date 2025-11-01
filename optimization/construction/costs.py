@@ -89,6 +89,8 @@ class CostTables:
         "Gd": 37849.0,
         "Ex": 51659.0,
     })
+    # Costo por ft2 de garage (construcción)
+    garage_area_cost: float = 60.0
 
     # ====== PAVED DRIVE (lumpsum categoria) ======
     paved_drive_costs: Dict[str, float] = field(default_factory=lambda: {
@@ -117,6 +119,18 @@ class CostTables:
     enclosedporch_cost: float = 80.0
     threessnporch_cost: float = 157.5
     screenporch_cost: float = 72.5
+
+    # ====== FOUNDATION (USD/ft2) ======
+    foundation_cost_per_sf: Dict[str, float] = field(default_factory=lambda: {
+        # Valores base por tipo de cimentación (USD/ft2)
+        # Fuente: anexo costos (aprox; ajustar si el equipo actualiza el anexo)
+        "BrkTil": 22.0,
+        "CBlock": 12.0,
+        "PConc":  10.0,
+        "Slab":   10.0,
+        "Stone":  23.5,
+        "Wood":   40.0,
+    })
 
     # ====== EXTERIOR: materiales (lumpsum por frente) ======
     exterior_matl_lumpsum: Dict[str, float] = field(default_factory=lambda: {
@@ -160,6 +174,17 @@ class CostTables:
         return float(self.exter_qual_costs.get(str(level), 0.0))
     def exter_cond_cost(self, level: str) -> float:
         return float(self.exter_cond_costs.get(str(level), 0.0))
+
+    # ====== MISC FEATURE (lumpsum por categoría) ======
+    misc_feature_costs: Dict[str, float] = field(default_factory=lambda: {
+        # Anexo: costos misceláneos
+        "Elev": 48000.0,
+        "Gar2": 32100.0,
+        "Othr": 50000.0,
+        "Shed": 5631.0,
+        "TenC": 15774.0,
+        "No aplica": 0.0,
+    })
 
     # ====== ELECTRICA ======
     electrical_demo_small: float = 800.0
