@@ -97,7 +97,7 @@
 **Preocupaciones**
 - siempre hace la casa mínima (o casi siempre)
 - No estoy segura si está prediciendo bien
-- intenté con el xgb de ignacio, pero no quedo conforme con resultado (agregué early stopping o sino el gap era mas de 1000%). Revisar tema XGB. Quizás podemos darle una vuelta a sacar el logaritmo. habría que editar codigo de remodelacion y construcción pero con gpt no debería ser taaaaan problemático (?)
+- intenté con el xgb de ignacio, pero no quedo conforme con resultado (agregué early stopping o sino el gap era mas de 1000%). Revisar tema XGB. 
 
 **Referencias de Código (útiles)**
 - Modelo MIP: `optimization/construction/gurobi_model.py`
