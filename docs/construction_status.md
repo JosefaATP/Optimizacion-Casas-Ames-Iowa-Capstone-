@@ -1,59 +1,101 @@
-# Estado del modelo de Construcción (MIP + XGB)
+# Estado del Modelo de Construcción (MIP + XGB)
 
-## 1) Implementado desde el PDF
-- 7.1.x Lote y pisos: `x2 <= x1`, `GrLivArea = 1st + 2nd`, límites por lote y por porches/piscina/garage.
-- 7.1.6 / 7.1.7: al menos 1 baño completo y 1 cocina en primer piso.
-- 7.1.8: mínimos por piso (primer piso `ε1`, segundo piso si se activa; por defecto `ε1=450 ft²` para 1Fam).
-- 7.2: conteos agregados (Full/Half/Kitchen) y vínculos a XGB.
-- 7.3: límites por tipo de edificio (Bedrooms/Full/Half/Kitchen/Fireplaces).
-- 7.5: garage (cars ↔ área, tipo y terminación consistentes).
-- 7.7: techo (estilo/material, plan vs. real con indicadores fuertes y `Actual = γ·Plan`), exclusividad estilo/material.
-- 7.8 / 7.9 / 11.10: área total, cotas de subáreas y `GrLivArea <= 0.8·LotArea`.
-- 7.11: piscina (espacio, máximos y mínimos; `Pool QC = -1` si no hay piscina).
-- 7.12 / 7.13: porches y deck (identidad `TotalPorch = sum(componentes)` y mínimos/máximos por tipo).
-- 7.18: sótano (exposición, tipos 1/2 y sumatoria de áreas; consistencias con NA).
-- 7.20: `AreaFoundation = 1st Flr SF` y `FA__{tipo} <= AreaFoundation`.
-- 7.23: perímetros y área exterior (versión lineal con big‑M apretado y cota `AreaExterior <= Hext·(Uperim1+Uperim2)`).
-- Enlace completo al XGB: `y_log = sumárboles(x)` y `y_price = PWL(exp(y_log) - 1)`.
+**Objetivo**: Maximizamos `precio_predicho - costo_total` embebiendo un XGBoost (target en log1p) dentro del MIP.
 
-## 2) Ajustes y cambios (razonados)
-- Indicadores fuertes para techo (7.7.5) y “exterior seleccionado ⇒ Z = Plan”; evitan bilinealidad débil.
-- Tightening de bounds: usa solo los árboles `best_iteration` del XGB (early stopping) para reducir big‑M y tamaño.
-- Fijación robusta de OHE en X (ms zoning, street, alley, lot shape, land contour/slope, lot config, condition 1/2, functional, sale type/condition, neighborhood) con sum‑to‑one.
-  - Alias tolerante para `Functional` ↔ `Functiono aplical`.
-- Calidad/condición de garage: `Garage Qual/Cond = 4` si hay garage, `= -1` si “NA”.
-- `Pool QC = -1` si no hay piscina.
-- `Misc Val = 0` si `MiscFeature = No aplica`.
-- Relación sótano ↔ fundación: `Total Bsmt SF <= ρ·AreaFoundation` (por defecto `ρ=1.0`), y `ρ_exposed` si hay exposición (p.ej. 1.1).
+**Caminos clave**
+- `optimization/construction/gurobi_model.py`: arma el MIP, restricciones, costo y XGB embebido.
+- `optimization/construction/xgb_predictor.py`: carga el pipeline, orden de features, árboles y unión `x -> y_log -> y_price`.
+- `optimization/construction/run_opt.py`: CLI, perfiles de solver, auditorías y CSV.
+- `optimization/construction/costs.py`: tablas y parámetros de costos (configurables).
 
-## 3) Extensiones extra al PDF (opcionales/parametrizables)
-- Early stopping en entrenamiento XGB y en embed (usa solo los primeros `N` árboles efectivos).
-- Perfil de solver (balanced/feasible/bound) y banderas `--fast/--deep`.
-- `--xgbdir` para usar modelos alternos.
-- `--outcsv` para guardar resultados por corrida (grid runs/reporte).
-- `--bldg` para fijar tipo de edificio desde CLI; opcional `ct.eps1_by_bldg` para mínimos por tipo.
-- MS SubClass coherente con HouseStyle: 1Story→20, 2Story→60 (resto off), para evitar sesgos del seed.
-- Kitchens en 1Fam por tamaño (opcional): `ct.kitchen_by_area_thresholds = [A2, A3, ...]`
-  - Si Gr Liv Area ≥ A2 permite 2 cocinas; ≥ A3 permite 3; etc. Por defecto, si no hay thresholds, se aplica `Kitchen ≤ 1` en 1Fam (desactivable con `ct.enforce_single_kitchen_1fam=False`).
+**Cómo Correr**
+- Caso único: `python -m optimization.construction.run_opt --neigh "NWAmes" --lot 7000 --budget 250000 --profile feasible --quiet`
+- Guardar resultados: añadir `--outcsv bench_out/run.csv`
+- Usar modelo XGB alterno: `--xgbdir models/xgb/with_es_test`
+- Grid: `scripts\run_grid.py --outcsv bench_out\grid.csv --budgets 250000,500000 --profile feasible --sample-neigh 10 --seed 123`
 
-## 4) Cosas por seguir puliendo (y cómo mirarlas)
-- Elasticidad de precio a área sobre rasante: si aparece mucho sótano vs. 1er piso, subir `ρ_exposed` solo un poco (1.05–1.15) y observar.
-- Límites de habitaciones/baños: hoy vienen de nuestro diccionario por BldgType (no del PDF). Se pueden mover a `CostTables`.
-- PWL de `exp`: aumentar puntos (40→80) si quieres que `y_price` y `[AUDIT] predict fuera` calcen aún más fino.
+**Qué Mirar en el Output**
+- `[COST-CHECK]` la suma de términos debe coincidir con `cost_model`.
+- `[COST-CATEGORIES]` confirma la selección efectiva por grupos (Roof, Heating, Exterior, etc.).
+- `X_input_after_opt.csv`: vector X exacto que entró al XGB (útil para revisar OHE exclusivas).
+- `[AUDIT] y_log_in vs y_log_out`: hoy estamos verificando un delta casi constante (ver “Trabajo Actual”).
+- `*_model.lp` e `*_conflict.ilp` para diagnóstico si hay infeasibilidad.
 
-## 5) Chequeos al correr
-- Ver `[COST-CHECK]` ⇒ `suma_terms == cost_model`.
-- `[COST-CATEGORIES]` muestra selección efectiva de grupos y costo unitario.
-- `X_input_after_opt.csv`: revisar que OHE exclusivas muestren un único `1` por grupo.
-- Sótano vs. fundación: `Total Bsmt SF <= ρ(·)·AreaFoundation` y `Pool QC/Misc Val` consistentes con “No aplica”.
-- HouseStyle libre (1Story/2Story) y MS SubClass coherente (20/60). Si aparece 2º piso, debe activarse 2Story.
-- Kitchens en 1Fam: por defecto 1; si defines `kitchen_by_area_thresholds`, verifica que el gating por área se active.
+**Restricciones del PDF Implementadas**
+- 7.1.x Lote y pisos
+  - `x2 <= x1` (7.1.2), `GrLivArea = 1st + 2nd` (7.1.3), `1st + porches + pool <= LotArea` (7.1.1).
+  - Mínimos por piso (7.1.8): `1st >= ε1·Floor1`, `2nd >= ε2·Floor2`; parámetros en `CostTables` (`eps_floor_min_first`, etc.).
+- 7.2 Conteos totales y vínculos
+  - `Full/Half/Kitchen = sum por piso` y `HalfBath <= FullBath` (11.11). Enlaces a X si existen.
+- 7.3 Límites por BldgType
+  - Caps opcionales de `Bedrooms/Full/Half/Kitchen/Fireplaces` por tipo (si `ct.bldg_caps`).
+  - Kitchens en 1Fam por tamaño (si `ct.kitchen_by_area_thresholds`), o guard‑rail `Kitchen ≤ 1` en 1Fam.
+- 7.5 Garage
+  - Área vs. autos `150·Cars ≤ GarageArea ≤ 250·Cars`. Tipo/terminación consistentes; `GarageCars ≥ 1` si hay.
+  - `Garage Yr Built = Year Built` si hay garage; `=0` si NA. `Garage Qual/Cond = 4` si hay; `=-1` si NA.
+- 7.7 Techo (plan vs. real)
+  - `PlanRoofArea = PR1 + PR2` con on/off por piso; `ActualRoofArea = γ(s,mat)·Z` (indicadores fuertes, 7.7.5).
+- 7.8 / 7.9 / 11.10 Caps y sumas globales
+  - `TotArea = 1st + 2nd + Bsmt` (7.8), `1st ≤ 0.6·Lot`, `2nd ≤ 0.5·Lot`, `Bsmt ≤ 0.5·Lot` (7.9),
+    `GrLivArea ≤ 0.8·Lot` (11.10), `GarageArea ≤ 0.2·Lot`.
+- 7.10 Baños vs dormitorios
+  - `3·FullBath ≤ 2·Bedrooms` (tope razonable, alineado a PDF).
+- 7.11 Piscina
+  - Espacio/máx/mín por lot; `Pool QC = -1` si no hay piscina.
+- 7.12 / 7.13 Porches/Decks
+  - `Total Porch SF = suma componentes`, caps por tipo y mínimos razonables.
+- 7.15 Exterior 1st/2nd material
+  - Flag `SameMaterial ≥ EXT1[e] + EXT2[e] − 1` para cada material.
+- 7.16 Enchapados (Masonry Veneer)
+  - `MasVnrType` OHE, `MasVnrArea ≤ fmas·AreaExterior1st`, `=0` si `None`, mínimo si usado, y `MvProd_t` por tipo.
+- 7.18 Sótano
+  - `Total Bsmt SF ≤ ρ_base·AreaFoundation` y relajación `ρ_exposed` si hay exposición Gd/Av/Mn.
+- 7.20 Fundación
+  - `AreaFoundation = 1st Flr SF` y descomposición `FA__{tipo}` con big‑M seguro; `Slab/Wood ⇒ BsmtExposure=NA`.
+- 7.21 Caps por piso de áreas por ambiente
+  - Límite por `Floor1/Floor2` para `AreaBedroom/FullBath/HalfBath/Kitchen/Other`.
+- 7.23 Perímetro y fachada (lineal)
+  - `P1/P2` con on/off por piso, `P1 ≥ P2` si hay segundo piso; versión lineal segura sin bilinealidad.
+- 11.3 Sumas de áreas agregadas
+  - `AreaKitchen/AreaBedroom = sum por piso`.
+- 11.20 Áreas mínimas por ambiente
+  - `AreaFullBath ≥ 40·FullBath`, `AreaHalfBath ≥ 20·HalfBath`, `AreaKitchen ≥ 75·Kitchen`, `AreaBedroom ≥ 70·Bedrooms`.
 
-## 6) Cómo correr
-```
-python -m optimization.construction.run_opt --neigh "NWAmes" --lot 7000 --budget 250000 --profile feasible --fast --quiet
-```
-Opcionales:
-- Usar XGB alterno: `--xgbdir models/xgb/with_es_test`
-- Guardar CSV: `--outcsv bench_out/grid_results.csv`
-- Modo edificios: `--bldg 1Fam` (defecto), `--bldg Duplex`, etc. y configurar `eps1_by_bldg` en `CostTables` si se desea.
+**Restricciones del PDF Faltantes o en Revisión**
+- Detalles finos posteriores a 7.23 (si el PDF incluye variantes no reflejadas aún).
+- Reglas adicionales de circulación/interiores si el PDF las especifica (no estructurales al precio/costo por ahora).
+- Validar valores exactos de γ(s,mat) para techo con el anexo (hoy están parametrizados).
+
+**Cambios vs. PDF (y por qué)**
+- 7.23 Perímetros: versión lineal con big‑M seguro (evitar bilinealidad y tiempos altos) conservando límites geométricos.
+- 7.7 Techo: indicadores fuertes para `Z = Plan` cuando se elige estilo/material (fortalece LP y acelera).
+- Caps razonables (7.9/11.10) vinculados a `Lot Area` para estabilidad numérica y realismo urbano.
+
+**Nuevas Restricciones Implementadas (no literales del PDF)**
+- Guard‑rail por defecto `Kitchen ≤ 1` para 1Fam si no se supera umbral de área (desactivable).
+- `HalfBath ≤ FullBath` (11.11), para evitar combinaciones no plausibles.
+- Bound‑tightening desde umbrales de árboles XGB (reduce UB efectivos, baja M grandes).
+
+**Cómo Funciona el XGB Embebido**
+- Se carga el pipeline entrenado (`pre` + `xgb`) y se usa el orden de columnas del `ColumnTransformer` (numérico) como orden del Booster.
+- Se agregan restricciones por nodo de árbol con splits estrictos (izquierda si `x < thr`, derecha si `x ≥ thr`).
+- `y_log` es la suma de hojas; `y_price` se obtiene con una PWL de `expm1(y_log)` en rango razonable.
+- Auditorías imprimen `y_log_in` (embed) vs `y_log_out` (pipeline fuera) y guardan `X_input_after_opt.csv`.
+
+**Trabajo Actual**
+- Verificar que el delta `y_log_in − y_log_out` sea casi constante en muchos barrios/lotes/budgets (mini‑grid en curso).
+- Si es constante, calibrar un offset `b0` (constante) en `y_log` para que “adentro=afuera” sin tocar ruteo ni restricciones.
+- Revisar/afinar tramos del PWL si fuera necesario (hoy 80 puntos en [10.3, 13.8]).
+
+**Posibles Mejoras**
+- Calibración de intercepto `b0` para alinear exactamente adentro/afuera (evita sesgos en utilidad).
+- Escalado de unidades/costos si vemos coeficientes muy dispares (mejor estabilidad numérica).
+- Expandir `bldg_caps` y `eps1_by_bldg` desde el PDF/anexo para tipologías adicionales.
+- Tests pequeños de consistencia (p.ej., `X_input_after_opt.csv` con un validador simple de OHE exclusivas).
+- Micro‑perfiles de Gurobi por presupuesto (estrategia `feasible→bound`) en grids largos para mejorar GAP/tiempos.
+
+**Referencias de Código (útiles)**
+- Modelo MIP: `optimization/construction/gurobi_model.py`
+- XGB/árboles: `optimization/construction/xgb_predictor.py`
+- Costos: `optimization/construction/costs.py`
+- CLI/Auditoría: `optimization/construction/run_opt.py`

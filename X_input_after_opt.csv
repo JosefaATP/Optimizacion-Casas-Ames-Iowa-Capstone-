@@ -1,5 +1,5 @@
 idx,feature,value,LB,UB
-0,Lot Frontage,53.0,0.0,153.31
+0,Lot Frontage,55.0,0.0,153.31
 1,Lot Area,7000.0,7000.0,7000.0
 2,Utilities,3.0,-1.0,4.0
 3,Overall Qual,10.0,0.0,inf
@@ -98,7 +98,7 @@ idx,feature,value,LB,UB
 96,Neighborhood_Edwards,0.0,0.0,1.0
 97,Neighborhood_Gilbert,0.0,0.0,1.0
 98,Neighborhood_Greens,0.0,0.0,1.0
-99,Neighborhood_GrnHill,1.0,0.0,1.0
+99,Neighborhood_GrnHill,0.0,0.0,1.0
 100,Neighborhood_IDOTRR,0.0,0.0,1.0
 101,Neighborhood_Landmrk,0.0,0.0,1.0
 102,Neighborhood_MeadowV,0.0,0.0,1.0
@@ -112,7 +112,7 @@ idx,feature,value,LB,UB
 110,Neighborhood_SWISU,0.0,0.0,1.0
 111,Neighborhood_Sawyer,0.0,0.0,1.0
 112,Neighborhood_SawyerW,0.0,0.0,1.0
-113,Neighborhood_Somerst,0.0,0.0,1.0
+113,Neighborhood_Somerst,1.0,0.0,1.0
 114,Neighborhood_StoneBr,0.0,0.0,1.0
 115,Neighborhood_Timber,0.0,0.0,1.0
 116,Neighborhood_Veenker,0.0,0.0,1.0
