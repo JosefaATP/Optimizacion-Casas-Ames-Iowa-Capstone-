@@ -94,6 +94,11 @@
 - Tests pequeños de consistencia (p.ej., `X_input_after_opt.csv` con un validador simple de OHE exclusivas).
 - Micro‑perfiles de Gurobi por presupuesto (estrategia `feasible→bound`) en grids largos para mejorar GAP/tiempos.
 
+**Preocupaciones**
+- siempre hace la casa mínima (o casi siempre)
+- No estoy segura si está prediciendo bien
+- intenté con el xgb de ignacio, pero no quedo conforme con resultado (agregué early stopping o sino el gap era mas de 1000%). Revisar tema XGB. Quizás podemos darle una vuelta a sacar el logaritmo. habría que editar codigo de remodelacion y construcción pero con gpt no debería ser taaaaan problemático (?)
+
 **Referencias de Código (útiles)**
 - Modelo MIP: `optimization/construction/gurobi_model.py`
 - XGB/árboles: `optimization/construction/xgb_predictor.py`
