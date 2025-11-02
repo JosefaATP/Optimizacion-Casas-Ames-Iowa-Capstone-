@@ -324,12 +324,21 @@ def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
     except Exception:
         bundle.attach_to_gurobi(m, x_list_vars, y_log)
 
+    # Calibración: y_log_cal = y_log + b0_offset
+    try:
+        b0 = float(getattr(bundle, 'b0_offset', 0.0) or 0.0)
+    except Exception:
+        b0 = 0.0
+    y_log_cal = m.addVar(lb=-1e6, ub=1e6, name="y_log_cal")
+    m.addConstr(y_log_cal == y_log + b0, name="YLOG_CAL")
+
     # map log -> price via PWL expm1 (tu entrenamiento usa log1p)
     y_price = m.addVar(lb=0.0, name="y_price")
 
     import numpy as np
     # rango razonable de log-precio, ajusta si quieres: p in [30k, 1.0M] -> log p en [10.3, 13.8]
-    xs = np.linspace(10.3, 13.8, 80)
+    # Densificamos la PWL para reducir error (convexo): más puntos en [10.3,13.8]
+    xs = np.linspace(10.3, 13.8, 401)
     ys = np.expm1(xs)
 
     y_log.LB = float(min(xs)); y_log.UB = float(max(xs))
@@ -337,9 +346,9 @@ def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
     m.update()
 
 
-    m.addGenConstrPWL(y_log, y_price, xs.tolist(), ys.tolist(), name="PWL_exp")
+    m.addGenConstrPWL(y_log_cal, y_price, xs.tolist(), ys.tolist(), name="PWL_exp")
 
-    return y_log, y_price
+    return y_log_cal, y_price
 
 
 # =============================== costos (LinExpr) =================================

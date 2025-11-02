@@ -194,6 +194,9 @@ class XGBBundle:
             except Exception:
                 pass
 
+        # Offset de calibración (b0): por defecto 0.0
+        self.b0_offset: float = 0.0
+
     def feature_names_in(self) -> List[str]:
         return list(getattr(self.pipe_full, "feature_names_in_", []))
 
@@ -217,6 +220,90 @@ class XGBBundle:
         if not cols:
             cols = self.feature_names_in()
         return cols
+
+    # === Utilidades de evaluación del booster (para autocalibración) ===
+    def _get_dumps_limited(self):
+        try:
+            bst = self.reg.get_booster()
+        except Exception:
+            bst = getattr(self.reg, "_Booster", None)
+        if bst is None:
+            raise RuntimeError("XGBBundle: no pude obtener Booster para calbración")
+        dumps = bst.get_dump(with_stats=False, dump_format="json")
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+        if n_use is not None and 0 < n_use < len(dumps):
+            dumps = dumps[:n_use]
+        return dumps
+
+    def _eval_sum_leaves(self, Xp_row: np.ndarray) -> float:
+        # Recorre cada árbol con splits estrictos: izquierda si val < thr, derecha en caso contrario
+        dumps = self._get_dumps_limited()
+        s = 0.0
+        for js in dumps:
+            node = json.loads(js)
+            cur = node
+            while True:
+                if "leaf" in cur:
+                    s += float(cur["leaf"]) if cur["leaf"] is not None else 0.0
+                    break
+                f_idx = int(str(cur["split"]).replace("f", ""))
+                thr = float(cur["split_condition"])
+                yes_id = cur["yes"]
+                no_id  = cur["no"]
+                val = float(Xp_row[f_idx]) if f_idx < len(Xp_row) else 0.0
+                go_yes = (val < thr)
+                next_id = yes_id if go_yes else no_id
+                # avanzar al hijo solicitado
+                next_node = None
+                for ch in cur.get("children", []):
+                    if ch.get("nodeid") == next_id:
+                        next_node = ch
+                        break
+                if next_node is None:
+                    # fallback: primer hijo
+                    next_node = cur.get("children", [cur])[0]
+                cur = next_node
+        return float(s)
+
+    def autocalibrate_offset(self, X_ref: pd.DataFrame | None = None) -> float:
+        """
+        Calcula un offset b0 para alinear el embed (suma de hojas) con el margen del regressor
+        usando una fila de referencia. Si no se entrega X_ref, usa un vector cero con las
+        columnas feature_names_in(). Devuelve b0 y lo deja en self.b0_offset.
+        """
+        try:
+            feats = self.feature_names_in()
+            if X_ref is None:
+                Z = pd.DataFrame([[0.0] * len(feats)], columns=feats)
+            else:
+                # Asegura que Z tenga mismas columnas (faltantes a 0)
+                Z = pd.DataFrame([{c: float(X_ref.get(c, 0.0)) for c in feats}])
+
+            # Transformación del pre (pasa las columnas numéricas tal cual)
+            try:
+                Xp = self.pre.transform(Z)
+            except Exception:
+                Xp = Z.values
+
+            # y_out: margen del XGB
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+            if n_use and n_use > 0:
+                y_out = float(self.reg.predict(Xp, output_margin=True, iteration_range=(0, n_use))[0])
+            else:
+                y_out = float(self.reg.predict(Xp, output_margin=True)[0])
+
+            # y_in: suma de hojas emulando embed estricto
+            Xp_row = np.ravel(Xp)
+            y_in = self._eval_sum_leaves(Xp_row)
+
+            self.b0_offset = float(y_out - y_in)
+        except Exception:
+            self.b0_offset = 0.0
+        return self.b0_offset
 
     def is_log_target(self) -> bool:
         return self.log_target
@@ -306,9 +393,9 @@ class XGBBundle:
             raise RuntimeError("XGBBundle: no pude obtener Booster del modelo")
 
         try:
-            base = float(bst.attr("base_score") or 0.0)
+            _ = float(bst.attr("base_score") or 0.0)
         except Exception:
-            base = 0.0
+            _ = 0.0
 
         dumps = bst.get_dump(with_stats=False, dump_format="json")
         # Si hay early stopping, usa solo los primeros n arboles
@@ -323,7 +410,8 @@ class XGBBundle:
                 m._xgb_used_trees = int(n_use)
             except Exception:
                 pass
-        total_expr = gp.LinExpr(base)
+        # Nota: usamos 0.0 como base y luego, si hay b0_offset, lo aplicamos aparte.
+        total_expr = gp.LinExpr(0.0)
 
         def fin(v):
             try:

@@ -310,6 +310,12 @@ def main():
     else:
         bundle = XGBBundle()
 
+    # Auto‑calibración del offset b0 (alinear y_log embed con margen del XGB)
+    try:
+        bundle.autocalibrate_offset(None)
+    except Exception:
+        pass
+
     m: gp.Model = build_mip_embed(base_row=base_row, budget=args.budget, ct=ct, bundle=bundle)
 
     time_limit = PARAMS.time_limit

@@ -1,48 +1,48 @@
 idx,feature,value,LB,UB
-0,Lot Frontage,55.0,0.0,153.31
+0,Lot Frontage,68.5,0.0,152.295
 1,Lot Area,7000.0,7000.0,7000.0
 2,Utilities,3.0,-1.0,4.0
 3,Overall Qual,10.0,0.0,inf
 4,Overall Cond,10.0,0.0,inf
 5,Year Built,2025.0,0.0,inf
 6,Year Remod/Add,2025.0,0.0,inf
-7,Mas Vnr Area,673.0,0.0,931.2
+7,Mas Vnr Area,0.0,0.0,1022.52
 8,Exter Qual,4.0,-1.0,4.0
 9,Exter Cond,4.0,-1.0,4.0
 10,Bsmt Qual,4.0,-1.0,4.0
 11,Bsmt Cond,4.0,-1.0,4.0
-12,BsmtFin SF 1,384.0,0.0,1749.17
-13,BsmtFin SF 2,0.0,0.0,757.45
-14,Bsmt Unf SF,0.0,0.0,1854.09
-15,Total Bsmt SF,384.0,0.0,2242.79
+12,BsmtFin SF 1,225.0,0.0,1945.19
+13,BsmtFin SF 2,100.0,0.0,817.545
+14,Bsmt Unf SF,0.0,0.0,2004.255
+15,Total Bsmt SF,325.0,0.0,2531.605
 16,Heating QC,4.0,-1.0,4.0
-17,1st Flr SF,450.0,0.0,2383.68
-18,2nd Flr SF,0.0,0.0,1625.45
+17,1st Flr SF,450.0,0.0,2539.82
+18,2nd Flr SF,0.0,0.0,1723.96
 19,Low Qual Fin SF,0.0,0.0,inf
-20,Gr Liv Area,450.0,0.0,3110.15
-21,Bsmt Full Bath,2.0,0.0,2.02
-22,Bsmt Half Bath,1.0,0.0,1.01
-23,Full Bath,1.0,-0.0,6.0
-24,Half Bath,0.0,-0.0,5.0
-25,Bedroom AbvGr,2.0,-0.0,8.0
+20,Gr Liv Area,450.0,0.0,3525.19
+21,Bsmt Full Bath,1.0,0.0,1.52
+22,Bsmt Half Bath,0.0,0.0,0.51
+23,Full Bath,1.0,-0.0,5.0
+24,Half Bath,0.0,-0.0,4.0
+25,Bedroom AbvGr,2.0,-0.0,7.0
 26,Kitchen AbvGr,1.0,-0.0,3.0
 27,Kitchen Qual,4.0,-1.0,4.0
-28,TotRms AbvGrd,4.0,0.0,12.09
+28,TotRms AbvGrd,4.0,0.0,11.59
 29,Fireplaces,0.0,-0.0,3.0
 30,Fireplace Qu,1.0,-1.0,4.0
 31,Garage Yr Blt,0.0,0.0,inf
 32,Garage Cars,0.0,-0.0,4.0
-33,Garage Area,0.0,0.0,1163.75
+33,Garage Area,0.0,0.0,1208.18
 34,Garage Qual,-1.0,-1.0,4.0
 35,Garage Cond,-1.0,-1.0,4.0
-36,Wood Deck SF,0.0,0.0,526.0
-37,Open Porch SF,0.0,0.0,322.16
-38,Enclosed Porch,0.0,0.0,292.75
-39,3Ssn Porch,0.0,0.0,183.6
-40,Screen Porch,0.0,0.0,314.73
-41,Pool Area,0.0,0.0,700.0
-42,Pool QC,-1.0,-1.0,4.0
-43,Misc Val,0.0,0.0,1160.97
+36,Wood Deck SF,0.0,0.0,538.22
+37,Open Porch SF,0.0,0.0,437.28
+38,Enclosed Porch,0.0,0.0,291.82
+39,3Ssn Porch,0.0,0.0,76.51
+40,Screen Porch,0.0,0.0,266.955
+41,Pool Area,0.0,0.0,256.73
+42,Pool QC,-1.0,-1.0,3.0
+43,Misc Val,0.0,0.0,555.24
 44,Yr Sold,2025.0,0.0,inf
 45,MS SubClass_20,0.0,0.0,1.0
 46,MS SubClass_30,0.0,0.0,1.0
@@ -98,7 +98,7 @@ idx,feature,value,LB,UB
 96,Neighborhood_Edwards,0.0,0.0,1.0
 97,Neighborhood_Gilbert,0.0,0.0,1.0
 98,Neighborhood_Greens,0.0,0.0,1.0
-99,Neighborhood_GrnHill,0.0,0.0,1.0
+99,Neighborhood_GrnHill,1.0,0.0,1.0
 100,Neighborhood_IDOTRR,0.0,0.0,1.0
 101,Neighborhood_Landmrk,0.0,0.0,1.0
 102,Neighborhood_MeadowV,0.0,0.0,1.0
@@ -112,7 +112,7 @@ idx,feature,value,LB,UB
 110,Neighborhood_SWISU,0.0,0.0,1.0
 111,Neighborhood_Sawyer,0.0,0.0,1.0
 112,Neighborhood_SawyerW,0.0,0.0,1.0
-113,Neighborhood_Somerst,1.0,0.0,1.0
+113,Neighborhood_Somerst,0.0,0.0,1.0
 114,Neighborhood_StoneBr,0.0,0.0,1.0
 115,Neighborhood_Timber,0.0,0.0,1.0
 116,Neighborhood_Veenker,0.0,0.0,1.0
@@ -138,14 +138,14 @@ idx,feature,value,LB,UB
 136,Bldg Type_Duplex,0.0,0.0,1.0
 137,Bldg Type_Twnhs,0.0,0.0,1.0
 138,Bldg Type_TwnhsE,0.0,0.0,1.0
-139,House Style_1.5Fin,0.9999989999999996,0.0,1.0
+139,House Style_1.5Fin,0.5,0.0,1.0
 140,House Style_1.5Unf,0.0,0.0,1.0
 141,House Style_1Story,0.0,0.0,1.0
 142,House Style_2.5Fin,0.0,0.0,1.0
-143,House Style_2.5Unf,0.0,0.0,1.0
+143,House Style_2.5Unf,1.0,0.0,1.0
 144,House Style_2Story,1.0,0.0,1.0
-145,House Style_SFoyer,0.0,0.0,1.0
-146,House Style_SLvl,0.9999989999999996,0.0,1.0
+145,House Style_SFoyer,0.5,0.0,1.0
+146,House Style_SLvl,0.5,0.0,1.0
 147,Roof Style_Flat,0.0,0.0,1.0
 148,Roof Style_Gable,1.0,0.0,1.0
 149,Roof Style_Gambrel,0.0,0.0,1.0
@@ -181,7 +181,7 @@ idx,feature,value,LB,UB
 179,Exterior 2nd_Brk Cmn,0.0,0.0,1.0
 180,Exterior 2nd_BrkFace,0.0,0.0,1.0
 181,Exterior 2nd_CBlock,0.0,0.0,1.0
-182,Exterior 2nd_CmentBd,1.0,0.0,1.0
+182,Exterior 2nd_CmentBd,0.5,0.0,1.0
 183,Exterior 2nd_HdBoard,0.0,0.0,1.0
 184,Exterior 2nd_ImStucc,0.0,0.0,1.0
 185,Exterior 2nd_MetalSd,0.0,0.0,1.0
@@ -192,11 +192,11 @@ idx,feature,value,LB,UB
 190,Exterior 2nd_Stucco,1.0,0.0,1.0
 191,Exterior 2nd_VinylSd,0.0,0.0,1.0
 192,Exterior 2nd_Wd Sdng,0.0,0.0,1.0
-193,Exterior 2nd_Wd Shng,0.9999989999999996,0.0,1.0
-194,Mas Vnr Type_BrkCmn,1.0,0.0,1.0
+193,Exterior 2nd_Wd Shng,0.0,0.0,1.0
+194,Mas Vnr Type_BrkCmn,0.0,0.0,1.0
 195,Mas Vnr Type_BrkFace,0.0,0.0,1.0
 196,Mas Vnr Type_CBlock,0.0,0.0,1.0
-197,Mas Vnr Type_No aplica,0.0,0.0,1.0
+197,Mas Vnr Type_No aplica,1.0,0.0,1.0
 198,Mas Vnr Type_NoAplica,0.0,0.0,1.0
 199,Mas Vnr Type_Stone,0.0,0.0,1.0
 200,Foundation_BrkTil,0.0,0.0,1.0
@@ -206,22 +206,22 @@ idx,feature,value,LB,UB
 204,Foundation_Stone,0.0,0.0,1.0
 205,Foundation_Wood,0.0,0.0,1.0
 206,Bsmt Exposure_Av,0.0,0.0,1.0
-207,Bsmt Exposure_Gd,1.0,0.0,1.0
+207,Bsmt Exposure_Gd,0.0,0.0,1.0
 208,Bsmt Exposure_Mn,0.0,0.0,1.0
-209,Bsmt Exposure_No,0.0,0.0,1.0
+209,Bsmt Exposure_No,1.0,0.0,1.0
 210,Bsmt Exposure_No aplica,0.0,0.0,1.0
-211,BsmtFin Type 1_ALQ,0.0,0.0,1.0
-212,BsmtFin Type 1_BLQ,1.0,0.0,1.0
+211,BsmtFin Type 1_ALQ,1.0,0.0,1.0
+212,BsmtFin Type 1_BLQ,0.0,0.0,1.0
 213,BsmtFin Type 1_GLQ,0.0,0.0,1.0
 214,BsmtFin Type 1_LwQ,0.0,0.0,1.0
 215,BsmtFin Type 1_No aplica,0.0,0.0,1.0
 216,BsmtFin Type 1_Rec,0.0,0.0,1.0
 217,BsmtFin Type 1_Unf,0.0,0.0,1.0
-218,BsmtFin Type 2_ALQ,0.0,0.0,1.0
+218,BsmtFin Type 2_ALQ,1.0,0.0,1.0
 219,BsmtFin Type 2_BLQ,0.0,0.0,1.0
 220,BsmtFin Type 2_GLQ,0.0,0.0,1.0
 221,BsmtFin Type 2_LwQ,0.0,0.0,1.0
-222,BsmtFin Type 2_No aplica,1.0,0.0,1.0
+222,BsmtFin Type 2_No aplica,0.0,0.0,1.0
 223,BsmtFin Type 2_Rec,0.0,0.0,1.0
 224,BsmtFin Type 2_Unf,0.0,0.0,1.0
 225,Heating_Floor,1.0,0.0,1.0
@@ -257,7 +257,7 @@ idx,feature,value,LB,UB
 255,Garage Finish_RFn,0.0,0.0,1.0
 256,Garage Finish_Unf,0.0,0.0,1.0
 257,Paved Drive_N,0.0,0.0,1.0
-258,Paved Drive_P,0.9999989999999996,0.0,1.0
+258,Paved Drive_P,0.5,0.0,1.0
 259,Paved Drive_Y,1.0,0.0,1.0
 260,Fence_GdPrv,0.0,0.0,1.0
 261,Fence_GdWo,0.0,0.0,1.0
