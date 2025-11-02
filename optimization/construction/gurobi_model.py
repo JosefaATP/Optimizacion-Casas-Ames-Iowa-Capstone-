@@ -133,7 +133,11 @@ def _enforce_exclusive_ohe(m: gp.Model, x: Dict[str, gp.Var], feat_order: list[s
 # ===================== inputs en el orden del XGB (features) ======================
 
 def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row, lot_area) -> tuple[List[str], Dict[str, gp.Var]]:
-    feat_order: List[str] = list(bundle.feature_names_in())
+    # Importante: usar el orden que ve el Booster (ColumnTransformer numeric cols)
+    try:
+        feat_order: List[str] = list(bundle.booster_feature_order())
+    except Exception:
+        feat_order = list(bundle.feature_names_in())
     x_vars: Dict[str, gp.Var] = {}
 
     INT_NAMES = {"Full Bath","Half Bath","Bedroom AbvGr","Kitchen AbvGr","Garage Cars","Fireplaces"}
@@ -314,7 +318,11 @@ def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
             x_list_vars.append(x[col])
 
     # embebe arboles (la implementacion en xgb_predictor evita 1 - z con binaria complemento)
-    bundle.attach_to_gurobi(m, x_list_vars, y_log)
+    # Usa versión estricta del embed: emula "x < thr" para ramas izquierdas
+    try:
+        bundle.attach_to_gurobi_strict(m, x_list_vars, y_log)
+    except Exception:
+        bundle.attach_to_gurobi(m, x_list_vars, y_log)
 
     # map log -> price via PWL expm1 (tu entrenamiento usa log1p)
     y_price = m.addVar(lb=0.0, name="y_price")
@@ -643,7 +651,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # === fijar OHE de MS SubClass (dato base, no decisión) ===
     try:
         ms_cols = [c for c in feat_order if c.startswith("MS SubClass_") and c in x]
-        if ms_cols:
+        if False and ms_cols:
             # usa valor de base_row si existe, si no, 20
             ms_val = str(int(base_row.get("MS SubClass", 20)))
             pick_ms = f"MS SubClass_{ms_val}"
@@ -865,13 +873,25 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     if K_max:
         m.addConstr(Kitchen  <= gp.quicksum(float(K_max.get(b, 1e6))*Bldg[b] for b in bldg_opts), name="7.3.4__kitchen_cap")
     else:
-        # Guard-rail opcional para 1Fam: a falta de cap en PDF, muchos catálogos imponen 1 cocina en unifamiliar
-        # Se puede desactivar con ct.enforce_single_kitchen_1fam = False
-        if bool(getattr(ct, 'enforce_single_kitchen_1fam', True)):
-            try:
-                m.addConstr(Kitchen <= 1.0 * Bldg['1Fam'] + 10.0 * (1 - Bldg['1Fam']), name="7.3.4__kitchen_guard_1fam")
-            except Exception:
-                pass
+        # Regla opcional por tamaño: permitir más cocinas en 1Fam si la casa es muy grande
+        thr = getattr(ct, 'kitchen_by_area_thresholds', None)  # p.ej. [3200, 5000]
+        if thr and xgr is not None and '1Fam' in Bldg:
+            z = []
+            Ugr = 0.8 * float(lot_area)
+            for i, t in enumerate(thr):
+                zi = m.addVar(vtype=GRB.BINARY, name=f"zKitchen_{i+2}")
+                # xgr >= t - M*(1-zi)
+                m.addConstr(xgr >= float(t) - Ugr * (1 - zi), name=f"11.xx__kitch_allow_if_area_{i+2}")
+                z.append(zi)
+            # Kitchen <= 1 + sum(z) si 1Fam; libre (<=10) si no 1Fam
+            m.addConstr(Kitchen <= 1 + gp.quicksum(z) + 10.0 * (1 - Bldg['1Fam']), name="7.3.4__kitchen_by_area_1fam")
+        else:
+            # Guard-rail por defecto: Kitchen ≤ 1 en 1Fam (se puede desactivar en ct)
+            if bool(getattr(ct, 'enforce_single_kitchen_1fam', True)):
+                try:
+                    m.addConstr(Kitchen <= 1.0 * Bldg['1Fam'] + 10.0 * (1 - Bldg['1Fam']), name="7.3.4__kitchen_guard_1fam")
+                except Exception:
+                    pass
     Fireplaces = _safe_get(x, "Fireplaces") or m.addVar(vtype=GRB.INTEGER, lb=0, name="Fireplaces")
     if Ch_max:
         m.addConstr(Fireplaces <= gp.quicksum(float(Ch_max.get(b, 1e6))*Bldg[b] for b in bldg_opts), name="7.3.5__fireplaces_cap")
@@ -971,6 +991,23 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     HS = _one_hot(m, "HouseStyle", hs_opts)
     _tie_one_hot_to_x(m, x, "HouseStyle", HS)
     m.addConstr(Floor2 <= HS["2Story"], name="11.1__floor2_only_if_2story")
+
+    # MS SubClass coherente con HouseStyle (1Story->20, 2Story->60)
+    try:
+        ms20 = x.get("MS SubClass_20")
+        ms60 = x.get("MS SubClass_60")
+        if ms20 is not None:
+            m.addConstr(ms20 == HS.get("1Story", 0), name="link__mssubclass__20_if_1story")
+        if ms60 is not None:
+            m.addConstr(ms60 == HS.get("2Story", 0), name="link__mssubclass__60_if_2story")
+        # apaga el resto de subclasses si existen
+        for c in [c for c in x.keys() if c.startswith("MS SubClass_") and c not in ("MS SubClass_20","MS SubClass_60")]:
+            try:
+                m.addConstr(x[c] == 0.0, name=f"link__mssubclass__off__{c}")
+            except Exception:
+                pass
+    except Exception:
+        pass
 
     # 7.xx Exclusividades adicionales (Heating / Central Air / Electrical / PavedDrive)
     heat_opts = ["Floor","GasA","GasW","Grav","OthW","Wall"]

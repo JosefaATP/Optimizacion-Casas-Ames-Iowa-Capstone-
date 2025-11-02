@@ -255,3 +255,10 @@ class CostTables:
     project_fixed: float = 0.0
     def initial_cost(self, base_row) -> float:
         return float(base_row.get("InitialCost", 0.0))
+
+    # ====== REGLAS OPCIONALES (gating por tamaño, guard-rails) ======
+    # Permite más cocinas en 1Fam si el área de living supera estos umbrales (ft2)
+    # Se usa en gurobi_model si está definido.
+    kitchen_by_area_thresholds: list[float] = field(default_factory=lambda: [3200.0, 5000.0])
+    # Guard-rail por defecto: Kitchen <= 1 en 1Fam cuando no aplica el gating por tamaño
+    enforce_single_kitchen_1fam: bool = True

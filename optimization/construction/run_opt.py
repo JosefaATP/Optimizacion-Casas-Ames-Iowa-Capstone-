@@ -188,6 +188,23 @@ def audit_predict_outside(m: gp.Model, bundle: XGBBundle):
         print(f"[AUDIT] y_log_in={ylog_in:.4f} | y_log_out={ylog_out:.4f} | delta={ylog_in - ylog_out:+.4f}")
         yprice_in = float(getattr(m, '_y_price_var', None).X) if getattr(m, '_y_price_var', None) is not None else float('nan')
         print(f"[AUDIT] y_price_in={yprice_in:,.2f} | y_price_out={y_out:,.2f} | delta={yprice_in - y_out:,.2f}")
+        # Verificar orden de features (Booster vs Z)
+        try:
+            bo = bundle.booster_feature_order()
+            if list(Z.columns) != list(bo):
+                # imprime primeras diferencias
+                mism = [i for i,(a,b) in enumerate(zip(Z.columns, bo)) if a!=b]
+                print(f"[AUDIT] booster_feature_order difiere en {len(mism)} posiciones (muestra hasta 10):")
+                for i in mism[:10]:
+                    print(f"  idx {i}: Z={Z.columns[i]} | booster={bo[i]}")
+        except Exception as _e:
+            pass
+        # Guardar para CSV
+        try:
+            m._diag_y_price_out = float(y_out)
+            m._diag_y_log_out = float(ylog_out)
+        except Exception:
+            pass
     except Exception as e:
         print(f"[AUDIT] fallo predict fuera: {e}")
 
@@ -411,6 +428,9 @@ def main():
                 'runtime_s': float(getattr(m, 'Runtime', 0.0)),
                 'gap': float(getattr(m, 'MIPGap', float('nan'))),
                 'y_price': y_price,
+                'y_price_out': float(getattr(m, '_diag_y_price_out', float('nan'))),
+                'y_log_in': float(getattr(m, '_y_log_var', None).X) if getattr(m, '_y_log_var', None) is not None else float('nan'),
+                'y_log_out': float(getattr(m, '_diag_y_log_out', float('nan'))),
                 'cost': total_cost,
                 'obj': obj,
                 'floor1': vnum('Floor1'),

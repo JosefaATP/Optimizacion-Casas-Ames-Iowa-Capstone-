@@ -10,7 +10,9 @@ def main():
     ap.add_argument('--budgets', default='200000,500000,700000')
     ap.add_argument('--profile', default='feasible')
     ap.add_argument('--fast', action='store_true', default=False)
-    ap.add_argument('--limit-neigh', type=int, default=None)
+    ap.add_argument('--limit-neigh', type=int, default=None, help='toma los primeros N vecindarios (ordenados)')
+    ap.add_argument('--sample-neigh', type=int, default=None, help='toma una muestra aleatoria de N vecindarios')
+    ap.add_argument('--seed', type=int, default=42)
     args = ap.parse_args()
 
     df = pd.read_csv(args.csv, sep=None, engine='python')
@@ -26,7 +28,10 @@ def main():
     if ncol is None:
         raise ValueError('No se encontró columna Neighborhood en el CSV')
     neighs = sorted(df[ncol].dropna().unique().tolist())
-    if args.limit_neigh:
+    if args.sample_neigh:
+        # muestra aleatoria de vecindarios
+        neighs = pd.Series(neighs).sample(n=args.sample_neigh, random_state=args.seed, replace=False).tolist()
+    elif args.limit_neigh:
         neighs = neighs[:args.limit_neigh]
     budgets = [int(b) for b in args.budgets.split(',') if b.strip()]
 

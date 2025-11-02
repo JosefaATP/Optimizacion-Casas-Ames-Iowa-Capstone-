@@ -141,3 +141,1607 @@ H    0     0                    9496.8257708 285240.879  2904%     -   43s
 H    0     0                    12004.618027 285240.879  2276%     -   43s
      0     0 244565.708    0 2229 12004.6180 244565.708  1937%     -   47s
 H    0     0                    12784.300203 244305.900  1811%     -   47s
+     0     0 42373.9118    0 1621 12784.3002 42373.9118   231%     -   49s
+     0     0 39598.4534    0  403 12784.3002 39598.4534   210%     -   50s
+     0     0 39598.4534    0  387 12784.3002 39598.4534   210%     -   50s
+     0     0 39531.1010    0  184 12784.3002 39531.1010   209%     -   50s
+     0     0 39531.1010    0  104 12784.3002 39531.1010   209%     -   50s
+     0     0 39345.0361    0  102 12784.3002 39345.0361   208%     -   50s
+     0     0 39345.0361    0  101 12784.3002 39345.0361   208%     -   50s
+     0     0 38673.9803    0   59 12784.3002 38673.9803   203%     -   51s
+     0     0 38673.9803    0 1264 12784.3002 38673.9803   203%     -   67s
+H    0     0                    12947.512233 25133.9621  94.1%     -   71s
+     0     0 25133.9621    0  996 12947.5122 25133.9621  94.1%     -   71s
+     0     0 22034.6395    0  738 12947.5122 22034.6395  70.2%     -   71s
+     0     0 20531.4977    0  740 12947.5122 20531.4977  58.6%     -   72s
+     0     0 20351.2855    0  696 12947.5122 20351.2855  57.2%     -   72s
+     0     0 17599.9323    0  865 12947.5122 17599.9323  35.9%     -   74s
+     0     0 17581.1996    0  827 12947.5122 17581.1996  35.8%     -   74s
+     0     0 16275.6416    0  811 12947.5122 16275.6416  25.7%     -   75s
+     0     0 16275.1956    0  748 12947.5122 16275.1956  25.7%     -   75s
+     0     0 16069.2519    0  864 12947.5122 16069.2519  24.1%     -   75s
+     0     0 15538.3263    0  541 12947.5122 15538.3263  20.0%     -   80s
+     0     0 15538.3263    0  513 12947.5122 15538.3263  20.0%     -   85s
+     0     0 15538.3263    0  822 12947.5122 15538.3263  20.0%     -   87s
+     0     0 15123.9308    0  412 12947.5122 15123.9308  16.8%     -   87s
+     0     0 14307.5138    0  504 12947.5122 14307.5138  10.5%     -   87s
+     0     0 14265.7679    0  283 12947.5122 14265.7679  10.2%     -   88s
+     0     0 14123.3690    0  485 12947.5122 14123.3690  9.08%     -   88s
+     0     0 14052.6926    0  289 12947.5122 14052.6926  8.54%     -   89s
+     0     0 13964.8162    0  491 12947.5122 13964.8162  7.86%     -   92s
+     0     0 13964.8162    0  381 12947.5122 13964.8162  7.86%     -   94s
+     0     0 13964.8162    0  492 12947.5122 13964.8162  7.86%     -   95s
+     0     0 13964.8162    0  482 12947.5122 13964.8162  7.86%     -   96s
+     0     0 13821.2295    0  464 12947.5122 13821.2295  6.75%     -   96s
+     0     0 13778.6101    0  460 12947.5122 13778.6101  6.42%     -   96s
+     0     0 13722.0730    0  465 12947.5122 13722.0730  5.98%     -   97s
+     0     0 13686.9256    0  465 12947.5122 13686.9256  5.71%     -   97s
+H    0     0                    13150.495637 13686.9256  4.08%     -   98s
+H    0     0                    13272.949657 13686.8390  3.12%     -   99s
+     0     0 13686.8390    0  358 13272.9497 13686.8390  3.12%     -  100s
+     0     0 13686.8390    0  281 13272.9497 13686.8390  3.12%     -  101s
+     0     0 13686.8390    0  245 13272.9497 13686.8390  3.12%     -  101s
+     0     0 13686.8390    0  298 13272.9497 13686.8390  3.12%     -  101s
+     0     0 13643.2186    0  161 13272.9497 13643.2186  2.79%     -  102s
+     0     0 13600.0936    0  162 13272.9497 13600.0936  2.46%     -  102s
+     0     0 13306.7956    0  163 13272.9497 13306.7956  0.25%     -  104s
+     0     0 13306.7956    0  287 13272.9497 13306.7956  0.25%     -  105s
+     0     0 13306.7956    0  166 13272.9497 13306.7956  0.25%     -  105s
+     0     0 13306.7956    0  364 13272.9497 13306.7956  0.25%     -  106s
+     0     0 13306.7956    0  137 13272.9497 13306.7956  0.25%     -  106s
+     0     0 13306.7956    0  154 13272.9497 13306.7956  0.25%     -  106s
+     0     0 13306.7956    0  154 13272.9497 13306.7956  0.25%     -  106s
+     0     0 13306.7956    0  249 13272.9497 13306.7956  0.25%     -  107s
+     0     0 13306.7956    0  230 13272.9497 13306.7956  0.25%     -  109s
+     0     0 13306.7956    0  158 13272.9497 13306.7956  0.25%     -  109s
+     0     0 13306.7956    0  151 13272.9497 13306.7956  0.25%     -  109s
+     0     0 13306.7956    0  147 13272.9497 13306.7956  0.25%     -  109s
+     0     0 13306.7956    0  146 13272.9497 13306.7956  0.25%     -  109s
+     0     0 13306.7956    0  136 13272.9497 13306.7956  0.25%     -  109s
+
+Cutting planes:
+  Learned: 17
+  Lift-and-project: 4
+  Cover: 95
+  Implied bound: 7
+  Projected implied bound: 5
+  Clique: 392
+  MIR: 24
+  StrongCG: 4
+  Flow cover: 97
+  GUB cover: 9
+  Zero half: 46
+  RLT: 11
+  Relax-and-lift: 27
+  BQP: 40
+  PSD: 10
+
+Explored 1 nodes (21814 simplex iterations) in 111.65 seconds (24.60 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 6: 13272.9 13150.5 12947.5 ... 9496.83
+
+Optimal solution found (tolerance 1.00e-03)
+Best objective 1.327294965668e+04, best bound 1.328389992387e+04, gap 0.0825%
+[STATUS] gurobi Status = 2
+
+==== HOUSE SUMMARY ====
+pisos: floor1=1.0, floor2=0.0
+areas: 1st=450.0, 2nd=0.0, bsmt=384.0, garage=0.0
+ambientes: beds=2.0, bathsF=1.0, bathsH=0.0, kitchen=1.0
+roof: Gable-Roll
+features: heating=Floor, electrical=FuseP, paved=Y, ext1=Stucco, ext2=Stucco, foundation=PConc (450 ft2)
+precio_predicho = 207,752
+log_precio = 12.2440
+
+-- areas por ambiente (ft2) --
+Kitchen     : 1st= 170.0  2nd=   0.0  total= 170.0
+FullBath    : 1st=  40.0  2nd=   0.0  total=  40.0
+HalfBath    : 1st=   0.0  2nd=   0.0  total=   0.0
+Bedroom     : 1st= 140.0  2nd=   0.0  total= 140.0
+Other       : 1st= 100.0  2nd=   0.0  total= 100.0
+
+-- top costos --
+AreaBedroom                  =       45,500  (coef 325.0 * 140.0)
+AreaKitchen                  =       34,000  (coef 200.0 * 170.0)
+Utilities AllPub             =       31,750  (coef 31,750.0 * 1.0)
+AreaOther1 @construction     =       23,000  (coef 230.0 * 100.0)
+AreaFullBath                 =       20,000  (coef 500.0 * 40.0)
+RoofMatl Roll                =        7,600  (coef 7,600.0 * 1.0)
+Exterior2nd Stucco           =        5,629  (coef 5,629.0 * 1.0)
+Exterior1st Stucco           =        5,629  (coef 5,629.0 * 1.0)
+BsmtFin SF 1 @finish         =        5,550  (coef 15.0 * 370.0)
+Fireplace EX                 =        4,550  (coef 4,550.0 * 1.0)
+FA PConc                     =        4,500  (coef 10.0 * 450.0)
+Enclosed Porch               =        3,120  (coef 80.0 * 39.0)
+[AUDIT] hay _X_input disponible para comparar con el XGB fuera del MIP
+
+-- XGB INPUT (primeras 30) --
+  0 Lot Frontage              =   53.000  [0.0,153.3]
+  1 Lot Area                  = 7000.000  [7,000.0,7,000.0]
+  2 Utilities                 =    3.000  [-1.0,4.0]
+  3 Overall Qual              =   10.000  [0.0,inf]
+  4 Overall Cond              =   10.000  [0.0,inf]
+  5 Year Built                = 2025.000  [0.0,inf]
+  6 Year Remod/Add            = 2025.000  [0.0,inf]
+  7 Mas Vnr Area              =  673.000  [0.0,931.2]
+  8 Exter Qual                =    4.000  [-1.0,4.0]
+  9 Exter Cond                =    4.000  [-1.0,4.0]
+ 10 Bsmt Qual                 =    4.000  [-1.0,4.0]
+ 11 Bsmt Cond                 =    4.000  [-1.0,4.0]
+ 12 BsmtFin SF 1              =  370.000  [0.0,1,749.2]
+ 13 BsmtFin SF 2              =   14.000  [0.0,757.5]
+ 14 Bsmt Unf SF               =    0.000  [0.0,1,854.1]
+ 15 Total Bsmt SF             =  384.000  [0.0,2,242.8]
+ 16 Heating QC                =    4.000  [-1.0,4.0]
+ 17 1st Flr SF                =  450.000  [0.0,2,383.7]
+ 18 2nd Flr SF                =    0.000  [0.0,1,625.5]
+ 19 Low Qual Fin SF           =    0.000  [0.0,inf]
+ 20 Gr Liv Area               =  450.000  [0.0,3,110.2]
+ 21 Bsmt Full Bath            =    2.000  [0.0,2.0]
+ 22 Bsmt Half Bath            =    1.000  [0.0,1.0]
+ 23 Full Bath                 =    1.000  [-0.0,6.0]
+ 24 Half Bath                 =    0.000  [-0.0,5.0]
+ 25 Bedroom AbvGr             =    2.000  [-0.0,8.0]
+ 26 Kitchen AbvGr             =    1.000  [-0.0,3.0]
+ 27 Kitchen Qual              =    4.000  [-1.0,4.0]
+ 28 TotRms AbvGrd             =    4.000  [0.0,12.1]
+ 29 Fireplaces                =    1.000  [-0.0,3.0]
+ 30 Fireplace Qu              =    1.000  [-1.0,4.0]
+ 31 Garage Yr Blt             =    0.000  [0.0,inf]
+ 32 Garage Cars               =    0.000  [-0.0,4.0]
+ 33 Garage Area               =    0.000  [0.0,1,163.8]
+ 34 Garage Qual               =   -1.000  [-1.0,4.0]
+ 35 Garage Cond               =   -1.000  [-1.0,4.0]
+ 36 Wood Deck SF              =    0.000  [0.0,526.0]
+ 37 Open Porch SF             =    0.000  [0.0,322.2]
+ 38 Enclosed Porch            =   39.000  [0.0,292.8]
+ 39 3Ssn Porch                =    0.000  [0.0,183.6]
+ 40 Screen Porch              =    0.000  [0.0,314.7]
+ 41 Pool Area                 =    0.000  [0.0,700.0]
+ 42 Pool QC                   =   -1.000  [-1.0,4.0]
+ 43 Misc Val                  =    0.000  [0.0,1,161.0]
+ 44 Yr Sold                   = 2025.000  [0.0,inf]
+ 45 MS SubClass_20            =    1.000  [0.0,1.0]
+ 46 MS SubClass_30            =    0.000  [0.0,1.0]
+ 47 MS SubClass_40            =    0.000  [0.0,1.0]
+ 48 MS SubClass_45            =    0.000  [0.0,1.0]
+ 49 MS SubClass_50            =    0.000  [0.0,1.0]
+ 50 MS SubClass_60            =    0.000  [0.0,1.0]
+ 51 MS SubClass_70            =    0.000  [0.0,1.0]
+ 52 MS SubClass_75            =    0.000  [0.0,1.0]
+ 53 MS SubClass_80            =    0.000  [0.0,1.0]
+ 54 MS SubClass_85            =    0.000  [0.0,1.0]
+ 55 MS SubClass_90            =    0.000  [0.0,1.0]
+ 56 MS SubClass_120           =    0.000  [0.0,1.0]
+ 57 MS SubClass_150           =    0.000  [0.0,1.0]
+ 58 MS SubClass_160           =    0.000  [0.0,1.0]
+ 59 MS SubClass_180           =    0.000  [0.0,1.0]
+ 60 MS SubClass_190           =    0.000  [0.0,1.0]
+ 61 MS Zoning_A (agr)         =    0.000  [0.0,1.0]
+ 62 MS Zoning_C (all)         =    0.000  [0.0,1.0]
+ 63 MS Zoning_FV              =    0.000  [0.0,1.0]
+ 64 MS Zoning_I (all)         =    0.000  [0.0,1.0]
+ 65 MS Zoning_RH              =    0.000  [0.0,1.0]
+ 66 MS Zoning_RL              =    1.000  [0.0,1.0]
+ 67 MS Zoning_RM              =    0.000  [0.0,1.0]
+ 68 Street_Grvl               =    0.000  [0.0,1.0]
+ 69 Street_Pave               =    1.000  [0.0,1.0]
+[AUDIT] guardado X_input_after_opt.csv
+
+============================================================
+             RESULTADOS OPTIMIZACION CONSTRUCCION
+============================================================
+
+PID: N/A - Blmngtn | Presupuesto: $200,000
+Tiempo: 111.66s | Gap: 0.0825%
+
+resumen economico
+  Precio predicho (post):  $207,752
+  Costos totales modelo:   $194,479
+  Objetivo (utilidad):     $13,273  (= precio - costo)
+  Slack presupuesto:       $5,521
+
+[COST-BREAKDOWN] top terminos de costo (fallback):
+  AreaBedroom                         coef=  325.0000 * X=  140.0000  =>   45500.00
+  AreaKitchen                         coef=  200.0000 * X=  170.0000  =>   34000.00
+  Utilities AllPub                    coef=31750.0000 * X=    1.0000  =>   31750.00
+  AreaOther1 @construction            coef=  230.0000 * X=  100.0000  =>   23000.00
+  AreaFullBath                        coef=  500.0000 * X=   40.0000  =>   20000.00
+  RoofMatl Roll                       coef= 7600.0000 * X=    1.0000  =>    7600.00
+  Exterior1st Stucco                  coef= 5629.0000 * X=    1.0000  =>    5629.00
+  Exterior2nd Stucco                  coef= 5629.0000 * X=    1.0000  =>    5629.00
+  BsmtFin SF 1 @finish                coef=   15.0000 * X=  370.0000  =>    5550.00
+  Fireplace EX                        coef= 4550.0000 * X=    1.0000  =>    4550.00
+  FA PConc                            coef=   10.0000 * X=  450.0000  =>    4500.00
+  Enclosed Porch                      coef=   80.0000 * X=   39.0000  =>    3120.00
+  Heating Floor                       coef= 1773.0000 * X=    1.0000  =>    1773.00
+  Electrical FuseP                    coef=  850.0000 * X=    1.0000  =>     850.00
+  MasVnr BrkCmn                       coef=    1.2100 * X=  673.0000  =>     814.33
+[COST-CHECK] suma_terms=194,479.33  | cost_model=194,479.33  | diff=0.00
+
+[COST-CATEGORIES] seleccion y costo unitario (contrib puede ser 0):
+  Heating      -> Floor         coef= 1773.0000 * X= 1.0 =>    1773.00
+  Electrical   -> FuseP         coef=  850.0000 * X= 1.0 =>     850.00
+  PavedDrive   -> Y             coef=    4.0000 * X= 1.0 =>       4.00
+  RoofStyle    -> Gable         coef=    0.0000 * X= 1.0 =>       0.00
+  RoofMatl     -> Roll          coef= 7600.0000 * X= 1.0 =>    7600.00
+  Exterior1st  -> Stucco        coef= 5629.0000 * X= 1.0 =>    5629.00
+  Exterior2nd  -> Stucco        coef= 5629.0000 * X= 1.0 =>    5629.00
+  Foundation   -> PConc         coef=   10.0000 * X= 450.0 =>    4500.00
+  GarageFinish -> NA            coef=    0.0000 * X= 1.0 =>       0.00
+  Fence        -> No aplica     coef=    0.0000 * X= 1.0 =>       0.00
+  MiscFeature  -> No aplica     coef=    0.0000 * X= 1.0 =>       0.00
+[AUDIT] fallback pipe_full para predict fuera (iter_range dio NaN)
+[AUDIT] predict fuera = 268,693.00
+[AUDIT] y_log_in=12.2440 | y_log_out=12.5013 | delta=-0.2573
+[AUDIT] y_price_in=207,752.28 | y_price_out=268,693.00 | delta=-60,940.72
+
+============================================================
+                     FIN RESULTADOS
+============================================================
+
+Set parameter Username
+Set parameter LicenseID to value 2721990
+Academic license - for non-commercial use only - expires 2026-10-14
+Set parameter MIPGap to value 0.001
+Set parameter TimeLimit to value 300
+Set parameter FeasibilityTol to value 1e-07
+Set parameter IntFeasTol to value 1e-07
+Set parameter OptimalityTol to value 1e-07
+Set parameter NumericFocus to value 3
+Set parameter NumericFocus to value 1
+Set parameter MIPFocus to value 3
+Set parameter Cuts to value 2
+Set parameter Presolve to value 2
+Set parameter Symmetry to value 2
+Set parameter Method to value 2
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (win64 - Windows 11+.0 (26200.2))
+
+CPU model: Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz, instruction set [SSE2|AVX|AVX2]
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 90559 rows, 20842 columns and 201006 nonzeros
+Model fingerprint: 0xeab10352
+Model has 12 quadratic constraints
+Model has 130 general constraints
+Variable types: 389 continuous, 20453 integer (20419 binary)
+Coefficient statistics:
+  Matrix range     [5e-08, 1e+06]
+  QMatrix range    [4e-01, 1e+00]
+  QLMatrix range   [4e-01, 7e+03]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+00, 1e+06]
+  RHS range        [1e+00, 1e+06]
+  PWLCon x range   [1e+01, 1e+01]
+  PWLCon y range   [3e+04, 9e+05]
+  GenCon rhs range [1e+00, 1e+00]
+  GenCon coe range [1e+00, 1e+00]
+Warning: Model contains large matrix coefficient range
+Presolve removed 81429 rows and 13754 columns (presolve time = 5s) ...
+Presolve removed 81734 rows and 13779 columns (presolve time = 10s) ...
+Presolve removed 81734 rows and 13781 columns (presolve time = 15s) ...
+Presolve removed 81736 rows and 13781 columns (presolve time = 20s) ...
+Presolve removed 81483 rows and 13492 columns
+Presolve time: 20.93s
+Presolved: 9091 rows, 7365 columns, 54989 nonzeros
+Presolved model has 137 SOS constraint(s)
+Variable types: 249 continuous, 7116 integer (7104 binary)
+Root relaxation presolve removed 114 rows and 102 columns
+Root relaxation presolved: 8977 rows, 7263 columns, 54579 nonzeros
+
+Root barrier log...
+
+Ordering time: 0.32s
+Ordering time: 0.63s
+
+Barrier statistics:
+ Dense cols : 189
+ AA' NZ     : 1.892e+05
+ Factor NZ  : 2.303e+06 (roughly 25 MB of memory)
+ Factor Ops : 2.093e+09 (less than 1 second per iteration)
+ Threads    : 4
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   9.89343919e+05  5.44372145e+07  2.80e+04 1.11e+02  4.66e+05    23s
+   1   7.80571131e+05  9.93929083e+07  1.78e+04 7.33e+02  2.80e+05    23s
+   2   6.15216325e+05  1.35394772e+08  9.17e+03 4.07e+01  1.42e+05    23s
+   3   4.63866345e+05  1.00756013e+08  1.77e+03 6.88e-11  2.90e+04    23s
+   4   4.58298358e+05  6.30226537e+07  6.79e+02 2.29e-03  1.12e+04    23s
+   5   4.80639121e+05  4.05334742e+07  3.40e+02 7.38e-03  5.56e+03    23s
+   6   4.95122261e+05  2.74326102e+07  2.13e+02 5.17e-03  3.36e+03    23s
+   7   5.03104339e+05  1.39409522e+07  1.62e+02 2.17e-03  2.02e+03    24s
+   8   5.11381284e+05  9.10040576e+06  8.56e+01 2.77e-03  1.09e+03    24s
+   9   5.13370242e+05  4.21301691e+06  3.98e+01 5.88e-04  4.38e+02    24s
+  10   3.16198624e+05  3.33701262e+06  2.18e+01 4.02e-04  2.75e+02    24s
+  11   2.13768701e+05  1.84219482e+06  5.48e+00 3.12e-04  9.97e+01    24s
+  12   2.17164552e+05  8.12483609e+05  1.53e+00 2.92e-04  3.13e+01    24s
+  13   2.27472361e+05  4.99999147e+05  8.01e-01 1.00e-04  1.39e+01    25s
+  14   2.31138810e+05  4.57437419e+05  6.96e-01 1.25e-04  1.15e+01    25s
+  15   2.38117866e+05  4.14817284e+05  5.34e-01 1.03e-04  8.89e+00    25s
+  16   2.41143071e+05  3.90951641e+05  4.32e-01 1.13e-04  7.46e+00    25s
+  17   2.47371880e+05  3.75732790e+05  3.48e-01 1.09e-04  6.32e+00    26s
+  18   2.53205830e+05  3.63157570e+05  2.55e-01 8.37e-05  5.33e+00    26s
+  19   2.57146452e+05  3.44340572e+05  2.10e-01 3.03e-05  4.22e+00    26s
+  20   2.60858480e+05  3.31206823e+05  1.75e-01 3.27e-05  3.40e+00    26s
+  21   2.62134109e+05  3.28030778e+05  1.60e-01 3.58e-05  3.17e+00    26s
+  22   2.66899531e+05  3.20299008e+05  1.20e-01 2.14e-05  2.55e+00    26s
+  23   2.69858328e+05  3.06653123e+05  9.66e-02 2.10e-05  1.77e+00    27s
+  24   2.71744684e+05  3.01075226e+05  8.25e-02 2.96e-05  1.41e+00    27s
+  25   2.73196162e+05  2.94754400e+05  7.11e-02 7.32e-05  1.05e+00    27s
+  26   2.74226856e+05  2.94363885e+05  6.52e-02 6.73e-05  9.78e-01    27s
+  27   2.76104244e+05  2.93553647e+05  5.27e-02 7.74e-05  8.43e-01    27s
+  28   2.77193857e+05  2.92374875e+05  4.63e-02 6.50e-05  7.33e-01    27s
+  29   2.77607172e+05  2.92139751e+05  4.39e-02 5.80e-05  7.01e-01    28s
+  30   2.79800789e+05  2.89387805e+05  3.13e-02 8.88e-05  4.65e-01    28s
+  31   2.80728783e+05  2.88098370e+05  2.61e-02 3.62e-05  3.59e-01    28s
+  32   2.81199760e+05  2.87294175e+05  2.35e-02 2.03e-04  2.99e-01    28s
+  33   2.82800595e+05  2.86561133e+05  1.39e-02 1.99e-04  1.84e-01    28s
+  34   2.83320943e+05  2.86035799e+05  1.09e-02 4.43e-04  1.33e-01    28s
+  35   2.84178483e+05  2.85755751e+05  5.87e-03 2.52e-04  7.70e-02    28s
+  36   2.84442126e+05  2.85612768e+05  4.43e-03 1.44e-04  5.72e-02    29s
+  37   2.84741430e+05  2.85403007e+05  2.78e-03 7.52e-05  3.26e-02    29s
+  38   2.84908033e+05  2.85349123e+05  1.81e-03 8.25e-05  2.17e-02    29s
+  39   2.84998271e+05  2.85334581e+05  1.31e-03 6.70e-05  1.65e-02    29s
+  40   2.85099635e+05  2.85280466e+05  7.65e-04 1.03e-04  8.93e-03    29s
+  41   2.85159331e+05  2.85249399e+05  4.35e-04 4.06e-05  4.51e-03    29s
+  42   2.85237814e+05  2.85242446e+05  8.25e-06 9.35e-06  2.17e-04    30s
+  43   2.85239903e+05  2.85241127e+05  2.68e-06 2.26e-08  5.78e-05    30s
+  44   2.85240699e+05  2.85240902e+05  4.26e-07 1.29e-09  9.32e-06    30s
+  45   2.85240877e+05  2.85240884e+05  5.74e-09 1.77e-09  3.31e-07    30s
+  46   2.85240879e+05  2.85240879e+05  7.44e-07 3.29e-07  6.41e-10    31s
+
+Barrier solved model in 46 iterations and 30.56 seconds (7.74 work units)
+Optimal objective 2.85240879e+05
+
+
+Root crossover log...
+
+    2424 DPushes remaining with DInf 0.0000000e+00                31s
+       0 DPushes remaining with DInf 0.0000000e+00                31s
+
+       5 PPushes remaining with PInf 0.0000000e+00                31s
+       0 PPushes remaining with PInf 0.0000000e+00                31s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 1.2783989e-11     31s
+
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    1629    2.8524088e+05   0.000000e+00   0.000000e+00     31s
+    1629    2.8524088e+05   0.000000e+00   0.000000e+00     31s
+
+Root relaxation: objective 2.852409e+05, 1629 iterations, 9.46 seconds (2.21 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 285240.879    0 1722          - 285240.879      -     -   37s
+H    0     0                    9496.8257708 285240.879  2904%     -   43s
+H    0     0                    12004.618027 285240.879  2276%     -   43s
+     0     0 244565.708    0 2229 12004.6180 244565.708  1937%     -   48s
+H    0     0                    12784.300203 244305.900  1811%     -   49s
+     0     0 42373.9118    0 1621 12784.3002 42373.9118   231%     -   51s
+     0     0 39598.4534    0  403 12784.3002 39598.4534   210%     -   52s
+     0     0 39598.4534    0  387 12784.3002 39598.4534   210%     -   52s
+     0     0 39531.1010    0  184 12784.3002 39531.1010   209%     -   52s
+     0     0 39531.1010    0  104 12784.3002 39531.1010   209%     -   53s
+     0     0 39345.0361    0  102 12784.3002 39345.0361   208%     -   53s
+     0     0 39345.0361    0  101 12784.3002 39345.0361   208%     -   53s
+     0     0 38673.9803    0   59 12784.3002 38673.9803   203%     -   54s
+     0     0 38673.9803    0 1264 12784.3002 38673.9803   203%     -   72s
+H    0     0                    12947.512233 25133.9621  94.1%     -   75s
+     0     0 25133.9621    0  996 12947.5122 25133.9621  94.1%     -   76s
+     0     0 22034.6395    0  738 12947.5122 22034.6395  70.2%     -   76s
+     0     0 20531.4977    0  740 12947.5122 20531.4977  58.6%     -   77s
+     0     0 20351.2855    0  696 12947.5122 20351.2855  57.2%     -   77s
+     0     0 17599.9323    0  865 12947.5122 17599.9323  35.9%     -   79s
+     0     0 17581.1996    0  827 12947.5122 17581.1996  35.8%     -   79s
+     0     0 16275.6416    0  811 12947.5122 16275.6416  25.7%     -   80s
+     0     0 16275.1956    0  748 12947.5122 16275.1956  25.7%     -   80s
+     0     0 16069.2519    0  864 12947.5122 16069.2519  24.1%     -   80s
+     0     0 15538.3263    0  541 12947.5122 15538.3263  20.0%     -   83s
+     0     0 15538.3263    0  513 12947.5122 15538.3263  20.0%     -   88s
+     0     0 15538.3263    0  822 12947.5122 15538.3263  20.0%     -   90s
+     0     0 15123.9308    0  412 12947.5122 15123.9308  16.8%     -   91s
+     0     0 14307.5138    0  504 12947.5122 14307.5138  10.5%     -   91s
+     0     0 14265.7679    0  283 12947.5122 14265.7679  10.2%     -   91s
+     0     0 14123.3690    0  485 12947.5122 14123.3690  9.08%     -   92s
+     0     0 14052.6926    0  289 12947.5122 14052.6926  8.54%     -   92s
+     0     0 13964.8162    0  491 12947.5122 13964.8162  7.86%     -   95s
+     0     0 13964.8162    0  381 12947.5122 13964.8162  7.86%     -  101s
+     0     0 13964.8162    0  492 12947.5122 13964.8162  7.86%     -  102s
+     0     0 13964.8162    0  482 12947.5122 13964.8162  7.86%     -  103s
+     0     0 13821.2295    0  464 12947.5122 13821.2295  6.75%     -  103s
+     0     0 13778.6101    0  460 12947.5122 13778.6101  6.42%     -  103s
+     0     0 13722.0730    0  465 12947.5122 13722.0730  5.98%     -  106s
+     0     0 13686.9256    0  465 12947.5122 13686.9256  5.71%     -  106s
+H    0     0                    13150.495637 13686.9256  4.08%     -  106s
+H    0     0                    13272.949657 13686.8390  3.12%     -  107s
+     0     0 13686.8390    0  358 13272.9497 13686.8390  3.12%     -  116s
+     0     0 13686.8390    0  281 13272.9497 13686.8390  3.12%     -  119s
+     0     0 13686.8390    0  245 13272.9497 13686.8390  3.12%     -  119s
+     0     0 13686.8390    0  298 13272.9497 13686.8390  3.12%     -  119s
+     0     0 13643.2186    0  161 13272.9497 13643.2186  2.79%     -  120s
+     0     0 13600.0936    0  162 13272.9497 13600.0936  2.46%     -  120s
+     0     0 13306.7956    0  163 13272.9497 13306.7956  0.25%     -  122s
+     0     0 13306.7956    0  287 13272.9497 13306.7956  0.25%     -  123s
+     0     0 13306.7956    0  166 13272.9497 13306.7956  0.25%     -  124s
+     0     0 13306.7956    0  364 13272.9497 13306.7956  0.25%     -  125s
+     0     0 13306.7956    0  137 13272.9497 13306.7956  0.25%     -  125s
+     0     0 13306.7956    0  154 13272.9497 13306.7956  0.25%     -  125s
+     0     0 13306.7956    0  154 13272.9497 13306.7956  0.25%     -  126s
+     0     0 13306.7956    0  249 13272.9497 13306.7956  0.25%     -  127s
+     0     0 13306.7956    0  230 13272.9497 13306.7956  0.25%     -  129s
+     0     0 13306.7956    0  158 13272.9497 13306.7956  0.25%     -  129s
+     0     0 13306.7956    0  151 13272.9497 13306.7956  0.25%     -  129s
+     0     0 13306.7956    0  147 13272.9497 13306.7956  0.25%     -  130s
+     0     0 13306.7956    0  146 13272.9497 13306.7956  0.25%     -  130s
+     0     0 13306.7956    0  136 13272.9497 13306.7956  0.25%     -  130s
+
+Cutting planes:
+  Learned: 17
+  Lift-and-project: 4
+  Cover: 95
+  Implied bound: 7
+  Projected implied bound: 5
+  Clique: 392
+  MIR: 24
+  StrongCG: 4
+  Flow cover: 97
+  GUB cover: 9
+  Zero half: 46
+  RLT: 11
+  Relax-and-lift: 27
+  BQP: 40
+  PSD: 10
+
+Explored 1 nodes (21814 simplex iterations) in 131.63 seconds (24.60 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 6: 13272.9 13150.5 12947.5 ... 9496.83
+
+Optimal solution found (tolerance 1.00e-03)
+Best objective 1.327294965668e+04, best bound 1.328389992387e+04, gap 0.0825%
+[STATUS] gurobi Status = 2
+
+==== HOUSE SUMMARY ====
+pisos: floor1=1.0, floor2=0.0
+areas: 1st=450.0, 2nd=0.0, bsmt=384.0, garage=0.0
+ambientes: beds=2.0, bathsF=1.0, bathsH=0.0, kitchen=1.0
+roof: Gable-Roll
+features: heating=Floor, electrical=FuseP, paved=Y, ext1=Stucco, ext2=Stucco, foundation=PConc (450 ft2)
+precio_predicho = 207,752
+log_precio = 12.2440
+
+-- areas por ambiente (ft2) --
+Kitchen     : 1st= 170.0  2nd=   0.0  total= 170.0
+FullBath    : 1st=  40.0  2nd=   0.0  total=  40.0
+HalfBath    : 1st=   0.0  2nd=   0.0  total=   0.0
+Bedroom     : 1st= 140.0  2nd=   0.0  total= 140.0
+Other       : 1st= 100.0  2nd=   0.0  total= 100.0
+
+-- top costos --
+AreaBedroom                  =       45,500  (coef 325.0 * 140.0)
+AreaKitchen                  =       34,000  (coef 200.0 * 170.0)
+Utilities AllPub             =       31,750  (coef 31,750.0 * 1.0)
+AreaOther1 @construction     =       23,000  (coef 230.0 * 100.0)
+AreaFullBath                 =       20,000  (coef 500.0 * 40.0)
+RoofMatl Roll                =        7,600  (coef 7,600.0 * 1.0)
+Exterior2nd Stucco           =        5,629  (coef 5,629.0 * 1.0)
+Exterior1st Stucco           =        5,629  (coef 5,629.0 * 1.0)
+BsmtFin SF 1 @finish         =        5,550  (coef 15.0 * 370.0)
+Fireplace EX                 =        4,550  (coef 4,550.0 * 1.0)
+FA PConc                     =        4,500  (coef 10.0 * 450.0)
+Enclosed Porch               =        3,120  (coef 80.0 * 39.0)
+[AUDIT] hay _X_input disponible para comparar con el XGB fuera del MIP
+
+-- XGB INPUT (primeras 30) --
+  0 Lot Frontage              =   53.000  [0.0,153.3]
+  1 Lot Area                  = 7000.000  [7,000.0,7,000.0]
+  2 Utilities                 =    3.000  [-1.0,4.0]
+  3 Overall Qual              =   10.000  [0.0,inf]
+  4 Overall Cond              =   10.000  [0.0,inf]
+  5 Year Built                = 2025.000  [0.0,inf]
+  6 Year Remod/Add            = 2025.000  [0.0,inf]
+  7 Mas Vnr Area              =  673.000  [0.0,931.2]
+  8 Exter Qual                =    4.000  [-1.0,4.0]
+  9 Exter Cond                =    4.000  [-1.0,4.0]
+ 10 Bsmt Qual                 =    4.000  [-1.0,4.0]
+ 11 Bsmt Cond                 =    4.000  [-1.0,4.0]
+ 12 BsmtFin SF 1              =  370.000  [0.0,1,749.2]
+ 13 BsmtFin SF 2              =   14.000  [0.0,757.5]
+ 14 Bsmt Unf SF               =    0.000  [0.0,1,854.1]
+ 15 Total Bsmt SF             =  384.000  [0.0,2,242.8]
+ 16 Heating QC                =    4.000  [-1.0,4.0]
+ 17 1st Flr SF                =  450.000  [0.0,2,383.7]
+ 18 2nd Flr SF                =    0.000  [0.0,1,625.5]
+ 19 Low Qual Fin SF           =    0.000  [0.0,inf]
+ 20 Gr Liv Area               =  450.000  [0.0,3,110.2]
+ 21 Bsmt Full Bath            =    2.000  [0.0,2.0]
+ 22 Bsmt Half Bath            =    1.000  [0.0,1.0]
+ 23 Full Bath                 =    1.000  [-0.0,6.0]
+ 24 Half Bath                 =    0.000  [-0.0,5.0]
+ 25 Bedroom AbvGr             =    2.000  [-0.0,8.0]
+ 26 Kitchen AbvGr             =    1.000  [-0.0,3.0]
+ 27 Kitchen Qual              =    4.000  [-1.0,4.0]
+ 28 TotRms AbvGrd             =    4.000  [0.0,12.1]
+ 29 Fireplaces                =    1.000  [-0.0,3.0]
+ 30 Fireplace Qu              =    1.000  [-1.0,4.0]
+ 31 Garage Yr Blt             =    0.000  [0.0,inf]
+ 32 Garage Cars               =    0.000  [-0.0,4.0]
+ 33 Garage Area               =    0.000  [0.0,1,163.8]
+ 34 Garage Qual               =   -1.000  [-1.0,4.0]
+ 35 Garage Cond               =   -1.000  [-1.0,4.0]
+ 36 Wood Deck SF              =    0.000  [0.0,526.0]
+ 37 Open Porch SF             =    0.000  [0.0,322.2]
+ 38 Enclosed Porch            =   39.000  [0.0,292.8]
+ 39 3Ssn Porch                =    0.000  [0.0,183.6]
+ 40 Screen Porch              =    0.000  [0.0,314.7]
+ 41 Pool Area                 =    0.000  [0.0,700.0]
+ 42 Pool QC                   =   -1.000  [-1.0,4.0]
+ 43 Misc Val                  =    0.000  [0.0,1,161.0]
+ 44 Yr Sold                   = 2025.000  [0.0,inf]
+ 45 MS SubClass_20            =    1.000  [0.0,1.0]
+ 46 MS SubClass_30            =    0.000  [0.0,1.0]
+ 47 MS SubClass_40            =    0.000  [0.0,1.0]
+ 48 MS SubClass_45            =    0.000  [0.0,1.0]
+ 49 MS SubClass_50            =    0.000  [0.0,1.0]
+ 50 MS SubClass_60            =    0.000  [0.0,1.0]
+ 51 MS SubClass_70            =    0.000  [0.0,1.0]
+ 52 MS SubClass_75            =    0.000  [0.0,1.0]
+ 53 MS SubClass_80            =    0.000  [0.0,1.0]
+ 54 MS SubClass_85            =    0.000  [0.0,1.0]
+ 55 MS SubClass_90            =    0.000  [0.0,1.0]
+ 56 MS SubClass_120           =    0.000  [0.0,1.0]
+ 57 MS SubClass_150           =    0.000  [0.0,1.0]
+ 58 MS SubClass_160           =    0.000  [0.0,1.0]
+ 59 MS SubClass_180           =    0.000  [0.0,1.0]
+ 60 MS SubClass_190           =    0.000  [0.0,1.0]
+ 61 MS Zoning_A (agr)         =    0.000  [0.0,1.0]
+ 62 MS Zoning_C (all)         =    0.000  [0.0,1.0]
+ 63 MS Zoning_FV              =    0.000  [0.0,1.0]
+ 64 MS Zoning_I (all)         =    0.000  [0.0,1.0]
+ 65 MS Zoning_RH              =    0.000  [0.0,1.0]
+ 66 MS Zoning_RL              =    1.000  [0.0,1.0]
+ 67 MS Zoning_RM              =    0.000  [0.0,1.0]
+ 68 Street_Grvl               =    0.000  [0.0,1.0]
+ 69 Street_Pave               =    1.000  [0.0,1.0]
+[AUDIT] guardado X_input_after_opt.csv
+
+============================================================
+             RESULTADOS OPTIMIZACION CONSTRUCCION
+============================================================
+
+PID: N/A - Blmngtn | Presupuesto: $200,000
+Tiempo: 131.64s | Gap: 0.0825%
+
+resumen economico
+  Precio predicho (post):  $207,752
+  Costos totales modelo:   $194,479
+  Objetivo (utilidad):     $13,273  (= precio - costo)
+  Slack presupuesto:       $5,521
+
+[COST-BREAKDOWN] top terminos de costo (fallback):
+  AreaBedroom                         coef=  325.0000 * X=  140.0000  =>   45500.00
+  AreaKitchen                         coef=  200.0000 * X=  170.0000  =>   34000.00
+  Utilities AllPub                    coef=31750.0000 * X=    1.0000  =>   31750.00
+  AreaOther1 @construction            coef=  230.0000 * X=  100.0000  =>   23000.00
+  AreaFullBath                        coef=  500.0000 * X=   40.0000  =>   20000.00
+  RoofMatl Roll                       coef= 7600.0000 * X=    1.0000  =>    7600.00
+  Exterior1st Stucco                  coef= 5629.0000 * X=    1.0000  =>    5629.00
+  Exterior2nd Stucco                  coef= 5629.0000 * X=    1.0000  =>    5629.00
+  BsmtFin SF 1 @finish                coef=   15.0000 * X=  370.0000  =>    5550.00
+  Fireplace EX                        coef= 4550.0000 * X=    1.0000  =>    4550.00
+  FA PConc                            coef=   10.0000 * X=  450.0000  =>    4500.00
+  Enclosed Porch                      coef=   80.0000 * X=   39.0000  =>    3120.00
+  Heating Floor                       coef= 1773.0000 * X=    1.0000  =>    1773.00
+  Electrical FuseP                    coef=  850.0000 * X=    1.0000  =>     850.00
+  MasVnr BrkCmn                       coef=    1.2100 * X=  673.0000  =>     814.33
+[COST-CHECK] suma_terms=194,479.33  | cost_model=194,479.33  | diff=0.00
+
+[COST-CATEGORIES] seleccion y costo unitario (contrib puede ser 0):
+  Heating      -> Floor         coef= 1773.0000 * X= 1.0 =>    1773.00
+  Electrical   -> FuseP         coef=  850.0000 * X= 1.0 =>     850.00
+  PavedDrive   -> Y             coef=    4.0000 * X= 1.0 =>       4.00
+  RoofStyle    -> Gable         coef=    0.0000 * X= 1.0 =>       0.00
+  RoofMatl     -> Roll          coef= 7600.0000 * X= 1.0 =>    7600.00
+  Exterior1st  -> Stucco        coef= 5629.0000 * X= 1.0 =>    5629.00
+  Exterior2nd  -> Stucco        coef= 5629.0000 * X= 1.0 =>    5629.00
+  Foundation   -> PConc         coef=   10.0000 * X= 450.0 =>    4500.00
+  GarageFinish -> NA            coef=    0.0000 * X= 1.0 =>       0.00
+  Fence        -> No aplica     coef=    0.0000 * X= 1.0 =>       0.00
+  MiscFeature  -> No aplica     coef=    0.0000 * X= 1.0 =>       0.00
+[AUDIT] fallback pipe_full para predict fuera (iter_range dio NaN)
+[AUDIT] predict fuera = 268,693.00
+[AUDIT] y_log_in=12.2440 | y_log_out=12.5013 | delta=-0.2573
+[AUDIT] y_price_in=207,752.28 | y_price_out=268,693.00 | delta=-60,940.72
+
+============================================================
+                     FIN RESULTADOS
+============================================================
+
+Set parameter Username
+Set parameter LicenseID to value 2721990
+Academic license - for non-commercial use only - expires 2026-10-14
+Set parameter MIPGap to value 0.001
+Set parameter TimeLimit to value 300
+Set parameter FeasibilityTol to value 1e-07
+Set parameter IntFeasTol to value 1e-07
+Set parameter OptimalityTol to value 1e-07
+Set parameter NumericFocus to value 3
+Set parameter NumericFocus to value 1
+Set parameter MIPFocus to value 3
+Set parameter Cuts to value 2
+Set parameter Presolve to value 2
+Set parameter Symmetry to value 2
+Set parameter Method to value 2
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (win64 - Windows 11+.0 (26200.2))
+
+CPU model: Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz, instruction set [SSE2|AVX|AVX2]
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 90559 rows, 20842 columns and 201006 nonzeros
+Model fingerprint: 0xeab10352
+Model has 12 quadratic constraints
+Model has 130 general constraints
+Variable types: 389 continuous, 20453 integer (20419 binary)
+Coefficient statistics:
+  Matrix range     [5e-08, 1e+06]
+  QMatrix range    [4e-01, 1e+00]
+  QLMatrix range   [4e-01, 7e+03]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+00, 1e+06]
+  RHS range        [1e+00, 1e+06]
+  PWLCon x range   [1e+01, 1e+01]
+  PWLCon y range   [3e+04, 9e+05]
+  GenCon rhs range [1e+00, 1e+00]
+  GenCon coe range [1e+00, 1e+00]
+Warning: Model contains large matrix coefficient range
+Presolve removed 81429 rows and 13518 columns (presolve time = 5s) ...
+Presolve removed 81429 rows and 13754 columns (presolve time = 10s) ...
+Presolve removed 81734 rows and 13779 columns (presolve time = 15s) ...
+Presolve removed 81734 rows and 13781 columns (presolve time = 20s) ...
+Presolve removed 81734 rows and 13781 columns (presolve time = 25s) ...
+Presolve removed 81736 rows and 13781 columns (presolve time = 30s) ...
+Presolve removed 81483 rows and 13492 columns
+Presolve time: 30.43s
+Presolved: 9091 rows, 7365 columns, 54989 nonzeros
+Presolved model has 137 SOS constraint(s)
+Variable types: 249 continuous, 7116 integer (7104 binary)
+Root relaxation presolve removed 114 rows and 102 columns
+Root relaxation presolved: 8977 rows, 7263 columns, 54579 nonzeros
+
+Root barrier log...
+
+Ordering time: 0.26s
+Ordering time: 0.57s
+
+Barrier statistics:
+ Dense cols : 189
+ AA' NZ     : 1.892e+05
+ Factor NZ  : 2.303e+06 (roughly 25 MB of memory)
+ Factor Ops : 2.093e+09 (less than 1 second per iteration)
+ Threads    : 4
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   9.89343919e+05  5.44372145e+07  2.80e+04 1.11e+02  4.66e+05    32s
+   1   7.80571131e+05  9.93929083e+07  1.78e+04 7.33e+02  2.80e+05    32s
+   2   6.15216325e+05  1.35394772e+08  9.17e+03 4.07e+01  1.42e+05    32s
+   3   4.63866345e+05  1.00756013e+08  1.77e+03 6.88e-11  2.90e+04    32s
+   4   4.58298358e+05  6.30226537e+07  6.79e+02 2.29e-03  1.12e+04    32s
+   5   4.80639121e+05  4.05334742e+07  3.40e+02 7.38e-03  5.56e+03    32s
+   6   4.95122261e+05  2.74326102e+07  2.13e+02 5.17e-03  3.36e+03    32s
+   7   5.03104339e+05  1.39409522e+07  1.62e+02 2.17e-03  2.02e+03    32s
+   8   5.11381284e+05  9.10040576e+06  8.56e+01 2.77e-03  1.09e+03    32s
+   9   5.13370242e+05  4.21301691e+06  3.98e+01 5.88e-04  4.38e+02    32s
+  10   3.16198624e+05  3.33701262e+06  2.18e+01 4.02e-04  2.75e+02    33s
+  11   2.13768701e+05  1.84219482e+06  5.48e+00 3.12e-04  9.97e+01    33s
+  12   2.17164552e+05  8.12483609e+05  1.53e+00 2.92e-04  3.13e+01    33s
+  13   2.27472361e+05  4.99999147e+05  8.01e-01 1.00e-04  1.39e+01    33s
+  14   2.31138810e+05  4.57437419e+05  6.96e-01 1.25e-04  1.15e+01    33s
+  15   2.38117866e+05  4.14817284e+05  5.34e-01 1.03e-04  8.89e+00    33s
+  16   2.41143071e+05  3.90951641e+05  4.32e-01 1.13e-04  7.46e+00    33s
+  17   2.47371880e+05  3.75732790e+05  3.48e-01 1.09e-04  6.32e+00    33s
+  18   2.53205830e+05  3.63157570e+05  2.55e-01 8.37e-05  5.33e+00    33s
+  19   2.57146452e+05  3.44340572e+05  2.10e-01 3.03e-05  4.22e+00    33s
+  20   2.60858480e+05  3.31206823e+05  1.75e-01 3.27e-05  3.40e+00    34s
+  21   2.62134109e+05  3.28030778e+05  1.60e-01 3.58e-05  3.17e+00    34s
+  22   2.66899531e+05  3.20299008e+05  1.20e-01 2.14e-05  2.55e+00    34s
+  23   2.69858328e+05  3.06653123e+05  9.66e-02 2.10e-05  1.77e+00    35s
+  24   2.71744684e+05  3.01075226e+05  8.25e-02 2.96e-05  1.41e+00    35s
+  25   2.73196162e+05  2.94754400e+05  7.11e-02 7.32e-05  1.05e+00    35s
+  26   2.74226856e+05  2.94363885e+05  6.52e-02 6.73e-05  9.78e-01    35s
+  27   2.76104244e+05  2.93553647e+05  5.27e-02 7.74e-05  8.43e-01    35s
+  28   2.77193857e+05  2.92374875e+05  4.63e-02 6.50e-05  7.33e-01    36s
+  29   2.77607172e+05  2.92139751e+05  4.39e-02 5.80e-05  7.01e-01    36s
+  30   2.79800789e+05  2.89387805e+05  3.13e-02 8.88e-05  4.65e-01    36s
+  31   2.80728783e+05  2.88098370e+05  2.61e-02 3.62e-05  3.59e-01    36s
+  32   2.81199760e+05  2.87294175e+05  2.35e-02 2.03e-04  2.99e-01    36s
+  33   2.82800595e+05  2.86561133e+05  1.39e-02 1.99e-04  1.84e-01    36s
+  34   2.83320943e+05  2.86035799e+05  1.09e-02 4.43e-04  1.33e-01    37s
+  35   2.84178483e+05  2.85755751e+05  5.87e-03 2.52e-04  7.70e-02    37s
+  36   2.84442126e+05  2.85612768e+05  4.43e-03 1.44e-04  5.72e-02    37s
+  37   2.84741430e+05  2.85403007e+05  2.78e-03 7.52e-05  3.26e-02    37s
+  38   2.84908033e+05  2.85349123e+05  1.81e-03 8.25e-05  2.17e-02    37s
+  39   2.84998271e+05  2.85334581e+05  1.31e-03 6.70e-05  1.65e-02    37s
+  40   2.85099635e+05  2.85280466e+05  7.65e-04 1.03e-04  8.93e-03    37s
+  41   2.85159331e+05  2.85249399e+05  4.35e-04 4.06e-05  4.51e-03    38s
+  42   2.85237814e+05  2.85242446e+05  8.25e-06 9.35e-06  2.17e-04    38s
+  43   2.85239903e+05  2.85241127e+05  2.68e-06 2.26e-08  5.78e-05    38s
+  44   2.85240699e+05  2.85240902e+05  4.26e-07 1.29e-09  9.32e-06    38s
+  45   2.85240877e+05  2.85240884e+05  5.74e-09 1.77e-09  3.31e-07    38s
+  46   2.85240879e+05  2.85240879e+05  7.44e-07 3.29e-07  6.41e-10    38s
+
+Barrier solved model in 46 iterations and 38.47 seconds (7.74 work units)
+Optimal objective 2.85240879e+05
+
+
+Root crossover log...
+
+    2424 DPushes remaining with DInf 0.0000000e+00                38s
+       0 DPushes remaining with DInf 0.0000000e+00                39s
+
+       5 PPushes remaining with PInf 0.0000000e+00                39s
+       0 PPushes remaining with PInf 0.0000000e+00                39s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 1.2783989e-11     39s
+
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    1629    2.8524088e+05   0.000000e+00   0.000000e+00     39s
+    1629    2.8524088e+05   0.000000e+00   0.000000e+00     39s
+
+Root relaxation: objective 2.852409e+05, 1629 iterations, 7.94 seconds (2.21 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 285240.879    0 1722          - 285240.879      -     -   45s
+H    0     0                    9496.8257708 285240.879  2904%     -   53s
+H    0     0                    12004.618027 285240.879  2276%     -   53s
+     0     0 244565.708    0 2229 12004.6180 244565.708  1937%     -   59s
+H    0     0                    12784.300203 244305.900  1811%     -   60s
+     0     0 42373.9118    0 1621 12784.3002 42373.9118   231%     -   62s
+     0     0 39598.4534    0  403 12784.3002 39598.4534   210%     -   63s
+     0     0 39598.4534    0  387 12784.3002 39598.4534   210%     -   63s
+     0     0 39531.1010    0  184 12784.3002 39531.1010   209%     -   63s
+     0     0 39531.1010    0  104 12784.3002 39531.1010   209%     -   63s
+     0     0 39345.0361    0  102 12784.3002 39345.0361   208%     -   63s
+     0     0 39345.0361    0  101 12784.3002 39345.0361   208%     -   63s
+     0     0 38673.9803    0   59 12784.3002 38673.9803   203%     -   65s
+     0     0 38673.9803    0 1264 12784.3002 38673.9803   203%     -   83s
+H    0     0                    12947.512233 25133.9621  94.1%     -   86s
+     0     0 25133.9621    0  996 12947.5122 25133.9621  94.1%     -   86s
+     0     0 22034.6395    0  738 12947.5122 22034.6395  70.2%     -   87s
+     0     0 20531.4977    0  740 12947.5122 20531.4977  58.6%     -   87s
+     0     0 20351.2855    0  696 12947.5122 20351.2855  57.2%     -   87s
+     0     0 17599.9323    0  865 12947.5122 17599.9323  35.9%     -   90s
+     0     0 17581.1996    0  827 12947.5122 17581.1996  35.8%     -   90s
+     0     0 16275.6416    0  811 12947.5122 16275.6416  25.7%     -   91s
+     0     0 16275.1956    0  748 12947.5122 16275.1956  25.7%     -   91s
+     0     0 16069.2519    0  864 12947.5122 16069.2519  24.1%     -   92s
+     0     0 15538.3263    0  541 12947.5122 15538.3263  20.0%     -   95s
+     0     0 15538.3263    0  513 12947.5122 15538.3263  20.0%     -  100s
+     0     0 15538.3263    0  822 12947.5122 15538.3263  20.0%     -  101s
+     0     0 15123.9308    0  412 12947.5122 15123.9308  16.8%     -  102s
+     0     0 14307.5138    0  504 12947.5122 14307.5138  10.5%     -  103s
+     0     0 14265.7679    0  283 12947.5122 14265.7679  10.2%     -  103s
+     0     0 14123.3690    0  485 12947.5122 14123.3690  9.08%     -  104s
+     0     0 14052.6926    0  289 12947.5122 14052.6926  8.54%     -  105s
+     0     0 13964.8162    0  491 12947.5122 13964.8162  7.86%     -  108s
+     0     0 13964.8162    0  381 12947.5122 13964.8162  7.86%     -  112s
+     0     0 13964.8162    0  492 12947.5122 13964.8162  7.86%     -  113s
+     0     0 13964.8162    0  482 12947.5122 13964.8162  7.86%     -  114s
+     0     0 13821.2295    0  464 12947.5122 13821.2295  6.75%     -  114s
+     0     0 13778.6101    0  460 12947.5122 13778.6101  6.42%     -  114s
+     0     0 13722.0730    0  465 12947.5122 13722.0730  5.98%     -  116s
+     0     0 13686.9256    0  465 12947.5122 13686.9256  5.71%     -  116s
+H    0     0                    13150.495637 13686.9256  4.08%     -  117s
+H    0     0                    13272.949657 13686.8390  3.12%     -  117s
+     0     0 13686.8390    0  358 13272.9497 13686.8390  3.12%     -  119s
+     0     0 13686.8390    0  281 13272.9497 13686.8390  3.12%     -  120s
+     0     0 13686.8390    0  245 13272.9497 13686.8390  3.12%     -  120s
+     0     0 13686.8390    0  298 13272.9497 13686.8390  3.12%     -  120s
+     0     0 13643.2186    0  161 13272.9497 13643.2186  2.79%     -  121s
+     0     0 13600.0936    0  162 13272.9497 13600.0936  2.46%     -  121s
+     0     0 13306.7956    0  163 13272.9497 13306.7956  0.25%     -  123s
+     0     0 13306.7956    0  287 13272.9497 13306.7956  0.25%     -  124s
+     0     0 13306.7956    0  166 13272.9497 13306.7956  0.25%     -  124s
+     0     0 13306.7956    0  364 13272.9497 13306.7956  0.25%     -  125s
+     0     0 13306.7956    0  137 13272.9497 13306.7956  0.25%     -  125s
+     0     0 13306.7956    0  154 13272.9497 13306.7956  0.25%     -  125s
+     0     0 13306.7956    0  154 13272.9497 13306.7956  0.25%     -  125s
+     0     0 13306.7956    0  249 13272.9497 13306.7956  0.25%     -  126s
+     0     0 13306.7956    0  230 13272.9497 13306.7956  0.25%     -  127s
+     0     0 13306.7956    0  158 13272.9497 13306.7956  0.25%     -  127s
+     0     0 13306.7956    0  151 13272.9497 13306.7956  0.25%     -  127s
+     0     0 13306.7956    0  147 13272.9497 13306.7956  0.25%     -  128s
+     0     0 13306.7956    0  146 13272.9497 13306.7956  0.25%     -  128s
+     0     0 13306.7956    0  136 13272.9497 13306.7956  0.25%     -  128s
+
+Cutting planes:
+  Learned: 17
+  Lift-and-project: 4
+  Cover: 95
+  Implied bound: 7
+  Projected implied bound: 5
+  Clique: 392
+  MIR: 24
+  StrongCG: 4
+  Flow cover: 97
+  GUB cover: 9
+  Zero half: 46
+  RLT: 11
+  Relax-and-lift: 27
+  BQP: 40
+  PSD: 10
+
+Explored 1 nodes (21814 simplex iterations) in 129.72 seconds (24.60 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 6: 13272.9 13150.5 12947.5 ... 9496.83
+
+Optimal solution found (tolerance 1.00e-03)
+Best objective 1.327294965668e+04, best bound 1.328389992387e+04, gap 0.0825%
+[STATUS] gurobi Status = 2
+
+==== HOUSE SUMMARY ====
+pisos: floor1=1.0, floor2=0.0
+areas: 1st=450.0, 2nd=0.0, bsmt=384.0, garage=0.0
+ambientes: beds=2.0, bathsF=1.0, bathsH=0.0, kitchen=1.0
+roof: Gable-Roll
+features: heating=Floor, electrical=FuseP, paved=Y, ext1=Stucco, ext2=Stucco, foundation=PConc (450 ft2)
+precio_predicho = 207,752
+log_precio = 12.2440
+
+-- areas por ambiente (ft2) --
+Kitchen     : 1st= 170.0  2nd=   0.0  total= 170.0
+FullBath    : 1st=  40.0  2nd=   0.0  total=  40.0
+HalfBath    : 1st=   0.0  2nd=   0.0  total=   0.0
+Bedroom     : 1st= 140.0  2nd=   0.0  total= 140.0
+Other       : 1st= 100.0  2nd=   0.0  total= 100.0
+
+-- top costos --
+AreaBedroom                  =       45,500  (coef 325.0 * 140.0)
+AreaKitchen                  =       34,000  (coef 200.0 * 170.0)
+Utilities AllPub             =       31,750  (coef 31,750.0 * 1.0)
+AreaOther1 @construction     =       23,000  (coef 230.0 * 100.0)
+AreaFullBath                 =       20,000  (coef 500.0 * 40.0)
+RoofMatl Roll                =        7,600  (coef 7,600.0 * 1.0)
+Exterior2nd Stucco           =        5,629  (coef 5,629.0 * 1.0)
+Exterior1st Stucco           =        5,629  (coef 5,629.0 * 1.0)
+BsmtFin SF 1 @finish         =        5,550  (coef 15.0 * 370.0)
+Fireplace EX                 =        4,550  (coef 4,550.0 * 1.0)
+FA PConc                     =        4,500  (coef 10.0 * 450.0)
+Enclosed Porch               =        3,120  (coef 80.0 * 39.0)
+[AUDIT] hay _X_input disponible para comparar con el XGB fuera del MIP
+
+-- XGB INPUT (primeras 30) --
+  0 Lot Frontage              =   53.000  [0.0,153.3]
+  1 Lot Area                  = 7000.000  [7,000.0,7,000.0]
+  2 Utilities                 =    3.000  [-1.0,4.0]
+  3 Overall Qual              =   10.000  [0.0,inf]
+  4 Overall Cond              =   10.000  [0.0,inf]
+  5 Year Built                = 2025.000  [0.0,inf]
+  6 Year Remod/Add            = 2025.000  [0.0,inf]
+  7 Mas Vnr Area              =  673.000  [0.0,931.2]
+  8 Exter Qual                =    4.000  [-1.0,4.0]
+  9 Exter Cond                =    4.000  [-1.0,4.0]
+ 10 Bsmt Qual                 =    4.000  [-1.0,4.0]
+ 11 Bsmt Cond                 =    4.000  [-1.0,4.0]
+ 12 BsmtFin SF 1              =  370.000  [0.0,1,749.2]
+ 13 BsmtFin SF 2              =   14.000  [0.0,757.5]
+ 14 Bsmt Unf SF               =    0.000  [0.0,1,854.1]
+ 15 Total Bsmt SF             =  384.000  [0.0,2,242.8]
+ 16 Heating QC                =    4.000  [-1.0,4.0]
+ 17 1st Flr SF                =  450.000  [0.0,2,383.7]
+ 18 2nd Flr SF                =    0.000  [0.0,1,625.5]
+ 19 Low Qual Fin SF           =    0.000  [0.0,inf]
+ 20 Gr Liv Area               =  450.000  [0.0,3,110.2]
+ 21 Bsmt Full Bath            =    2.000  [0.0,2.0]
+ 22 Bsmt Half Bath            =    1.000  [0.0,1.0]
+ 23 Full Bath                 =    1.000  [-0.0,6.0]
+ 24 Half Bath                 =    0.000  [-0.0,5.0]
+ 25 Bedroom AbvGr             =    2.000  [-0.0,8.0]
+ 26 Kitchen AbvGr             =    1.000  [-0.0,3.0]
+ 27 Kitchen Qual              =    4.000  [-1.0,4.0]
+ 28 TotRms AbvGrd             =    4.000  [0.0,12.1]
+ 29 Fireplaces                =    1.000  [-0.0,3.0]
+ 30 Fireplace Qu              =    1.000  [-1.0,4.0]
+ 31 Garage Yr Blt             =    0.000  [0.0,inf]
+ 32 Garage Cars               =    0.000  [-0.0,4.0]
+ 33 Garage Area               =    0.000  [0.0,1,163.8]
+ 34 Garage Qual               =   -1.000  [-1.0,4.0]
+ 35 Garage Cond               =   -1.000  [-1.0,4.0]
+ 36 Wood Deck SF              =    0.000  [0.0,526.0]
+ 37 Open Porch SF             =    0.000  [0.0,322.2]
+ 38 Enclosed Porch            =   39.000  [0.0,292.8]
+ 39 3Ssn Porch                =    0.000  [0.0,183.6]
+ 40 Screen Porch              =    0.000  [0.0,314.7]
+ 41 Pool Area                 =    0.000  [0.0,700.0]
+ 42 Pool QC                   =   -1.000  [-1.0,4.0]
+ 43 Misc Val                  =    0.000  [0.0,1,161.0]
+ 44 Yr Sold                   = 2025.000  [0.0,inf]
+ 45 MS SubClass_20            =    1.000  [0.0,1.0]
+ 46 MS SubClass_30            =    0.000  [0.0,1.0]
+ 47 MS SubClass_40            =    0.000  [0.0,1.0]
+ 48 MS SubClass_45            =    0.000  [0.0,1.0]
+ 49 MS SubClass_50            =    0.000  [0.0,1.0]
+ 50 MS SubClass_60            =    0.000  [0.0,1.0]
+ 51 MS SubClass_70            =    0.000  [0.0,1.0]
+ 52 MS SubClass_75            =    0.000  [0.0,1.0]
+ 53 MS SubClass_80            =    0.000  [0.0,1.0]
+ 54 MS SubClass_85            =    0.000  [0.0,1.0]
+ 55 MS SubClass_90            =    0.000  [0.0,1.0]
+ 56 MS SubClass_120           =    0.000  [0.0,1.0]
+ 57 MS SubClass_150           =    0.000  [0.0,1.0]
+ 58 MS SubClass_160           =    0.000  [0.0,1.0]
+ 59 MS SubClass_180           =    0.000  [0.0,1.0]
+ 60 MS SubClass_190           =    0.000  [0.0,1.0]
+ 61 MS Zoning_A (agr)         =    0.000  [0.0,1.0]
+ 62 MS Zoning_C (all)         =    0.000  [0.0,1.0]
+ 63 MS Zoning_FV              =    0.000  [0.0,1.0]
+ 64 MS Zoning_I (all)         =    0.000  [0.0,1.0]
+ 65 MS Zoning_RH              =    0.000  [0.0,1.0]
+ 66 MS Zoning_RL              =    1.000  [0.0,1.0]
+ 67 MS Zoning_RM              =    0.000  [0.0,1.0]
+ 68 Street_Grvl               =    0.000  [0.0,1.0]
+ 69 Street_Pave               =    1.000  [0.0,1.0]
+[AUDIT] guardado X_input_after_opt.csv
+
+============================================================
+             RESULTADOS OPTIMIZACION CONSTRUCCION
+============================================================
+
+PID: N/A - Blmngtn | Presupuesto: $200,000
+Tiempo: 129.80s | Gap: 0.0825%
+
+resumen economico
+  Precio predicho (post):  $207,752
+  Costos totales modelo:   $194,479
+  Objetivo (utilidad):     $13,273  (= precio - costo)
+  Slack presupuesto:       $5,521
+
+[COST-BREAKDOWN] top terminos de costo (fallback):
+  AreaBedroom                         coef=  325.0000 * X=  140.0000  =>   45500.00
+  AreaKitchen                         coef=  200.0000 * X=  170.0000  =>   34000.00
+  Utilities AllPub                    coef=31750.0000 * X=    1.0000  =>   31750.00
+  AreaOther1 @construction            coef=  230.0000 * X=  100.0000  =>   23000.00
+  AreaFullBath                        coef=  500.0000 * X=   40.0000  =>   20000.00
+  RoofMatl Roll                       coef= 7600.0000 * X=    1.0000  =>    7600.00
+  Exterior1st Stucco                  coef= 5629.0000 * X=    1.0000  =>    5629.00
+  Exterior2nd Stucco                  coef= 5629.0000 * X=    1.0000  =>    5629.00
+  BsmtFin SF 1 @finish                coef=   15.0000 * X=  370.0000  =>    5550.00
+  Fireplace EX                        coef= 4550.0000 * X=    1.0000  =>    4550.00
+  FA PConc                            coef=   10.0000 * X=  450.0000  =>    4500.00
+  Enclosed Porch                      coef=   80.0000 * X=   39.0000  =>    3120.00
+  Heating Floor                       coef= 1773.0000 * X=    1.0000  =>    1773.00
+  Electrical FuseP                    coef=  850.0000 * X=    1.0000  =>     850.00
+  MasVnr BrkCmn                       coef=    1.2100 * X=  673.0000  =>     814.33
+[COST-CHECK] suma_terms=194,479.33  | cost_model=194,479.33  | diff=0.00
+
+[COST-CATEGORIES] seleccion y costo unitario (contrib puede ser 0):
+  Heating      -> Floor         coef= 1773.0000 * X= 1.0 =>    1773.00
+  Electrical   -> FuseP         coef=  850.0000 * X= 1.0 =>     850.00
+  PavedDrive   -> Y             coef=    4.0000 * X= 1.0 =>       4.00
+  RoofStyle    -> Gable         coef=    0.0000 * X= 1.0 =>       0.00
+  RoofMatl     -> Roll          coef= 7600.0000 * X= 1.0 =>    7600.00
+  Exterior1st  -> Stucco        coef= 5629.0000 * X= 1.0 =>    5629.00
+  Exterior2nd  -> Stucco        coef= 5629.0000 * X= 1.0 =>    5629.00
+  Foundation   -> PConc         coef=   10.0000 * X= 450.0 =>    4500.00
+  GarageFinish -> NA            coef=    0.0000 * X= 1.0 =>       0.00
+  Fence        -> No aplica     coef=    0.0000 * X= 1.0 =>       0.00
+  MiscFeature  -> No aplica     coef=    0.0000 * X= 1.0 =>       0.00
+[AUDIT] fallback pipe_full para predict fuera (iter_range dio NaN)
+[AUDIT] predict fuera = 268,693.00
+[AUDIT] y_log_in=12.2440 | y_log_out=12.5013 | delta=-0.2573
+[AUDIT] y_price_in=207,752.28 | y_price_out=268,693.00 | delta=-60,940.72
+
+============================================================
+                     FIN RESULTADOS
+============================================================
+
+Set parameter Username
+Set parameter LicenseID to value 2721990
+Academic license - for non-commercial use only - expires 2026-10-14
+Set parameter MIPGap to value 0.001
+Set parameter TimeLimit to value 300
+Set parameter FeasibilityTol to value 1e-07
+Set parameter IntFeasTol to value 1e-07
+Set parameter OptimalityTol to value 1e-07
+Set parameter NumericFocus to value 3
+Set parameter NumericFocus to value 1
+Set parameter MIPFocus to value 3
+Set parameter Cuts to value 2
+Set parameter Presolve to value 2
+Set parameter Symmetry to value 2
+Set parameter Method to value 2
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (win64 - Windows 11+.0 (26200.2))
+
+CPU model: Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz, instruction set [SSE2|AVX|AVX2]
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 90559 rows, 20842 columns and 201006 nonzeros
+Model fingerprint: 0x28bf0e66
+Model has 12 quadratic constraints
+Model has 130 general constraints
+Variable types: 389 continuous, 20453 integer (20419 binary)
+Coefficient statistics:
+  Matrix range     [5e-08, 1e+06]
+  QMatrix range    [4e-01, 1e+00]
+  QLMatrix range   [4e-01, 7e+03]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+00, 1e+06]
+  RHS range        [1e+00, 1e+06]
+  PWLCon x range   [1e+01, 1e+01]
+  PWLCon y range   [3e+04, 9e+05]
+  GenCon rhs range [1e+00, 1e+00]
+  GenCon coe range [1e+00, 1e+00]
+Warning: Model contains large matrix coefficient range
+Presolve removed 78717 rows and 11442 columns (presolve time = 5s) ...
+Presolve removed 78717 rows and 11574 columns (presolve time = 10s) ...
+Presolve removed 78717 rows and 11574 columns (presolve time = 15s) ...
+Presolve removed 78896 rows and 11581 columns (presolve time = 20s) ...
+Presolve removed 78896 rows and 11581 columns (presolve time = 25s) ...
+Presolve removed 78896 rows and 11581 columns (presolve time = 30s) ...
+Presolve removed 78896 rows and 11581 columns (presolve time = 35s) ...
+Presolve removed 78896 rows and 11581 columns (presolve time = 40s) ...
+Presolve removed 78896 rows and 11581 columns (presolve time = 45s) ...
+Presolve removed 78655 rows and 11294 columns
+Presolve time: 47.76s
+Presolved: 11919 rows, 9563 columns, 72078 nonzeros
+Presolved model has 137 SOS constraint(s)
+Variable types: 261 continuous, 9302 integer (9290 binary)
+Root relaxation presolve removed 115 rows and 91 columns
+Root relaxation presolved: 11804 rows, 9473 columns, 71641 nonzeros
+
+Root barrier log...
+
+Ordering time: 1.33s
+
+Barrier statistics:
+ Dense cols : 106
+ AA' NZ     : 1.618e+05
+ Factor NZ  : 4.542e+06 (roughly 45 MB of memory)
+ Factor Ops : 6.384e+09 (less than 1 second per iteration)
+ Threads    : 4
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   1.41814205e+06  9.94366785e+07  4.98e+04 8.61e+01  7.56e+05    53s
+   1   1.02721005e+06  1.98936281e+08  3.25e+04 6.32e+02  4.67e+05    53s
+   2   6.98133262e+05  2.66417566e+08  1.65e+04 4.12e+01  2.33e+05    54s
+   3   4.13984094e+05  2.07356106e+08  1.42e+03 2.42e-01  2.50e+04    54s
+   4   4.10479819e+05  1.31410218e+08  6.42e+02 5.82e-02  1.13e+04    56s
+   5   4.52676639e+05  6.31639971e+07  2.19e+02 7.22e-03  3.85e+03    57s
+   6   4.73873925e+05  4.09551358e+07  6.99e+01 6.09e-11  1.82e+03    58s
+   7   4.54553016e+05  1.25149229e+07  4.75e+01 1.03e-03  5.78e+02    59s
+   8  -5.70726495e+04  3.20418381e+06  6.87e+00 6.44e-03  1.23e+02    60s
+   9   9.58598890e+04  2.21213210e+06  3.66e+00 4.08e-03  7.90e+01    61s
+  10   1.84088230e+05  1.53626159e+06  1.02e+00 1.88e-03  4.77e+01    61s
+  11   2.56863875e+05  1.28344152e+06  6.54e-01 7.20e-03  3.59e+01    62s
+  12   2.99667839e+05  1.14963017e+06  4.35e-01 6.97e-03  2.95e+01    62s
+  13   3.21738577e+05  9.45881354e+05  3.49e-01 7.96e-03  2.17e+01    63s
+  14   3.37005705e+05  8.97338788e+05  3.00e-01 7.80e-03  1.94e+01    63s
+  15   3.71559967e+05  7.52459113e+05  1.98e-01 5.19e-03  1.32e+01    63s
+  16   3.80713824e+05  7.14732805e+05  1.76e-01 4.35e-03  1.15e+01    64s
+  17   4.10367731e+05  6.14683467e+05  1.11e-01 5.58e-03  7.04e+00    65s
+  18   4.35782992e+05  5.68484473e+05  6.54e-02 4.39e-03  4.56e+00    66s
+  19   4.53855912e+05  5.25040473e+05  3.78e-02 2.06e-03  2.45e+00    66s
+  20   4.64451389e+05  5.02177637e+05  2.26e-02 1.42e-03  1.30e+00    67s
+  21   4.75357800e+05  4.91090812e+05  8.06e-03 1.09e-03  5.40e-01    67s
+  22   4.78616256e+05  4.86160394e+05  4.15e-03 2.72e-04  2.59e-01    68s
+  23   4.80643513e+05  4.84236949e+05  1.81e-03 2.62e-04  1.23e-01    69s
+  24   4.81606668e+05  4.83252151e+05  7.03e-04 1.71e-04  5.64e-02    69s
+  25   4.81984118e+05  4.82714625e+05  3.06e-04 5.73e-05  2.50e-02    69s
+  26   4.82073400e+05  4.82446764e+05  2.15e-04 2.60e-05  1.28e-02    70s
+  27   4.82167488e+05  4.82379088e+05  1.21e-04 1.87e-05  7.26e-03    71s
+  28   4.82273037e+05  4.82308972e+05  1.53e-05 2.10e-05  1.23e-03    71s
+  29   4.82290195e+05  4.82292561e+05  1.25e-06 1.16e-06  8.05e-05    71s
+  30   4.82290558e+05  4.82290597e+05  1.55e-08 1.97e-08  1.31e-06    72s
+  31   4.82290568e+05  4.82290569e+05  2.35e-08 1.53e-10  3.66e-08    73s
+  32   4.82290569e+05  4.82290569e+05  7.76e-09 6.54e-12  8.47e-10    73s
+
+Barrier solved model in 32 iterations and 72.86 seconds (15.25 work units)
+Optimal objective 4.82290569e+05
+
+
+Root crossover log...
+
+    2086 DPushes remaining with DInf 0.0000000e+00                73s
+       0 DPushes remaining with DInf 0.0000000e+00                73s
+
+       9 PPushes remaining with PInf 0.0000000e+00                73s
+       0 PPushes remaining with PInf 0.0000000e+00                73s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 5.2286211e-12     73s
+
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    1209    4.8229057e+05   0.000000e+00   0.000000e+00     73s
+    1209    4.8229057e+05   0.000000e+00   0.000000e+00     73s
+
+Root relaxation: objective 4.822906e+05, 1209 iterations, 23.82 seconds (3.43 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 482290.569    0 2580          - 482290.569      -     -   89s
+H    0     0                    -53604.33747 482290.569  1000%     -   94s
+H    0     0                    -51991.56307 482290.569  1028%     -   94s
+     0     0 425735.021    0 2720 -51991.563 425735.021   919%     -  100s
+H    0     0                    -51243.41763 405951.430   892%     -  101s
+H    0     0                    -44505.27593 405951.430  1012%     -  101s
+     0     0 405951.430    0 3042 -44505.276 405951.430  1012%     -  103s
+H    0     0                    -44054.41462 393209.014   993%     -  104s
+H    0     0                    -43159.54791 393209.014  1011%     -  104s
+     0     0 393209.014    0 3136 -43159.548 393209.014  1011%     -  107s
+     0     0 387229.971    0 3409 -43159.548 387229.971   997%     -  109s
+     0     0 387228.962    0 3260 -43159.548 387228.962   997%     -  109s
+     0     0 386447.985    0 3197 -43159.548 386447.985   995%     -  110s
+     0     0 386390.013    0 3169 -43159.548 386390.013   995%     -  110s
+H    0     0                    -42902.56079 386390.013  1001%     -  122s
+     0     0 377658.228    0 3311 -42902.561 377658.228   980%     -  126s
+     0     0 372875.066    0 3422 -42902.561 372875.066   969%     -  131s
+H    0     0                    -28806.64652 367239.425  1375%     -  134s
+H    0     0                    -22604.46249 367239.425  1725%     -  134s
+     0     0 367239.425    0 3439 -22604.462 367239.425  1725%     -  135s
+     0     0 363940.027    0 3459 -22604.462 363940.027  1710%     -  138s
+     0     0 361708.432    0 3548 -22604.462 361708.432  1700%     -  141s
+     0     0 357199.264    0 3555 -22604.462 357199.264  1680%     -  158s
+     0     0 357175.747    0 3555 -22604.462 357175.747  1680%     -  159s
+H    0     0                    -21546.29549 357175.735  1758%     -  163s
+     0     0 322793.570    0 2452 -21546.295 322793.570  1598%     -  240s
+H    0     0                    -21339.27514 322793.570  1613%     -  240s
+H    0     0                    -20519.69980 322793.570  1673%     -  250s
+H    0     0                    -20296.79988 271621.869  1438%     -  257s
+     0     0 271621.869    0 2665 -20296.800 271621.869  1438%     -  258s
+     0     0 233725.872    0 3103 -20296.800 233725.872  1252%     -  273s
+     0     0 218123.816    0 3349 -20296.800 218123.816  1175%     -  289s
+H    0     0                    -20049.84830 209203.423  1143%     -  296s
+     0     0 209203.423    0 3463 -20049.848 209203.423  1143%     -  298s
+     0     0          -    0      -20049.848 209203.423  1143%     -  300s
+
+Cutting planes:
+  Learned: 56
+  Gomory: 33
+  Lift-and-project: 25
+  Cover: 435
+  Implied bound: 460
+  Projected implied bound: 74
+  Clique: 1760
+  MIR: 70
+  StrongCG: 50
+  Flow cover: 350
+  GUB cover: 130
+  Zero half: 72
+  RLT: 8
+  Relax-and-lift: 196
+  BQP: 11
+  PSD: 1
+
+Explored 1 nodes (52548 simplex iterations) in 300.10 seconds (69.91 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 10: -20049.8 -20296.8 -20519.7 ... -44054.4
+
+Time limit reached
+Best objective -2.004984830165e+04, best bound 2.092034230913e+05, gap 1143.4165%
+[STATUS] gurobi Status = 9
+
+==== HOUSE SUMMARY ====
+pisos: floor1=1.0, floor2=0.0
+areas: 1st=450.0, 2nd=0.0, bsmt=156.0, garage=150.0
+ambientes: beds=2.0, bathsF=1.0, bathsH=0.0, kitchen=1.0
+roof: Gable-Roll
+features: heating=Floor, electrical=FuseP, paved=Y, ext1=Stucco, ext2=Stucco, foundation=PConc (450 ft2)
+precio_predicho = 205,153
+log_precio = 12.2313
+
+-- areas por ambiente (ft2) --
+Kitchen     : 1st= 170.0  2nd=   0.0  total= 170.0
+FullBath    : 1st=  40.0  2nd=   0.0  total=  40.0
+HalfBath    : 1st=   0.0  2nd=   0.0  total=   0.0
+Bedroom     : 1st= 140.0  2nd=   0.0  total= 140.0
+Other       : 1st= 100.0  2nd=   0.0  total= 100.0
+
+-- top costos --
+AreaBedroom                  =       45,500  (coef 325.0 * 140.0)
+AreaKitchen                  =       34,000  (coef 200.0 * 170.0)
+Utilities AllPub             =       31,750  (coef 31,750.0 * 1.0)
+AreaOther1 @construction     =       23,000  (coef 230.0 * 100.0)
+AreaFullBath                 =       20,000  (coef 500.0 * 40.0)
+GarageFinish Unf             =       17,500  (coef 17,500.0 * 1.0)
+MasVnr Stone                 =       13,008  (coef 27.5 * 473.0)
+Garage Area                  =        9,000  (coef 60.0 * 150.0)
+RoofMatl Roll                =        7,600  (coef 7,600.0 * 1.0)
+Exterior2nd Stucco           =        5,629  (coef 5,629.0 * 1.0)
+Exterior1st Stucco           =        5,629  (coef 5,629.0 * 1.0)
+FA PConc                     =        4,500  (coef 10.0 * 450.0)
+[AUDIT] hay _X_input disponible para comparar con el XGB fuera del MIP
+
+-- XGB INPUT (primeras 30) --
+  0 Lot Frontage              =   61.000  [0.0,153.3]
+  1 Lot Area                  = 7000.000  [7,000.0,7,000.0]
+  2 Utilities                 =    3.000  [-1.0,4.0]
+  3 Overall Qual              =   10.000  [0.0,inf]
+  4 Overall Cond              =   10.000  [0.0,inf]
+  5 Year Built                = 2025.000  [0.0,inf]
+  6 Year Remod/Add            = 2025.000  [0.0,inf]
+  7 Mas Vnr Area              =  473.000  [0.0,931.2]
+  8 Exter Qual                =    4.000  [-1.0,4.0]
+  9 Exter Cond                =    4.000  [-1.0,4.0]
+ 10 Bsmt Qual                 =    4.000  [-1.0,4.0]
+ 11 Bsmt Cond                 =    4.000  [-1.0,4.0]
+ 12 BsmtFin SF 1              =   56.000  [0.0,1,749.2]
+ 13 BsmtFin SF 2              =  100.000  [0.0,757.5]
+ 14 Bsmt Unf SF               =    0.000  [0.0,1,854.1]
+ 15 Total Bsmt SF             =  156.000  [0.0,2,242.8]
+ 16 Heating QC                =    4.000  [-1.0,4.0]
+ 17 1st Flr SF                =  450.000  [0.0,2,383.7]
+ 18 2nd Flr SF                =    0.000  [0.0,1,625.5]
+ 19 Low Qual Fin SF           =    0.000  [0.0,inf]
+ 20 Gr Liv Area               =  450.000  [0.0,3,110.2]
+ 21 Bsmt Full Bath            =    1.000  [0.0,2.0]
+ 22 Bsmt Half Bath            =    1.000  [0.0,1.0]
+ 23 Full Bath                 =    1.000  [-0.0,6.0]
+ 24 Half Bath                 =    0.000  [-0.0,5.0]
+ 25 Bedroom AbvGr             =    2.000  [-0.0,8.0]
+ 26 Kitchen AbvGr             =    1.000  [-0.0,3.0]
+ 27 Kitchen Qual              =    4.000  [-1.0,4.0]
+ 28 TotRms AbvGrd             =    4.000  [0.0,12.1]
+ 29 Fireplaces                =    0.000  [-0.0,3.0]
+ 30 Fireplace Qu              =    2.000  [-1.0,4.0]
+ 31 Garage Yr Blt             = 2025.000  [0.0,inf]
+ 32 Garage Cars               =    1.000  [-0.0,4.0]
+ 33 Garage Area               =  150.000  [0.0,1,163.8]
+ 34 Garage Qual               =    4.000  [-1.0,4.0]
+ 35 Garage Cond               =    4.000  [-1.0,4.0]
+ 36 Wood Deck SF              =    0.000  [0.0,526.0]
+ 37 Open Porch SF             =    0.000  [0.0,322.2]
+ 38 Enclosed Porch            =   39.000  [0.0,292.8]
+ 39 3Ssn Porch                =    0.000  [0.0,183.6]
+ 40 Screen Porch              =    0.000  [0.0,314.7]
+ 41 Pool Area                 =    0.000  [0.0,700.0]
+ 42 Pool QC                   =   -1.000  [-1.0,4.0]
+ 43 Misc Val                  =    0.000  [0.0,1,161.0]
+ 44 Yr Sold                   = 2025.000  [0.0,inf]
+ 45 MS SubClass_20            =    1.000  [0.0,1.0]
+ 46 MS SubClass_30            =    0.000  [0.0,1.0]
+ 47 MS SubClass_40            =    0.000  [0.0,1.0]
+ 48 MS SubClass_45            =    0.000  [0.0,1.0]
+ 49 MS SubClass_50            =    0.000  [0.0,1.0]
+ 50 MS SubClass_60            =    0.000  [0.0,1.0]
+ 51 MS SubClass_70            =    0.000  [0.0,1.0]
+ 52 MS SubClass_75            =    0.000  [0.0,1.0]
+ 53 MS SubClass_80            =    0.000  [0.0,1.0]
+ 54 MS SubClass_85            =    0.000  [0.0,1.0]
+ 55 MS SubClass_90            =    0.000  [0.0,1.0]
+ 56 MS SubClass_120           =    0.000  [0.0,1.0]
+ 57 MS SubClass_150           =    0.000  [0.0,1.0]
+ 58 MS SubClass_160           =    0.000  [0.0,1.0]
+ 59 MS SubClass_180           =    0.000  [0.0,1.0]
+ 60 MS SubClass_190           =    0.000  [0.0,1.0]
+ 61 MS Zoning_A (agr)         =    0.000  [0.0,1.0]
+ 62 MS Zoning_C (all)         =    0.000  [0.0,1.0]
+ 63 MS Zoning_FV              =    0.000  [0.0,1.0]
+ 64 MS Zoning_I (all)         =    0.000  [0.0,1.0]
+ 65 MS Zoning_RH              =    0.000  [0.0,1.0]
+ 66 MS Zoning_RL              =    1.000  [0.0,1.0]
+ 67 MS Zoning_RM              =    0.000  [0.0,1.0]
+ 68 Street_Grvl               =    0.000  [0.0,1.0]
+ 69 Street_Pave               =    1.000  [0.0,1.0]
+[AUDIT] guardado X_input_after_opt.csv
+
+============================================================
+             RESULTADOS OPTIMIZACION CONSTRUCCION
+============================================================
+
+PID: N/A - Blmngtn | Presupuesto: $500,000
+Tiempo: 300.11s | Gap: 1143.4165%
+
+resumen economico
+  Precio predicho (post):  $205,153
+  Costos totales modelo:   $225,202
+  Objetivo (utilidad):     $-20,050  (= precio - costo)
+  Slack presupuesto:       $274,798
+
+[COST-BREAKDOWN] top terminos de costo (fallback):
+  AreaBedroom                         coef=  325.0000 * X=  140.0000  =>   45500.00
+  AreaKitchen                         coef=  200.0000 * X=  170.0000  =>   34000.00
+  Utilities AllPub                    coef=31750.0000 * X=    1.0000  =>   31750.00
+  AreaOther1 @construction            coef=  230.0000 * X=  100.0000  =>   23000.00
+  AreaFullBath                        coef=  500.0000 * X=   40.0000  =>   20000.00
+  GarageFinish Unf                    coef=17500.0000 * X=    1.0000  =>   17500.00
+  MasVnr Stone                        coef=   27.5000 * X=  473.0000  =>   13007.50
+  Garage Area                         coef=   60.0000 * X=  150.0000  =>    9000.00
+  RoofMatl Roll                       coef= 7600.0000 * X=    1.0000  =>    7600.00
+  Exterior1st Stucco                  coef= 5629.0000 * X=    1.0000  =>    5629.00
+  Exterior2nd Stucco                  coef= 5629.0000 * X=    1.0000  =>    5629.00
+  FA PConc                            coef=   10.0000 * X=  450.0000  =>    4500.00
+  Enclosed Porch                      coef=   80.0000 * X=   39.0000  =>    3120.00
+  Heating Floor                       coef= 1773.0000 * X=    1.0000  =>    1773.00
+  BsmtFin SF 2 @finish                coef=   15.0000 * X=  100.0000  =>    1500.00
+[COST-CHECK] suma_terms=225,202.50  | cost_model=225,202.50  | diff=0.00
+
+[COST-CATEGORIES] seleccion y costo unitario (contrib puede ser 0):
+  Heating      -> Floor         coef= 1773.0000 * X= 1.0 =>    1773.00
+  Electrical   -> FuseP         coef=  850.0000 * X= 1.0 =>     850.00
+  PavedDrive   -> Y             coef=    4.0000 * X= 1.0 =>       4.00
+  RoofStyle    -> Gable         coef=    0.0000 * X= 1.0 =>       0.00
+  RoofMatl     -> Roll          coef= 7600.0000 * X= 1.0 =>    7600.00
+  Exterior1st  -> Stucco        coef= 5629.0000 * X= 1.0 =>    5629.00
+  Exterior2nd  -> Stucco        coef= 5629.0000 * X= 1.0 =>    5629.00
+  Foundation   -> PConc         coef=   10.0000 * X= 450.0 =>    4500.00
+  GarageFinish -> Unf           coef=17500.0000 * X= 1.0 =>   17500.00
+  Fence        -> No aplica     coef=    0.0000 * X= 1.0 =>       0.00
+  MiscFeature  -> No aplica     coef=    0.0000 * X= 1.0 =>       0.00
+[AUDIT] fallback pipe_full para predict fuera (iter_range dio NaN)
+[AUDIT] predict fuera = 267,806.56
+[AUDIT] y_log_in=12.2313 | y_log_out=12.4980 | delta=-0.2667
+[AUDIT] y_price_in=205,152.65 | y_price_out=267,806.56 | delta=-62,653.91
+
+============================================================
+                     FIN RESULTADOS
+============================================================
+
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blmngtn --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blmngtn --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blmngtn --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blmngtn --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blmngtn --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blmngtn --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blmngtn --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blmngtn --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blmngtn --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blueste --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blueste --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blueste --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blueste --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blueste --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blueste --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blueste --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blueste --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Blueste --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrDale --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrDale --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrDale --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrDale --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrDale --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrDale --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrDale --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrDale --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrDale --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrkSide --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrkSide --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrkSide --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrkSide --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrkSide --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrkSide --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrkSide --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrkSide --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh BrkSide --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh ClearCr --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh ClearCr --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh ClearCr --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh ClearCr --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh ClearCr --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh ClearCr --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh ClearCr --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh ClearCr --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh ClearCr --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh CollgCr --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh CollgCr --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh CollgCr --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh CollgCr --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh CollgCr --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh CollgCr --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh CollgCr --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh CollgCr --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh CollgCr --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Crawfor --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Crawfor --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Crawfor --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Crawfor --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Crawfor --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Crawfor --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Crawfor --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Crawfor --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Crawfor --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Edwards --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Edwards --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Edwards --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Edwards --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Edwards --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Edwards --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Edwards --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Edwards --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Edwards --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Gilbert --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Gilbert --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Gilbert --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Gilbert --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Gilbert --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Gilbert --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Gilbert --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Gilbert --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Gilbert --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Greens --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Greens --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Greens --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Greens --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Greens --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Greens --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Greens --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Greens --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Greens --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh GrnHill --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh GrnHill --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh GrnHill --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh GrnHill --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh GrnHill --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh GrnHill --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh GrnHill --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh GrnHill --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh GrnHill --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh IDOTRR --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh IDOTRR --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh IDOTRR --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh IDOTRR --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh IDOTRR --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh IDOTRR --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh IDOTRR --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh IDOTRR --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh IDOTRR --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Landmrk --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Landmrk --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Landmrk --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Landmrk --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Landmrk --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Landmrk --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Landmrk --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Landmrk --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Landmrk --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh MeadowV --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh MeadowV --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh MeadowV --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh MeadowV --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh MeadowV --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh MeadowV --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh MeadowV --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh MeadowV --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh MeadowV --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Mitchel --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Mitchel --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Mitchel --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Mitchel --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Mitchel --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Mitchel --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Mitchel --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Mitchel --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Mitchel --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NPkVill --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NPkVill --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NPkVill --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NPkVill --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NPkVill --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NPkVill --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NPkVill --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NPkVill --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NPkVill --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NWAmes --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NWAmes --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NWAmes --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NWAmes --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NWAmes --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NWAmes --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NWAmes --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NWAmes --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NWAmes --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh No aplicames --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh No aplicames --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh No aplicames --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh No aplicames --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh No aplicames --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh No aplicames --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh No aplicames --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh No aplicames --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh No aplicames --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NoRidge --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NoRidge --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NoRidge --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NoRidge --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NoRidge --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NoRidge --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NoRidge --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NoRidge --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NoRidge --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NridgHt --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NridgHt --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NridgHt --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NridgHt --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NridgHt --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NridgHt --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NridgHt --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NridgHt --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh NridgHt --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh OldTown --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh OldTown --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh OldTown --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh OldTown --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh OldTown --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh OldTown --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh OldTown --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh OldTown --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh OldTown --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SWISU --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SWISU --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SWISU --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SWISU --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SWISU --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SWISU --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SWISU --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SWISU --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SWISU --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Sawyer --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Sawyer --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Sawyer --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Sawyer --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Sawyer --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Sawyer --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Sawyer --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Sawyer --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Sawyer --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SawyerW --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SawyerW --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SawyerW --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SawyerW --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SawyerW --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SawyerW --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SawyerW --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SawyerW --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh SawyerW --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Somerst --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Somerst --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Somerst --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Somerst --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Somerst --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Somerst --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Somerst --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Somerst --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Somerst --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh StoneBr --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh StoneBr --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh StoneBr --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh StoneBr --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh StoneBr --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh StoneBr --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh StoneBr --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh StoneBr --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh StoneBr --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Timber --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Timber --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Timber --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Timber --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Timber --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Timber --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Timber --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Timber --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Timber --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Veenker --lot 7438 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Veenker --lot 9434 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Veenker --lot 11556 --budget 200000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Veenker --lot 7438 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Veenker --lot 9434 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Veenker --lot 11556 --budget 500000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Veenker --lot 7438 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Veenker --lot 9434 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test
+RUN .venv311\Scripts\python.exe -m optimization.construction.run_opt --neigh Veenker --lot 11556 --budget 700000 --profile bound --quiet --outcsv bench_out\grid_full.csv --xgbdir models/xgb/with_es_test

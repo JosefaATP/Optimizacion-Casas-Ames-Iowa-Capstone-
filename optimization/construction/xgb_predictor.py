@@ -197,6 +197,27 @@ class XGBBundle:
     def feature_names_in(self) -> List[str]:
         return list(getattr(self.pipe_full, "feature_names_in_", []))
 
+    def booster_feature_order(self) -> List[str]:
+        """Order of features as seen by the Booster (ColumnTransformer numeric cols order)."""
+        cols: List[str] = []
+        try:
+            ct: ColumnTransformer = self.pre
+            trs = ct.transformers_ if hasattr(ct, "transformers_") else ct.transformers
+            for item in trs:
+                name, transformer, tcols = item[0], item[1], item[2]
+                # Our preprocess builds only one numeric passthrough named 'num'
+                if name == "num":
+                    cols = list(tcols)
+                    break
+            if not cols and trs:
+                # fallback: first transformer cols
+                cols = list(trs[0][2])
+        except Exception:
+            pass
+        if not cols:
+            cols = self.feature_names_in()
+        return cols
+
     def is_log_target(self) -> bool:
         return self.log_target
 
@@ -337,12 +358,10 @@ class XGBBundle:
                     lb = float(xv.LB) if fin(getattr(xv, "LB", None)) else -1e6
                     ub = float(xv.UB) if fin(getattr(xv, "UB", None)) else  1e6
 
-                    # clamp de thresholds extremos para dummies
-                    # si var es binaria en [0,1], umbrales ~0/1 aparecen con hist
-                    # esto evita pedir x >= 1+eps o x <= -eps
+                    # Dummies (0/1): usar umbral canónico 0.5 para alinear con OHE
+                    # Esto reduce discrepancias embed vs fuera cuando XGB guarda thresholds pegados a 0 o 1.
                     if lb >= 0.0 and ub <= 1.0:
-                        if thr <= 0.0 + 1e-12: thr = 0.0
-                        if thr >= 1.0 - 1e-12: thr = 1.0
+                        thr = 0.5
 
                     # M dirigidos
                     M_le = max(0.0, ub - thr)
@@ -359,3 +378,76 @@ class XGBBundle:
             total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))
 
         m.addConstr(y_log == total_expr, name="YLOG_XGB_SUM")
+
+    def attach_to_gurobi_strict(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:
+        import json, math
+
+        try:
+            bst = self.reg.get_booster()
+        except Exception:
+            bst = getattr(self.reg, "_Booster", None)
+        if bst is None:
+            raise RuntimeError("XGBBundle: no pude obtener Booster del modelo")
+
+        try:
+            _ = float(bst.attr("base_score") or 0.0)
+        except Exception:
+            _ = 0.0
+
+        dumps = bst.get_dump(with_stats=False, dump_format="json")
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+        if n_use is not None and 0 < n_use < len(dumps):
+            dumps = dumps[:n_use]
+            try:
+                m._xgb_used_trees = int(n_use)
+            except Exception:
+                pass
+        # Nota: muchos dumps no requieren sumar 'base_score' explícito; usamos 0.0 para evitar sesgos.
+        total_expr = gp.LinExpr(0.0)
+
+        def fin(v):
+            try:
+                return math.isfinite(float(v))
+            except Exception:
+                return False
+
+        for t_idx, js in enumerate(dumps):
+            node = json.loads(js)
+
+            leaves = []
+            def walk(nd, path):
+                if "leaf" in nd:
+                    leaves.append((path, float(nd["leaf"])))
+                    return
+                f_idx = int(str(nd["split"]).replace("f", ""))
+                thr = float(nd["split_condition"])
+                yes_id = nd["yes"]
+                for ch in nd.get("children", []):
+                    is_left = (ch.get("nodeid") == yes_id)
+                    walk(ch, path + [(f_idx, thr, is_left)])
+            walk(node, [])
+
+            z = [m.addVar(vtype=gp.GRB.BINARY, name=f"t{t_idx}_leaf{k}") for k in range(len(leaves))]
+            m.addConstr(gp.quicksum(z) == 1, name=f"TREE_{t_idx}_ONEHOT")
+
+            for k, (conds, _) in enumerate(leaves):
+                for (f_idx, thr, is_left) in conds:
+                    xv = x_list[f_idx]
+                    lb = float(getattr(xv, "LB", -1e6)) if fin(getattr(xv, "LB", None)) else -1e6
+                    ub = float(getattr(xv, "UB",  1e6)) if fin(getattr(xv, "UB", None)) else  1e6
+
+                    if is_left:
+                        thr_left = thr - eps
+                        M_le = max(0.0, ub - thr_left)
+                        m.addConstr(xv <= thr_left + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_le")
+                    else:
+                        M_ge = max(0.0, thr - lb)
+                        m.addConstr(xv >= thr - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge")
+
+            total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))
+
+        m.addConstr(y_log == total_expr, name="YLOG_XGB_SUM_STRICT")

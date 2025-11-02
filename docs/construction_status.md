@@ -32,6 +32,9 @@
 - `--xgbdir` para usar modelos alternos.
 - `--outcsv` para guardar resultados por corrida (grid runs/reporte).
 - `--bldg` para fijar tipo de edificio desde CLI; opcional `ct.eps1_by_bldg` para mínimos por tipo.
+- MS SubClass coherente con HouseStyle: 1Story→20, 2Story→60 (resto off), para evitar sesgos del seed.
+- Kitchens en 1Fam por tamaño (opcional): `ct.kitchen_by_area_thresholds = [A2, A3, ...]`
+  - Si Gr Liv Area ≥ A2 permite 2 cocinas; ≥ A3 permite 3; etc. Por defecto, si no hay thresholds, se aplica `Kitchen ≤ 1` en 1Fam (desactivable con `ct.enforce_single_kitchen_1fam=False`).
 
 ## 4) Cosas por seguir puliendo (y cómo mirarlas)
 - Elasticidad de precio a área sobre rasante: si aparece mucho sótano vs. 1er piso, subir `ρ_exposed` solo un poco (1.05–1.15) y observar.
@@ -43,6 +46,8 @@
 - `[COST-CATEGORIES]` muestra selección efectiva de grupos y costo unitario.
 - `X_input_after_opt.csv`: revisar que OHE exclusivas muestren un único `1` por grupo.
 - Sótano vs. fundación: `Total Bsmt SF <= ρ(·)·AreaFoundation` y `Pool QC/Misc Val` consistentes con “No aplica”.
+- HouseStyle libre (1Story/2Story) y MS SubClass coherente (20/60). Si aparece 2º piso, debe activarse 2Story.
+- Kitchens en 1Fam: por defecto 1; si defines `kitchen_by_area_thresholds`, verifica que el gating por área se active.
 
 ## 6) Cómo correr
 ```
@@ -52,4 +57,3 @@ Opcionales:
 - Usar XGB alterno: `--xgbdir models/xgb/with_es_test`
 - Guardar CSV: `--outcsv bench_out/grid_results.csv`
 - Modo edificios: `--bldg 1Fam` (defecto), `--bldg Duplex`, etc. y configurar `eps1_by_bldg` en `CostTables` si se desea.
-
