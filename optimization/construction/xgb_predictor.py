@@ -166,6 +166,34 @@ class XGBBundle:
             ("xgb", self.reg),
         ])
 
+        # Intentar detectar mejor cantidad de árboles con early stopping
+        # Preferimos: best_ntree_limit > best_iteration+1 > meta.json
+        self.n_trees_use: int | None = None
+        try:
+            n_limit = int(getattr(self.reg, "best_ntree_limit", -1))
+            if n_limit and n_limit > 0:
+                self.n_trees_use = n_limit
+        except Exception:
+            pass
+        if self.n_trees_use is None:
+            try:
+                best_it = int(getattr(self.reg, "best_iteration", -1))
+                if best_it and best_it >= 0:
+                    self.n_trees_use = best_it + 1
+            except Exception:
+                pass
+        if self.n_trees_use is None:
+            try:
+                meta_path = self.model_path.parent / "meta.json"
+                if meta_path.exists():
+                    with open(meta_path, "r") as f:
+                        meta = json.load(f)
+                    bi = int(meta.get("best_iteration", -1))
+                    if bi and bi >= 0:
+                        self.n_trees_use = bi + 1
+            except Exception:
+                pass
+
     def feature_names_in(self) -> List[str]:
         return list(getattr(self.pipe_full, "feature_names_in_", []))
 
@@ -176,13 +204,74 @@ class XGBBundle:
         return self.pipe_for_embed
 
     def predict(self, X: pd.DataFrame) -> pd.Series:
-        # Asegura calidades/utilities como int si corresponde (tú ya lo haces)
+        # Asegura calidades/utilities como int si corresponde
         X_fixed = X.copy()
         _coerce_quality_ordinals_inplace(X_fixed, self.quality_cols)
         _coerce_utilities_ordinal_inplace(X_fixed)
-        # No hay OHE en el pre, el pipe espera solo columnas numéricas (incluyendo dummies)
-        y = self.pipe_full.predict(X_fixed)
-        return pd.Series(y, index=X.index)
+
+        # PREDICCIÓN CONSISTENTE CON EARLY STOPPING
+        # Transformar X con el preprocesador del pipeline cargado
+        try:
+            Xp = self.pre.transform(X_fixed)
+        except Exception:
+            # si el preprocesador no está fitted en este objeto (debería), caer al pipe_full
+            y_fallback = self.pipe_full.predict(X_fixed)
+            return pd.Series(y_fallback, index=X.index)
+
+    def predict_log_raw(self, X: pd.DataFrame) -> pd.Series:
+        """Predice la salida cruda del XGB (margin = y_log), sin inverse_func.
+        Respeta early stopping usando iteration_range si está disponible.
+        """
+        X_fixed = X.copy()
+        _coerce_quality_ordinals_inplace(X_fixed, self.quality_cols)
+        _coerce_utilities_ordinal_inplace(X_fixed)
+        try:
+            Xp = self.pre.transform(X_fixed)
+        except Exception:
+            # último recurso: que al menos no rompa
+            Xp = X_fixed.values
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+        try:
+            if n_use is not None and n_use > 0:
+                y_log = self.reg.predict(Xp, output_margin=True, iteration_range=(0, n_use))
+            else:
+                y_log = self.reg.predict(Xp, output_margin=True)
+            return pd.Series(y_log, index=X.index)
+        except Exception:
+            # fallback: usar el pipe completo y revertir (si es log_target)
+            y = self.pipe_full.predict(X_fixed)
+            try:
+                import numpy as _np
+                y_log = _np.log1p(y)
+            except Exception:
+                y_log = y
+            return pd.Series(y_log, index=X.index)
+
+        # Usar el mismo número de árboles que en el embed si está disponible
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+
+        try:
+            if n_use is not None and n_use > 0:
+                y_pred_log = self.reg.predict(Xp, iteration_range=(0, n_use))
+            else:
+                y_pred_log = self.reg.predict(Xp)
+            if self.log_target:
+                y_pred = np.expm1(y_pred_log)
+            else:
+                y_pred = y_pred_log
+            return pd.Series(y_pred, index=X.index)
+        except Exception:
+            # último recurso: pipe completo
+            y_fallback = self.pipe_full.predict(X_fixed)
+            return pd.Series(y_fallback, index=X.index)
 
 
     def attach_to_gurobi(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:
@@ -201,6 +290,18 @@ class XGBBundle:
             base = 0.0
 
         dumps = bst.get_dump(with_stats=False, dump_format="json")
+        # Si hay early stopping, usa solo los primeros n arboles
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+        if n_use is not None and 0 < n_use < len(dumps):
+            dumps = dumps[:n_use]
+            try:
+                m._xgb_used_trees = int(n_use)
+            except Exception:
+                pass
         total_expr = gp.LinExpr(base)
 
         def fin(v):

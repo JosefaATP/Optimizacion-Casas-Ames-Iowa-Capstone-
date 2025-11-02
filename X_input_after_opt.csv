@@ -1,21 +1,21 @@
 idx,feature,value,LB,UB
-0,Lot Frontage,85.0,0.0,153.31
+0,Lot Frontage,55.0,0.0,153.31
 1,Lot Area,7000.0,7000.0,7000.0
-2,Utilities,3.0,-1.0,8.0
+2,Utilities,3.0,-1.0,4.0
 3,Overall Qual,10.0,0.0,inf
 4,Overall Cond,10.0,0.0,inf
 5,Year Built,2025.0,0.0,inf
 6,Year Remod/Add,2025.0,0.0,inf
 7,Mas Vnr Area,673.0,0.0,931.2
-8,Exter Qual,4.0,0.0,inf
-9,Exter Cond,4.0,0.0,inf
-10,Bsmt Qual,4.0,0.0,inf
-11,Bsmt Cond,4.0,0.0,inf
-12,BsmtFin SF 1,1110.0,0.0,1749.17
-13,BsmtFin SF 2,495.0,0.0,839.26
+8,Exter Qual,4.0,-1.0,4.0
+9,Exter Cond,4.0,-1.0,4.0
+10,Bsmt Qual,4.0,-1.0,4.0
+11,Bsmt Cond,4.0,-1.0,4.0
+12,BsmtFin SF 1,370.0,0.0,1749.17
+13,BsmtFin SF 2,13.999999911537452,0.0,757.45
 14,Bsmt Unf SF,0.0,0.0,1854.09
-15,Total Bsmt SF,1605.0,0.0,2242.79
-16,Heating QC,4.0,0.0,inf
+15,Total Bsmt SF,383.99999991187076,0.0,2242.79
+16,Heating QC,4.0,-1.0,4.0
 17,1st Flr SF,450.0,0.0,2383.68
 18,2nd Flr SF,0.0,0.0,1625.45
 19,Low Qual Fin SF,0.0,0.0,inf
@@ -23,26 +23,26 @@ idx,feature,value,LB,UB
 21,Bsmt Full Bath,2.0,0.0,2.02
 22,Bsmt Half Bath,1.0,0.0,1.01
 23,Full Bath,1.0,-0.0,6.0
-24,Half Bath,-0.0,-0.0,5.0
+24,Half Bath,0.0,-0.0,5.0
 25,Bedroom AbvGr,2.0,-0.0,8.0
-26,Kitchen AbvGr,2.0,-0.0,3.0
-27,Kitchen Qual,4.0,0.0,inf
-28,TotRms AbvGrd,5.0,0.0,12.09
-29,Fireplaces,2.0,-0.0,3.0
-30,Fireplace Qu,2.0,0.0,4.05
+26,Kitchen AbvGr,1.0,-0.0,3.0
+27,Kitchen Qual,4.0,-1.0,4.0
+28,TotRms AbvGrd,4.0,0.0,12.09
+29,Fireplaces,1.0,-0.0,3.0
+30,Fireplace Qu,1.0,-1.0,4.0
 31,Garage Yr Blt,0.0,0.0,inf
-32,Garage Cars,-0.0,-0.0,4.0
+32,Garage Cars,0.0,-0.0,4.0
 33,Garage Area,0.0,0.0,1163.75
-34,Garage Qual,1.0,0.0,3.03
-35,Garage Cond,2.0,0.0,2.02
+34,Garage Qual,-1.0,-1.0,4.0
+35,Garage Cond,-1.0,-1.0,4.0
 36,Wood Deck SF,0.0,0.0,526.0
-37,Open Porch SF,3.999999999999922,0.0,322.16
+37,Open Porch SF,0.0,0.0,322.16
 38,Enclosed Porch,39.0,0.0,292.75
-39,3Ssn Porch,-0.0,0.0,183.6
+39,3Ssn Porch,0.0,0.0,183.6
 40,Screen Porch,0.0,0.0,314.73
 41,Pool Area,0.0,0.0,700.0
-42,Pool QC,0.0,0.0,inf
-43,Misc Val,54.0,0.0,1514.47
+42,Pool QC,-1.0,-1.0,4.0
+43,Misc Val,0.0,0.0,1160.97
 44,Yr Sold,2025.0,0.0,inf
 45,MS SubClass_20,1.0,0.0,1.0
 46,MS SubClass_30,0.0,0.0,1.0
@@ -76,45 +76,45 @@ idx,feature,value,LB,UB
 74,Lot Shape_IR2,0.0,0.0,1.0
 75,Lot Shape_IR3,0.0,0.0,1.0
 76,Lot Shape_Reg,1.0,0.0,1.0
-77,Land Contour_Bnk,1.0,0.0,1.0
-78,Land Contour_HLS,1.0,0.0,1.0
-79,Land Contour_Low,1.0,0.0,1.0
+77,Land Contour_Bnk,0.0,0.0,1.0
+78,Land Contour_HLS,0.0,0.0,1.0
+79,Land Contour_Low,0.0,0.0,1.0
 80,Land Contour_Lvl,1.0,0.0,1.0
-81,Lot Config_Corner,1.0,0.0,1.0
-82,Lot Config_CulDSac,1.0,0.0,1.0
-83,Lot Config_FR2,1.0,0.0,1.0
+81,Lot Config_Corner,0.0,0.0,1.0
+82,Lot Config_CulDSac,0.0,0.0,1.0
+83,Lot Config_FR2,0.0,0.0,1.0
 84,Lot Config_FR3,0.0,0.0,1.0
 85,Lot Config_Inside,1.0,0.0,1.0
 86,Land Slope_Gtl,1.0,0.0,1.0
-87,Land Slope_Mod,1.0,0.0,1.0
+87,Land Slope_Mod,0.0,0.0,1.0
 88,Land Slope_Sev,0.0,0.0,1.0
 89,Neighborhood_Blmngtn,1.0,0.0,1.0
 90,Neighborhood_Blueste,0.0,0.0,1.0
-91,Neighborhood_BrDale,1.0,0.0,1.0
-92,Neighborhood_BrkSide,1.0,0.0,1.0
-93,Neighborhood_ClearCr,1.0,0.0,1.0
-94,Neighborhood_CollgCr,1.0,0.0,1.0
-95,Neighborhood_Crawfor,1.0,0.0,1.0
-96,Neighborhood_Edwards,1.0,0.0,1.0
-97,Neighborhood_Gilbert,1.0,0.0,1.0
+91,Neighborhood_BrDale,0.0,0.0,1.0
+92,Neighborhood_BrkSide,0.0,0.0,1.0
+93,Neighborhood_ClearCr,0.0,0.0,1.0
+94,Neighborhood_CollgCr,0.0,0.0,1.0
+95,Neighborhood_Crawfor,0.0,0.0,1.0
+96,Neighborhood_Edwards,0.0,0.0,1.0
+97,Neighborhood_Gilbert,0.0,0.0,1.0
 98,Neighborhood_Greens,0.0,0.0,1.0
 99,Neighborhood_GrnHill,0.0,0.0,1.0
-100,Neighborhood_IDOTRR,1.0,0.0,1.0
+100,Neighborhood_IDOTRR,0.0,0.0,1.0
 101,Neighborhood_Landmrk,0.0,0.0,1.0
-102,Neighborhood_MeadowV,1.0,0.0,1.0
-103,Neighborhood_Mitchel,1.0,0.0,1.0
+102,Neighborhood_MeadowV,0.0,0.0,1.0
+103,Neighborhood_Mitchel,0.0,0.0,1.0
 104,Neighborhood_NPkVill,0.0,0.0,1.0
-105,Neighborhood_NWAmes,1.0,0.0,1.0
-106,Neighborhood_No aplicames,1.0,0.0,1.0
-107,Neighborhood_NoRidge,1.0,0.0,1.0
-108,Neighborhood_NridgHt,1.0,0.0,1.0
-109,Neighborhood_OldTown,1.0,0.0,1.0
-110,Neighborhood_SWISU,1.0,0.0,1.0
-111,Neighborhood_Sawyer,1.0,0.0,1.0
-112,Neighborhood_SawyerW,1.0,0.0,1.0
-113,Neighborhood_Somerst,1.0,0.0,1.0
-114,Neighborhood_StoneBr,1.0,0.0,1.0
-115,Neighborhood_Timber,1.0,0.0,1.0
+105,Neighborhood_NWAmes,0.0,0.0,1.0
+106,Neighborhood_No aplicames,0.0,0.0,1.0
+107,Neighborhood_NoRidge,0.0,0.0,1.0
+108,Neighborhood_NridgHt,0.0,0.0,1.0
+109,Neighborhood_OldTown,0.0,0.0,1.0
+110,Neighborhood_SWISU,0.0,0.0,1.0
+111,Neighborhood_Sawyer,0.0,0.0,1.0
+112,Neighborhood_SawyerW,0.0,0.0,1.0
+113,Neighborhood_Somerst,0.0,0.0,1.0
+114,Neighborhood_StoneBr,0.0,0.0,1.0
+115,Neighborhood_Timber,0.0,0.0,1.0
 116,Neighborhood_Veenker,0.0,0.0,1.0
 117,Condition 1_Artery,0.0,0.0,1.0
 118,Condition 1_Feedr,0.0,0.0,1.0
@@ -133,10 +133,10 @@ idx,feature,value,LB,UB
 131,Condition 2_RRAe,0.0,0.0,1.0
 132,Condition 2_RRAn,0.0,0.0,1.0
 133,Condition 2_RRNn,0.0,0.0,1.0
-134,Bldg Type_1Fam,0.0,0.0,1.0
-135,Bldg Type_2fmCon,1.0,0.0,1.0
+134,Bldg Type_1Fam,1.0,0.0,1.0
+135,Bldg Type_2fmCon,0.0,0.0,1.0
 136,Bldg Type_Duplex,0.0,0.0,1.0
-137,Bldg Type_Twnhs,1.0,0.0,1.0
+137,Bldg Type_Twnhs,0.0,0.0,1.0
 138,Bldg Type_TwnhsE,0.0,0.0,1.0
 139,House Style_1.5Fin,1.0,0.0,1.0
 140,House Style_1.5Unf,0.0,0.0,1.0
@@ -175,7 +175,7 @@ idx,feature,value,LB,UB
 173,Exterior 1st_Stucco,1.0,0.0,1.0
 174,Exterior 1st_VinylSd,0.0,0.0,1.0
 175,Exterior 1st_Wd Sdng,0.0,0.0,1.0
-176,Exterior 1st_WdShing,1.0,0.0,1.0
+176,Exterior 1st_WdShing,0.0,0.0,1.0
 177,Exterior 2nd_AsbShng,0.0,0.0,1.0
 178,Exterior 2nd_AsphShn,0.0,0.0,1.0
 179,Exterior 2nd_Brk Cmn,0.0,0.0,1.0
@@ -194,11 +194,11 @@ idx,feature,value,LB,UB
 192,Exterior 2nd_Wd Sdng,0.0,0.0,1.0
 193,Exterior 2nd_Wd Shng,1.0,0.0,1.0
 194,Mas Vnr Type_BrkCmn,1.0,0.0,1.0
-195,Mas Vnr Type_BrkFace,-0.0,0.0,1.0
-196,Mas Vnr Type_CBlock,-0.0,0.0,1.0
-197,Mas Vnr Type_No aplica,-0.0,0.0,1.0
+195,Mas Vnr Type_BrkFace,0.0,0.0,1.0
+196,Mas Vnr Type_CBlock,0.0,0.0,1.0
+197,Mas Vnr Type_No aplica,0.0,0.0,1.0
 198,Mas Vnr Type_NoAplica,0.0,0.0,1.0
-199,Mas Vnr Type_Stone,-0.0,0.0,1.0
+199,Mas Vnr Type_Stone,0.0,0.0,1.0
 200,Foundation_BrkTil,0.0,0.0,1.0
 201,Foundation_CBlock,0.0,0.0,1.0
 202,Foundation_PConc,1.0,0.0,1.0
@@ -217,13 +217,13 @@ idx,feature,value,LB,UB
 215,BsmtFin Type 1_No aplica,0.0,0.0,1.0
 216,BsmtFin Type 1_Rec,0.0,0.0,1.0
 217,BsmtFin Type 1_Unf,0.0,0.0,1.0
-218,BsmtFin Type 2_ALQ,1.0,0.0,1.0
+218,BsmtFin Type 2_ALQ,0.0,0.0,1.0
 219,BsmtFin Type 2_BLQ,0.0,0.0,1.0
 220,BsmtFin Type 2_GLQ,0.0,0.0,1.0
 221,BsmtFin Type 2_LwQ,0.0,0.0,1.0
 222,BsmtFin Type 2_No aplica,0.0,0.0,1.0
 223,BsmtFin Type 2_Rec,0.0,0.0,1.0
-224,BsmtFin Type 2_Unf,0.0,0.0,1.0
+224,BsmtFin Type 2_Unf,1.0,0.0,1.0
 225,Heating_Floor,1.0,0.0,1.0
 226,Heating_GasA,0.0,0.0,1.0
 227,Heating_GasW,0.0,0.0,1.0
@@ -234,13 +234,13 @@ idx,feature,value,LB,UB
 232,Central Air_Y,0.0,0.0,1.0
 233,Electrical_FuseA,0.0,0.0,1.0
 234,Electrical_FuseF,0.0,0.0,1.0
-235,Electrical_FuseP,0.0,0.0,1.0
+235,Electrical_FuseP,1.0,0.0,1.0
 236,Electrical_Mix,0.0,0.0,1.0
-237,Electrical_SBrkr,1.0,0.0,1.0
-238,FunctioNo aplical_Maj1,1.0,0.0,1.0
+237,Electrical_SBrkr,0.0,0.0,1.0
+238,FunctioNo aplical_Maj1,0.0,0.0,1.0
 239,FunctioNo aplical_Maj2,0.0,0.0,1.0
-240,FunctioNo aplical_Min1,1.0,0.0,1.0
-241,FunctioNo aplical_Min2,1.0,0.0,1.0
+240,FunctioNo aplical_Min1,0.0,0.0,1.0
+241,FunctioNo aplical_Min2,0.0,0.0,1.0
 242,FunctioNo aplical_Mod,0.0,0.0,1.0
 243,FunctioNo aplical_Sal,0.0,0.0,1.0
 244,FunctioNo aplical_Sev,0.0,0.0,1.0

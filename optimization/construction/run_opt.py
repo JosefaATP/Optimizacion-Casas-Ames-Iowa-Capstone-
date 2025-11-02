@@ -152,9 +152,42 @@ def audit_predict_outside(m: gp.Model, bundle: XGBBundle):
         if getattr(Z, "empty", True):
             print("[AUDIT] _X_input vacio")
             return
+    def _first_scalar(obj):
+        try:
+            import numpy as _np
+            import pandas as _pd
+            if isinstance(obj, _pd.Series):
+                return float(obj.iloc[0])
+            if isinstance(obj, (list, tuple)):
+                return float(obj[0])
+            if hasattr(obj, 'shape') and getattr(obj, 'shape', None):
+                return float(_np.ravel(obj)[0])
+            return float(obj)
+        except Exception:
+            return float('nan')
+
     try:
-        y_hat = float(bundle.predict(Z).iloc[0])
-        print(f"[AUDIT] predict fuera = {y_hat:,.2f}")
+        y_pred = bundle.predict(Z)
+        y_out = _first_scalar(y_pred)
+        if not (y_out == y_out):  # NaN check
+            # Fallback: usa el pipeline completo (sin early stopping)
+            try:
+                y_full = bundle.pipe_full.predict(Z)
+                y_out = _first_scalar(y_full)
+                print("[AUDIT] fallback pipe_full para predict fuera (iter_range dio NaN)")
+            except Exception:
+                pass
+        print(f"[AUDIT] predict fuera = {y_out:,.2f}")
+        # Diagnóstico: comparar y_log interno vs margin del XGB afuera
+        try:
+            ylog_raw = bundle.predict_log_raw(Z)
+            ylog_out = _first_scalar(ylog_raw)
+        except Exception:
+            ylog_out = float('nan')
+        ylog_in = float(getattr(m, '_y_log_var', None).X) if getattr(m, '_y_log_var', None) is not None else float('nan')
+        print(f"[AUDIT] y_log_in={ylog_in:.4f} | y_log_out={ylog_out:.4f} | delta={ylog_in - ylog_out:+.4f}")
+        yprice_in = float(getattr(m, '_y_price_var', None).X) if getattr(m, '_y_price_var', None) is not None else float('nan')
+        print(f"[AUDIT] y_price_in={yprice_in:,.2f} | y_price_out={y_out:,.2f} | delta={yprice_in - y_out:,.2f}")
     except Exception as e:
         print(f"[AUDIT] fallo predict fuera: {e}")
 
@@ -165,6 +198,7 @@ def main():
     ap.add_argument("--neigh", type=str, default=None)
     ap.add_argument("--lot", type=float, default=None)
     ap.add_argument("--budget", type=float, required=True)
+    ap.add_argument("--xgbdir", type=str, default=None, help="carpeta con model_xgb.joblib/meta.json a usar")
     ap.add_argument("--basecsv", type=str, default=None)
     ap.add_argument("--debug-xgb", action="store_true")
     ap.add_argument("--fast", action="store_true")
@@ -172,6 +206,8 @@ def main():
     ap.add_argument("--profile", type=str, default="balanced", choices=["balanced","feasible","bound"], help="perfil de solver: balanced/feasible/bound")
     ap.add_argument("--quiet", action="store_true")
     ap.add_argument("--audit", action="store_true")
+    ap.add_argument("--outcsv", type=str, default=None, help="ruta CSV para append de resultados por corrida")
+    ap.add_argument("--bldg", type=str, default=None, help="tipo de edificio (por ejemplo: 1Fam, TwnhsE, TwnhsI, Duplex, 2FmCon)")
     args = ap.parse_args()
 
     def _make_seed_row(neigh: str, lot: float) -> pd.Series:
@@ -242,9 +278,20 @@ def main():
             base_row = base if isinstance(base, pd.Series) else pd.Series(base)
     else:
         base_row = _make_seed_row(args.neigh, args.lot)
+    # Override de tipo de edificio si se pide por CLI
+    if args.bldg:
+        try:
+            base_row["BldgType"] = str(args.bldg)
+        except Exception:
+            pass
 
     ct = costs.CostTables()
-    bundle = XGBBundle()
+    if args.xgbdir:
+        from pathlib import Path
+        model_path = Path(args.xgbdir) / "model_xgb.joblib"
+        bundle = XGBBundle(model_path=model_path)
+    else:
+        bundle = XGBBundle()
 
     m: gp.Model = build_mip_embed(base_row=base_row, budget=args.budget, ct=ct, bundle=bundle)
 
@@ -294,7 +341,19 @@ def main():
 
     st = m.Status
     if st in (gp.GRB.INF_OR_UNBD, gp.GRB.INFEASIBLE, gp.GRB.UNBOUNDED):
-        print("[ERR] modelo infeasible/unbounded. usa computeIIS() para diagnostico")
+        try:
+            print("[DEBUG] infeasible/unbounded; re-ejecutando con DualReductions=0 y computeIIS()")
+            m.Params.DualReductions = 0
+            m.optimize()
+            if m.Status in (gp.GRB.INFEASIBLE,):
+                m.computeIIS()
+                tag = f"construction_neigh_{args.neigh}_lot_{args.lot}_budget_{args.budget}"
+                m.write(f"{tag}_conflict.ilp")
+                m.write(f"{tag}_model.lp")
+                print(f"[DEBUG] escrito IIS en {tag}_conflict.ilp y modelo en {tag}_model.lp")
+        except Exception as e:
+            print("[DEBUG] fallo computeIIS:", e)
+        print("[ERR] modelo infeasible/unbounded. usa los archivos *_conflict.ilp y *_model.lp")
         return
     if st not in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT) or m.SolCount == 0:
         print("[WARN] no hay solucion valida")
@@ -331,6 +390,47 @@ def main():
     print("\n" + "="*60)
     print("                     FIN RESULTADOS")
     print("="*60 + "\n")
+
+    # ================= CSV append (si se pidió) =================
+    if args.outcsv:
+        try:
+            import csv, os
+            os.makedirs(os.path.dirname(args.outcsv), exist_ok=True)
+            rv = getattr(m, "_report_vars", {})
+            def vnum(name):
+                try:
+                    v = rv.get(name)
+                    return float(v.X) if hasattr(v, 'X') else (float(v) if v is not None else float('nan'))
+                except Exception:
+                    return float('nan')
+            row = {
+                'neigh': str(base_row.get('Neighborhood', args.neigh or 'N/A')),
+                'lot': float(base_row.get('LotArea', args.lot or 0.0)),
+                'budget': float(args.budget),
+                'status': int(getattr(m, 'Status', -1)),
+                'runtime_s': float(getattr(m, 'Runtime', 0.0)),
+                'gap': float(getattr(m, 'MIPGap', float('nan'))),
+                'y_price': y_price,
+                'cost': total_cost,
+                'obj': obj,
+                'floor1': vnum('Floor1'),
+                'floor2': vnum('Floor2'),
+                'area_1st': vnum('1st Flr SF'),
+                'area_2nd': vnum('2nd Flr SF'),
+                'bsmt': vnum('Total Bsmt SF'),
+                'beds': vnum('Bedrooms'),
+                'fullbath': vnum('FullBath'),
+                'halfbath': vnum('HalfBath'),
+                'kitchen': vnum('Kitchen'),
+            }
+            write_header = not os.path.exists(args.outcsv)
+            with open(args.outcsv, 'a', newline='') as f:
+                w = csv.DictWriter(f, fieldnames=list(row.keys()))
+                if write_header:
+                    w.writeheader()
+                w.writerow(row)
+        except Exception as e:
+            print(f"[WARN] No se pudo escribir outcsv: {e}")
 
 
 if __name__ == "__main__":

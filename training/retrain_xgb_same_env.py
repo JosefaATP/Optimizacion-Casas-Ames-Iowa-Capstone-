@@ -78,6 +78,11 @@ def main():
 
     # 8) Modelo (log-target)
     xgb = XGBRegressor(**cfg.xgb_params)
+    # Mover early stopping al constructor/params para evitar el warning deprecado
+    try:
+        xgb.set_params(early_stopping_rounds=100)
+    except Exception:
+        pass
     reg = TransformedTargetRegressor(regressor=xgb, func=np.log1p, inverse_func=np.expm1)
 
     X = df.drop(columns=[cfg.target] + [c for c in cfg.drop_cols if c in df.columns], errors="ignore")
@@ -85,7 +90,20 @@ def main():
 
     Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=cfg.test_size, random_state=cfg.random_state)
     pipe = Pipeline(steps=[("pre", pre), ("xgb", reg)])
-    pipe.fit(Xtr, ytr)
+
+    # Early stopping: evalúa en el target transformado (log1p)
+    # ColumnTransformer aquí no aprende parámetros, sólo reordena/selecciona, por lo que es seguro.
+    pre_tmp = build_preprocessor(numeric_cols=numeric_cols)
+    Xtr_tmp = pre_tmp.fit_transform(Xtr)
+    Xte_tmp = pre_tmp.transform(Xte)
+    yte_log = np.log1p(yte)
+
+    # Entrena con parada temprana: eval_set recibe matrices ya transformadas (X) y y en escala log
+    pipe.fit(
+        Xtr, ytr,
+        xgb__eval_set=[(Xte_tmp, yte_log)],
+        xgb__verbose=False,
+    )
 
     # Booster robusto para joblib
     from sklearn.compose import TransformedTargetRegressor as TTR
@@ -124,6 +142,16 @@ def main():
     with open(outdir / "metrics.json", "w") as f:
         json.dump({"train": {**rep_tr, **extra_tr}, "test": {**rep_te, **extra_te}, "log_target": True}, f, indent=2)
 
+    # Si hay mejor iteración (early stopping), guárdala en meta
+    best_iter = None
+    try:
+        from sklearn.compose import TransformedTargetRegressor as TTR
+        xgb_step = pipe.named_steps["xgb"]
+        xgb_reg = xgb_step.regressor_ if isinstance(xgb_step, TTR) else xgb_step
+        best_iter = int(getattr(xgb_reg, "best_iteration", -1))
+    except Exception:
+        best_iter = None
+
     meta = {
         "target": cfg.target,
         "drop_cols": cfg.drop_cols,
@@ -131,6 +159,7 @@ def main():
         "categorical_cols": categorical_cols,
         "xgb_params": cfg.xgb_params,
         "log_target": True,
+        "best_iteration": best_iter,
 
         # IMPORTANTE para inferencia/MIP:
         "quality_cols": qual_ord_present,                   # ordinales -1..4

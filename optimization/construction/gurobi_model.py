@@ -62,16 +62,35 @@ def _fix_ohe_group(m: gp.Model, x: Dict[str, gp.Var], feat_order: list[str], gro
     """Fija un grupo one-hot en X (solo para columnas OHE del XGB) con nombre tipo 'Group_Label'.
     - Establece la columna del label elegido a 1 y el resto del grupo a 0.
     - Robusto a espacios vs guiones bajos en los nombres de columnas del XGB.
+    - Tolerante a alias del nombre base (p. ej., 'Functional' vs 'Functiono aplical').
     """
-    # Variantes de prefijo que observamos en columnas OHE del XGB
-    prefixes = [f"{group}_", f"{group} "]
-    cols = [c for c in feat_order if any(c.startswith(p) for p in prefixes) and c in x]
+    def base_of(col: str) -> str:
+        return col.split("_", 1)[0].strip()
+    group_norm = _norm(group)
+    # Aliases específicos que hemos visto en datos
+    ALIASES = {
+        "functional": ["functional", "functionoaplical", "funcional", "FunctioNo aplical"],
+    }
+    alias_norms = set(ALIASES.get(group_norm, [group_norm]))
+
+    # 1) Colecciona todas las columnas del grupo buscando por prefijo y por base normalizada
+    cols: list[str] = []
+    for c in feat_order:
+        if c not in x:
+            continue
+        if c.startswith(f"{group}_") or c.startswith(f"{group} "):
+            cols.append(c)
+            continue
+        b = base_of(c)
+        if _norm(b) in alias_norms:
+            cols.append(c)
     if not cols:
         return
     # Busca la columna elegida
     pick = None
     for c in cols:
-        tail = c[len(group):].strip(" _")
+        # etiqueta = token después del último '_'
+        tail = c.rsplit("_", 1)[1] if "_" in c else c
         if tail == chosen:
             pick = c
             break
@@ -79,7 +98,7 @@ def _fix_ohe_group(m: gp.Model, x: Dict[str, gp.Var], feat_order: list[str], gro
     if pick is None:
         want = _norm(chosen)
         for c in cols:
-            tail = c[len(group):].strip(" _")
+            tail = c.rsplit("_", 1)[1] if "_" in c else c
             if _norm(tail) == want:
                 pick = c
                 break
@@ -87,6 +106,26 @@ def _fix_ohe_group(m: gp.Model, x: Dict[str, gp.Var], feat_order: list[str], gro
     for c in cols:
         try:
             m.addConstr(x[c] == (1.0 if c == pick else 0.0), name=f"link__fix_ohe__{_norm(group)}__{_norm(c)}")
+        except Exception:
+            pass
+
+
+def _enforce_exclusive_ohe(m: gp.Model, x: Dict[str, gp.Var], feat_order: list[str], group: str):
+    """Agrega sum-to-one para todas las columnas OHE del grupo en X."""
+    def base_of(col: str) -> str:
+        return col.split("_", 1)[0].strip()
+    group_norm = _norm(group)
+    cols: list[gp.Var] = []
+    for c in feat_order:
+        if c not in x:
+            continue
+        if c.startswith(f"{group}_") or c.startswith(f"{group} "):
+            cols.append(x[c]); continue
+        if _norm(base_of(c)) == group_norm:
+            cols.append(x[c])
+    if len(cols) > 1:
+        try:
+            m.addConstr(gp.quicksum(cols) == 1.0, name=f"ex__x__{_norm(group)}__onehot")
         except Exception:
             pass
 
@@ -103,7 +142,13 @@ def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row, lot_area) -> tup
         "Wood Deck SF","Open Porch SF","Enclosed Porch","3Ssn Porch","Screen Porch",
         "Pool Area","Lot Area","Mas Vnr Area",
     }
-    ORD_CANDIDATES = {"Roof Style", "Roof Matl", "Utilities"}
+    # Trata como ordinales enteros [-1..4] varias calidades y utilidades
+    ORD_CANDIDATES = {
+        "Roof Style", "Roof Matl", "Utilities",
+        "Exter Qual", "Exter Cond", "Bsmt Qual", "Bsmt Cond",
+        "Heating QC", "Kitchen Qual", "Garage Qual", "Garage Cond",
+        "Pool QC", "Fireplace Qu",
+    }
 
     for col in feat_order:
         val = X_base_row[col] if col in X_base_row.index else None
@@ -113,7 +158,11 @@ def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row, lot_area) -> tup
         if col in NONNEG_LB0:
             lb = 0.0
         if col in ORD_CANDIDATES:
-            vtype, lb, ub = GRB.INTEGER, -1, 8  # por si el pipe usa -1 para NA
+            # Ordinales: -1 (No aplica) .. 4 (Ex). Para Roof Style/Matl usamos enteros más amplios
+            if col in ("Roof Style", "Roof Matl"):
+                vtype, lb, ub = GRB.INTEGER, -1, 8
+            else:
+                vtype, lb, ub = GRB.INTEGER, -1, 4
 
         # dummies OHE: forzar [0,1]
         if "_" in col and col not in NONNEG_LB0:
@@ -162,6 +211,13 @@ def _tighten_bounds_from_booster(m: gp.Model, bundle: XGBBundle,
 
     try:
         dumps = bst.get_dump(with_stats=False, dump_format="json")
+        # Si el bundle trae early stopping, usa solo esos arboles
+        try:
+            n_use = int(getattr(bundle, "n_trees_use", 0) or 0)
+        except Exception:
+            n_use = 0
+        if n_use > 0 and n_use < len(dumps):
+            dumps = dumps[:n_use]
     except Exception:
         return
 
@@ -265,7 +321,7 @@ def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
 
     import numpy as np
     # rango razonable de log-precio, ajusta si quieres: p in [30k, 1.0M] -> log p en [10.3, 13.8]
-    xs = np.linspace(10.3, 13.8, 40)
+    xs = np.linspace(10.3, 13.8, 80)
     ys = np.expm1(xs)
 
     y_log.LB = float(min(xs)); y_log.UB = float(max(xs))
@@ -551,6 +607,12 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # fijar NEIGHBORHOOD one-hots segun parametro/base_row
     # busca todas las columnas Neighborhood_*
     neigh_token = str(base_row.get("neigh_arg", "") or getattr(ct, "neigh_arg", "")).strip()
+    # Si no llega neigh_arg, usa el nombre en base_row["Neighborhood"] como token
+    if not neigh_token:
+        try:
+            neigh_token = str(base_row.get("Neighborhood", "")).strip()
+        except Exception:
+            neigh_token = ""
     # normaliza ejemplos: "NAmes" -> "NWAmes" si ya llega mapeado en base_row, se usara eso
     # si en base_row viene set con 1 una de ellas, usamos esa prioridad
     picked = None
@@ -560,12 +622,17 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
                 picked = col
                 break
     if picked is None and neigh_token:
-        # intenta emparejar por contains, case-insensitive
-        for col in feat_order:
-            if col.startswith("Neighborhood_") and col in x:
-                if neigh_token.lower() in col.lower():
-                    picked = col
-                    break
+        # 1) intento exacto Neighborhood_<token>
+        exact = f"Neighborhood_{neigh_token}"
+        if exact in x:
+            picked = exact
+        else:
+            # 2) intento por contains, case-insensitive
+            for col in feat_order:
+                if col.startswith("Neighborhood_") and col in x:
+                    if neigh_token.lower() in col.lower():
+                        picked = col
+                        break
     # aplica fijacion: la elegida =1, las demas =0 (solo si existen en el modelo)
     if picked is not None:
         for col in feat_order:
@@ -635,6 +702,18 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         _fix_ohe_group(m, x, feat_order, "Functional", "Typ")
         _fix_ohe_group(m, x, feat_order, "Sale Type", "WD")
         _fix_ohe_group(m, x, feat_order, "Sale Condition", "Normal")
+        # Si el proyecto es vivienda unifamiliar por defecto, fija Bldg Type
+        try:
+            bldg_pick = str(base_row.get("BldgType", "1Fam"))
+            _fix_ohe_group(m, x, feat_order, "Bldg Type", bldg_pick)
+        except Exception:
+            pass
+        # Exclusividades en X (sum-to-one)
+        for g in [
+            "MS Zoning","Street","Alley","Lot Shape","LandContour","LotConfig","LandSlope",
+            "Condition 1","Condition 2","Functional","Sale Type","Sale Condition","Neighborhood",
+        ]:
+            _enforce_exclusive_ohe(m, x, feat_order, g)
     except Exception:
         pass
 
@@ -762,24 +841,67 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(HasKitchen <= Kitchen, name="11.xx__has_kitch_leq_cnt")
     m.addConstr(HasKitchen - (Kitchen / UK) >= 0, name="11.xx__has_kitch_ge_frac")
 
-    # 7.3 caps por tipo de edificio
+    # 7.3 caps por tipo de edificio (opcional, solo si ct.bldg_caps existe)
     bldg_opts = ["1Fam","TwnhsE","TwnhsI","Duplex","2FmCon"]
     Bldg = _one_hot(m, "BldgType", bldg_opts)
     _tie_one_hot_to_x(m, x, "Bldg Type", Bldg)
-    Bed_max = {"1Fam":6,"TwnhsE":4,"TwnhsI":4,"Duplex":5,"2FmCon":8}
-    F_max   = {"1Fam":4,"TwnhsE":3,"TwnhsI":3,"Duplex":4,"2FmCon":6}
-    H_max   = {"1Fam":2,"TwnhsE":2,"TwnhsI":2,"Duplex":2,"2FmCon":3}
-    K_max   = {"1Fam":1,"TwnhsE":1,"TwnhsI":1,"Duplex":2,"2FmCon":2}
-    Ch_max  = {"1Fam":1,"TwnhsE":1,"TwnhsI":1,"Duplex":1,"2FmCon":2}
+    caps = getattr(ct, "bldg_caps", None)
+    if caps is None:
+        Bed_max = F_max = H_max = K_max = Ch_max = None
+    else:
+        Bed_max = caps.get("bedrooms_max", {})
+        F_max   = caps.get("fullbath_max", {})
+        H_max   = caps.get("halfbath_max", {})
+        K_max   = caps.get("kitchen_max", {})
+        Ch_max  = caps.get("fireplaces_max", {})
     Bedrooms = m.addVar(vtype=GRB.INTEGER, lb=0, name="Bedrooms")
     m.addConstr(Bedrooms == Bedroom1 + Bedroom2, name="7.3.1__bedrooms_sum")
-    m.addConstr(Bedrooms <= gp.quicksum(Bed_max[b]*Bldg[b] for b in bldg_opts), name="7.3.1__bedrooms_cap")
-    m.addConstr(FullBath <= gp.quicksum(F_max[b]*Bldg[b] for b in bldg_opts), name="7.3.2__fullbath_cap")
-    m.addConstr(HalfBath <= gp.quicksum(H_max[b]*Bldg[b] for b in bldg_opts), name="7.3.3__halfbath_cap")
-    m.addConstr(Kitchen  <= gp.quicksum(K_max[b]*Bldg[b] for b in bldg_opts), name="7.3.4__kitchen_cap")
+    if Bed_max:
+        m.addConstr(Bedrooms <= gp.quicksum(float(Bed_max.get(b, 1e6))*Bldg[b] for b in bldg_opts), name="7.3.1__bedrooms_cap")
+    if F_max:
+        m.addConstr(FullBath <= gp.quicksum(float(F_max.get(b, 1e6))*Bldg[b] for b in bldg_opts), name="7.3.2__fullbath_cap")
+    if H_max:
+        m.addConstr(HalfBath <= gp.quicksum(float(H_max.get(b, 1e6))*Bldg[b] for b in bldg_opts), name="7.3.3__halfbath_cap")
+    if K_max:
+        m.addConstr(Kitchen  <= gp.quicksum(float(K_max.get(b, 1e6))*Bldg[b] for b in bldg_opts), name="7.3.4__kitchen_cap")
+    else:
+        # Guard-rail opcional para 1Fam: a falta de cap en PDF, muchos catálogos imponen 1 cocina en unifamiliar
+        # Se puede desactivar con ct.enforce_single_kitchen_1fam = False
+        if bool(getattr(ct, 'enforce_single_kitchen_1fam', True)):
+            try:
+                m.addConstr(Kitchen <= 1.0 * Bldg['1Fam'] + 10.0 * (1 - Bldg['1Fam']), name="7.3.4__kitchen_guard_1fam")
+            except Exception:
+                pass
     Fireplaces = _safe_get(x, "Fireplaces") or m.addVar(vtype=GRB.INTEGER, lb=0, name="Fireplaces")
-    m.addConstr(Fireplaces <= gp.quicksum(Ch_max[b]*Bldg[b] for b in bldg_opts), name="7.3.5__fireplaces_cap")
+    if Ch_max:
+        m.addConstr(Fireplaces <= gp.quicksum(float(Ch_max.get(b, 1e6))*Bldg[b] for b in bldg_opts), name="7.3.5__fireplaces_cap")
     _link_if_exists(m, x, "Bedroom AbvGr", Bedrooms)
+
+    # Ajusta mínimo de 1er piso por tipo de edificio si hay mapa en ct
+    try:
+        eps_map = getattr(ct, "eps1_by_bldg", None)
+    except Exception:
+        eps_map = None
+    if eps_map and x1 is not None:
+        try:
+            m.addConstr(
+                x1 >= gp.quicksum(float(eps_map.get(b, 450.0)) * Bldg[b] for b in bldg_opts) * Floor1,
+                name="7.1.8__1st_min_by_bldg",
+            )
+        except Exception:
+            pass
+
+    # Fireplace quality: -1 si no hay chimenea
+    v_fq = _safe_get(x, "Fireplace Qu")
+    if v_fq is not None:
+        HasFire = m.addVar(vtype=GRB.BINARY, name="HasFireplace")
+        Ufire = 4.0
+        m.addConstr(HasFire >= Fireplaces / 4.0, name="11.xx__has_fire_ge_frac")
+        m.addConstr(Fireplaces <= 4.0 * HasFire, name="11.xx__fire_leq_cap")
+        try:
+            m.addGenConstrIndicator(HasFire, False, v_fq == -1.0, name="11.xx__fireplace_qu_eq_na_if_none")
+        except Exception:
+            pass
 
     # 7.5 garage
     GarageCars = _safe_get(x, "Garage Cars") or m.addVar(vtype=GRB.INTEGER, lb=0, name="GarageCars")
@@ -799,14 +921,12 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     if xgar is not None:
         m.addConstr(xgar <= (0.2 * lot_area) * (1 - GT["NA"]), name="7.5.2__cap_area_if_has")
 
-    # Garage quality/condition: EX si hay garage (sin costo extra)
+    # Garage quality/condition: 4 si hay garage, -1 si NO aplica
     for qcol in ["Garage Qual", "Garage Cond"]:
         vq = _safe_get(x, qcol)
         if vq is not None:
-            Uq = 4.0
             try:
-                m.addConstr(vq >= 4.0 * (1 - GT["NA"]), name=f"11.xx__{_norm(qcol)}_ge_ex_if_has")
-                m.addConstr(vq <= 4.0 + Uq * GT["NA"], name=f"11.xx__{_norm(qcol)}_le_ex_or_free_if_na")
+                m.addConstr(vq == 4.0 - 5.0 * GT["NA"], name=f"11.xx__{_norm(qcol)}_eq_4_or_na")
             except Exception:
                 pass
 
@@ -868,6 +988,18 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     pd_opts = ["Y","P","N"]
     PD = _one_hot(m, "PavedDrive", pd_opts)
     _tie_one_hot_to_x(m, x, "Paved Drive", PD)
+
+    # MiscFeature: asegurar exclusividad y ligar Misc Val
+    misc_opts = ["Elev","Gar2","Othr","Shed","TenC","No aplica"]
+    MF = _one_hot(m, "MiscFeature", misc_opts)
+    _tie_one_hot_to_x(m, x, "Misc Feature", MF)
+    misc_val = _safe_get(x, "Misc Val")
+    if misc_val is not None and MF.get("No aplica") is not None:
+        try:
+            m.addGenConstrIndicator(MF["No aplica"], True, misc_val == 0.0, name="11.xx__miscval_zero_if_na")
+        except Exception:
+            # fallback: misc_val <= 0 si No aplica (y LB>=0) ⇒ 0
+            m.addConstr(misc_val <= 1e-6 * (1 - MF["No aplica"]), name="11.xx__miscval_leq_zero_if_na")
 
     # 7.7 techos (plan vs actual, estilo y material)
     PR1 = m.addVar(lb=0.0, name="PR1")
@@ -946,6 +1078,13 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         m.addConstr(xpool <= 0.1 * lot_area * HasPool, name="7.11.1__pool_max")
         m.addConstr(xpool >= 160 * HasPool, name="7.11.1__pool_min")
         m.addConstr(xpool >= 0, name="7.11.1__pool_nonneg")
+        # Pool QC = -1 si no hay piscina; si hay, libre dentro de sus bounds (-1..4)
+        v_pqc = _safe_get(x, "Pool QC")
+        if v_pqc is not None:
+            try:
+                m.addGenConstrIndicator(HasPool, False, v_pqc == -1.0, name="11.xx__poolqc_eq_na_if_no_pool")
+            except Exception:
+                pass
 
     # 7.12 porches (forzamos identidad TotalPorch = suma componentes)
     if all(v is not None for v in [xopen,xencl,xscreen,x3ssn]):
@@ -1085,6 +1224,27 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     AreaFoundation = m.addVar(lb=0.0, name="AreaFoundation")
     if x1 is not None:
         m.addConstr(AreaFoundation == x1, name="7.20__AreaFoundation_eq_1st")
+        # Realismo: sótano no excede la huella (o pequeña tolerancia),
+        # y si hay exposición (Gd/Av/Mn) puede permitir un poco más.
+        if tbsmt is not None:
+            try:
+                rho_base = float(getattr(ct, "basement_to_foundation_ratio_max", 1.0))
+            except Exception:
+                rho_base = 1.0
+            try:
+                rho_exp = float(getattr(ct, "basement_ratio_if_exposed", rho_base))
+            except Exception:
+                rho_exp = rho_base
+            # Cota base SIEMPRE activa
+            m.addConstr(tbsmt <= rho_base * AreaFoundation, name="7.18__bsmt_leq_found_base")
+            # Cota adicional si hay exposición (relaja a rho_exp)
+            EXP_Gd = m.getVarByName("BsmtExposure__Gd")
+            EXP_Av = m.getVarByName("BsmtExposure__Av")
+            EXP_Mn = m.getVarByName("BsmtExposure__Mn")
+            if all(v is not None for v in [EXP_Gd, EXP_Av, EXP_Mn]):
+                is_exposed = EXP_Gd + EXP_Av + EXP_Mn
+                Ubig = 1e6
+                m.addConstr(tbsmt <= rho_exp * AreaFoundation + Ubig * (1 - is_exposed), name="7.18__bsmt_leq_found_if_exposed")
     Ufound = 0.6 * lot_area
     for f in f_opts:
         FA = m.addVar(lb=0.0, name=f"FA__{f}")
