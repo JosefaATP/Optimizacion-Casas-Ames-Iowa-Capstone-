@@ -1,0 +1,70 @@
+{
+  "setup": {
+    "n_splits": 10,
+    "repeats": 10,
+    "seed_base": 42,
+    "csv_xgb": "data/processed/base_completa_sin_nulos.csv",
+    "csv_reg": "data/processed/base_completa_sin_nulos.csv",
+    "bayes_summary": "models/xgb_bayes_search/bayes_summary.json"
+  },
+  "metrics": {
+    "R2": {
+      "xgboost": {
+        "mean": 0.9317583696746239,
+        "sd": 0.0018729407584980142
+      },
+      "regression": {
+        "mean": 0.8572150993462504,
+        "sd": 0.004590137678908394
+      }
+    },
+    "MAPE": {
+      "xgboost": {
+        "mean": 7.757385120993497,
+        "sd": 0.05293629044746028
+      },
+      "regression": {
+        "mean": 10.00416304412193,
+        "sd": 0.07841085918723774
+      }
+    },
+    "RMSE": {
+      "xgboost": {
+        "mean": 31543.118049810797,
+        "sd": 386.42387248559515
+      },
+      "regression": {
+        "mean": 43808.11475730815,
+        "sd": 699.5449798537031
+      }
+    },
+    "MAE": {
+      "xgboost": {
+        "mean": 19556.423516306524,
+        "sd": 111.18401931594057
+      },
+      "regression": {
+        "mean": 24529.806127786513,
+        "sd": 150.40552322417463
+      }
+    },
+    "mean_abs_err": {
+      "xgboost": {
+        "mean": 19556.423516306524,
+        "sd": 111.18401931594057
+      },
+      "regression": {
+        "mean": 24529.806127786513,
+        "sd": 150.40552322417463
+      }
+    }
+  },
+  "xgb_win_rate": {
+    "mean_per_fold": 58.20601711159943,
+    "std_per_fold": 2.3306548499419697,
+    "overall_weighted": 58.20609380349195
+  },
+  "regression_win_rate": {
+    "overall_weighted": 41.79390619650805
+  }
+}
