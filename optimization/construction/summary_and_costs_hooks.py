@@ -229,11 +229,20 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
         if xin:
             order = xin["order"]; xdict = xin["x"]
             rows = []
+            # Redondeo amigable para OHE: clip 1e-9 a 0/1
+            def _clip01(z: float) -> float:
+                try:
+                    if z >= 1 - 1e-9: return 1.0
+                    if z <= 1e-9: return 0.0
+                    return float(z)
+                except Exception:
+                    return z
             for i, col in enumerate(order):
                 v = xdict.get(col)
                 val = float(v.X) if v is not None else float("nan")
                 lb  = float(getattr(v, "LB", float("nan"))) if v is not None else float("nan")
                 ub  = float(getattr(v, "UB", float("nan"))) if v is not None else float("nan")
+                val = _clip01(val)
                 rows.append((i, col, val, lb, ub))
             print("\n-- XGB INPUT (primeras 30) --")
             for i, col, val, lb, ub in rows[:70]:

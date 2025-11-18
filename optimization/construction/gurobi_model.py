@@ -789,6 +789,8 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         for g in [
             "MS Zoning","Street","Alley","Lot Shape","LandContour","LotConfig","LandSlope",
             "Condition 1","Condition 2","Functional","Sale Type","Sale Condition","Neighborhood",
+            # asegurar exclusividad también en X para materiales de fachada
+            "Exterior1st","Exterior2nd",
         ]:
             _enforce_exclusive_ohe(m, x, feat_order, g)
     except Exception:
