@@ -11,6 +11,7 @@ from . import costs
 from .xgb_predictor import XGBBundle
 from .gurobi_model import build_mip_embed
 from .features import MODIFIABLE
+from .quality_calculator import QualityCalculator, calculate_overall_qual_from_improvements
 
 from shutil import get_terminal_size
 
@@ -1265,7 +1266,31 @@ def main():
             ("Pool QC", None),
         ]
 
-        print("\n🌟 **Calidad general y calidades clave**")
+        # ===== NUEVO: Calcula mejora sofisticada de calidad =====
+        try:
+            # Reconstruye la fila óptima
+            opt_row_dict = dict(base_row.items())
+            
+            for col, alias in QUAL_COLS:
+                if col == "Overall Qual":
+                    continue  # Lo calcularemos, no lo leemos
+                opt_val = _qual_opt(col, extra_alias=alias)
+                if opt_val is not None:
+                    opt_row_dict[col] = opt_val
+            
+            opt_row_series = pd.Series(opt_row_dict)
+            
+            # Usa el QualityCalculator para obtener el análisis desglosado
+            calc = QualityCalculator(max_boost=2.0)
+            quality_result = calc.calculate_boost(base_row, opt_row_series)
+            
+            # Imprime el reporte desglosado
+            print("\n" + calc.format_changes_report(quality_result))
+            
+        except Exception as e:
+            print(f"\n[TRACE] Cálculo sofisticado de calidad falló: {e}")
+
+        print("\n🌟 **Calidad general y calidades clave (detalle)**")
         for col, alias in QUAL_COLS:
             base_val = base_row.get(col, "N/A")
             opt_val  = _qual_opt(col, extra_alias=alias)

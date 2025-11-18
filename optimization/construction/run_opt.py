@@ -285,6 +285,41 @@ def audit_predict_outside(m: gp.Model, bundle: XGBBundle):
         print(f"[AUDIT] fallo predict fuera: {e}")
 
 
+def _try_report_budget_shortfall(m: gp.Model, budget: float, neigh: str | None = None) -> bool:
+    """Si el modelo es inf factible, calcula costo minimo relajando budget y lo reporta."""
+    try:
+        budget_con = m.getConstrByName("budget")
+        cost_var = m.getVarByName("cost_model") or getattr(m, "_cost_var", None)
+        if budget_con is None or cost_var is None:
+            return False
+        aux = m.copy()  # no toca el modelo original
+        aux.Params.LogToConsole = 0
+        try:
+            aux.Params.TimeLimit = min(30, getattr(aux.Params, "TimeLimit", 30))
+        except Exception:
+            pass
+        aux_cost = aux.getVarByName(cost_var.VarName)
+        aux_budget = aux.getConstrByName(budget_con.ConstrName)
+        if aux_cost is None or aux_budget is None:
+            return False
+        aux_budget.RHS = 1e12
+        aux_budget.Sense = gp.GRB.LESS_EQUAL
+        aux.setObjective(aux_cost, gp.GRB.MINIMIZE)
+        aux.optimize()
+        if aux.Status == gp.GRB.OPTIMAL and aux.SolCount > 0:
+            min_cost = float(aux_cost.X)
+            gap = max(0.0, min_cost - float(budget))
+            barrio = f" en {neigh}" if neigh else ""
+            print("=" * 80)
+            print(f"[RESULT] El presupuesto no alcanza para construir una casa{barrio}.")
+            print(f"[RESULT] Costo minimo factible: {money(min_cost)}; falta {money(gap)}.")
+            print("=" * 80)
+            return True
+    except Exception:
+        return False
+    return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pid", type=int, default=None)
@@ -442,14 +477,11 @@ def main():
 
     m.optimize()
     print(f"[STATUS] gurobi Status = {int(getattr(m, 'Status', -1))}")
-
-    try:
-        summarize_solution(m)
-    except Exception as e:
-        print(f"[HOUSE SUMMARY] no disponible: {e}")
-
     st = m.Status
     if st in (gp.GRB.INF_OR_UNBD, gp.GRB.INFEASIBLE, gp.GRB.UNBOUNDED):
+        budget_msg_done = _try_report_budget_shortfall(m, args.budget, neigh_token)
+        if budget_msg_done:
+            return
         try:
             print("[DEBUG] infeasible/unbounded; re-ejecutando con DualReductions=0 y computeIIS()")
             m.Params.DualReductions = 0
@@ -467,6 +499,11 @@ def main():
     if st not in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT) or m.SolCount == 0:
         print("[WARN] no hay solucion valida")
         return
+
+    try:
+        summarize_solution(m)
+    except Exception as e:
+        print(f"[HOUSE SUMMARY] no disponible: {e}")
 
     y_var = getattr(m, "_y_price_var", None)
     c_var = m.getVarByName("cost_model") or getattr(m, "_cost_var", None)
