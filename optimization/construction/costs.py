@@ -13,7 +13,8 @@ class CostTables:
     halfbath_area_cost: float = 500.0          # Aprox 10k/20ft2
     bedroom_area_cost: float = 325.0           # Appendix: $325/ft2
 
-    # ====== COCINA (paquetes) ======
+    # ====== COCINA (paquetes) [REMOVED for construction; keep for compatibility] ======
+    # En construcción usaremos costos por área diferenciados por calidad.
     kitchenQual_upgrade_TA: float = 42500.0
     kitchenQual_upgrade_EX: float = 180000.0
 
@@ -197,6 +198,28 @@ class CostTables:
     })
     def electrical_cost(self, name: str) -> float:
         return float(self.electrical_type_costs.get(str(name), 0.0))
+
+    # ====== CALIDADES (multiplicadores por nivel para obra nueva) ======
+    # Convención: los unitarios base (area_cost) representan EX (1.00)
+    quality_baseline_is_ex: bool = True
+
+    kitchen_area_quality_mult: Dict[str, float] = field(default_factory=lambda: {
+        "TA": 0.85, "Gd": 0.95, "Ex": 1.00,
+    })
+    bsmt_finish_quality_mult: Dict[str, float] = field(default_factory=lambda: {
+        "TA": 0.85, "Gd": 0.95, "Ex": 1.00,
+    })
+    garage_area_quality_mult: Dict[str, float] = field(default_factory=lambda: {
+        "TA": 0.90, "Gd": 0.96, "Ex": 1.00,
+    })
+    pool_area_quality_mult: Dict[str, float] = field(default_factory=lambda: {
+        "TA": 0.80, "Gd": 0.92, "Ex": 1.00,
+    })
+
+    def _mult_from_ord(self, table: Dict[str, float], ord_val: int) -> float:
+        # ord_val: 2=TA, 3=Gd, 4=Ex (otros => 1.0)
+        key = {2: "TA", 3: "Gd", 4: "Ex"}.get(int(ord_val), None)
+        return float(table.get(key, 1.0)) if key is not None else 1.0
 
     # ====== AIRE / CALEFACCION ======
     central_air_install: float = 5362.0

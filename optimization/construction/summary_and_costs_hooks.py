@@ -67,11 +67,11 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
         # pisos y areas bases
         rows.append(("Floor1", fmt(val("Floor1")), "-"))
         rows.append(("Floor2", fmt(val("Floor2")), "-"))
-        rows.append(("1st Flr SF", fmt(val("1st Flr SF")), "-"))
-        rows.append(("2nd Flr SF", fmt(val("2nd Flr SF")), "-"))
-        rows.append(("Total Bsmt SF", fmt(val("Total Bsmt SF")), "-"))
-        rows.append(("Garage Area", fmt(val("Garage Area")), "-"))
-        rows.append(("Gr Liv Area", fmt(val("Gr Liv Area")), "-"))
+        rows.append(("1st Flr SF", fmt(val_by_name("1st Flr SF")), "-"))
+        rows.append(("2nd Flr SF", fmt(val_by_name("2nd Flr SF")), "-"))
+        rows.append(("Total Bsmt SF", fmt(val_by_name("Total Bsmt SF")), "-"))
+        rows.append(("Garage Area", fmt(val_by_name("Garage Area")), "-"))
+        rows.append(("Gr Liv Area", fmt(val_by_name("Gr Liv Area")), "-"))
 
         # habitaciones / baños / cocina
         rows.append(("Bedrooms", fmt(val("Bedrooms")), "-"))
@@ -93,6 +93,7 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
         heating = chosen('Heating', ['Floor','GasA','GasW','Grav','OthW','Wall'])
         electrical = chosen('Electrical', ['SBrkr','FuseA','FuseF','FuseP','Mix'])
         paved = chosen('PavedDrive', ['Y','P','N'])
+        garfin = chosen('GarageFinish', ['Fin','RFn','Unf','NA'])
         house_style = chosen('HouseStyle', ['1Story','1.5Fin','1.5Unf','2Story','2.5Fin','2.5Unf','SFoyer','SLvl'])
         ext1 = chosen('Exterior1st', ['VinylSd','MetalSd','Wd Sdng','HdBoard','Stucco','Plywood','CemntBd','BrkFace','BrkComm','WdShngl','AsbShng','Stone','ImStucc','AsphShn','CBlock'])
         ext2 = chosen('Exterior2nd', ['VinylSd','MetalSd','Wd Sdng','HdBoard','Stucco','Plywood','CemntBd','BrkFace','BrkComm','WdShngl','AsbShng','Stone','ImStucc','AsphShn','CBlock'])
@@ -105,6 +106,7 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
         if heating: rows.append(("Heating", "-", heating))
         if electrical: rows.append(("Electrical", "-", electrical))
         if paved: rows.append(("PavedDrive", "-", paved))
+        if garfin: rows.append(("GarageFinish", "-", garfin))
         if house_style: rows.append(("HouseStyle", "-", house_style))
         if ext1: rows.append(("Exterior1st", "-", ext1))
         if ext2: rows.append(("Exterior2nd", "-", ext2))
@@ -131,6 +133,25 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
             if bc is not None:
                 tbsmt = val("Total Bsmt SF") or 0
                 rows.append(("Bsmt Cond", f"{tbsmt:.0f} ft2", qual_map.get(int(round(bc)), bc)))
+
+        # calidades adicionales (obra nueva)
+        kq = val_by_name("Kitchen Qual")
+        if kq is not None:
+            ak = val_by_name("AreaKitchen") or 0
+            rows.append(("Kitchen Qual", f"{ak:.0f} ft2", qual_map.get(int(round(kq)), kq)))
+        eq = val_by_name("Exter Qual")
+        if eq is not None:
+            rows.append(("Exter Qual", "-", qual_map.get(int(round(eq)), eq)))
+        gq = val_by_name("Garage Qual")
+        if gq is not None:
+            ga = val_by_name("Garage Area") or 0
+            rows.append(("Garage Qual", f"{ga:.0f} ft2", qual_map.get(int(round(gq)), gq)))
+        oc = val_by_name("Overall Cond")
+        if oc is not None:
+            rows.append(("Overall Cond", "-", int(round(oc))))
+        oq = val_by_name("Overall Qual")
+        if oq is not None:
+            rows.append(("Overall Qual", "-", int(round(oq))))
 
         # áres por ambiente (totales)
         for n1, n2, ntot in [

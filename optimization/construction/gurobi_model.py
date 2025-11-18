@@ -405,21 +405,45 @@ def _build_cost_expr(m, x, ct):
     if bsmt_unf is not None:
         add("Bsmt Unf SF @construction", c_base, bsmt_unf)
 
-    # Terminación de sótano acabado (usa tu clave exacta)
+    # Terminación de sótano acabado (preferir descomposición por calidad si existe)
     c_fin = float(getattr(ct, "finish_basement_per_f2", 0.0))
-    add("BsmtFin SF 1 @finish", c_fin, m.getVarByName("BsmtFinSF1"))
-    add("BsmtFin SF 2 @finish", c_fin, m.getVarByName("BsmtFinSF2"))
+    AB_TA = m.getVarByName("ABsmt_TA"); AB_Gd = m.getVarByName("ABsmt_Gd"); AB_Ex = m.getVarByName("ABsmt_Ex")
+    if AB_TA is not None and AB_Gd is not None and AB_Ex is not None:
+        mults = getattr(ct, "bsmt_finish_quality_mult", {})
+        add("BsmtFin TA", c_fin * float(mults.get("TA", 0.85)), AB_TA)
+        add("BsmtFin Gd", c_fin * float(mults.get("Gd", 0.95)), AB_Gd)
+        add("BsmtFin Ex", c_fin * float(mults.get("Ex", 1.00)), AB_Ex)
+    else:
+        add("BsmtFin SF 1 @finish", c_fin, m.getVarByName("BsmtFinSF1"))
+        add("BsmtFin SF 2 @finish", c_fin, m.getVarByName("BsmtFinSF2"))
 
     add("Wood Deck SF", float(getattr(ct, "wooddeck_cost", 0.0)), _safe_get(x, "Wood Deck SF"))
     add("Open Porch SF", float(getattr(ct, "openporch_cost", 0.0)), _safe_get(x, "Open Porch SF"))
     add("Enclosed Porch", float(getattr(ct, "enclosedporch_cost", 0.0)), _safe_get(x, "Enclosed Porch"))
     add("3Ssn Porch", float(getattr(ct, "threessnporch_cost", 0.0)), _safe_get(x, "3Ssn Porch"))
     add("Screen Porch", float(getattr(ct, "screenporch_cost", 0.0)), _safe_get(x, "Screen Porch"))
-    add("Pool Area", float(getattr(ct, "pool_area_cost", 0.0)), _safe_get(x, "Pool Area"))
+    # Piscina: preferir descomposición por calidad si existe
+    AP_TA = m.getVarByName("APool_TA"); AP_Gd = m.getVarByName("APool_Gd"); AP_Ex = m.getVarByName("APool_Ex")
+    if AP_TA is not None and AP_Gd is not None and AP_Ex is not None:
+        c_pool = float(getattr(ct, "pool_area_cost", 0.0))
+        pm = getattr(ct, "pool_area_quality_mult", {})
+        add("Pool TA", c_pool * float(pm.get("TA", 0.80)), AP_TA)
+        add("Pool Gd", c_pool * float(pm.get("Gd", 0.92)), AP_Gd)
+        add("Pool Ex", c_pool * float(pm.get("Ex", 1.00)), AP_Ex)
+    else:
+        add("Pool Area", float(getattr(ct, "pool_area_cost", 0.0)), _safe_get(x, "Pool Area"))
 
-    # Garage: si tienes costo por ft2, usa esa clave; si no, se costea por acabado (abajo)
+    # Garage: si tienes costo por ft2, preferir descomposición por calidad si existe
     if hasattr(ct, "garage_area_cost"):
-        add("Garage Area", float(getattr(ct, "garage_area_cost", 0.0)), _safe_get(x, "Garage Area"))
+        AG_TA = m.getVarByName("AGarage_TA"); AG_Gd = m.getVarByName("AGarage_Gd"); AG_Ex = m.getVarByName("AGarage_Ex")
+        if AG_TA is not None and AG_Gd is not None and AG_Ex is not None:
+            cg = float(getattr(ct, "garage_area_cost", 0.0))
+            gm = getattr(ct, "garage_area_quality_mult", {})
+            add("Garage TA", cg * float(gm.get("TA", 0.90)), AG_TA)
+            add("Garage Gd", cg * float(gm.get("Gd", 0.96)), AG_Gd)
+            add("Garage Ex", cg * float(gm.get("Ex", 1.00)), AG_Ex)
+        else:
+            add("Garage Area", float(getattr(ct, "garage_area_cost", 0.0)), _safe_get(x, "Garage Area"))
 
     # Foundation por tipo si defines tabla per-ft2 (opcional)
     if hasattr(ct, "foundation_cost_per_sf"):
@@ -522,15 +546,41 @@ def _build_cost_expr(m, x, ct):
             float(getattr(ct, "fence_build_cost_per_ft", 0.0)) * float(getattr(ct, "lot_frontage_ft", 0.0)),
             has_reja)
 
-    # Fireplace: costo por chimenea con calidad excelente (si así lo decides)
+    # Heating QC (lumpsum por nivel), si existen zHQ_*
+    try:
+        zH_TA = m.getVarByName("zHQ_TA"); zH_Gd = m.getVarByName("zHQ_Gd"); zH_Ex = m.getVarByName("zHQ_Ex")
+        if hasattr(ct, "heating_qc_costs") and zH_TA is not None and zH_Gd is not None and zH_Ex is not None:
+            add("HeatingQC TA", float(ct.heating_qc_cost("TA")), zH_TA)
+            add("HeatingQC Gd", float(ct.heating_qc_cost("Gd")), zH_Gd)
+            add("HeatingQC Ex", float(ct.heating_qc_cost("Ex")), zH_Ex)
+    except Exception:
+        pass
+
+    # Exter Qual (lumpsum por nivel), si existen zEQ_*
+    try:
+        zE_TA = m.getVarByName("zEQ_TA"); zE_Gd = m.getVarByName("zEQ_Gd"); zE_Ex = m.getVarByName("zEQ_Ex")
+        if hasattr(ct, "exter_qual_costs") and zE_TA is not None and zE_Gd is not None and zE_Ex is not None:
+            add("ExterQual TA", float(ct.exter_qual_cost("TA")), zE_TA)
+            add("ExterQual Gd", float(ct.exter_qual_cost("Gd")), zE_Gd)
+            add("ExterQual Ex", float(ct.exter_qual_cost("Ex")), zE_Ex)
+    except Exception:
+        pass
+
+    # Fireplace: costo por chimenea según calidad (si existen particiones por nivel)
     if hasattr(ct, "fireplace_costs"):
-        fp_cnt = m.getVarByName("Fireplaces") or _safe_get(x, "Fireplaces")
-        try:
-            unit_fp = float(ct.fireplace_cost("Ex"))
-            if fp_cnt is not None and unit_fp:
-                add("Fireplace EX", unit_fp, fp_cnt)
-        except Exception:
-            pass
+        fTA = m.getVarByName("Fireplaces_TA"); fGd = m.getVarByName("Fireplaces_Gd"); fEx = m.getVarByName("Fireplaces_Ex")
+        if fTA is not None and fGd is not None and fEx is not None:
+            add("Fireplace TA", float(ct.fireplace_cost("TA")), fTA)
+            add("Fireplace Gd", float(ct.fireplace_cost("Gd")), fGd)
+            add("Fireplace Ex", float(ct.fireplace_cost("Ex")), fEx)
+        else:
+            fp_cnt = m.getVarByName("Fireplaces") or _safe_get(x, "Fireplaces")
+            try:
+                unit_fp = float(ct.fireplace_cost("Ex"))
+                if fp_cnt is not None and unit_fp:
+                    add("Fireplace EX", unit_fp, fp_cnt)
+            except Exception:
+                pass
 
     # 11.xx premiums y costos por área adicionales
     try:
@@ -550,9 +600,20 @@ def _build_cost_expr(m, x, ct):
     # if hasattr(ct, "exter_cond_costs") and gate_floor1 is not None:
     #     add("ExterCond EX", float(ct.exter_cond_cost("Ex")), gate_floor1)
 
-    # Costos por área de ambientes
-    for nm, attr in (("AreaKitchen", "kitchen_area_cost"),
-                     ("AreaFullBath", "fullbath_area_cost"),
+    # Costos por área de ambientes (Kitchen con descomposición por calidad si existe)
+    AK_TA = m.getVarByName("AKitchen_TA"); AK_Gd = m.getVarByName("AKitchen_Gd"); AK_Ex = m.getVarByName("AKitchen_Ex")
+    if AK_TA is not None and AK_Gd is not None and AK_Ex is not None:
+        ck = float(getattr(ct, "kitchen_area_cost", 0.0))
+        km = getattr(ct, "kitchen_area_quality_mult", {})
+        add("AreaKitchen TA", ck * float(km.get("TA", 0.85)), AK_TA)
+        add("AreaKitchen Gd", ck * float(km.get("Gd", 0.95)), AK_Gd)
+        add("AreaKitchen Ex", ck * float(km.get("Ex", 1.00)), AK_Ex)
+    else:
+        v = m.getVarByName("AreaKitchen")
+        if v is not None:
+            add("AreaKitchen", float(getattr(ct, "kitchen_area_cost", 0.0)), v)
+            dbg_counts["areas"] += 1
+    for nm, attr in (("AreaFullBath", "fullbath_area_cost"),
                      ("AreaHalfBath", "halfbath_area_cost"),
                      ("AreaBedroom",  "bedroom_area_cost")):
         v = m.getVarByName(nm)
@@ -586,11 +647,14 @@ def _build_cost_expr(m, x, ct):
         # Foundation per tipo (por área)
         for f, unit in getattr(ct, "foundation_cost_per_sf", {}).items():
             add_if_missing(f"FA {f}", float(unit), m.getVarByName(f"FA__{f}"))
-        # Áreas de ambientes
+        # Áreas de ambientes (evita duplicar Kitchen si ya se descompuso por calidad)
+        AK_TA = m.getVarByName("AKitchen_TA"); AK_Gd = m.getVarByName("AKitchen_Gd"); AK_Ex = m.getVarByName("AKitchen_Ex")
         for nm, attr in (("AreaKitchen", "kitchen_area_cost"),
                          ("AreaFullBath", "fullbath_area_cost"),
                          ("AreaHalfBath", "halfbath_area_cost"),
                          ("AreaBedroom",  "bedroom_area_cost")):
+            if nm == "AreaKitchen" and (AK_TA is not None and AK_Gd is not None and AK_Ex is not None):
+                continue  # ya se agregó por niveles
             v = m.getVarByName(nm)
             add_if_missing(nm, float(getattr(ct, attr, 0.0)), v)
         # Basement finished areas
@@ -730,17 +794,15 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     except Exception:
         pass
 
-    # Calidades: sólo ajustamos límite inferior (Average hacia arriba) en las que tienen costo asociado
-    # búsqueda de columnas con costos declarados en ct
+    # Calidades: límite inferior (Average hacia arriba = TA) en calidades clave
+    # Nota: Pool QC puede ser -1 si no hay piscina; su LB se maneja condicionalmente más abajo.
     qual_cost_cols = []
     if hasattr(ct, "heating_qc_costs"):
         qual_cost_cols.append("Heating QC")
     if hasattr(ct, "fireplace_costs"):
         qual_cost_cols.append("Fireplace Qu")
-    if hasattr(ct, "poolqc_costs"):
-        qual_cost_cols.append("Pool QC")
-    if hasattr(ct, "bsmt_cond_upgrade_costs"):
-        qual_cost_cols.append("Bsmt Cond")
+    # Añadimos calidades principales de obra (TA/Gd/Ex)
+    qual_cost_cols.extend(["Kitchen Qual", "Bsmt Qual", "Exter Qual", "Garage Qual"])
     MIN_Q = float(getattr(ct, "min_quality_level", 2.0))  # TA en escala -1..4
     for qcol in qual_cost_cols:
         v = _safe_get(x, qcol)
@@ -748,6 +810,16 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
             try:
                 v.LB = max(getattr(v, "LB", -1.0), MIN_Q)
                 v.UB = max(getattr(v, "UB", 4.0), 4.0)
+            except Exception:
+                pass
+
+    # Condiciones: en construcción asumimos condición máxima donde aplica
+    _fix_const("Overall Cond", 10)
+    for ccol in ["Exter Cond", "Bsmt Cond"]:
+        vc = _safe_get(x, ccol)
+        if vc is not None:
+            try:
+                m.addConstr(vc == 4.0, name=f"fix__{_norm(ccol)}__ex")
             except Exception:
                 pass
 
@@ -966,6 +1038,23 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
             m.addGenConstrIndicator(HasFire, False, v_fq == -1.0, name="11.xx__fireplace_qu_eq_na_if_none")
         except Exception:
             pass
+        # Selección de calidad TA/Gd/Ex y descomposición de conteo para costo por nivel
+        zF_TA = m.addVar(vtype=GRB.BINARY, name="zFQ_TA")
+        zF_Gd = m.addVar(vtype=GRB.BINARY, name="zFQ_Gd")
+        zF_Ex = m.addVar(vtype=GRB.BINARY, name="zFQ_Ex")
+        m.addConstr(zF_TA + zF_Gd + zF_Ex == HasFire, name="onehot__fq")
+        try:
+            m.addGenConstrIndicator(HasFire, True, v_fq == 2.0*zF_TA + 3.0*zF_Gd + 4.0*zF_Ex, name="link__fq_ord")
+        except Exception:
+            pass
+        FP_TA = m.addVar(lb=0.0, name="Fireplaces_TA")
+        FP_Gd = m.addVar(lb=0.0, name="Fireplaces_Gd")
+        FP_Ex = m.addVar(lb=0.0, name="Fireplaces_Ex")
+        m.addConstr(FP_TA + FP_Gd + FP_Ex == Fireplaces, name="part__fplaces_sum")
+        Uf = float(getattr(ct, "max_fireplaces", 3))
+        m.addConstr(FP_TA <= Uf * zF_TA, name="part__fplaces_ta")
+        m.addConstr(FP_Gd <= Uf * zF_Gd, name="part__fplaces_gd")
+        m.addConstr(FP_Ex <= Uf * zF_Ex, name="part__fplaces_ex")
 
     # 7.5 garage
     GarageCars = _safe_get(x, "Garage Cars") or m.addVar(vtype=GRB.INTEGER, lb=0, name="GarageCars")
@@ -985,14 +1074,13 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     if xgar is not None:
         m.addConstr(xgar <= (0.2 * lot_area) * (1 - GT["NA"]), name="7.5.2__cap_area_if_has")
 
-    # Garage quality/condition: 4 si hay garage, -1 si NO aplica
-    for qcol in ["Garage Qual", "Garage Cond"]:
-        vq = _safe_get(x, qcol)
-        if vq is not None:
-            try:
-                m.addConstr(vq == 4.0 - 5.0 * GT["NA"], name=f"11.xx__{_norm(qcol)}_eq_4_or_na")
-            except Exception:
-                pass
+    # Garage condition: 4 si hay garage, -1 si NO aplica
+    vq = _safe_get(x, "Garage Cond")
+    if vq is not None:
+        try:
+            m.addConstr(vq == 4.0 - 5.0 * GT["NA"], name=f"11.xx__garage_cond_ex_or_na")
+        except Exception:
+            pass
 
     # Amarrar OHE del XGB a one-hot interno para Garage Type/Finish (evita múltiple 1s en CSV)
     for lab, var in {
@@ -1029,6 +1117,90 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
             m.addConstr(gyb <= yb + Uyr * GT["NA"], name="11.xx__gar_yr_le_yb_if_has")
     except Exception:
         pass
+
+    # ====== CALIDADES (TA/Gd/Ex) y descomposición de áreas para costos ======
+    # Kitchen Qual sobre AreaKitchen
+    v_kq = _safe_get(x, "Kitchen Qual")
+    a_k  = m.getVarByName("AreaKitchen")
+    if (v_kq is not None) and (a_k is not None):
+        zK_TA = m.addVar(vtype=GRB.BINARY, name="zKQ_TA")
+        zK_Gd = m.addVar(vtype=GRB.BINARY, name="zKQ_Gd")
+        zK_Ex = m.addVar(vtype=GRB.BINARY, name="zKQ_Ex")
+        m.addConstr(zK_TA + zK_Gd + zK_Ex == 1, name="onehot__kq")
+        m.addConstr(v_kq == 2.0*zK_TA + 3.0*zK_Gd + 4.0*zK_Ex, name="link__kq_ord")
+        AK_TA = m.addVar(lb=0.0, name="AKitchen_TA")
+        AK_Gd = m.addVar(lb=0.0, name="AKitchen_Gd")
+        AK_Ex = m.addVar(lb=0.0, name="AKitchen_Ex")
+        m.addConstr(AK_TA + AK_Gd + AK_Ex == a_k, name="part__akitchen_sum")
+        Uk = 0.80 * float(lot_area)
+        m.addConstr(AK_TA <= Uk * zK_TA, name="part__akitchen_ta")
+        m.addConstr(AK_Gd <= Uk * zK_Gd, name="part__akitchen_gd")
+        m.addConstr(AK_Ex <= Uk * zK_Ex, name="part__akitchen_ex")
+
+    # Bsmt Qual sobre área terminada (BsmtFinSF1/2)
+    v_bq = _safe_get(x, "Bsmt Qual")
+    bf1  = m.getVarByName("BsmtFinSF1")
+    bf2  = m.getVarByName("BsmtFinSF2")
+    if (v_bq is not None) and (bf1 is not None) and (bf2 is not None):
+        AB = m.addVar(lb=0.0, name="AreaBsmtFin")
+        m.addConstr(AB == bf1 + bf2, name="part__absmt_sum_src")
+        zB_TA = m.addVar(vtype=GRB.BINARY, name="zBQ_TA")
+        zB_Gd = m.addVar(vtype=GRB.BINARY, name="zBQ_Gd")
+        zB_Ex = m.addVar(vtype=GRB.BINARY, name="zBQ_Ex")
+        m.addConstr(zB_TA + zB_Gd + zB_Ex == 1, name="onehot__bq")
+        m.addConstr(v_bq == 2.0*zB_TA + 3.0*zB_Gd + 4.0*zB_Ex, name="link__bq_ord")
+        AB_TA = m.addVar(lb=0.0, name="ABsmt_TA")
+        AB_Gd = m.addVar(lb=0.0, name="ABsmt_Gd")
+        AB_Ex = m.addVar(lb=0.0, name="ABsmt_Ex")
+        m.addConstr(AB_TA + AB_Gd + AB_Ex == AB, name="part__absmt_sum")
+        Ub = 0.50 * float(lot_area)
+        m.addConstr(AB_TA <= Ub * zB_TA, name="part__absmt_ta")
+        m.addConstr(AB_Gd <= Ub * zB_Gd, name="part__absmt_gd")
+        m.addConstr(AB_Ex <= Ub * zB_Ex, name="part__absmt_ex")
+
+    # Garage Qual sobre Garage Area (si hay garage)
+    v_gq = _safe_get(x, "Garage Qual")
+    a_g  = _safe_get(x, "Garage Area") or m.getVarByName("Garage Area")
+    if (v_gq is not None) and (a_g is not None):
+        zG_TA = m.addVar(vtype=GRB.BINARY, name="zGQ_TA")
+        zG_Gd = m.addVar(vtype=GRB.BINARY, name="zGQ_Gd")
+        zG_Ex = m.addVar(vtype=GRB.BINARY, name="zGQ_Ex")
+        try:
+            m.addConstr(zG_TA + zG_Gd + zG_Ex == 1 - GT["NA"], name="onehot__gq")
+            try:
+                m.addGenConstrIndicator(GT["NA"], True,  v_gq == -1.0, name="link__gq_ord_na")
+                m.addGenConstrIndicator(GT["NA"], False, v_gq == 2.0*zG_TA + 3.0*zG_Gd + 4.0*zG_Ex, name="link__gq_ord")
+            except Exception:
+                pass
+        except Exception:
+            m.addConstr(zG_TA + zG_Gd + zG_Ex == 1, name="onehot__gq")
+            m.addConstr(v_gq == 2.0*zG_TA + 3.0*zG_Gd + 4.0*zG_Ex, name="link__gq_ord")
+        AG_TA = m.addVar(lb=0.0, name="AGarage_TA")
+        AG_Gd = m.addVar(lb=0.0, name="AGarage_Gd")
+        AG_Ex = m.addVar(lb=0.0, name="AGarage_Ex")
+        m.addConstr(AG_TA + AG_Gd + AG_Ex == a_g, name="part__agarage_sum")
+        Ug = 0.20 * float(lot_area)
+        m.addConstr(AG_TA <= Ug * zG_TA, name="part__agarage_ta")
+        m.addConstr(AG_Gd <= Ug * zG_Gd, name="part__agarage_gd")
+        m.addConstr(AG_Ex <= Ug * zG_Ex, name="part__agarage_ex")
+
+    # Heating QC (lumpsum por nivel)
+    v_hq = _safe_get(x, "Heating QC")
+    if v_hq is not None:
+        zH_TA = m.addVar(vtype=GRB.BINARY, name="zHQ_TA")
+        zH_Gd = m.addVar(vtype=GRB.BINARY, name="zHQ_Gd")
+        zH_Ex = m.addVar(vtype=GRB.BINARY, name="zHQ_Ex")
+        m.addConstr(zH_TA + zH_Gd + zH_Ex == 1, name="onehot__hq")
+        m.addConstr(v_hq == 2.0*zH_TA + 3.0*zH_Gd + 4.0*zH_Ex, name="link__hq_ord")
+
+    # Exter Qual (lumpsum por nivel)
+    v_eq = _safe_get(x, "Exter Qual")
+    if v_eq is not None:
+        zE_TA = m.addVar(vtype=GRB.BINARY, name="zEQ_TA")
+        zE_Gd = m.addVar(vtype=GRB.BINARY, name="zEQ_Gd")
+        zE_Ex = m.addVar(vtype=GRB.BINARY, name="zEQ_Ex")
+        m.addConstr(zE_TA + zE_Gd + zE_Ex == 1, name="onehot__eq")
+        m.addConstr(v_eq == 2.0*zE_TA + 3.0*zE_Gd + 4.0*zE_Ex, name="link__eq_ord")
 
     # 11.1 HouseStyle exclusividad + relación con pisos
     hs_opts = ["1Story","2Story"]
@@ -1082,6 +1254,28 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         except Exception:
             # fallback: misc_val <= 0 si No aplica (y LB>=0) ⇒ 0
             m.addConstr(misc_val <= 1e-6 * (1 - MF["No aplica"]), name="11.xx__miscval_leq_zero_if_na")
+
+    # ====== Overall Qual (1..10) derivado de calidades principales ======
+    try:
+        OQ = m.addVar(vtype=GRB.INTEGER, lb=1, ub=10, name="OverallQualInt")
+        v_oq = _safe_get(x, "Overall Qual")
+        if v_oq is not None:
+            m.addConstr(v_oq == OQ, name="link__overallqual_var_int")
+        # Mapear ord 2/3/4 -> score 6/8/10 con score = 2*ord + 2
+        v_kq2 = _safe_get(x, "Kitchen Qual") or m.addVar(lb=2.0, ub=4.0, name="_kq_aux")
+        v_eq2 = _safe_get(x, "Exter Qual")   or m.addVar(lb=2.0, ub=4.0, name="_eq_aux")
+        v_bq2 = _safe_get(x, "Bsmt Qual")    or m.addVar(lb=2.0, ub=4.0, name="_bq_aux")
+        v_hq2 = _safe_get(x, "Heating QC")   or m.addVar(lb=2.0, ub=4.0, name="_hq_aux")
+        v_gq2 = _safe_get(x, "Garage Qual")  or m.addVar(lb=2.0, ub=4.0, name="_gq_aux")
+        S = m.addVar(lb=0.0, name="OverallQualScore")
+        m.addConstr(S == 0.2*(2*v_kq2 + 2) + 0.2*(2*v_eq2 + 2) + 0.2*(2*v_bq2 + 2)
+                         + 0.2*(2*v_hq2 + 2) + 0.2*(2*v_gq2 + 2),
+                    name="def__overallqual_score")
+        # Redondeo lineal (banda +-0.499)
+        m.addConstr(OQ >= S - 0.499, name="overallqual_ge")
+        m.addConstr(OQ <= S + 0.499, name="overallqual_le")
+    except Exception:
+        pass
 
     # 7.7 techos (plan vs actual, estilo y material)
     PR1 = m.addVar(lb=0.0, name="PR1")
@@ -1168,6 +1362,23 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
                 m.addGenConstrIndicator(HasPool, False, v_pqc == -1.0, name="11.xx__poolqc_eq_na_if_no_pool")
             except Exception:
                 pass
+            # Calidades de piscina (TA/Gd/Ex) y descomposición de área
+            zP_TA = m.addVar(vtype=GRB.BINARY, name="zPQC_TA")
+            zP_Gd = m.addVar(vtype=GRB.BINARY, name="zPQC_Gd")
+            zP_Ex = m.addVar(vtype=GRB.BINARY, name="zPQC_Ex")
+            m.addConstr(zP_TA + zP_Gd + zP_Ex == HasPool, name="onehot__pqc")
+            try:
+                m.addGenConstrIndicator(HasPool, True,  v_pqc == 2.0*zP_TA + 3.0*zP_Gd + 4.0*zP_Ex, name="link__pqc_ord")
+            except Exception:
+                pass
+            AP_TA = m.addVar(lb=0.0, name="APool_TA")
+            AP_Gd = m.addVar(lb=0.0, name="APool_Gd")
+            AP_Ex = m.addVar(lb=0.0, name="APool_Ex")
+            m.addConstr(AP_TA + AP_Gd + AP_Ex == xpool, name="part__apool_sum")
+            Up = 0.10 * float(lot_area)
+            m.addConstr(AP_TA <= Up * zP_TA, name="part__apool_ta")
+            m.addConstr(AP_Gd <= Up * zP_Gd, name="part__apool_gd")
+            m.addConstr(AP_Ex <= Up * zP_Ex, name="part__apool_ex")
 
     # 7.12 porches (forzamos identidad TotalPorch = suma componentes)
     if all(v is not None for v in [xopen,xencl,xscreen,x3ssn]):
@@ -1369,6 +1580,30 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(AreaHalfBath2 <= UHalfB2 * Floor2, name="7.21.2__ahb2_cap")
     m.addConstr(AreaKitchen2  <= UKitch2 * Floor2, name="7.21.2__ak2_cap")
     m.addConstr(AreaOther2    <= UOther2 * Floor2, name="7.21.2__aoth2_cap")
+
+    # -- Descomposición por calidad del área de sótano terminado (después de definir BsmtFinSF1/2) --
+    try:
+        v_bq2 = _safe_get(x, "Bsmt Qual")
+        BF1 = m.getVarByName("BsmtFinSF1")
+        BF2 = m.getVarByName("BsmtFinSF2")
+        if (v_bq2 is not None) and (BF1 is not None) and (BF2 is not None):
+            AB = m.addVar(lb=0.0, name="AreaBsmtFin")
+            m.addConstr(AB == BF1 + BF2, name="part2__absmt_sum_src")
+            zB_TA = m.addVar(vtype=GRB.BINARY, name="zBQ_TA")
+            zB_Gd = m.addVar(vtype=GRB.BINARY, name="zBQ_Gd")
+            zB_Ex = m.addVar(vtype=GRB.BINARY, name="zBQ_Ex")
+            m.addConstr(zB_TA + zB_Gd + zB_Ex == 1, name="onehot2__bq")
+            m.addConstr(v_bq2 == 2.0*zB_TA + 3.0*zB_Gd + 4.0*zB_Ex, name="link2__bq_ord")
+            AB_TA = m.addVar(lb=0.0, name="ABsmt_TA")
+            AB_Gd = m.addVar(lb=0.0, name="ABsmt_Gd")
+            AB_Ex = m.addVar(lb=0.0, name="ABsmt_Ex")
+            m.addConstr(AB_TA + AB_Gd + AB_Ex == AB, name="part2__absmt_sum")
+            Ub2 = 0.50 * float(lot_area)
+            m.addConstr(AB_TA <= Ub2 * zB_TA, name="part2__absmt_ta")
+            m.addConstr(AB_Gd <= Ub2 * zB_Gd, name="part2__absmt_gd")
+            m.addConstr(AB_Ex <= Ub2 * zB_Ex, name="part2__absmt_ex")
+    except Exception:
+        pass
     # Partición exacta de áreas por piso con remanentes no negativos
     if x1 is not None:
         Remainder1 = m.addVar(lb=0.0, name="Remainder1")

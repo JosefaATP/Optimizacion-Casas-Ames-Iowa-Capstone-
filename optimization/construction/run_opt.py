@@ -492,8 +492,9 @@ def main():
         pass
 
     m._print_categories = bool(args.audit)
-    top_n = 15 if args.quiet else 50
-    audit_cost_breakdown_vars(m, top=top_n)
+    if args.audit:
+        top_n = 15 if args.quiet else 50
+        audit_cost_breakdown_vars(m, top=top_n)
     audit_predict_outside(m, bundle)
 
     print("\n" + "="*60)
