@@ -1,0 +1,14 @@
+\ Model construction_embed_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Maximize
+ 
+Subject To
+ def__total_ag: - x_1st_Flr_SF - x_2nd_Flr_SF + TotalAboveGradeSF = 0
+ def__remainder_sum: RemainderSum = 0
+ share__remainder_ge: - 0.15 TotalAboveGradeSF + RemainderSum >= 0
+ neigh_floor__1st_Flr_SF: x_1st_Flr_SF >= 1295
+Bounds
+ x_1st_Flr_SF free
+ TotalAboveGradeSF free
+ RemainderSum free
+End

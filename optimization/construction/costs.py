@@ -216,6 +216,19 @@ class CostTables:
         "TA": 0.80, "Gd": 0.92, "Ex": 1.00,
     })
 
+    # ====== EXTERIOR (param opcional) ======
+    # Si True, fuerza Exterior1st == Exterior2nd en el modelo. Por defecto False.
+    exterior_require_same: bool = False
+
+    # ====== SHARE BOUNDS (porcentaje del 1er+2do piso) ======
+    # Circulación/Muros/Closets (Remainder1+Remainder2) ≈ 15%–25% del área sobre rasante
+    rem_share_min: float = 0.15
+    rem_share_max: float = 0.25
+    # Áreas comunes (AreaOther1+AreaOther2) ≈ 20%–30% del área sobre rasante
+    other_share_min: float = 0.20
+    other_share_max: float = 0.30
+    enforce_area_share_bounds: bool = True
+
     def _mult_from_ord(self, table: Dict[str, float], ord_val: int) -> float:
         # ord_val: 2=TA, 3=Gd, 4=Ex (otros => 1.0)
         key = {2: "TA", 3: "Gd", 4: "Ex"}.get(int(ord_val), None)

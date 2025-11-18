@@ -168,9 +168,10 @@ def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row, lot_area) -> tup
             else:
                 vtype, lb, ub = GRB.INTEGER, -1, 4
 
-        # dummies OHE: forzar [0,1]
+        # dummies OHE: forzar 0/1 exactos (binarias)
         if "_" in col and col not in NONNEG_LB0:
             lb, ub = 0.0, 1.0
+            vtype = GRB.BINARY
         
         if col == "Lot Area":
             lb = ub = float(lot_area)  # fijo
@@ -1070,7 +1071,12 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     GF = _one_hot(m, "GarageFinish", gf_opts)
     _tie_one_hot_to_x(m, x, "Garage Finish", GF)
     m.addConstr(GF["NA"] == GT["NA"], name="7.5.3__finish_na_eq_type_na")
-    m.addConstr(GF["Fin"] + GF["RFn"] + GF["Unf"] == 1 - GT["NA"], name="7.5.3__finish_if_has")
+    # En obra nueva: si hay garage (GT['NA']=0), no permitimos Unf
+    try:
+        m.addGenConstrIndicator(GT["NA"], False, GF["Unf"] == 0.0, name="7.5.3__no_unf_if_has_gar")
+    except Exception:
+        pass
+    m.addConstr(GF["Fin"] + GF["RFn"] == 1 - GT["NA"], name="7.5.3__finish_choices_if_has")
     m.addConstr(GarageCars >= 1 - GT["NA"], name="7.5.4__min_cars_if_has")
     m.addConstr(GarageCars <= int(getattr(ct, "max_garage_cars", 4)) * (1 - GT["NA"]), name="7.5.2__cap_cars_if_has")
     if xgar is not None:
@@ -1273,9 +1279,9 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         m.addConstr(S == 0.2*(2*v_kq2 + 2) + 0.2*(2*v_eq2 + 2) + 0.2*(2*v_bq2 + 2)
                          + 0.2*(2*v_hq2 + 2) + 0.2*(2*v_gq2 + 2),
                     name="def__overallqual_score")
-        # Redondeo lineal (banda +-0.499)
-        m.addConstr(OQ >= S - 0.499, name="overallqual_ge")
-        m.addConstr(OQ <= S + 0.499, name="overallqual_le")
+        # Redondeo hacia abajo: OQ = floor(S)
+        m.addConstr(OQ <= S, name="overallqual_floor_le")
+        m.addConstr(OQ >= S - 0.999, name="overallqual_floor_ge")
     except Exception:
         pass
 
@@ -1398,8 +1404,10 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         m.addConstr(x3ssn  <= porch_caps["three"] * Has3SsnPorch, name="7.12.2__3ssn_max")
         m.addConstr(xdeck + xpor_tot + (xpool if xpool is not None else 0) <= 0.35 * lot_area, name="7.12.3__ext_cap")
         m.addConstr(xdeck + xopen <= 0.20 * lot_area, name="7.12.3__deck_open_cap")
-        m.addConstr(xdeck >= 40 * HasWoodDeck, name="7.13__deck_min")
-        m.addConstr(xdeck <= 0.15 * lot_area * HasWoodDeck, name="7.13__deck_max")
+    m.addConstr(xdeck >= 40 * HasWoodDeck, name="7.13__deck_min")
+    m.addConstr(xdeck <= 0.15 * lot_area * HasWoodDeck, name="7.13__deck_max")
+
+    # (moved shares block after Remainder1/2 are defined)
 
     # 7.18 sotano: exposicion y tipos, areas y banos
     exp_opts = ["Gd","Av","Mn","No","NA"]
@@ -1493,7 +1501,12 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     for e1 in ext1_opts:
         if e1 in EXT2:
             m.addConstr(SameMaterial >= EXT1[e1] + EXT2[e1] - 1, name=f"7.15__same_mat__{e1}")
-            m.addConstr(EXT1[e1] == EXT2[e1], name=f"7.19__exterior_match__{e1}")
+            # Solo forzar igualdad si el parámetro lo requiere
+            try:
+                if bool(getattr(ct, "exterior_require_same", False)):
+                    m.addConstr(EXT1[e1] == EXT2[e1], name=f"7.19__exterior_match__{e1}")
+            except Exception:
+                pass
 
     # 7.16 enchapados
     mas_opts = ["BrkCmn","BrkFace","CBlock","None","Stone"]
@@ -1583,6 +1596,9 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(AreaKitchen2  <= UKitch2 * Floor2, name="7.21.2__ak2_cap")
     m.addConstr(AreaOther2    <= UOther2 * Floor2, name="7.21.2__aoth2_cap")
 
+    # ====== Shares de área sobre rasante (circulación vs áreas comunes) ======
+    # (shares block moved below, after Remainder1/2 are created)
+
     # -- Descomposición por calidad del área de sótano terminado (después de definir BsmtFinSF1/2) --
     try:
         v_bq2 = _safe_get(x, "Bsmt Qual")
@@ -1619,6 +1635,28 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
             AreaBedroom2 + AreaKitchen2 + AreaHalfBath2 + AreaFullBath2 + AreaOther2 + Remainder2 == x2,
             name="7.21.2__partition_2nd",
         )
+
+    # ====== Shares de área sobre rasante (circulation vs common areas) ======
+    try:
+        if bool(getattr(ct, 'enforce_area_share_bounds', False)):
+            TotAG = m.addVar(lb=0.0, name="TotalAboveGradeSF")
+            m.addConstr(TotAG == (x1 if x1 is not None else 0.0) + (x2 if x2 is not None else 0.0), name="def__total_ag")
+            # Remainders (circulation/walls/closets)
+            r1 = m.getVarByName("Remainder1"); r2 = m.getVarByName("Remainder2")
+            if (r1 is not None) and (r2 is not None):
+                Rsum = m.addVar(lb=0.0, name="RemainderSum")
+                m.addConstr(Rsum == r1 + r2, name="def__remainder_sum")
+                rem_lo = float(getattr(ct, 'rem_share_min', 0.15)); rem_hi = float(getattr(ct, 'rem_share_max', 0.25))
+                m.addConstr(Rsum >= rem_lo * TotAG, name="share__remainder_ge")
+                m.addConstr(Rsum <= rem_hi * TotAG, name="share__remainder_le")
+            # Áreas comunes (Other)
+            AO = m.getVarByName("AreaOther")
+            if AO is not None:
+                oth_lo = float(getattr(ct, 'other_share_min', 0.20)); oth_hi = float(getattr(ct, 'other_share_max', 0.30))
+                m.addConstr(AO >= oth_lo * TotAG, name="share__other_ge")
+                m.addConstr(AO <= oth_hi * TotAG, name="share__other_le")
+    except Exception:
+        pass
 
     # 7.22 otros recintos
     m.addConstr(OtherRooms == OtherRooms1 + OtherRooms2, name="7.22.1__other_cnt_sum")

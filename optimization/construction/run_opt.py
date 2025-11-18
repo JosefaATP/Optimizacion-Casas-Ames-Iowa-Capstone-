@@ -243,16 +243,9 @@ def audit_predict_outside(m: gp.Model, bundle: XGBBundle):
             return float('nan')
 
     try:
-        y_pred = bundle.predict(Z)
-        y_out = _first_scalar(y_pred)
-        if not (y_out == y_out):  # NaN check
-            # Fallback: usa el pipeline completo (sin early stopping)
-            try:
-                y_full = bundle.pipe_full.predict(Z)
-                y_out = _first_scalar(y_full)
-                print("[AUDIT] fallback pipe_full para predict fuera (iter_range dio NaN)")
-            except Exception:
-                pass
+        # Para auditoría, usa SIEMPRE el pipeline completo (sin early stopping)
+        y_full = bundle.pipe_full.predict(Z)
+        y_out = _first_scalar(y_full)
         print(f"[AUDIT] predict fuera = {y_out:,.2f}")
         # Diagnóstico: comparar y_log interno vs margin del XGB afuera
         try:

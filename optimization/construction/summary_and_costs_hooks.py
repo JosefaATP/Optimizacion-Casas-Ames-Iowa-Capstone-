@@ -166,7 +166,25 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
             a2 = float(getattr(v2,'X',0.0)) if v2 is not None else 0.0
             at = float(getattr(vt,'X',a1+a2)) if vt is not None else a1+a2
             label = (ntot or n1.replace('1','')).replace('Area','')
-            rows.append((f"{label} (ft2)", fmt(at), "-"))
+            if label == 'Other':
+                pretty = 'Common Areas'
+            elif label == 'Kitchen':
+                pretty = 'Kitchen'
+            elif label == 'FullBath':
+                pretty = 'FullBath'
+            elif label == 'HalfBath':
+                pretty = 'HalfBath'
+            elif label == 'Bedroom':
+                pretty = 'Bedroom'
+            else:
+                pretty = label
+            rows.append((f"{pretty} (ft2)", fmt(at), "-"))
+        # Agregar Remainder por piso para cuadratura explícita
+        r1 = m.getVarByName("Remainder1"); r2 = m.getVarByName("Remainder2")
+        if r1 is not None:
+            rows.append(("Circulation/Walls/Closets (ft2)", fmt(float(getattr(r1,'X',0.0))), "-"))
+        if r2 is not None:
+            rows.append(("Circulation/Walls/Closets 2nd (ft2)", fmt(float(getattr(r2,'X',0.0))), "-"))
 
         # imprime tabla
         print(f"{'atributo':<16s} {'cantidad':>12s} {'calidad':>12s}")
@@ -242,7 +260,9 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
                 val = float(v.X) if v is not None else float("nan")
                 lb  = float(getattr(v, "LB", float("nan"))) if v is not None else float("nan")
                 ub  = float(getattr(v, "UB", float("nan"))) if v is not None else float("nan")
-                val = _clip01(val)
+                # Solo clipear OHE 0/1 (columnas con '_'); dejar numéricas intactas
+                if "_" in col:
+                    val = _clip01(val)
                 rows.append((i, col, val, lb, ub))
             print("\n-- XGB INPUT (primeras 30) --")
             for i, col, val, lb, ub in rows[:70]:
