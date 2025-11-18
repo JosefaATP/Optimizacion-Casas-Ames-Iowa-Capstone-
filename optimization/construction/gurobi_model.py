@@ -660,12 +660,8 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # === fijar OHE de MS SubClass (dato base, no decisión) ===
     try:
         ms_cols = [c for c in feat_order if c.startswith("MS SubClass_") and c in x]
-        if False and ms_cols:
-            # usa valor de base_row si existe, si no, 20
-            ms_val = str(int(base_row.get("MS SubClass", 20)))
-            pick_ms = f"MS SubClass_{ms_val}"
-            for c in ms_cols:
-                m.addConstr(x[c] == (1.0 if c == pick_ms else 0.0), name=f"link__ms_subclass__fix__{c}")
+        if ms_cols:
+            _enforce_exclusive_ohe(m, x, feat_order, "MS SubClass")
     except Exception:
         pass
 
@@ -734,11 +730,26 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     except Exception:
         pass
 
-    # Calidad/condición fijas a excelente (ordinal 4), y Overall a 10
-    _fix_const("Overall Qual", getattr(ct, "overall_qual", 10))
-    _fix_const("Overall Cond", getattr(ct, "overall_cond", 10))
-    for qcol in ["Exter Qual", "Exter Cond", "Bsmt Qual", "Bsmt Cond", "Heating QC", "Kitchen Qual"]:
-        _fix_const(qcol, 4)
+    # Calidades: sólo ajustamos límite inferior (Average hacia arriba) en las que tienen costo asociado
+    # búsqueda de columnas con costos declarados en ct
+    qual_cost_cols = []
+    if hasattr(ct, "heating_qc_costs"):
+        qual_cost_cols.append("Heating QC")
+    if hasattr(ct, "fireplace_costs"):
+        qual_cost_cols.append("Fireplace Qu")
+    if hasattr(ct, "poolqc_costs"):
+        qual_cost_cols.append("Pool QC")
+    if hasattr(ct, "bsmt_cond_upgrade_costs"):
+        qual_cost_cols.append("Bsmt Cond")
+    MIN_Q = float(getattr(ct, "min_quality_level", 2.0))  # TA en escala -1..4
+    for qcol in qual_cost_cols:
+        v = _safe_get(x, qcol)
+        if v is not None:
+            try:
+                v.LB = max(getattr(v, "LB", -1.0), MIN_Q)
+                v.UB = max(getattr(v, "UB", 4.0), 4.0)
+            except Exception:
+                pass
 
     # Utilities: AllPub (ordinal 3 según entrenamiento)
     _fix_const("Utilities", 3)
@@ -750,8 +761,12 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # === variables de niveles por piso ===
     Floor1 = m.addVar(vtype=GRB.BINARY, name="Floor1")
     Floor2 = m.addVar(vtype=GRB.BINARY, name="Floor2")
+    IsOneStory = m.addVar(vtype=GRB.BINARY, name="IsOneStory")
+    IsTwoStory = m.addVar(vtype=GRB.BINARY, name="IsTwoStory")
     m.addConstr(Floor1 == 1, name="7.4__first_floor_always")
     m.addConstr(Floor2 <= Floor1, name="7.4__second_floor_if_first")
+    m.addConstr(IsOneStory + IsTwoStory == 1, name="7.4__one_or_two_story")
+    m.addConstr(Floor2 == IsTwoStory, name="7.4__two_story_link")
 
     # conteos por piso
     FullBath1 = m.addVar(vtype=GRB.INTEGER, lb=0, name="FullBath1")
@@ -777,11 +792,24 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     OtherRooms1   = m.addVar(vtype=GRB.INTEGER, lb=0, name="OtherRooms1")
     OtherRooms2   = m.addVar(vtype=GRB.INTEGER, lb=0, name="OtherRooms2")
 
+    floor2_caps = getattr(ct, "floor2_count_caps", {})
+    bed2_cap   = float(floor2_caps.get("bedrooms", getattr(ct, "bedroom2_cap", 8)))
+    fb2_cap    = float(floor2_caps.get("fullbath", getattr(ct, "fullbath2_cap", 4)))
+    hb2_cap    = float(floor2_caps.get("halfbath", getattr(ct, "halfbath2_cap", 3)))
+    kit2_cap   = float(floor2_caps.get("kitchen", getattr(ct, "kitchen2_cap", 2)))
+    othrm2_cap = float(floor2_caps.get("otherrooms", getattr(ct, "otherrooms2_cap", 8)))
+    m.addConstr(Bedroom2  <= bed2_cap   * Floor2, name="7.21.2__bed2_onoff")
+    m.addConstr(FullBath2 <= fb2_cap    * Floor2, name="7.21.2__fullbath2_onoff")
+    m.addConstr(HalfBath2 <= hb2_cap    * Floor2, name="7.21.2__halfbath2_onoff")
+    m.addConstr(Kitchen2  <= kit2_cap   * Floor2, name="7.21.2__kitchen2_onoff")
+    m.addConstr(OtherRooms2 <= othrm2_cap * Floor2, name="7.22.3__other_cnt_2nd_if_on")
+
     # agregados
     AreaKitchen   = m.addVar(lb=0.0, name="AreaKitchen")
     AreaFullBath  = m.addVar(lb=0.0, name="AreaFullBath")
     AreaHalfBath  = m.addVar(lb=0.0, name="AreaHalfBath")
     AreaBedroom   = m.addVar(lb=0.0, name="AreaBedroom")
+    AreaOther     = m.addVar(lb=0.0, name="AreaOther")
     OtherRooms    = m.addVar(vtype=GRB.INTEGER, lb=0, name="OtherRooms")
 
     # banderas de features exteriores
@@ -810,6 +838,12 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     xscreen = _safe_get(x, "Screen Porch")
     xgar = _safe_get(x, "Garage Area")
     xgr = _safe_get(x, "Gr Liv Area")
+    porch_caps = {
+        "open":   float(getattr(ct, "u_open_ratio", 0.10)) * lot_area,
+        "encl":   float(getattr(ct, "u_encl_ratio", 0.10)) * lot_area,
+        "three":  float(getattr(ct, "u_3ssn_ratio", 0.10)) * lot_area,
+        "screen": float(getattr(ct, "u_screen_ratio", 0.05)) * lot_area,
+    }
 
     # Total Porch SF puede NO existir en X, crea var interna si falta
     xpor_tot = _safe_get(x, "Total Porch SF")
@@ -830,6 +864,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # 11.3 Consistencias por ambiente (áreas agregadas)
     m.addConstr(AreaKitchen  == AreaKitchen1  + AreaKitchen2,  name="11.3__AKitchen")
     m.addConstr(AreaBedroom  == AreaBedroom1  + AreaBedroom2,  name="11.3__ABedroom")
+    m.addConstr(AreaOther    == AreaOther1    + AreaOther2,    name="7.22.1__AreaOther_sum")
     m.addConstr(FullBath1 >= 1, name="7.1.6__fullbath_1min")
     m.addConstr(Kitchen1 >= 1, name="7.1.7__kitchen_1min")
 
@@ -998,8 +1033,9 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # 11.1 HouseStyle exclusividad + relación con pisos
     hs_opts = ["1Story","2Story"]
     HS = _one_hot(m, "HouseStyle", hs_opts)
-    _tie_one_hot_to_x(m, x, "HouseStyle", HS)
-    m.addConstr(Floor2 <= HS["2Story"], name="11.1__floor2_only_if_2story")
+    m.addConstr(Floor2 == HS["2Story"], name="11.1__floor2_only_if_2story")
+    m.addConstr(IsOneStory == HS["1Story"], name="7.4__hs_one_story")
+    m.addConstr(IsTwoStory == HS["2Story"], name="7.4__hs_two_story")
 
     # MS SubClass coherente con HouseStyle (1Story->20, 2Story->60)
     try:
@@ -1102,6 +1138,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
 
     # 7.8, 7.9 caps de areas total y por parte
     tbsmt = _safe_get(x, "Total Bsmt SF")
+    TotArea = None
     if tbsmt is not None and x1 is not None and x2 is not None:
         TotArea = m.addVar(lb=0.0, name="TotalArea")
         m.addConstr(TotArea == x1 + x2 + tbsmt, name="7.8__total_area")
@@ -1139,9 +1176,13 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         if x1 is not None:
             m.addConstr(xpor_tot <= x1, name="7.12.1__porch_leq_1st")
         m.addConstr(xopen  >= 40 * HasOpenPorch, name="7.12.2__open_min")
+        m.addConstr(xopen  <= porch_caps["open"]   * HasOpenPorch, name="7.12.2__open_max")
         m.addConstr(xencl  >= 60 * HasEnclosedPorch, name="7.12.2__encl_min")
+        m.addConstr(xencl  <= porch_caps["encl"]   * HasEnclosedPorch, name="7.12.2__encl_max")
         m.addConstr(xscreen>= 40 * HasScreenPorch, name="7.12.2__screen_min")
+        m.addConstr(xscreen<= porch_caps["screen"] * HasScreenPorch, name="7.12.2__screen_max")
         m.addConstr(x3ssn  >= 80 * Has3SsnPorch, name="7.12.2__3ssn_min")
+        m.addConstr(x3ssn  <= porch_caps["three"] * Has3SsnPorch, name="7.12.2__3ssn_max")
         m.addConstr(xdeck + xpor_tot + (xpool if xpool is not None else 0) <= 0.35 * lot_area, name="7.12.3__ext_cap")
         m.addConstr(xdeck + xopen <= 0.20 * lot_area, name="7.12.3__deck_open_cap")
         m.addConstr(xdeck >= 40 * HasWoodDeck, name="7.13__deck_min")
@@ -1178,6 +1219,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         # ===== PATCH B start: basement links =====
         # crea variable para Bsmt Unf si no existe en x
         BsmtUnfSF = _safe_get(x, "Bsmt Unf SF") or m.addVar(lb=0.0, name="BsmtUnfSF")
+        m.addConstr(BsmtUnfSF == 0.0, name="7.0__bsmt_unf_zero")
 
         # enlaza features del XGB a tus variables
         _link_if_exists(m, x, "Bsmt Unf SF", BsmtUnfSF)
@@ -1207,7 +1249,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # ===== PATCH B extra: TotRms y min areas sobre rasante =====
     # TotRms AbvGrd = dormitorios + cocinas + otras piezas (ajusta OtherRooms si ya lo tienes)
     TotRms = _safe_get(x, "TotRms AbvGrd") or m.addVar(lb=0.0, name="TotRms")
-    m.addConstr(TotRms == Bedrooms + Kitchen + OtherRooms, name="7.xx__totrms_def")
+    m.addConstr(TotRms == Bedrooms + FullBath + HalfBath + OtherRooms, name="7.22.1__totrms_def")
     _link_if_exists(m, x, "TotRms AbvGrd", TotRms)
 
     # min areas por cuenta para evitar cuartos fantasma
@@ -1238,6 +1280,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     for e1 in ext1_opts:
         if e1 in EXT2:
             m.addConstr(SameMaterial >= EXT1[e1] + EXT2[e1] - 1, name=f"7.15__same_mat__{e1}")
+            m.addConstr(EXT1[e1] == EXT2[e1], name=f"7.19__exterior_match__{e1}")
 
     # 7.16 enchapados
     mas_opts = ["BrkCmn","BrkFace","CBlock","None","Stone"]
@@ -1262,6 +1305,17 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         m.addConstr(v <= MasVnrArea, name=f"7.16__mv_leq_area__{t}")
         m.addConstr(v <= Umas * MV[t], name=f"7.16__mv_leq_u_type__{t}")
         m.addConstr(v >= MasVnrArea - Umas * (1 - MV[t]), name=f"7.16__mv_ge_area_u__{t}")
+    if TotArea is not None:
+        m.addConstr(MasVnrArea <= TotArea, name="7.16__mas_leq_total_area")
+    elif any(v is not None for v in (x1, x2, tbsmt)):
+        total_expr = gp.LinExpr()
+        if x1 is not None:
+            total_expr += x1
+        if x2 is not None:
+            total_expr += x2
+        if tbsmt is not None:
+            total_expr += tbsmt
+        m.addConstr(MasVnrArea <= total_expr, name="7.16__mas_leq_total_area_fallback")
 
     # 7.20 fundacion
     f_opts = ["BrkTil","CBlock","PConc","Slab","Stone","Wood"]
@@ -1300,6 +1354,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # if Slab o Wood entonces NA en BsmtExposure (permite NA)
     m.addConstr(FND["Slab"] <= EXP["NA"], name="7.20__slab_implies_na")
     m.addConstr(FND["Wood"] <= EXP["NA"], name="7.20__wood_implies_na")
+    m.addConstr(EXP["NA"] <= FND["Slab"] + FND["Wood"], name="7.20__na_implies_slab_or_wood")
 
     # 7.21 caps de areas por piso
     UBed1, UFullB1, UHalfB1, UKitch1, UOther1 = 0.5 * lot_area, 200, 80, 300, 0.5 * lot_area
@@ -1333,7 +1388,6 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(AreaOther1 >= 100 * OtherRooms1, name="7.22.4__other1_min")
     m.addConstr(AreaOther2 >= 100 * OtherRooms2, name="7.22.4__other2_min")
     m.addConstr(OtherRooms1 >= 1, name="7.22.2__other_min_on_1st")
-    m.addConstr(OtherRooms2 <= 8 * Floor2, name="7.22.3__other_cnt_2nd_if_on")
 
     # 7.23 area exterior y perimetros (lineal con big-M)
     smin, smax = 20.0, 70.0

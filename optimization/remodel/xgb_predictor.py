@@ -5,6 +5,8 @@ from typing import List
 import joblib
 import numpy as np
 import pandas as pd
+import re
+import json
 
 from sklearn.pipeline import Pipeline as SKPipeline
 from sklearn.compose import ColumnTransformer, TransformedTargetRegressor
@@ -120,6 +122,55 @@ def _align_ohe_input_dtypes(X: pd.DataFrame, pre: ColumnTransformer) -> pd.DataF
                     X2[c] = X2[c].astype(str)
     return X2
 
+def _fix_base_score_if_needed(reg: XGBRegressor) -> None:
+    """Algunos pickles guardan base_score como '[5E-1]'; gurobi_ml espera float."""
+    try:
+        bst = reg.get_booster()
+    except Exception:
+        return
+    try:
+        bs = bst.attr("base_score")
+    except Exception:
+        return
+    def _try_fix(val_str: str) -> bool:
+        try:
+            val = float(val_str)
+        except Exception:
+            return False
+        try:
+            conf = json.loads(bst.save_config())
+            conf["learner"]["learner_model_param"]["base_score"] = str(val)
+            bst.load_config(json.dumps(conf))
+            bst.set_attr(base_score=str(val))
+            return True
+        except Exception:
+            try:
+                bst.set_param({"base_score": val})
+                bst.set_attr(base_score=str(val))
+                return True
+            except Exception:
+                return False
+
+    # 1) intenta con attr directo
+    if bs is not None:
+        if _try_fix(bs):
+            return
+        m = re.match(r"\[\s*([0-9.eE+-]+)\s*\]", str(bs))
+        if m and _try_fix(m.group(1)):
+            return
+    # 2) intenta leyendo desde config
+    try:
+        conf = json.loads(bst.save_config())
+        bs_conf = conf.get("learner", {}).get("learner_model_param", {}).get("base_score", None)
+        if bs_conf is not None:
+            if _try_fix(bs_conf):
+                return
+            m = re.match(r"\[\s*([0-9.eE+-]+)\s*\]", str(bs_conf))
+            if m:
+                _try_fix(m.group(1))
+    except Exception:
+        return
+
 class XGBBundle:
     def __init__(self, model_path: Path = PATHS.xgb_model_file):
         self.model_path = model_path
@@ -156,6 +207,36 @@ class XGBBundle:
             bst = Booster()
             bst.load_model(raw)        # raw = buffer devuelto por save_raw()
             self.reg._Booster = bst
+        _fix_base_score_if_needed(self.reg)
+
+        # Parche save_raw: normaliza base_score en el JSON que consume gurobi_ml
+        try:
+            _orig_save_raw = self.reg.save_raw
+        except Exception:
+            _orig_save_raw = None
+        try:
+            if _orig_save_raw is None:
+                def _sr(raw_format="binary"):
+                    return self.reg.get_booster().save_raw(raw_format=raw_format)
+                _orig_save_raw = _sr
+                self.reg.save_raw = _sr  # type: ignore
+            def _save_raw_safe(raw_format="binary"):
+                out = _orig_save_raw(raw_format=raw_format)
+                if raw_format == "json":
+                    try:
+                        data = json.loads(out)
+                        bs = data.get("learner", {}).get("learner_model_param", {}).get("base_score")
+                        if isinstance(bs, str) and "[" in bs:
+                            m = re.match(r"\[\s*([0-9.eE+-]+)\s*\]", bs)
+                            if m:
+                                data["learner"]["learner_model_param"]["base_score"] = m.group(1)
+                                return json.dumps(data)
+                    except Exception:
+                        return out
+                return out
+            self.reg.save_raw = _save_raw_safe  # type: ignore
+        except Exception:
+            pass
 
         # Pipeline a embedir: MISMO pre aplanado + MISMO regressor
         self.pipe_for_embed: SKPipeline = SKPipeline(steps=[

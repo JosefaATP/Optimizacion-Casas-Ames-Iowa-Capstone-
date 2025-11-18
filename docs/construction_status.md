@@ -25,6 +25,10 @@
 - 7.1.x Lote y pisos
   - `x2 <= x1` (7.1.2), `GrLivArea = 1st + 2nd` (7.1.3), `1st + porches + pool <= LotArea` (7.1.1).
   - Mínimos por piso (7.1.8): `1st >= ε1·Floor1`, `2nd >= ε2·Floor2`; parámetros en `CostTables` (`eps_floor_min_first`, etc.).
+- 7.4 Casa con 1 o 2 pisos
+  - Binarias `IsOneStory/IsTwoStory` con `IsOneStory + IsTwoStory = 1`, `Floor2 = IsTwoStory` y `IsTwoStory == HouseStyle_2Story`.
+- Exclusividades OHE
+  - Además de los grupos existentes, `MS SubClass_*` ahora tiene `∑ = 1` para mantener consistencia con el PDF.
 - 7.2 Conteos totales y vínculos
   - `Full/Half/Kitchen = sum por piso` y `HalfBath <= FullBath` (11.11). Enlaces a X si existen.
 - 7.3 Límites por BldgType
@@ -39,21 +43,31 @@
   - `TotArea = 1st + 2nd + Bsmt` (7.8), `1st ≤ 0.6·Lot`, `2nd ≤ 0.5·Lot`, `Bsmt ≤ 0.5·Lot` (7.9),
     `GrLivArea ≤ 0.8·Lot` (11.10), `GarageArea ≤ 0.2·Lot`.
 - 7.10 Baños vs dormitorios
-  - `3·FullBath ≤ 2·Bedrooms` (tope razonable, alineado a PDF).
+  - `3·FullBath ≤ 2·Bedrooms` (tope razonable alineado con la versión previa del modelo/PDF).
 - 7.11 Piscina
   - Espacio/máx/mín por lot; `Pool QC = -1` si no hay piscina.
 - 7.12 / 7.13 Porches/Decks
-  - `Total Porch SF = suma componentes`, caps por tipo y mínimos razonables.
+  - `Total Porch SF = suma componentes`, mínimos funcionales y ahora también cotas superiores proporcionales al lote por tipo (`Open ≤ 0.10·LotArea`, `Screen ≤ 0.05·LotArea`, etc.).
 - 7.15 Exterior 1st/2nd material
-  - Flag `SameMaterial ≥ EXT1[e] + EXT2[e] − 1` para cada material.
+  - Igualamos explícitamente `Exterior1st == Exterior2nd` (y mantenemos la bandera `SameMaterial` para trazabilidad).
 - 7.16 Enchapados (Masonry Veneer)
-  - `MasVnrType` OHE, `MasVnrArea ≤ fmas·AreaExterior1st`, `=0` si `None`, mínimo si usado, y `MvProd_t` por tipo.
+  - `MasVnrType` OHE, `MasVnrArea ≤ fmas·AreaExterior1st`, `=0` si `None`, mínimo si usado, `MvProd_t` por tipo y nueva cota `MasVnrArea ≤ TotalArea`.
 - 7.18 Sótano
-  - `Total Bsmt SF ≤ ρ_base·AreaFoundation` y relajación `ρ_exposed` si hay exposición Gd/Av/Mn.
+  - `Total Bsmt SF ≤ ρ_base·AreaFoundation` y relajación `ρ_exposed` si hay exposición Gd/Av/Mn`, además fijamos `BsmtUnfSF = 0` para respetar el supuesto de obra nueva 100% terminada.
 - 7.20 Fundación
-  - `AreaFoundation = 1st Flr SF` y descomposición `FA__{tipo}` con big‑M seguro; `Slab/Wood ⇒ BsmtExposure=NA`.
+  - `AreaFoundation = 1st Flr SF` y descomposición `FA__{tipo}` con big‑M seguro; `Slab/Wood ⇒ BsmtExposure=NA` y ahora también `BsmtExposure=NA ⇒ Slab ∨ Wood`.
 - 7.21 Caps por piso de áreas por ambiente
-  - Límite por `Floor1/Floor2` para `AreaBedroom/FullBath/HalfBath/Kitchen/Other`.
+  - Límite por `Floor1/Floor2` para `AreaBedroom/FullBath/HalfBath/Kitchen/Other`, y las *cantidades* del segundo piso (`Bedroom2`, `FullBath2`, `Kitchen2`, etc.) ahora se apagan automáticamente con `Floor2 = 0`.
+- 7.22 Áreas de sala/otros y TotRms
+  - `AreaOther = AreaOther1 + AreaOther2`, `OtherRooms = OtherRooms1 + OtherRooms2` y `TotRms AbvGrd = Bedrooms + FullBath + HalfBath + OtherRooms` como en el PDF.
+
+**Calidades (nuevo ajuste)**
+- El límite inferior “Average hacia arriba” se aplica solo a calidades que tienen costos definidos en `ct` (p.ej. `Heating QC`, `Fireplace Qu`, `Pool QC`, `Bsmt Cond`). Otras calidades quedan libres (ya no se fijan a Ex ni se les fuerza LB).
+
+**Guard-rails por barrio**
+- HouseStyle ya no se fija al `base_row`; es decisión del modelo.
+- Para atributos de área accionables (`1st/2nd Flr SF`, `Total Bsmt SF`, `Garage Area`, `Bedroom/Full/Half/Kitchen AbvGr`, `Fireplaces`, `Mas Vnr Area`, `Gr Liv Area`), se impone como piso el percentil 10 del barrio (reforzado con el mínimo observado).
+- Para categorías (`Heating`, `Electrical`, `PavedDrive`, `Exterior1st/2nd`, `Foundation`, `Roof Style`, `Roof Matl`, `Garage Finish`), se fija la modalidad más frecuente del barrio como cota inferior (se elige la moda del vecindario).
 - 7.23 Perímetro y fachada (lineal)
   - `P1/P2` con on/off por piso, `P1 ≥ P2` si hay segundo piso; versión lineal segura sin bilinealidad.
 - 11.3 Sumas de áreas agregadas

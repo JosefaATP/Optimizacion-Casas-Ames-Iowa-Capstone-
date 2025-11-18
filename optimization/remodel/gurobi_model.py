@@ -314,6 +314,49 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         print(f"[WARN] Encoding check fallo: {e}")
         m._encoding_ok = False
 
+    # === calidad general: propaga upgrades de calidades específicas a Overall Qual ===
+    try:
+        base_overall = None
+        if "Overall Qual" in base_X.columns:
+            base_overall = float(pd.to_numeric(base_X.iloc[0].get("Overall Qual"), errors="coerce"))
+        if base_overall is None or not np.isfinite(base_overall):
+            base_overall = float(pd.to_numeric(base_row.get("Overall Qual", 5), errors="coerce") or 5.0)
+        if not np.isfinite(base_overall):
+            base_overall = 5.0
+
+        QUAL_IMPACT_COLS = [
+            "Kitchen Qual", "Exter Qual", "Exter Cond", "Heating QC",
+            "Fireplace Qu", "Bsmt Cond", "Garage Qual", "Garage Cond", "Pool QC",
+        ]
+        improv_terms = []
+        for col in QUAL_IMPACT_COLS:
+            q_var = x.get(col)
+            if q_var is None:
+                continue
+            base_ord = _qual_base_ord(base_row, col)
+            if base_ord < 0:
+                continue
+            try:
+                b = float(base_ord)
+            except Exception:
+                b = 0.0
+            # normaliza el salto a [0,1] dividiendo por 4 (Po..Ex) y trunca en 0
+            improv_terms.append((q_var - b) / 4.0)
+
+        if improv_terms and "Overall Qual" in X_input.columns:
+            n_cols = len(improv_terms)
+            overall_var = m.addVar(lb=1.0, ub=10.0, name="Overall_Qual_calc")
+            avg_delta = (1.0 / n_cols) * gp.quicksum(improv_terms)
+            max_boost = 2.0  # si todas las calidades pasan de Po->Ex, suma hasta +2 en OverallQual
+            m.addConstr(
+                overall_var == float(base_overall) + max_boost * avg_delta,
+                name="OverallQual_from_upgrades",
+            )
+            X_input.loc[0, "Overall Qual"] = overall_var
+            m._overall_qual_var = overall_var
+    except Exception as e:
+        print(f"[WARN] no se pudo actualizar Overall Qual con mejoras: {e}")
+
     # fijar todo a base si se pide
     if fix_to_base:
         for fname in (f.name for f in MODIFIABLE):
@@ -1778,5 +1821,3 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     m.setObjective(y_price - cost_model - float(base_price), gp.GRB.MAXIMIZE)
 
     return m
-
-

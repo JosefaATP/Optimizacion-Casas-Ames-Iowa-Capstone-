@@ -313,6 +313,7 @@ def main():
     ap.add_argument("--budget", type=float, required=True)
     ap.add_argument("--basecsv", type=str, default=None, help="ruta alternativa al CSV base")
     ap.add_argument("--debug-xgb", action="store_true", help="imprime sensibilidades del XGB (rápido)")
+    ap.add_argument("--time-limit", type=float, default=None, help="sobrescribe TimeLimit del solver (segundos)")
     args = ap.parse_args()
 
     # Datos base, costos y modelo ML
@@ -366,8 +367,9 @@ def main():
     m: gp.Model = build_mip_embed(base_row, args.budget, ct, bundle, base_price=precio_base)
 
     # Parámetros de resolución
+    time_limit = args.time_limit if args.time_limit is not None else PARAMS.time_limit
     m.Params.MIPGap         = PARAMS.mip_gap
-    m.Params.TimeLimit      = PARAMS.time_limit
+    m.Params.TimeLimit      = time_limit
     m.Params.LogToConsole   = PARAMS.log_to_console
     m.Params.FeasibilityTol = 1e-7
     m.Params.IntFeasTol     = 1e-7
@@ -1222,6 +1224,65 @@ def main():
     if roi_pct is not None:
         print(f"  ROI %:                   {roi_pct:.0f}%")
     print(f"  Slack presupuesto:       ${budget_slack:,.2f}")
+
+    # Calidad global y calidades clave
+    try:
+        def _qual_txt(v):
+            M = {-1: "No aplica", 0: "Po", 1: "Fa", 2: "TA", 3: "Gd", 4: "Ex"}
+            try:
+                iv = int(round(float(pd.to_numeric(v, errors="coerce"))))
+                return M.get(iv, str(v))
+            except Exception:
+                return str(v)
+
+        def _qual_opt(col: str, extra_alias: str | None = None):
+            aliases = [f"x_{col}", col]
+            if extra_alias:
+                aliases.insert(0, extra_alias)
+            v = _getv(m, *aliases)
+            if v is not None:
+                try:
+                    return v.X
+                except Exception:
+                    pass
+            if hasattr(m, "_X_input") and col in getattr(m, "_X_input").columns:
+                try:
+                    return float(pd.to_numeric(m._X_input.loc[0, col], errors="coerce"))
+                except Exception:
+                    return m._X_input.loc[0, col]
+            return base_row.get(col)
+
+        QUAL_COLS = [
+            ("Overall Qual", "Overall_Qual_calc"),
+            ("Kitchen Qual", None),
+            ("Exter Qual", None),
+            ("Exter Cond", None),
+            ("Heating QC", None),
+            ("Fireplace Qu", None),
+            ("Bsmt Cond", None),
+            ("Garage Qual", None),
+            ("Garage Cond", None),
+            ("Pool QC", None),
+        ]
+
+        print("\n🌟 **Calidad general y calidades clave**")
+        for col, alias in QUAL_COLS:
+            base_val = base_row.get(col, "N/A")
+            opt_val  = _qual_opt(col, extra_alias=alias)
+            base_txt = _qual_txt(base_val)
+            opt_txt  = _qual_txt(opt_val)
+            if opt_val is None:
+                opt_txt = "N/A"
+            if base_txt == opt_txt:
+                print(f"  - {col}: {base_txt}")
+            else:
+                try:
+                    delta = float(opt_val) - float(pd.to_numeric(base_val, errors="coerce") or 0.0)
+                    print(f"  - {col}: {base_txt} → {opt_txt} (Δ {delta:+.1f})")
+                except Exception:
+                    print(f"  - {col}: {base_txt} → {opt_txt}")
+    except Exception as e:
+        print(f"[TRACE] Resumen de calidades falló: {e}")
 
     # Cambios resumidos
     print("\n🏠 **Cambios hechos en la casa**")

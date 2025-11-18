@@ -88,11 +88,13 @@ def _fallback_line_value(out: str, starts_with: str) -> float | None:
 
 # ============================ Runner una corrida ============================
 def run_once(pid: int, budget: float, py_exe: str, logdir: Path, tier: str, idx: int,
-             basecsv: str | None) -> dict:
+             basecsv: str | None, time_limit: float | None = None) -> dict:
     cmd = [py_exe, "-m", "optimization.remodel.run_opt",
            "--pid", str(pid), "--budget", str(float(budget))]
     if basecsv:
         cmd += ["--basecsv", basecsv]
+    if time_limit is not None:
+        cmd += ["--time-limit", str(float(time_limit))]
 
     cp = subprocess.run(
         cmd,

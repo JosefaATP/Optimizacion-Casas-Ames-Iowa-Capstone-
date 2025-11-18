@@ -9,7 +9,7 @@ import numpy as np
 import gurobipy as gp
 
 from .config import PARAMS
-from .io import get_base_house
+from .io import get_base_house, load_base_df
 from . import costs
 from .xgb_predictor import XGBBundle
 from .gurobi_model import build_mip_embed, summarize_solution
@@ -70,6 +70,82 @@ def audit_cost_breakdown_vars(m: gp.Model, top: int = 30):
             print(f"[COST-CHECK] suma_terms={total:,.2f}  | cost_model={cval:,.2f}  | diff={cval-total:,.2f}")
         except Exception:
             pass
+
+
+def compute_neigh_means(neigh: str, base_csv_path=None, quantile: float = 0.10) -> dict[str, float]:
+    df = load_base_df(base_csv_path)
+    sub = df[df["Neighborhood"] == neigh]
+    if sub.empty:
+        return {}
+    cols = [
+        "1st Flr SF", "2nd Flr SF", "Total Bsmt SF", "Garage Area",
+        "Bedroom AbvGr", "Full Bath", "Half Bath", "Kitchen AbvGr",
+        "Fireplaces", "Mas Vnr Area", "Gr Liv Area",
+    ]
+    means: dict[str, float] = {}
+    for c in cols:
+        if c in sub.columns:
+            try:
+                mv = float(sub[c].quantile(quantile))
+                # refuerza con el mínimo observado (por si la serie es muy corta)
+                mv = min(mv, float(sub[c].min()))
+            except Exception:
+                mv = float('nan')
+            if pd.notna(mv):
+                means[c] = mv
+    return means
+
+
+def enforce_neigh_means(m: gp.Model, means: dict[str, float], percentile: float = 0.10):
+    """Agrega var >= piso_neigh (cuantil bajo o mínimo) para variables clave si existen en el modelo."""
+    for col, mv in means.items():
+        if pd.isna(mv):
+            continue
+        # Usa el cuantil bajo del vecindario (percentile), si está disponible en self._neigh_df
+        v = m.getVarByName(f"x_{col}") or m.getVarByName(col)
+        if v is None:
+            continue
+        try:
+            m.addConstr(v >= float(mv), name=f"neigh_floor__{col.replace(' ', '_')}")
+        except Exception:
+            pass
+
+
+def compute_neigh_modes(neigh: str, base_csv_path=None) -> dict[str, str]:
+    """Moda por barrio para variables categóricas accionables."""
+    df = load_base_df(base_csv_path)
+    sub = df[df["Neighborhood"] == neigh]
+    if sub.empty:
+        return {}
+    cols = [
+        "Heating", "Electrical", "PavedDrive",
+        "Exterior1st", "Exterior2nd", "Foundation",
+        "Roof Style", "Roof Matl", "Garage Finish",
+    ]
+    modes: dict[str, str] = {}
+    for c in cols:
+        if c in sub.columns:
+            try:
+                mode_val = sub[c].mode(dropna=True)
+                if not mode_val.empty:
+                    modes[c] = str(mode_val.iloc[0])
+            except Exception:
+                continue
+    return modes
+
+
+def enforce_neigh_modes(m: gp.Model, modes: dict[str, str]):
+    """Fija categorías al valor modal del barrio si existe la OHE correspondiente."""
+    for col, val in modes.items():
+        v = m.getVarByName(f"{col}__{val}")
+        if v is None:
+            # intenta con reemplazo de espacios por guion bajo
+            v = m.getVarByName(f"{col.replace(' ', '_')}__{val}")
+        if v is not None:
+            try:
+                m.addConstr(v == 1.0, name=f"neigh_mode__{col.replace(' ', '_')}")
+            except Exception:
+                pass
 
         # categorÃ­as seleccionadas (auditorÃ­a completa)
         ct = getattr(m, "_ct", None)
@@ -318,6 +394,16 @@ def main():
 
     m: gp.Model = build_mip_embed(base_row=base_row, budget=args.budget, ct=ct, bundle=bundle)
 
+    # Si se especifica barrio, fuerza mínimos de atributos = cuantil bajo/min del barrio (guard-rail)
+    neigh_token = args.neigh or base_row.get("Neighborhood", None)
+    if neigh_token:
+        means = compute_neigh_means(str(neigh_token), base_csv_path=args.basecsv, quantile=0.10)
+        if means:
+            enforce_neigh_means(m, means, percentile=0.10)
+        modes = compute_neigh_modes(str(neigh_token), base_csv_path=args.basecsv)
+        if modes:
+            enforce_neigh_modes(m, modes)
+
     time_limit = PARAMS.time_limit
     if args.fast:
         time_limit = 60
@@ -461,5 +547,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

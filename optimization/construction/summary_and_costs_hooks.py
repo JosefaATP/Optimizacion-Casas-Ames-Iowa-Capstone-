@@ -34,14 +34,51 @@ def build_cost_expr(m: gp.Model, x: Dict[str, gp.Var], ct, params: Dict) -> gp.L
 
 def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_terms=12):
     try:
-        print("\n==== HOUSE SUMMARY ====")
+        print("\n" + "="*50)
+        print("               HOUSE SUMMARY")
+        print("="*50)
         rv = getattr(m, "_report_vars", {})
         def val(name):
             v = rv.get(name)
             return None if v is None else (v.X if hasattr(v, "X") else float(v))
-        print(f"pisos: floor1={val('Floor1')}, floor2={val('Floor2')}")
-        print(f"areas: 1st={val('1st Flr SF')}, 2nd={val('2nd Flr SF')}, bsmt={val('Total Bsmt SF')}, garage={val('Garage Area')}")
-        print(f"ambientes: beds={val('Bedrooms')}, bathsF={val('FullBath')}, bathsH={val('HalfBath')}, kitchen={val('Kitchen')}")
+        def val_by_name(col):
+            for nm in (f"x_{col}", col):
+                v = m.getVarByName(nm)
+                if v is not None:
+                    return float(getattr(v, "X", v))
+            return None
+        def fmt(x):
+            if x is None:
+                return "-"
+            try:
+                return f"{float(x):,.1f}" if abs(float(x)) >= 10 else f"{float(x):,.2f}"
+            except Exception:
+                return str(x)
+
+        # seleccion de categorias
+        def chosen(prefix, opts):
+            for o in opts:
+                v = m.getVarByName(f"{prefix}__{o}")
+                if v is not None and getattr(v, 'X', 0.0) > 0.5:
+                    return o
+            return None
+
+        rows = []
+        # pisos y areas bases
+        rows.append(("Floor1", fmt(val("Floor1")), "-"))
+        rows.append(("Floor2", fmt(val("Floor2")), "-"))
+        rows.append(("1st Flr SF", fmt(val("1st Flr SF")), "-"))
+        rows.append(("2nd Flr SF", fmt(val("2nd Flr SF")), "-"))
+        rows.append(("Total Bsmt SF", fmt(val("Total Bsmt SF")), "-"))
+        rows.append(("Garage Area", fmt(val("Garage Area")), "-"))
+        rows.append(("Gr Liv Area", fmt(val("Gr Liv Area")), "-"))
+
+        # habitaciones / baños / cocina
+        rows.append(("Bedrooms", fmt(val("Bedrooms")), "-"))
+        rows.append(("FullBath", fmt(val("FullBath")), "-"))
+        rows.append(("HalfBath", fmt(val("HalfBath")), "-"))
+        rows.append(("Kitchen", fmt(val("Kitchen")), "-"))
+        rows.append(("Fireplaces", fmt(val("Fireplaces")), "-"))
 
         # techo elegido
         roof = []
@@ -50,19 +87,13 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
                 y = m.getVarByName(f"Y__{s}__{mm}")
                 if y and y.X > 0.5:
                     roof.append(f"{s}-{mm}")
-        if roof:
-            print("roof:", ", ".join(roof))
+        rows.append(("Roof", "-", roof[0] if roof else "-"))
 
-        # categorias elegidas clave (Heating/Electrical/PavedDrive/Exterior/Foundation)
-        def chosen(prefix, opts):
-            for o in opts:
-                v = m.getVarByName(f"{prefix}__{o}")
-                if v is not None and getattr(v, 'X', 0.0) > 0.5:
-                    return o
-            return None
+        # categorias clave
         heating = chosen('Heating', ['Floor','GasA','GasW','Grav','OthW','Wall'])
         electrical = chosen('Electrical', ['SBrkr','FuseA','FuseF','FuseP','Mix'])
         paved = chosen('PavedDrive', ['Y','P','N'])
+        house_style = chosen('HouseStyle', ['1Story','1.5Fin','1.5Unf','2Story','2.5Fin','2.5Unf','SFoyer','SLvl'])
         ext1 = chosen('Exterior1st', ['VinylSd','MetalSd','Wd Sdng','HdBoard','Stucco','Plywood','CemntBd','BrkFace','BrkComm','WdShngl','AsbShng','Stone','ImStucc','AsphShn','CBlock'])
         ext2 = chosen('Exterior2nd', ['VinylSd','MetalSd','Wd Sdng','HdBoard','Stucco','Plywood','CemntBd','BrkFace','BrkComm','WdShngl','AsbShng','Stone','ImStucc','AsphShn','CBlock'])
         fnd = chosen('Foundation', ['BrkTil','CBlock','PConc','Slab','Stone','Wood'])
@@ -71,23 +102,63 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
             area_fnd = float(getattr(area_fnd, 'X', 0.0)) if area_fnd is not None else 0.0
         except Exception:
             area_fnd = 0.0
-        feats = []
-        if heating: feats.append(f"heating={heating}")
-        if electrical: feats.append(f"electrical={electrical}")
-        if paved: feats.append(f"paved={paved}")
-        if ext1: feats.append(f"ext1={ext1}")
-        if ext2: feats.append(f"ext2={ext2}")
-        if fnd: feats.append(f"foundation={fnd} ({area_fnd:.0f} ft2)")
-        if feats:
-            print("features:", ", ".join(feats))
+        if heating: rows.append(("Heating", "-", heating))
+        if electrical: rows.append(("Electrical", "-", electrical))
+        if paved: rows.append(("PavedDrive", "-", paved))
+        if house_style: rows.append(("HouseStyle", "-", house_style))
+        if ext1: rows.append(("Exterior1st", "-", ext1))
+        if ext2: rows.append(("Exterior2nd", "-", ext2))
+        if fnd: rows.append(("Foundation", fmt(area_fnd)+" ft2", fnd))
+
+        # calidades con costo (si aplica)
+        qual_map = { -1:"NA", 0:"Po", 1:"Fa", 2:"TA", 3:"Gd", 4:"Ex" }
+        if hasattr(ct, "heating_qc_costs"):
+            hq = val_by_name("Heating QC")
+            if hq is not None:
+                rows.append(("Heating QC", "-", qual_map.get(int(round(hq)), hq)))
+        if hasattr(ct, "fireplace_costs"):
+            fq = val_by_name("Fireplace Qu")
+            if fq is not None:
+                fp_cnt = val("Fireplaces") or 0
+                rows.append(("Fireplace Qu", fmt(fp_cnt), qual_map.get(int(round(fq)), fq)))
+        if hasattr(ct, "poolqc_costs"):
+            pq = val_by_name("Pool QC")
+            if pq is not None:
+                pool_area = val("Pool Area") or 0
+                rows.append(("Pool QC", f"{pool_area:.0f} ft2", qual_map.get(int(round(pq)), pq)))
+        if hasattr(ct, "bsmt_cond_upgrade_costs"):
+            bc = val_by_name("Bsmt Cond")
+            if bc is not None:
+                tbsmt = val("Total Bsmt SF") or 0
+                rows.append(("Bsmt Cond", f"{tbsmt:.0f} ft2", qual_map.get(int(round(bc)), bc)))
+
+        # áres por ambiente (totales)
+        for n1, n2, ntot in [
+            ("AreaKitchen1","AreaKitchen2","AreaKitchen"),
+            ("AreaFullBath1","AreaFullBath2","AreaFullBath"),
+            ("AreaHalfBath1","AreaHalfBath2","AreaHalfBath"),
+            ("AreaBedroom1","AreaBedroom2","AreaBedroom"),
+            ("AreaOther1","AreaOther2",None),
+        ]:
+            v1 = m.getVarByName(n1); v2 = m.getVarByName(n2); vt = m.getVarByName(ntot) if ntot else None
+            a1 = float(getattr(v1,'X',0.0)) if v1 is not None else 0.0
+            a2 = float(getattr(v2,'X',0.0)) if v2 is not None else 0.0
+            at = float(getattr(vt,'X',a1+a2)) if vt is not None else a1+a2
+            label = (ntot or n1.replace('1','')).replace('Area','')
+            rows.append((f"{label} (ft2)", fmt(at), "-"))
+
+        # imprime tabla
+        print(f"{'atributo':<16s} {'cantidad':>12s} {'calidad':>12s}")
+        for attr, qty, qual in rows:
+            print(f"{attr:<16s} {str(qty):>12s} {str(qual):>12s}")
 
         # economia
         yp = getattr(m, "_y_price_var", None)
         yl = getattr(m, "_y_log_var", None)
         if yp is not None:
-            print(f"precio_predicho = {yp.X:,.0f}")
+            print(f"[econ] precio_predicho = {yp.X:,.0f}")
         if yl is not None:
-            print(f"log_precio = {yl.X:.4f}")
+            print(f"[econ] log_precio = {yl.X:.4f}")
 
         # detalle de áreas por piso y por ambiente (si existen)
         try:
@@ -98,14 +169,15 @@ def summarize_solution(m, x=None, base_row=None, ct=None, params=None, top_cost_
                 ("AreaBedroom1","AreaBedroom2","AreaBedroom"),
                 ("AreaOther1","AreaOther2",None),
             ]
-            print("\n-- areas por ambiente (ft2) --")
+            print("\n-- áreas por ambiente (ft2) --")
+            print(f"{'ambiente':12s} {'1st':>8s} {'2nd':>8s} {'total':>10s}")
             for n1,n2,ntot in names:
                 v1 = m.getVarByName(n1); v2 = m.getVarByName(n2); vt = m.getVarByName(ntot) if ntot else None
                 a1 = float(getattr(v1,'X',0.0)) if v1 is not None else 0.0
                 a2 = float(getattr(v2,'X',0.0)) if v2 is not None else 0.0
                 at = float(getattr(vt,'X',a1+a2)) if vt is not None else a1+a2
                 label = (ntot or n1.replace('1','')).replace('Area','')
-                print(f"{label:<12s}: 1st={a1:6.1f}  2nd={a2:6.1f}  total={at:6.1f}")
+                print(f"{label:<12s} {a1:8.1f} {a2:8.1f} {at:10.1f}")
         except Exception:
             pass
 
