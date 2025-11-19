@@ -864,6 +864,8 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     AreaBedroom2  = m.addVar(lb=0.0, name="AreaBedroom2")
     AreaOther1    = m.addVar(lb=0.0, name="AreaOther1")
     AreaOther2    = m.addVar(lb=0.0, name="AreaOther2")
+    Remainder1    = None
+    Remainder2    = None
     OtherRooms1   = m.addVar(vtype=GRB.INTEGER, lb=0, name="OtherRooms1")
     OtherRooms2   = m.addVar(vtype=GRB.INTEGER, lb=0, name="OtherRooms2")
 
@@ -1569,7 +1571,8 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
             EXP_Mn = m.getVarByName("BsmtExposure__Mn")
             if all(v is not None for v in [EXP_Gd, EXP_Av, EXP_Mn]):
                 is_exposed = EXP_Gd + EXP_Av + EXP_Mn
-                Ubig = 1e6
+                # Big-M acotado al terreno: si no hay exposición, basta permitir un sótano del tamaño del lote.
+                Ubig = 1.1 * float(lot_area)
                 m.addConstr(tbsmt <= rho_exp * AreaFoundation + Ubig * (1 - is_exposed), name="7.18__bsmt_leq_found_if_exposed")
     Ufound = 0.6 * lot_area
     for f in f_opts:
@@ -1595,6 +1598,40 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(AreaHalfBath2 <= UHalfB2 * Floor2, name="7.21.2__ahb2_cap")
     m.addConstr(AreaKitchen2  <= UKitch2 * Floor2, name="7.21.2__ak2_cap")
     m.addConstr(AreaOther2    <= UOther2 * Floor2, name="7.21.2__aoth2_cap")
+
+    # Cotas realistas por ambiente ligadas a los conteos (evita áreas gigantes para una única pieza)
+    def _cap_area_by_count(area_var, count_var, cap_val, name):
+        try:
+            cap = float(cap_val)
+        except Exception:
+            cap = float("inf")
+        if math.isfinite(cap) and cap > 0.0:
+            m.addConstr(area_var <= cap * count_var, name=name)
+
+    _cap_area_by_count(AreaKitchen1, Kitchen1,
+                       getattr(ct, "kitchen_area_cap_first", 350.0),
+                       "7.21.1__ak1_cap_by_cnt")
+    _cap_area_by_count(AreaKitchen2, Kitchen2,
+                       getattr(ct, "kitchen_area_cap_second", 275.0),
+                       "7.21.2__ak2_cap_by_cnt")
+    _cap_area_by_count(AreaFullBath1, FullBath1,
+                       getattr(ct, "fullbath_area_cap_first", 140.0),
+                       "7.21.1__afb1_cap_by_cnt")
+    _cap_area_by_count(AreaFullBath2, FullBath2,
+                       getattr(ct, "fullbath_area_cap_second", 110.0),
+                       "7.21.2__afb2_cap_by_cnt")
+    _cap_area_by_count(AreaHalfBath1, HalfBath1,
+                       getattr(ct, "halfbath_area_cap_first", 80.0),
+                       "7.21.1__ahb1_cap_by_cnt")
+    _cap_area_by_count(AreaHalfBath2, HalfBath2,
+                       getattr(ct, "halfbath_area_cap_second", 60.0),
+                       "7.21.2__ahb2_cap_by_cnt")
+    _cap_area_by_count(AreaBedroom1, Bedroom1,
+                       getattr(ct, "bedroom_area_cap_first", 450.0),
+                       "7.21.1__abed1_cap_by_cnt")
+    _cap_area_by_count(AreaBedroom2, Bedroom2,
+                       getattr(ct, "bedroom_area_cap_second", 350.0),
+                       "7.21.2__abed2_cap_by_cnt")
 
     # ====== Shares de área sobre rasante (circulación vs áreas comunes) ======
     # (shares block moved below, after Remainder1/2 are created)
@@ -1640,21 +1677,31 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     try:
         if bool(getattr(ct, 'enforce_area_share_bounds', False)):
             TotAG = m.addVar(lb=0.0, name="TotalAboveGradeSF")
-            m.addConstr(TotAG == (x1 if x1 is not None else 0.0) + (x2 if x2 is not None else 0.0), name="def__total_ag")
-            # Remainders (circulation/walls/closets)
-            r1 = m.getVarByName("Remainder1"); r2 = m.getVarByName("Remainder2")
-            if (r1 is not None) and (r2 is not None):
-                Rsum = m.addVar(lb=0.0, name="RemainderSum")
-                m.addConstr(Rsum == r1 + r2, name="def__remainder_sum")
-                rem_lo = float(getattr(ct, 'rem_share_min', 0.15)); rem_hi = float(getattr(ct, 'rem_share_max', 0.25))
-                m.addConstr(Rsum >= rem_lo * TotAG, name="share__remainder_ge")
-                m.addConstr(Rsum <= rem_hi * TotAG, name="share__remainder_le")
-            # Áreas comunes (Other)
-            AO = m.getVarByName("AreaOther")
-            if AO is not None:
-                oth_lo = float(getattr(ct, 'other_share_min', 0.20)); oth_hi = float(getattr(ct, 'other_share_max', 0.30))
-                m.addConstr(AO >= oth_lo * TotAG, name="share__other_ge")
-                m.addConstr(AO <= oth_hi * TotAG, name="share__other_le")
+            expr_ag = 0.0
+            if x1 is not None:
+                expr_ag += x1
+            if x2 is not None:
+                expr_ag += x2
+            m.addConstr(TotAG == expr_ag, name="def__total_ag")
+
+            rem_lo = float(getattr(ct, 'rem_share_min', 0.15))
+            rem_hi = float(getattr(ct, 'rem_share_max', 0.25))
+            oth_lo = float(getattr(ct, 'other_share_min', 0.20))
+            oth_hi = float(getattr(ct, 'other_share_max', 0.30))
+
+            Rsum = m.addVar(lb=0.0, name="RemainderSum")
+            expr_rem = 0.0
+            if Remainder1 is not None:
+                expr_rem += Remainder1
+            if Remainder2 is not None:
+                expr_rem += Remainder2
+            m.addConstr(Rsum == expr_rem, name="def__remainder_sum")
+            m.addConstr(Rsum >= rem_lo * TotAG, name="share__remainder_ge")
+            m.addConstr(Rsum <= rem_hi * TotAG, name="share__remainder_le")
+
+            if AreaOther is not None:
+                m.addConstr(AreaOther >= oth_lo * TotAG, name="share__other_ge")
+                m.addConstr(AreaOther <= oth_hi * TotAG, name="share__other_le")
     except Exception:
         pass
 
@@ -1762,7 +1809,6 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         "Fireplaces": 3,
     }
 
-    import math
     for nm, ub in safe_ubs.items():
         v = x.get(nm) or x.get(_find_x_key(x, nm))
         if v is not None:
@@ -1823,7 +1869,6 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
 # ================= DEBUG IIS / CONFLICTS =================
 
 import collections
-import math
 
 def dump_infeasibility_report(m: gp.Model, tag: str = "construction") -> None:
     """

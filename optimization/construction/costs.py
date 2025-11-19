@@ -12,6 +12,15 @@ class CostTables:
     fullbath_area_cost: float = 500.0          # Aprox 25k/50ft2
     halfbath_area_cost: float = 500.0          # Aprox 10k/20ft2
     bedroom_area_cost: float = 325.0           # Appendix: $325/ft2
+    # Area caps per room (usados como big-M para ligar áreas con conteos)
+    bedroom_area_cap_first: float = 450.0       # ft2 por dormitorio en 1er piso
+    bedroom_area_cap_second: float = 350.0      # ft2 por dormitorio en 2do piso
+    kitchen_area_cap_first: float = 350.0       # ft2 por cocina en 1er piso
+    kitchen_area_cap_second: float = 275.0      # ft2 por cocina en 2do piso
+    fullbath_area_cap_first: float = 140.0      # ft2 por baño completo en 1er piso
+    fullbath_area_cap_second: float = 110.0     # ft2 por baño completo en 2do piso
+    halfbath_area_cap_first: float = 80.0       # ft2 por medio baño en 1er piso
+    halfbath_area_cap_second: float = 60.0      # ft2 por medio baño en 2do piso
 
     # ====== COCINA (paquetes) [REMOVED for construction; keep for compatibility] ======
     # En construcción usaremos costos por área diferenciados por calidad.
