@@ -4,6 +4,7 @@ import numpy as np
 from typing import Tuple, List, Optional
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline as SKPipeline
+from sklearn.preprocessing import OneHotEncoder
 
 # === Calidades ===
 # Ordinales (0..4), con “No aplica” = -1; se quedan como enteros
@@ -50,13 +51,21 @@ def infer_feature_types(
 
 def build_preprocessor(
     numeric_cols: List[str],
+    categorical_cols: Optional[List[str]] = None,
 ) -> ColumnTransformer:
     """
-    Con OHE ya horneado en el DataFrame, el preprocesador solo debe pasar numéricas.
+    Preprocesador genérico:
+      - numéricas: sin cambios
+      - categóricas: OneHot (si se proveen)
     """
-    num_pipe = SKPipeline(steps=[("passthrough", "passthrough")])
+    transformers = [("num", SKPipeline(steps=[("passthrough", "passthrough")]), numeric_cols)]
+    if categorical_cols:
+        # usar sparse=False para compatibilidad con versiones previas de sklearn
+        ohe = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        transformers.append(("cat", ohe, categorical_cols))
+
     pre = ColumnTransformer(
-        transformers=[("num", num_pipe, numeric_cols)],
+        transformers=transformers,
         remainder="drop",
         n_jobs=None,
     )

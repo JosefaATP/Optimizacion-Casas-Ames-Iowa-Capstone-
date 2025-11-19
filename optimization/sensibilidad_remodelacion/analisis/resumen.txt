@@ -1,0 +1,8 @@
+Total casos OPTIMAL: 225
+
+Top 5 cambios más frecuentes (overall):
+ - Gr Liv Area: 225 veces
+ - Bsmt Cond: 225 veces
+ - Bsmt Qual: 225 veces
+ - Utilities: 225 veces
+ - Exter Cond: 225 veces

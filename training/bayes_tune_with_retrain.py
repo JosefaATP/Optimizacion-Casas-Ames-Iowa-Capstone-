@@ -29,10 +29,10 @@ SEARCH_SPACE = [
     Real(0.02, 0.07,     prior="log-uniform", name="learning_rate"),  # LR un toque más rápido
     Integer(3, 7,        name="max_depth"),              # permite árboles algo más profundos
     Integer(4, 14,       name="min_child_weight"),       # hojas un poco menos/más grandes
-    Real(0.0, 3.0,       name="gamma"),                  # poda más laxa (0) hasta moderada
-    Real(0.65, 1.0,      name="subsample"),              # más datos por árbol (varianza ↑ controlada)
-    Real(0.4, 1.0,       name="colsample_bytree"),       # más columnas por árbol (captura más señal)
-    Real(0.5, 4.0,       name="reg_lambda"),             # L2 menos timorata (puede suavizar si overfit)
+    Real(0.05, 0.5,       name="gamma"),                  # poda más laxa (0) hasta moderada
+    Real(0.5, 0.9,      name="subsample"),              # más datos por árbol (varianza ↑ controlada)
+    Real(0.4, 0.9,       name="colsample_bytree"),       # más columnas por árbol (captura más señal)
+    Real(1.0, 4.0,       name="reg_lambda"),             # L2 menos timorata (puede suavizar si overfit)
     Real(0.05, 1.2,      prior="log-uniform", name="reg_alpha"),  # L1 un poco más amplio
 ]
 

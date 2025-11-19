@@ -1,0 +1,27 @@
+col,count
+Gr Liv Area,225
+Bsmt Cond,225
+Bsmt Qual,225
+Utilities,225
+Exter Cond,225
+Exter Qual,225
+Fireplace Qu,225
+Low Qual Fin SF,225
+Kitchen Qual,225
+Heating QC,225
+Garage Cond,225
+Garage Qual,225
+Bsmt Unf SF,207
+BsmtFin SF 1,201
+BsmtFin SF 2,195
+Garage Cars,192
+1st Flr SF,86
+Full Bath,49
+Open Porch SF,45
+Wood Deck SF,45
+Half Bath,29
+Bedroom AbvGr,26
+Garage Area,23
+Screen Porch,8
+Enclosed Porch,5
+Kitchen AbvGr,2
