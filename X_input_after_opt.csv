@@ -1,300 +1,300 @@
 idx,feature,value,LB,UB
-0,Lot Frontage,61.999999,0.0,153.31
-1,Lot Area,7000.0,7000.0,7000.0
-2,Utilities,3.0,-1.0,4.0
-3,Overall Qual,10.0,0.0,inf
-4,Overall Cond,8.0,0.0,inf
-5,Year Built,2025.0,0.0,inf
-6,Year Remod/Add,2025.0,0.0,inf
-7,Mas Vnr Area,673.0,0.0,931.2
-8,Exter Qual,4.0,-1.0,4.0
-9,Exter Cond,2.0,-1.0,4.0
-10,Bsmt Qual,4.0,-1.0,4.0
-11,Bsmt Cond,3.0,2.0,4.0
-12,BsmtFin SF 1,1097.0,0.0,1749.17
-13,BsmtFin SF 2,100.0,0.0,757.45
-14,Bsmt Unf SF,0.0,0.0,1854.09
-15,Total Bsmt SF,1197.0,0.0,2242.79
-16,Heating QC,2.0,2.0,4.0
-17,1st Flr SF,1200.0,0.0,2383.68
-18,2nd Flr SF,0.0,0.0,1625.45
-19,Low Qual Fin SF,0.0,0.0,inf
-20,Gr Liv Area,1200.0,0.0,3110.15
-21,Bsmt Full Bath,2.0,0.0,2.02
-22,Bsmt Half Bath,0.0,0.0,1.01
-23,Full Bath,1.0,-0.0,6.0
-24,Half Bath,0.0,-0.0,5.0
-25,Bedroom AbvGr,2.0,-0.0,8.0
-26,Kitchen AbvGr,1.0,-0.0,3.0
-27,Kitchen Qual,4.0,-1.0,4.0
-28,TotRms AbvGrd,4.0,0.0,12.09
-29,Fireplaces,2.0,-0.0,3.0
-30,Fireplace Qu,3.0,2.0,4.0
-31,Garage Yr Blt,2025.0,0.0,inf
-32,Garage Cars,3.0,-0.0,4.0
-33,Garage Area,457.0,0.0,1163.75
-34,Garage Qual,4.0,-1.0,4.0
-35,Garage Cond,4.0,-1.0,4.0
-36,Wood Deck SF,0.0,0.0,526.0
-37,Open Porch SF,0.0,0.0,322.16
-38,Enclosed Porch,0.0,0.0,292.75
-39,3Ssn Porch,0.0,0.0,183.6
-40,Screen Porch,266.0,0.0,314.73
-41,Pool Area,160.0,0.0,700.0
-42,Pool QC,2.0,2.0,4.0
-43,Misc Val,0.0,0.0,1160.97
-44,Yr Sold,2025.0,0.0,inf
-45,MS SubClass_20,1.0,0.0,1.0
-46,MS SubClass_30,0.0,0.0,1.0
-47,MS SubClass_40,0.0,0.0,1.0
-48,MS SubClass_45,0.0,0.0,1.0
-49,MS SubClass_50,0.0,0.0,1.0
-50,MS SubClass_60,0.0,0.0,1.0
-51,MS SubClass_70,0.0,0.0,1.0
-52,MS SubClass_75,0.0,0.0,1.0
-53,MS SubClass_80,0.0,0.0,1.0
-54,MS SubClass_85,0.0,0.0,1.0
-55,MS SubClass_90,0.0,0.0,1.0
-56,MS SubClass_120,0.0,0.0,1.0
-57,MS SubClass_150,0.0,0.0,1.0
-58,MS SubClass_160,0.0,0.0,1.0
-59,MS SubClass_180,0.0,0.0,1.0
-60,MS SubClass_190,0.0,0.0,1.0
-61,MS Zoning_A (agr),0.0,0.0,1.0
-62,MS Zoning_C (all),0.0,0.0,1.0
-63,MS Zoning_FV,0.0,0.0,1.0
-64,MS Zoning_I (all),0.0,0.0,1.0
-65,MS Zoning_RH,0.0,0.0,1.0
-66,MS Zoning_RL,1.0,0.0,1.0
-67,MS Zoning_RM,0.0,0.0,1.0
-68,Street_Grvl,0.0,0.0,1.0
-69,Street_Pave,1.0,0.0,1.0
-70,Alley_Grvl,0.0,0.0,1.0
-71,Alley_No aplica,1.0,0.0,1.0
-72,Alley_Pave,0.0,0.0,1.0
-73,Lot Shape_IR1,0.0,0.0,1.0
-74,Lot Shape_IR2,0.0,0.0,1.0
-75,Lot Shape_IR3,0.0,0.0,1.0
-76,Lot Shape_Reg,1.0,0.0,1.0
-77,Land Contour_Bnk,0.0,0.0,1.0
-78,Land Contour_HLS,0.0,0.0,1.0
-79,Land Contour_Low,0.0,0.0,1.0
-80,Land Contour_Lvl,1.0,0.0,1.0
-81,Lot Config_Corner,0.0,0.0,1.0
-82,Lot Config_CulDSac,0.0,0.0,1.0
-83,Lot Config_FR2,0.0,0.0,1.0
-84,Lot Config_FR3,0.0,0.0,1.0
-85,Lot Config_Inside,1.0,0.0,1.0
-86,Land Slope_Gtl,1.0,0.0,1.0
-87,Land Slope_Mod,0.0,0.0,1.0
-88,Land Slope_Sev,0.0,0.0,1.0
-89,Neighborhood_Blmngtn,0.0,0.0,1.0
-90,Neighborhood_Blueste,0.0,0.0,1.0
-91,Neighborhood_BrDale,0.0,0.0,1.0
-92,Neighborhood_BrkSide,0.0,0.0,1.0
-93,Neighborhood_ClearCr,0.0,0.0,1.0
-94,Neighborhood_CollgCr,0.0,0.0,1.0
-95,Neighborhood_Crawfor,0.0,0.0,1.0
-96,Neighborhood_Edwards,0.0,0.0,1.0
-97,Neighborhood_Gilbert,0.0,0.0,1.0
-98,Neighborhood_Greens,0.0,0.0,1.0
-99,Neighborhood_GrnHill,0.0,0.0,1.0
-100,Neighborhood_IDOTRR,0.0,0.0,1.0
-101,Neighborhood_Landmrk,0.0,0.0,1.0
-102,Neighborhood_MeadowV,0.0,0.0,1.0
-103,Neighborhood_Mitchel,0.0,0.0,1.0
-104,Neighborhood_NPkVill,0.0,0.0,1.0
-105,Neighborhood_NWAmes,1.0,0.0,1.0
-106,Neighborhood_No aplicames,0.0,0.0,1.0
-107,Neighborhood_NoRidge,0.0,0.0,1.0
-108,Neighborhood_NridgHt,0.0,0.0,1.0
-109,Neighborhood_OldTown,0.0,0.0,1.0
-110,Neighborhood_SWISU,0.0,0.0,1.0
-111,Neighborhood_Sawyer,0.0,0.0,1.0
-112,Neighborhood_SawyerW,0.0,0.0,1.0
-113,Neighborhood_Somerst,0.0,0.0,1.0
-114,Neighborhood_StoneBr,0.0,0.0,1.0
-115,Neighborhood_Timber,0.0,0.0,1.0
-116,Neighborhood_Veenker,0.0,0.0,1.0
-117,Condition 1_Artery,0.0,0.0,1.0
-118,Condition 1_Feedr,0.0,0.0,1.0
-119,Condition 1_Norm,1.0,0.0,1.0
-120,Condition 1_PosA,0.0,0.0,1.0
-121,Condition 1_PosN,0.0,0.0,1.0
-122,Condition 1_RRAe,0.0,0.0,1.0
-123,Condition 1_RRAn,0.0,0.0,1.0
-124,Condition 1_RRNe,0.0,0.0,1.0
-125,Condition 1_RRNn,0.0,0.0,1.0
-126,Condition 2_Artery,0.0,0.0,1.0
-127,Condition 2_Feedr,0.0,0.0,1.0
-128,Condition 2_Norm,1.0,0.0,1.0
-129,Condition 2_PosA,0.0,0.0,1.0
-130,Condition 2_PosN,0.0,0.0,1.0
-131,Condition 2_RRAe,0.0,0.0,1.0
-132,Condition 2_RRAn,0.0,0.0,1.0
-133,Condition 2_RRNn,0.0,0.0,1.0
-134,Bldg Type_1Fam,1.0,0.0,1.0
-135,Bldg Type_2fmCon,0.0,0.0,1.0
-136,Bldg Type_Duplex,0.0,0.0,1.0
-137,Bldg Type_Twnhs,0.0,0.0,1.0
-138,Bldg Type_TwnhsE,0.0,0.0,1.0
-139,House Style_1.5Fin,0.9999989999999996,0.0,1.0
-140,House Style_1.5Unf,0.0,0.0,1.0
-141,House Style_1Story,1.0,0.0,1.0
-142,House Style_2.5Fin,0.0,0.0,1.0
-143,House Style_2.5Unf,0.0,0.0,1.0
-144,House Style_2Story,0.9999989999999996,0.0,1.0
-145,House Style_SFoyer,0.0,0.0,1.0
-146,House Style_SLvl,1.0,0.0,1.0
-147,Roof Style_Flat,0.0,0.0,1.0
-148,Roof Style_Gable,1.0,0.0,1.0
-149,Roof Style_Gambrel,0.0,0.0,1.0
-150,Roof Style_Hip,0.0,0.0,1.0
-151,Roof Style_Mansard,0.0,0.0,1.0
-152,Roof Style_Shed,0.0,0.0,1.0
-153,Roof Matl_ClyTile,0.0,0.0,1.0
-154,Roof Matl_CompShg,0.0,0.0,1.0
-155,Roof Matl_Membran,0.0,0.0,1.0
-156,Roof Matl_Metal,0.0,0.0,1.0
-157,Roof Matl_Roll,1.0,0.0,1.0
-158,Roof Matl_Tar&Grv,0.0,0.0,1.0
-159,Roof Matl_WdShake,0.0,0.0,1.0
-160,Roof Matl_WdShngl,0.0,0.0,1.0
-161,Exterior 1st_AsbShng,0.0,0.0,1.0
-162,Exterior 1st_AsphShn,0.0,0.0,1.0
-163,Exterior 1st_BrkComm,0.0,0.0,1.0
-164,Exterior 1st_BrkFace,0.0,0.0,1.0
-165,Exterior 1st_CBlock,0.0,0.0,1.0
-166,Exterior 1st_CemntBd,0.0,0.0,1.0
-167,Exterior 1st_HdBoard,0.0,0.0,1.0
-168,Exterior 1st_ImStucc,0.0,0.0,1.0
-169,Exterior 1st_MetalSd,0.0,0.0,1.0
-170,Exterior 1st_Plywood,0.0,0.0,1.0
-171,Exterior 1st_PreCast,0.0,0.0,1.0
-172,Exterior 1st_Stone,0.0,0.0,1.0
-173,Exterior 1st_Stucco,1.0,0.0,1.0
-174,Exterior 1st_VinylSd,0.0,0.0,1.0
-175,Exterior 1st_Wd Sdng,0.0,0.0,1.0
-176,Exterior 1st_WdShing,0.0,0.0,1.0
-177,Exterior 2nd_AsbShng,0.0,0.0,1.0
-178,Exterior 2nd_AsphShn,0.0,0.0,1.0
-179,Exterior 2nd_Brk Cmn,0.0,0.0,1.0
-180,Exterior 2nd_BrkFace,0.0,0.0,1.0
-181,Exterior 2nd_CBlock,0.0,0.0,1.0
-182,Exterior 2nd_CmentBd,0.0,0.0,1.0
-183,Exterior 2nd_HdBoard,0.0,0.0,1.0
-184,Exterior 2nd_ImStucc,0.0,0.0,1.0
-185,Exterior 2nd_MetalSd,0.0,0.0,1.0
-186,Exterior 2nd_Other,0.0,0.0,1.0
-187,Exterior 2nd_Plywood,0.0,0.0,1.0
-188,Exterior 2nd_PreCast,0.0,0.0,1.0
-189,Exterior 2nd_Stone,0.0,0.0,1.0
-190,Exterior 2nd_Stucco,1.0,0.0,1.0
-191,Exterior 2nd_VinylSd,0.0,0.0,1.0
-192,Exterior 2nd_Wd Sdng,0.0,0.0,1.0
-193,Exterior 2nd_Wd Shng,0.9999989999999996,0.0,1.0
-194,Mas Vnr Type_BrkCmn,1.0,0.0,1.0
-195,Mas Vnr Type_BrkFace,-0.0,0.0,1.0
-196,Mas Vnr Type_CBlock,-0.0,0.0,1.0
-197,Mas Vnr Type_No aplica,0.0,0.0,1.0
-198,Mas Vnr Type_NoAplica,0.0,0.0,1.0
-199,Mas Vnr Type_Stone,0.0,0.0,1.0
-200,Foundation_BrkTil,0.0,0.0,1.0
-201,Foundation_CBlock,1.0,0.0,1.0
-202,Foundation_PConc,0.0,0.0,1.0
-203,Foundation_Slab,0.0,0.0,1.0
-204,Foundation_Stone,0.0,0.0,1.0
-205,Foundation_Wood,0.0,0.0,1.0
-206,Bsmt Exposure_Av,0.0,0.0,1.0
-207,Bsmt Exposure_Gd,1.0,0.0,1.0
-208,Bsmt Exposure_Mn,0.0,0.0,1.0
-209,Bsmt Exposure_No,0.0,0.0,1.0
-210,Bsmt Exposure_No aplica,0.0,0.0,1.0
-211,BsmtFin Type 1_ALQ,0.0,0.0,1.0
-212,BsmtFin Type 1_BLQ,0.0,0.0,1.0
-213,BsmtFin Type 1_GLQ,1.0,0.0,1.0
-214,BsmtFin Type 1_LwQ,0.0,0.0,1.0
-215,BsmtFin Type 1_No aplica,0.0,0.0,1.0
-216,BsmtFin Type 1_Rec,0.0,0.0,1.0
-217,BsmtFin Type 1_Unf,0.0,0.0,1.0
-218,BsmtFin Type 2_ALQ,1.0,0.0,1.0
-219,BsmtFin Type 2_BLQ,0.0,0.0,1.0
-220,BsmtFin Type 2_GLQ,0.0,0.0,1.0
-221,BsmtFin Type 2_LwQ,0.0,0.0,1.0
-222,BsmtFin Type 2_No aplica,0.0,0.0,1.0
-223,BsmtFin Type 2_Rec,0.0,0.0,1.0
-224,BsmtFin Type 2_Unf,0.0,0.0,1.0
-225,Heating_Floor,0.0,0.0,1.0
-226,Heating_GasA,1.0,0.0,1.0
-227,Heating_GasW,0.0,0.0,1.0
-228,Heating_Grav,0.0,0.0,1.0
-229,Heating_OthW,0.0,0.0,1.0
-230,Heating_Wall,0.0,0.0,1.0
-231,Central Air_N,0.0,0.0,1.0
-232,Central Air_Y,1.0,0.0,1.0
-233,Electrical_FuseA,0.0,0.0,1.0
-234,Electrical_FuseF,0.0,0.0,1.0
-235,Electrical_FuseP,0.0,0.0,1.0
-236,Electrical_Mix,0.0,0.0,1.0
-237,Electrical_SBrkr,1.0,0.0,1.0
-238,FunctioNo aplical_Maj1,0.0,0.0,1.0
-239,FunctioNo aplical_Maj2,0.0,0.0,1.0
-240,FunctioNo aplical_Min1,0.0,0.0,1.0
-241,FunctioNo aplical_Min2,0.0,0.0,1.0
-242,FunctioNo aplical_Mod,0.0,0.0,1.0
-243,FunctioNo aplical_Sal,0.0,0.0,1.0
-244,FunctioNo aplical_Sev,0.0,0.0,1.0
-245,FunctioNo aplical_Typ,1.0,0.0,1.0
-246,Garage Type_2Types,0.0,0.0,1.0
-247,Garage Type_Attchd,1.0,0.0,1.0
-248,Garage Type_Basment,0.0,0.0,1.0
-249,Garage Type_BuiltIn,0.0,0.0,1.0
-250,Garage Type_CarPort,0.0,0.0,1.0
-251,Garage Type_Detchd,0.0,0.0,1.0
-252,Garage Type_No aplica,0.0,0.0,1.0
-253,Garage Finish_Fin,0.0,0.0,1.0
-254,Garage Finish_No aplica,0.0,0.0,1.0
-255,Garage Finish_RFn,4.426254051520142e-09,0.0,1.0
-256,Garage Finish_Unf,0.999999995573746,0.0,1.0
-257,Paved Drive_N,0.0,0.0,1.0
-258,Paved Drive_P,0.9999989999999996,0.0,1.0
-259,Paved Drive_Y,1.0,0.0,1.0
-260,Fence_GdPrv,0.0,0.0,1.0
-261,Fence_GdWo,0.0,0.0,1.0
-262,Fence_MnPrv,0.0,0.0,1.0
-263,Fence_MnWw,0.0,0.0,1.0
-264,Fence_No aplica,1.0,0.0,1.0
-265,Misc Feature_Elev,0.0,0.0,1.0
-266,Misc Feature_Gar2,0.0,0.0,1.0
-267,Misc Feature_No aplica,1.0,0.0,1.0
-268,Misc Feature_Othr,0.0,0.0,1.0
-269,Misc Feature_Shed,0.0,0.0,1.0
-270,Misc Feature_TenC,0.0,0.0,1.0
-271,Mo Sold_1,0.0,0.0,1.0
-272,Mo Sold_2,0.0,0.0,1.0
-273,Mo Sold_3,0.0,0.0,1.0
-274,Mo Sold_4,0.0,0.0,1.0
-275,Mo Sold_5,0.0,0.0,1.0
-276,Mo Sold_6,1.0,0.0,1.0
-277,Mo Sold_7,0.0,0.0,1.0
-278,Mo Sold_8,0.0,0.0,1.0
-279,Mo Sold_9,0.0,0.0,1.0
-280,Mo Sold_10,0.0,0.0,1.0
-281,Mo Sold_11,0.0,0.0,1.0
-282,Mo Sold_12,0.0,0.0,1.0
-283,Sale Type_COD,0.0,0.0,1.0
-284,Sale Type_CWD,0.0,0.0,1.0
-285,Sale Type_Con,0.0,0.0,1.0
-286,Sale Type_ConLD,0.0,0.0,1.0
-287,Sale Type_ConLI,0.0,0.0,1.0
-288,Sale Type_ConLw,0.0,0.0,1.0
-289,Sale Type_New,0.0,0.0,1.0
-290,Sale Type_Oth,0.0,0.0,1.0
-291,Sale Type_VWD,0.0,0.0,1.0
-292,Sale Type_WD ,1.0,0.0,1.0
-293,Sale Condition_Abnorml,0.0,0.0,1.0
-294,Sale Condition_AdjLand,0.0,0.0,1.0
-295,Sale Condition_Alloca,0.0,0.0,1.0
-296,Sale Condition_Family,0.0,0.0,1.0
-297,Sale Condition_Normal,1.0,0.0,1.0
-298,Sale Condition_Partial,0.0,0.0,1.0
+0,Lot Frontage,141.0,,
+0,Lot Area,31770.0,,
+0,Utilities,3.0,,
+0,Overall Qual,6.0,,
+0,Overall Cond,5.0,,
+0,Year Built,1960.0,,
+0,Year Remod/Add,1960.0,,
+0,Mas Vnr Area,112.0,,
+0,Exter Qual,2.0,,
+0,Exter Cond,2.0,,
+0,Bsmt Qual,2.0,,
+0,Bsmt Cond,3.0,,
+0,BsmtFin SF 1,1002.0,,
+0,BsmtFin SF 2,78.0,,
+0,Bsmt Unf SF,0.0,,
+0,Total Bsmt SF,1080.0,,
+0,Heating QC,1.0,,
+0,1st Flr SF,1696.0,,
+0,2nd Flr SF,0.0,,
+0,Low Qual Fin SF,0.0,,
+0,Gr Liv Area,1696.0,,
+0,Bsmt Full Bath,1.0,,
+0,Bsmt Half Bath,0.0,,
+0,Full Bath,2.0,,
+0,Half Bath,0.0,,
+0,Bedroom AbvGr,3.0,,
+0,Kitchen AbvGr,1.0,,
+0,Kitchen Qual,2.0,,
+0,TotRms AbvGrd,7.0,,
+0,Fireplaces,2.0,,
+0,Fireplace Qu,3.0,,
+0,Garage Yr Blt,1960.0,,
+0,Garage Cars,2.0,,
+0,Garage Area,528.0,,
+0,Garage Qual,2.0,,
+0,Garage Cond,2.0,,
+0,Wood Deck SF,231.0,,
+0,Open Porch SF,74.4,,
+0,Enclosed Porch,0.0,,
+0,3Ssn Porch,0.0,,
+0,Screen Porch,0.0,,
+0,Pool Area,0.0,,
+0,Pool QC,-1.0,,
+0,Misc Val,0.0,,
+0,Yr Sold,2010.0,,
+0,MS SubClass_20,1.0,,
+0,MS SubClass_30,0.0,,
+0,MS SubClass_40,0.0,,
+0,MS SubClass_45,0.0,,
+0,MS SubClass_50,0.0,,
+0,MS SubClass_60,0.0,,
+0,MS SubClass_70,0.0,,
+0,MS SubClass_75,0.0,,
+0,MS SubClass_80,0.0,,
+0,MS SubClass_85,0.0,,
+0,MS SubClass_90,0.0,,
+0,MS SubClass_120,0.0,,
+0,MS SubClass_150,0.0,,
+0,MS SubClass_160,0.0,,
+0,MS SubClass_180,0.0,,
+0,MS SubClass_190,0.0,,
+0,MS Zoning_A (agr),0.0,,
+0,MS Zoning_C (all),0.0,,
+0,MS Zoning_FV,0.0,,
+0,MS Zoning_I (all),0.0,,
+0,MS Zoning_RH,0.0,,
+0,MS Zoning_RL,1.0,,
+0,MS Zoning_RM,0.0,,
+0,Street_Grvl,0.0,,
+0,Street_Pave,1.0,,
+0,Alley_Grvl,0.0,,
+0,Alley_No aplica,1.0,,
+0,Alley_Pave,0.0,,
+0,Lot Shape_IR1,1.0,,
+0,Lot Shape_IR2,0.0,,
+0,Lot Shape_IR3,0.0,,
+0,Lot Shape_Reg,0.0,,
+0,Land Contour_Bnk,0.0,,
+0,Land Contour_HLS,0.0,,
+0,Land Contour_Low,0.0,,
+0,Land Contour_Lvl,1.0,,
+0,Lot Config_Corner,1.0,,
+0,Lot Config_CulDSac,0.0,,
+0,Lot Config_FR2,0.0,,
+0,Lot Config_FR3,0.0,,
+0,Lot Config_Inside,0.0,,
+0,Land Slope_Gtl,1.0,,
+0,Land Slope_Mod,0.0,,
+0,Land Slope_Sev,0.0,,
+0,Neighborhood_Blmngtn,0.0,,
+0,Neighborhood_Blueste,0.0,,
+0,Neighborhood_BrDale,0.0,,
+0,Neighborhood_BrkSide,0.0,,
+0,Neighborhood_ClearCr,0.0,,
+0,Neighborhood_CollgCr,0.0,,
+0,Neighborhood_Crawfor,0.0,,
+0,Neighborhood_Edwards,0.0,,
+0,Neighborhood_Gilbert,0.0,,
+0,Neighborhood_Greens,0.0,,
+0,Neighborhood_GrnHill,0.0,,
+0,Neighborhood_IDOTRR,0.0,,
+0,Neighborhood_Landmrk,0.0,,
+0,Neighborhood_MeadowV,0.0,,
+0,Neighborhood_Mitchel,0.0,,
+0,Neighborhood_NPkVill,0.0,,
+0,Neighborhood_NWAmes,0.0,,
+0,Neighborhood_No aplicames,1.0,,
+0,Neighborhood_NoRidge,0.0,,
+0,Neighborhood_NridgHt,0.0,,
+0,Neighborhood_OldTown,0.0,,
+0,Neighborhood_SWISU,0.0,,
+0,Neighborhood_Sawyer,0.0,,
+0,Neighborhood_SawyerW,0.0,,
+0,Neighborhood_Somerst,0.0,,
+0,Neighborhood_StoneBr,0.0,,
+0,Neighborhood_Timber,0.0,,
+0,Neighborhood_Veenker,0.0,,
+0,Condition 1_Artery,0.0,,
+0,Condition 1_Feedr,0.0,,
+0,Condition 1_Norm,1.0,,
+0,Condition 1_PosA,0.0,,
+0,Condition 1_PosN,0.0,,
+0,Condition 1_RRAe,0.0,,
+0,Condition 1_RRAn,0.0,,
+0,Condition 1_RRNe,0.0,,
+0,Condition 1_RRNn,0.0,,
+0,Condition 2_Artery,0.0,,
+0,Condition 2_Feedr,0.0,,
+0,Condition 2_Norm,1.0,,
+0,Condition 2_PosA,0.0,,
+0,Condition 2_PosN,0.0,,
+0,Condition 2_RRAe,0.0,,
+0,Condition 2_RRAn,0.0,,
+0,Condition 2_RRNn,0.0,,
+0,Bldg Type_1Fam,1.0,,
+0,Bldg Type_2fmCon,0.0,,
+0,Bldg Type_Duplex,0.0,,
+0,Bldg Type_Twnhs,0.0,,
+0,Bldg Type_TwnhsE,0.0,,
+0,House Style_1.5Fin,0.0,,
+0,House Style_1.5Unf,0.0,,
+0,House Style_1Story,1.0,,
+0,House Style_2.5Fin,0.0,,
+0,House Style_2.5Unf,0.0,,
+0,House Style_2Story,0.0,,
+0,House Style_SFoyer,0.0,,
+0,House Style_SLvl,0.0,,
+0,Roof Style_Flat,0.0,,
+0,Roof Style_Gable,0.0,,
+0,Roof Style_Gambrel,0.0,,
+0,Roof Style_Hip,1.0,,
+0,Roof Style_Mansard,0.0,,
+0,Roof Style_Shed,0.0,,
+0,Roof Matl_ClyTile,0.0,,
+0,Roof Matl_CompShg,1.0,,
+0,Roof Matl_Membran,0.0,,
+0,Roof Matl_Metal,0.0,,
+0,Roof Matl_Roll,0.0,,
+0,Roof Matl_Tar&Grv,0.0,,
+0,Roof Matl_WdShake,0.0,,
+0,Roof Matl_WdShngl,0.0,,
+0,Exterior 1st_AsbShng,0.0,,
+0,Exterior 1st_AsphShn,0.0,,
+0,Exterior 1st_BrkComm,0.0,,
+0,Exterior 1st_BrkFace,1.0,,
+0,Exterior 1st_CBlock,0.0,,
+0,Exterior 1st_CemntBd,0.0,,
+0,Exterior 1st_HdBoard,0.0,,
+0,Exterior 1st_ImStucc,0.0,,
+0,Exterior 1st_MetalSd,0.0,,
+0,Exterior 1st_Plywood,0.0,,
+0,Exterior 1st_PreCast,0.0,,
+0,Exterior 1st_Stone,0.0,,
+0,Exterior 1st_Stucco,0.0,,
+0,Exterior 1st_VinylSd,0.0,,
+0,Exterior 1st_Wd Sdng,0.0,,
+0,Exterior 1st_WdShing,0.0,,
+0,Exterior 2nd_AsbShng,0.0,,
+0,Exterior 2nd_AsphShn,0.0,,
+0,Exterior 2nd_Brk Cmn,0.0,,
+0,Exterior 2nd_BrkFace,0.0,,
+0,Exterior 2nd_CBlock,0.0,,
+0,Exterior 2nd_CmentBd,0.0,,
+0,Exterior 2nd_HdBoard,0.0,,
+0,Exterior 2nd_ImStucc,0.0,,
+0,Exterior 2nd_MetalSd,0.0,,
+0,Exterior 2nd_Other,0.0,,
+0,Exterior 2nd_Plywood,1.0,,
+0,Exterior 2nd_PreCast,0.0,,
+0,Exterior 2nd_Stone,0.0,,
+0,Exterior 2nd_Stucco,0.0,,
+0,Exterior 2nd_VinylSd,0.0,,
+0,Exterior 2nd_Wd Sdng,0.0,,
+0,Exterior 2nd_Wd Shng,0.0,,
+0,Mas Vnr Type_BrkCmn,0.0,,
+0,Mas Vnr Type_BrkFace,0.0,,
+0,Mas Vnr Type_CBlock,0.0,,
+0,Mas Vnr Type_No aplica,0.0,,
+0,Mas Vnr Type_NoAplica,0.0,,
+0,Mas Vnr Type_Stone,1.0,,
+0,Foundation_BrkTil,0.0,,
+0,Foundation_CBlock,1.0,,
+0,Foundation_PConc,0.0,,
+0,Foundation_Slab,0.0,,
+0,Foundation_Stone,0.0,,
+0,Foundation_Wood,0.0,,
+0,Bsmt Exposure_Av,0.0,,
+0,Bsmt Exposure_Gd,1.0,,
+0,Bsmt Exposure_Mn,0.0,,
+0,Bsmt Exposure_No,0.0,,
+0,Bsmt Exposure_No aplica,0.0,,
+0,BsmtFin Type 1_ALQ,0.0,,
+0,BsmtFin Type 1_BLQ,1.0,,
+0,BsmtFin Type 1_GLQ,0.0,,
+0,BsmtFin Type 1_LwQ,0.0,,
+0,BsmtFin Type 1_No aplica,0.0,,
+0,BsmtFin Type 1_Rec,0.0,,
+0,BsmtFin Type 1_Unf,0.0,,
+0,BsmtFin Type 2_ALQ,0.0,,
+0,BsmtFin Type 2_BLQ,0.0,,
+0,BsmtFin Type 2_GLQ,0.0,,
+0,BsmtFin Type 2_LwQ,0.0,,
+0,BsmtFin Type 2_No aplica,0.0,,
+0,BsmtFin Type 2_Rec,0.0,,
+0,BsmtFin Type 2_Unf,1.0,,
+0,Heating_Floor,0.0,,
+0,Heating_GasA,1.0,,
+0,Heating_GasW,0.0,,
+0,Heating_Grav,0.0,,
+0,Heating_OthW,0.0,,
+0,Heating_Wall,0.0,,
+0,Central Air_N,0.0,,
+0,Central Air_Y,1.0,,
+0,Electrical_FuseA,0.0,,
+0,Electrical_FuseF,0.0,,
+0,Electrical_FuseP,0.0,,
+0,Electrical_Mix,0.0,,
+0,Electrical_SBrkr,1.0,,
+0,FunctioNo aplical_Maj1,0.0,,
+0,FunctioNo aplical_Maj2,0.0,,
+0,FunctioNo aplical_Min1,0.0,,
+0,FunctioNo aplical_Min2,0.0,,
+0,FunctioNo aplical_Mod,0.0,,
+0,FunctioNo aplical_Sal,0.0,,
+0,FunctioNo aplical_Sev,0.0,,
+0,FunctioNo aplical_Typ,1.0,,
+0,Garage Type_2Types,0.0,,
+0,Garage Type_Attchd,1.0,,
+0,Garage Type_Basment,0.0,,
+0,Garage Type_BuiltIn,0.0,,
+0,Garage Type_CarPort,0.0,,
+0,Garage Type_Detchd,0.0,,
+0,Garage Type_No aplica,0.0,,
+0,Garage Finish_Fin,1.0,,
+0,Garage Finish_No aplica,0.0,,
+0,Garage Finish_RFn,0.0,,
+0,Garage Finish_Unf,0.0,,
+0,Paved Drive_N,0.0,,
+0,Paved Drive_P,0.0,,
+0,Paved Drive_Y,1.0,,
+0,Fence_GdPrv,0.0,,
+0,Fence_GdWo,0.0,,
+0,Fence_MnPrv,0.0,,
+0,Fence_MnWw,0.0,,
+0,Fence_No aplica,1.0,,
+0,Misc Feature_Elev,0.0,,
+0,Misc Feature_Gar2,0.0,,
+0,Misc Feature_No aplica,1.0,,
+0,Misc Feature_Othr,0.0,,
+0,Misc Feature_Shed,0.0,,
+0,Misc Feature_TenC,0.0,,
+0,Mo Sold_1,0.0,,
+0,Mo Sold_2,0.0,,
+0,Mo Sold_3,0.0,,
+0,Mo Sold_4,0.0,,
+0,Mo Sold_5,1.0,,
+0,Mo Sold_6,0.0,,
+0,Mo Sold_7,0.0,,
+0,Mo Sold_8,0.0,,
+0,Mo Sold_9,0.0,,
+0,Mo Sold_10,0.0,,
+0,Mo Sold_11,0.0,,
+0,Mo Sold_12,0.0,,
+0,Sale Type_COD,0.0,,
+0,Sale Type_CWD,0.0,,
+0,Sale Type_Con,0.0,,
+0,Sale Type_ConLD,0.0,,
+0,Sale Type_ConLI,0.0,,
+0,Sale Type_ConLw,0.0,,
+0,Sale Type_New,0.0,,
+0,Sale Type_Oth,0.0,,
+0,Sale Type_VWD,0.0,,
+0,Sale Type_WD ,1.0,,
+0,Sale Condition_Abnorml,0.0,,
+0,Sale Condition_AdjLand,0.0,,
+0,Sale Condition_Alloca,0.0,,
+0,Sale Condition_Family,0.0,,
+0,Sale Condition_Normal,1.0,,
+0,Sale Condition_Partial,0.0,,

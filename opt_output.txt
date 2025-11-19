@@ -1,0 +1,557 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/josefaabettdelatorrep./Desktop/PUC/College/Semestre 8/Taller de Investigación Operati[CHK-MVT] Base=Stone area_base=112.0 | allowed=BrkCmn, BrkFace, CBlock, Stone, No aplica
+  Lot Frontage Lot Area  ... Sale Condition_Normal Sale Condition_Partial
+0        141.0  31770.0  ...                   1.0                    0.0
+
+[1 rows x 299 columns]
+[ALIGN] columnas faltantes añadidas a X_input: 0
+[CHK] Fireplace Qu LB=-1.0 UB=4.0
+[CHK] Pool QC      LB=-1.0 UB=4.0
+[CHK-PC] candidatos a salida: ['output']
+Set parameter MIPGap to value 0.001
+Set parameter TimeLimit to value 300
+Set parameter LogToConsole to value 1
+Set parameter FeasibilityTol to value 1e-07
+Set parameter IntFeasTol to value 1e-07
+Set parameter OptimalityTol to value 1e-07
+Set parameter NumericFocus to value 3
+Gurobi Optimizer version 13.0.0 build v13.0.0rc1 (mac64[arm] - Darwin 25.1.0 25B78)
+
+CPU model: Apple M1 Pro
+Thread count: 8 physical cores, 8 logical processors, using up to 8 threads
+
+Non-default parameters:
+TimeLimit  300
+FeasibilityTol  1e-07
+IntFeasTol  1e-07
+MIPGap  0.001
+OptimalityTol  1e-07
+NumericFocus  3
+
+
+Warning: excessive time spent in model updates.
+Consider calling update less frequently.
+
+Optimize a model with 2101 rows, 29796 columns and 30131 nonzeros (Max)
+Model fingerprint: 0x0465676f
+Model has 2 linear objective coefficients and an objective constant of 315174.5
+Model has 32994 simple general constraints
+  32993 INDICATOR, 1 PWL
+Variable types: 2015 continuous, 27781 integer (27765 binary)
+Coefficient statistics:
+  Matrix range     [6e-02, 2e+06]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e-06, 1e+06]
+  RHS range        [5e-01, 3e+05]
+  PWLCon x range   [1e+01, 1e+01]
+  PWLCon y range   [2e+04, 1e+06]
+  GenCon rhs range [5e-08, 3e+03]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 20090 rows and 0 columns
+Presolve removed 0 rows and 5810 columns
+Presolve time: 0.07s
+Presolved: 22191 rows, 23986 columns, 48799 nonzeros
+Presolved model has 6489 SOS constraint(s)
+Variable types: 11759 continuous, 12227 integer (11211 binary)
+Performing another presolve...
+Presolve removed 15101 rows and 19570 columns
+Presolve time: 0.36s
+
+Root relaxation: objective 1.999999e+06, 2247 iterations, 0.05 seconds (0.09 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 1999999.00    0  531          - 1999999.00      -     -    0s
+     0     0 1999999.00    0    6          - 1999999.00      -     -    0s
+     0     2 1999999.00    0    6          - 1999999.00      -     -    1s
+H 1647  1647                    11135.475326 1999999.00      -   7.5    3s
+H 1748  1805                    12570.914251 1999999.00      -   7.1    3s
+H 2320  2361                    12571.327204 1999999.00      -   5.9    4s
+  2874  2910 1970040.62  350    2 12571.3272 1999999.00      -   5.2    5s
+H 3424  3519                    13892.317094 1999999.00      -   4.7    5s
+H 3454  3519                    17962.451823 1999999.00      -   4.7    5s
+H 3471  3519                    19710.804445 1999999.00      -   4.7    5s
+H 3525  3623                    20867.872195 1999999.00  9484%   4.6    5s
+H 3662  3712                    20868.379511 1999999.00  9484%   5.0    6s
+H 4059  3890                    28644.689405 1999999.00  6882%  13.4    7s
+H 4067  3890                    33280.847169 1999999.00  5909%  13.5    7s
+H 4903  4542                    38094.150746 1999999.00  5150%  20.1    8s
+H 4937  4542                    38097.655817 1999999.00  5150%  21.1    8s
+H 5368  4894                    38097.768919 1999999.00  5150%  20.6    8s
+  6445  5832 1989040.62  421 1754 38097.7689 1999999.00  5150%  18.7   10s
+  7866  7027 1999999.00   88    5 38097.7689 1999999.00  5150%  20.3   15s
+H 8346  6882                    64966.293211 1999999.00  2979%  29.7   18s
+H 8424  6750                    65255.068080 1999999.00  2965%  32.5   19s
+H 8452  6477                    65872.749977 1999999.00  2936%  32.8   19s
+H 8468  6222                    66237.189348 1999999.00  2919%  33.4   19s
+H 8517  5968                    66352.961895 1999999.00  2914%  34.5   19s
+H 8537  5736                    66402.895180 1999999.00  2912%  35.0   19s
+H 8553  5515                    66976.149430 1999999.00  2886%  35.6   19s
+H 8597  5436                    68320.927070 1999999.00  2827%  36.8   20s
+H 8650  5224                    68440.672624 1999999.00  2822%  38.6   20s
+H 8787  5069                    69335.894697 1999999.00  2785%  42.4   20s
+H 8897  5148                    69745.572490 1999999.00  2768%  45.7   22s
+H 9225  4873                    72280.869516 1999999.00  2667%  48.5   22s
+H 9282  4821                    72560.032733 1999999.00  2656%  49.5   23s
+H 9285  4670                    73091.372546 1999999.00  2636%  49.7   23s
+H 9433  4479                    73390.146214 1999999.00  2625%  50.5   23s
+H 9619  4597                    73649.123613 1999999.00  2616%  52.4   24s
+  9814  4701 1998499.00  134    4 73649.1236 1999999.00  2616%  53.1   25s
+H 9972  4519                    73892.902994 1999999.00  2607%  54.8   25s
+H10177  4691                    73892.903009 1999999.00  2607%  56.7   26s
+H10450  4484                    73920.831931 1999999.00  2606%  57.5   26s
+H10837  4642                    73920.831938 1999999.00  2606%  59.6   27s
+H10987  4789                    73920.831960 1999999.00  2606%  60.6   29s
+H11277  4592                    74241.833031 1999999.00  2594%  61.3   29s
+ 11278  4912     cutoff  168      74241.8330 1999999.00  2594%  61.4   30s
+H11748  4959                    74333.919519 1999999.00  2591%  64.5   31s
+H11887  4934                    74512.210826 1999999.00  2584%  65.5   31s
+H12120  5015                    75368.341188 1999999.00  2554%  67.1   33s
+H12384  5311                    75395.464014 1999999.00  2553%  69.1   34s
+ 12541  5662 1969749.00  135    4 75395.4640 1999999.00  2553%  70.0   35s
+ 13684  6541 1999775.99  129  118 75395.4640 1999999.00  2553%  77.2   40s
+H13785  6541                    75430.853143 1999999.00  2551%  77.7   40s
+H14000  6541                    75430.853159 1999999.00  2551%  77.8   40s
+ 14910  7199 1999996.00   34    4 75430.8532 1999999.00  2551%  79.4   45s
+ 15098  7420 1999639.15   45  211 75430.8532 1999999.00  2551%  84.7   50s
+H15148  7049                    75430.853174 1999999.00  2551%  85.6   50s
+ 15577  7221 1999995.70   35  254 75430.8532 1999999.00  2551%  90.9   57s
+ 15912  7507 1987496.00   48    5 75430.8532 1999999.00  2551%  95.8   61s
+H15923  7167                    75430.853204 1999999.00  2551%  95.9   61s
+H16115  6784                    75430.854386 1999999.00  2551%  98.0   61s
+H16367  6642                    75528.715347 1999999.00  2548%   101   64s
+ 16503  6839 1993249.89   51  148 75528.7153 1999999.00  2548%   103   67s
+H16587  6522                    75626.155409 1999999.00  2545%   103   67s
+H16831  6167                    76482.876765 1999999.00  2515%   105   67s
+ 16858  6885 1984181.00   51   43 76482.8768 1999999.00  2515%   105   71s
+H16885  6614                    80464.419909 1999999.00  2386%   105   71s
+H17914  5981                    80464.419917 1999999.00  2386%   105   77s
+H18168  5661                    83005.455900 1999999.00  2309%   105   77s
+ 18254  5760 1999096.16   37  100 83005.4559 1999999.00  2309%   106   81s
+H18261  5534                    83108.264413 1999999.00  2306%   106   81s
+H18263  5322                    83221.234330 1999999.00  2303%   106   81s
+H18306  5106                    83779.934765 1999999.00  2287%   106   81s
+ 18850  5468 1984185.00   53  104 83779.9348 1999999.00  2287%   107   87s
+H18902  5260                    83779.934773 1999999.00  2287%   107   87s
+H19177  4986                    83779.952795 1999999.00  2287%   108   87s
+H19219  5144                    83779.952803 1999999.00  2287%   109   91s
+H19752  5264                    83779.952812 1999999.00  2287%   108   94s
+H19943  5045                    83779.965383 1999999.00  2287%   108   94s
+ 20277  5308 1991841.91   55  209 83779.9654 1999999.00  2287%   108   98s
+H20399  5120                    83779.965392 1999999.00  2287%   108   98s
+H20472  4954                    83779.965400 1999999.00  2287%   108   98s
+ 20734  5503 1999982.82   34  403 83779.9654 1999999.00  2287%   109  102s
+H20818  5342                    83779.965425 1999999.00  2287%   109  102s
+ 21577  5393 1966489.80   53   92 83779.9654 1999999.00  2287%   108  106s
+H21733  5214                    83779.965459 1999999.00  2287%   108  106s
+H21882  5120                    83779.965476 1999999.00  2287%   109  106s
+ 21982  5461     cutoff   70      83779.9655 1999999.00  2287%   109  110s
+H22381  5461                    83779.965492 1999999.00  2287%   109  110s
+H22453  5626                    83779.965526 1999999.00  2287%   109  114s
+ 22694  5997 1993381.00   38  104 83779.9655 1999999.00  2287%   109  116s
+ 23138  6226 89117.1746   92   36 83779.9655 1999999.00  2287%   109  121s
+H23424  6226                    83779.965534 1999999.00  2287%   109  121s
+ 23426  6599 87821.9687   93   30 83779.9655 1999999.00  2287%   109  125s
+H23913  6796                    83779.965543 1999999.00  2287%   110  129s
+H23914  6796                    83779.965551 1999999.00  2287%   110  129s
+ 24183  6943     cutoff   75      83779.9656 1999999.00  2287%   111  133s
+H24316  6943                    83779.965559 1999999.00  2287%   111  133s
+ 24372  7156 1992064.52   45   18 83779.9656 1999999.00  2287%   111  138s
+H24409  7156                    83779.965568 1999999.00  2287%   111  138s
+H24549  7156                    83779.965585 1999999.00  2287%   112  138s
+ 24629  7288 91418.4821   82  107 83779.9656 1999999.00  2287%   112  142s
+H24782  7288                    83779.965593 1999999.00  2287%   112  142s
+H24796  7288                    83779.965610 1999999.00  2287%   112  142s
+ 24797  7769 83817.2881   96    2 83779.9656 1999999.00  2287%   112  146s
+ 26239  8988 1993070.86   46   23 83779.9656 1999999.00  2287%   112  153s
+ 26967  9039 1982166.58   57   41 83779.9656 1999999.00  2287%   112  158s
+H26987  9039                    83779.965618 1999999.00  2287%   112  158s
+ 27026  9615 1982109.10   58   39 83779.9656 1999999.00  2287%   112  162s
+ 27754 10172 1989554.72   50  162 83779.9656 1999999.00  2287%   111  166s
+H27853 10172                    83779.965626 1999999.00  2287%   111  166s
+ 28480 10995 1999873.14   34  402 83779.9656 1999999.00  2287%   111  170s
+ 29502 11872 1982752.27   52   46 83779.9656 1999999.00  2287%   111  175s
+ 31072 12825 1999011.04   40  199 83779.9656 1999999.00  2287%   112  180s
+ 31881 12857 1988894.47   55  140 83779.9656 1999999.00  2287%   112  185s
+H31926 12857                    83779.965643 1999999.00  2287%   112  185s
+H32102 13285                    83779.965652 1999999.00  2287%   112  189s
+ 32467 13866 1982825.93   49  104 83779.9657 1999999.00  2287%   112  193s
+H32588 13866                    83779.965660 1999999.00  2287%   112  193s
+ 33216 14320 1999982.83   32  404 83779.9657 1999999.00  2287%   111  196s
+ 33825 14891 1999524.99   35  124 83779.9657 1999999.00  2287%   113  200s
+H35311 15540                    83779.965668 1999999.00  2287%   114  204s
+ 35387 15558 1999873.34   35  312 83779.9657 1999999.00  2287%   114  211s
+ 35405 15807 1964812.78   39   52 83779.9657 1999999.00  2287%   114  217s
+ 35751 16334 infeasible   51      83779.9657 1999999.00  2287%   114  222s
+ 36514 17230 1999522.00   38  122 83779.9657 1999999.00  2287%   114  227s
+ 37759 17751 1999522.24   38  122 83779.9657 1999996.00  2287%   113  232s
+H37918 17751                    83779.965677 1999996.00  2287%   113  232s
+H38110 17751                    83779.965685 1999996.00  2287%   113  232s
+ 38401 18754 infeasible   73      83779.9657 1999996.00  2287%   113  236s
+ 39673 19422 1984181.00   48   47 83779.9657 1999991.97  2287%   113  241s
+ 40537 20659 1999867.72   36  310 83779.9657 1999983.37  2287%   111  245s
+H43555 22548                    83779.965693 1999982.95  2287%   108  253s
+H44224 22548                    83779.965710 1999982.95  2287%   108  253s
+ 44541 23715 1997525.15   39  122 83779.9657 1999982.81  2287%   107  261s
+ 46044 24157 1956191.49   53   82 83779.9657 1999982.23  2287%   105  265s
+ 47852 25897 1970211.47   55   92 83779.9657 1999974.54  2287%   104  271s
+H49065 26178                    83779.965727 1999962.59  2287%   103  274s
+ 49360 26232 1993381.00   39   76 83779.9657 1999960.90  2287%   103  279s
+ 49420 26425 1993381.00   40   90 83779.9657 1999960.90  2287%   103  282s
+H49472 26425                    83779.965744 1999960.90  2287%   103  282s
+ 49668 27004 783533.281   63   26 83779.9657 1999960.90  2287%   103  285s
+ 51207 28281 1989040.62   35   11 83779.9657 1999910.32  2287%   102  292s
+ 52141 29442 1987970.18   43  264 83779.9657 1999899.49  2287%   101  295s
+H54265 30329                    83779.965760 1999876.55  2287%  98.7  300s
+
+Cutting planes:
+  Cover: 1149
+  Implied bound: 65
+  Inf proof: 2
+
+Explored 54801 nodes (5378645 simplex iterations) in 300.06 seconds (397.66 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 10: 83780 83221.2 83108.3 ... 75395.5
+
+Time limit reached
+Best objective 8.377996576045e+04, best bound 1.999876547275e+06, gap 2287.0582%
+[COST-BREAKDOWN] no se pudo leer términos
+[CALIB] y_log(MIP) - log1p(predict_outside) = 0.193959 (≈×1.214)
+
+[AUDIT] Vars inyectadas al embed (que pueden mover predicción):
+                   col      X   LB        UB   base
+            1st Flr SF 1696.0  0.0    5000.0 1656.0
+            3Ssn Porch    0.0  0.0  100000.0    0.0
+         Bedroom AbvGr    3.0 -0.0       6.0    3.0
+             Bsmt Cond    3.0 -1.0       4.0    3.0
+           Bsmt Unf SF    0.0  0.0  100000.0  441.0
+          BsmtFin SF 1 1002.0  0.0 1000000.0  639.0
+          BsmtFin SF 2   78.0  0.0  100000.0    0.0
+    BsmtFin Type 1_ALQ   -0.0  0.0       1.0    0.0
+    BsmtFin Type 1_BLQ    1.0  0.0       1.0    1.0
+    BsmtFin Type 1_GLQ   -0.0  0.0       1.0    0.0
+    BsmtFin Type 1_LwQ   -0.0  0.0       1.0    0.0
+    BsmtFin Type 1_Rec   -0.0  0.0       1.0    0.0
+    BsmtFin Type 1_Unf   -0.0  0.0       1.0    0.0
+    BsmtFin Type 2_ALQ   -0.0  0.0       1.0    0.0
+    BsmtFin Type 2_BLQ   -0.0  0.0       1.0    0.0
+    BsmtFin Type 2_GLQ   -0.0  0.0       1.0    0.0
+    BsmtFin Type 2_LwQ   -0.0  0.0       1.0    0.0
+    BsmtFin Type 2_Rec   -0.0  0.0       1.0    0.0
+    BsmtFin Type 2_Unf    1.0  0.0       1.0    1.0
+         Central Air_N    0.0  0.0       1.0    0.0
+         Central Air_Y    1.0  1.0       1.0    1.0
+      Electrical_FuseA   -0.0  0.0       1.0    0.0
+      Electrical_FuseF   -0.0  0.0       1.0    0.0
+      Electrical_FuseP   -0.0  0.0       1.0    0.0
+        Electrical_Mix   -0.0  0.0       1.0    0.0
+      Electrical_SBrkr    1.0  0.0       1.0    1.0
+        Enclosed Porch    0.0  0.0  100000.0    0.0
+            Exter Cond    2.0  0.0       4.0    2.0
+            Exter Qual    2.0  0.0       4.0    2.0
+  Exterior 1st_AsbShng   -0.0  0.0       1.0    0.0
+  Exterior 1st_AsphShn   -0.0  0.0       1.0    0.0
+  Exterior 1st_BrkComm   -0.0  0.0       1.0    0.0
+  Exterior 1st_BrkFace    1.0  0.0       1.0    1.0
+   Exterior 1st_CBlock   -0.0  0.0       1.0    0.0
+  Exterior 1st_CemntBd   -0.0  0.0       1.0    0.0
+  Exterior 1st_HdBoard   -0.0  0.0       1.0    0.0
+  Exterior 1st_ImStucc   -0.0  0.0       1.0    0.0
+  Exterior 1st_MetalSd   -0.0  0.0       1.0    0.0
+  Exterior 1st_Plywood   -0.0  0.0       1.0    0.0
+  Exterior 1st_PreCast   -0.0  0.0       1.0    0.0
+    Exterior 1st_Stone   -0.0  0.0       1.0    0.0
+   Exterior 1st_Stucco   -0.0  0.0       1.0    0.0
+  Exterior 1st_VinylSd   -0.0  0.0       1.0    0.0
+  Exterior 1st_Wd Sdng   -0.0  0.0       1.0    0.0
+  Exterior 2nd_AsbShng   -0.0  0.0       1.0    0.0
+  Exterior 2nd_AsphShn   -0.0  0.0       1.0    0.0
+  Exterior 2nd_BrkFace   -0.0  0.0       1.0    0.0
+   Exterior 2nd_CBlock   -0.0  0.0       1.0    0.0
+  Exterior 2nd_HdBoard   -0.0  0.0       1.0    0.0
+  Exterior 2nd_ImStucc   -0.0  0.0       1.0    0.0
+  Exterior 2nd_MetalSd   -0.0  0.0       1.0    0.0
+    Exterior 2nd_Other   -0.0  0.0       1.0    0.0
+  Exterior 2nd_Plywood    1.0  0.0       1.0    1.0
+  Exterior 2nd_PreCast   -0.0  0.0       1.0    0.0
+    Exterior 2nd_Stone   -0.0  0.0       1.0    0.0
+   Exterior 2nd_Stucco   -0.0  0.0       1.0    0.0
+  Exterior 2nd_VinylSd   -0.0  0.0       1.0    0.0
+  Exterior 2nd_Wd Sdng   -0.0  0.0       1.0    0.0
+           Fence_GdPrv   -0.0  0.0       1.0    0.0
+            Fence_GdWo   -0.0  0.0       1.0    0.0
+           Fence_MnPrv   -0.0  0.0       1.0    0.0
+            Fence_MnWw   -0.0  0.0       1.0    0.0
+       Fence_No aplica    1.0  0.0       1.0    1.0
+          Fireplace Qu    3.0 -1.0       4.0    3.0
+             Full Bath    2.0 -0.0       4.0    1.0
+           Garage Area  528.0  0.0  100000.0  528.0
+           Garage Cond    2.0 -1.0       4.0    2.0
+           Garage Qual    2.0 -1.0       4.0    2.0
+           Gr Liv Area 1696.0  0.0   10000.0 1656.0
+             Half Bath   -0.0 -0.0       5.0    0.0
+            Heating QC    1.0  0.0       4.0    1.0
+         Heating_Floor   -0.0  0.0       1.0    0.0
+          Heating_GasA    1.0  0.0       1.0    1.0
+          Heating_GasW   -0.0  0.0       1.0    0.0
+          Heating_Grav   -0.0  0.0       1.0    0.0
+          Heating_OthW   -0.0  0.0       1.0    0.0
+          Heating_Wall   -0.0  0.0       1.0    0.0
+         Kitchen AbvGr    1.0 -0.0       3.0    1.0
+          Kitchen Qual    2.0  0.0       4.0    2.0
+   Mas Vnr Type_BrkCmn    0.0  0.0       1.0    0.0
+  Mas Vnr Type_BrkFace    0.0  0.0       1.0    0.0
+   Mas Vnr Type_CBlock    0.0  0.0       1.0    0.0
+Mas Vnr Type_No aplica    0.0  0.0       1.0    0.0
+ Mas Vnr Type_NoAplica    0.0  0.0       1.0    0.0
+    Mas Vnr Type_Stone    1.0  0.0       1.0    1.0
+         Open Porch SF   74.4  0.0  100000.0   62.0
+          Overall Qual    6.0  1.0      10.0    6.0
+         Paved Drive_N   -0.0  0.0       1.0    0.0
+         Paved Drive_P   -0.0  0.0       1.0    1.0
+         Paved Drive_Y    1.0  0.0       1.0    0.0
+             Pool Area    0.0  0.0  100000.0    0.0
+               Pool QC   -1.0 -1.0       4.0   -1.0
+     Roof Matl_ClyTile   -0.0  0.0       1.0    0.0
+     Roof Matl_CompShg    1.0  0.0       1.0    1.0
+     Roof Matl_Membran    0.0  0.0       1.0    0.0
+       Roof Matl_Metal   -0.0  0.0       1.0    0.0
+        Roof Matl_Roll   -0.0  0.0       1.0    0.0
+     Roof Matl_Tar&Grv   -0.0  0.0       1.0    0.0
+     Roof Matl_WdShake   -0.0  0.0       1.0    0.0
+     Roof Matl_WdShngl   -0.0  0.0       1.0    0.0
+          Screen Porch    0.0  0.0  100000.0    0.0
+             Utilities    3.0 -0.0       3.0    3.0
+          Wood Deck SF  231.0  0.0  100000.0  210.0
+
+[AUDIT] Dummies activas en la solución (valor ~1):
+  - BsmtFin Type 1_BLQ: 1.000000
+  - BsmtFin Type 2_Unf: 1.000000
+  - Central Air_Y: 1.000000
+  - Electrical_SBrkr: 1.000000
+  - Exterior 1st_BrkFace: 1.000000
+  - Exterior 2nd_Plywood: 1.000000
+  - Fence_No aplica: 1.000000
+  - Heating_GasA: 1.000000
+  - Mas Vnr Type_Stone: 1.000000
+  - Paved Drive_Y: 1.000000
+  - Roof Matl_CompShg: 1.000000
+
+[AUDIT] Outside predict usando EXACTO el X que vio el embed:
+  y_hat(outside from embed X_in) = 344,134.16
+  y_log(outside)≈ 12.748790 | y_log(MIP)≈ 12.942749
+
+=== AUDIT COSTS ===
+  y_base        = 315,174.50
+  y_price (MIP) = 417,821.82
+  uplift        = 102,647.32  = y_price - y_base
+  obj           = 83,779.97      = y_price - cost - y_base
+  ==> cost(model) ≈ 18,867.36
+  lin_cost(eval LinExpr) = 18,867.36
+  BUDGET slack  = 61,132.644000
+
+[AUDIT] Done.
+
+[RECON2] y_log(outside from embed inputs)= 12.748790 | y_log(MIP)= 12.942749 | Δ=-1.940e-01
+[RECON2] #features distintas vs base: 10
+  - Bsmt Unf SF: base=441 -> mip=0 (Δ=-441)
+  - BsmtFin SF 1: base=639 -> mip=1002 (Δ=+363)
+  - BsmtFin SF 2: base=0 -> mip=78 (Δ=+78)
+  - 1st Flr SF: base=1656 -> mip=1696 (Δ=+40)
+  - Gr Liv Area: base=1656 -> mip=1696 (Δ=+40)
+  - Wood Deck SF: base=210 -> mip=231 (Δ=+21)
+  - Open Porch SF: base=62 -> mip=74.4 (Δ=+12.4)
+  - Full Bath: base=1 -> mip=2 (Δ=+1)
+  - Paved Drive_P: base=1 -> mip=-0 (Δ=-1)
+  - Paved Drive_Y: base=0 -> mip=1 (Δ=+1)
+[FREE-UPGR] Cambios en X: 10  |  Cambios SIN costo: 10
+   - BsmtFin SF 1                   base=639.0 -> sol=1002.0   var=x_BsmtFin SF 1 (posible costo indirecto vía driver)
+   - BsmtFin SF 2                   base=0.0 -> sol=78.0   var=x_BsmtFin SF 2 (posible costo indirecto vía driver)
+   - Bsmt Unf SF                    base=441.0 -> sol=0.0   var=x_Bsmt Unf SF (posible costo indirecto vía driver)
+   - 1st Flr SF                     base=1656.0 -> sol=1696.0   var=x_1st Flr SF (posible costo indirecto vía driver)
+   - Gr Liv Area                    base=1656.0 -> sol=1696.0   var=x_Gr Liv Area (posible costo indirecto vía driver)
+   - Full Bath                      base=1.0 -> sol=2.0   var=x_Full Bath (posible costo indirecto vía driver)
+   - Wood Deck SF                   base=210.0 -> sol=231.0   var=x_Wood Deck SF
+   - Open Porch SF                  base=62.0 -> sol=74.4   var=x_Open Porch SF
+   - Paved Drive_P                  base=1.0 -> sol=-0.0   var=x_paved_drive_is_P
+   - Paved Drive_Y                  base=0.0 -> sol=1.0   var=x_paved_drive_is_Y
+[PRED] bundle.predict(X_sol) = 344,134.16  |  y_price (MIP) = 417,821.82
+[PRED] log(y_hat) = 12.748787  |  y_log (MIP) = 12.942749
+[TRACE] GQ: base=TA -> pick=TA ; cost=0.0
+[TRACE] GC: base=TA -> pick=TA ; cost=0.0
+
+[CHECK COSTS] Reportados=$18,863 | lin_cost=$18,867 | Δ=$-4
+
+============================================================
+               RESULTADOS DE LA OPTIMIZACIÓN
+============================================================
+
+📍 PID: 526301100 – No aplicames | Presupuesto: $80,000
+🧮 Modelo: remodel_embed
+⏱️ Tiempo total: 300.06s | MIP Gap: 2287.0582%
+
+💰 **Resumen Económico**
+  Precio casa base:        $315,174
+  Precio casa remodelada:  $417,822
+  Δ Precio:                $102,647
+  Costos totales (modelo): $18,867
+  Valor objetivo (MIP):    $83,779.97   (≡ y_price - cost - y_base)
+  Uplift vs base:          33%
+  % del precio final por mejoras: 25%
+  ROI (Δ neto $):          $83,780
+  ROI %:                   444%
+  Slack presupuesto:       $61,132.64
+
+📊 CAMBIOS EN CALIDAD DE ATRIBUTOS:
+
+  (Sin mejoras en calidad)
+
+🌟 **Calidad general y calidades clave (detalle)**
+  - Overall Qual: 6 → 6.0 (Δ +0.0)
+  - Kitchen Qual: TA
+  - Exter Qual: TA
+  - Exter Cond: TA
+  - Heating QC: Fa
+  - Fireplace Qu: Gd
+  - Bsmt Cond: Gd
+  - Garage Qual: TA
+  - Garage Cond: TA
+  - Pool QC: No aplica
+
+🏠 **Cambios hechos en la casa**
+  - Basement finish (ft²): base → +441 ft² (costo $6,615)
+  - 1st Flr SF: 1656.0 → 1696.0
+  - Gr Liv Area: 1656.0 → 1696.0
+  - AddFull (+40 ft²): - → +40 ft² (costo $9,200)
+  - Wood Deck SF +10%: 210.0 → 231.0 (costo $1,728)
+  - Open Porch SF +20%: 62.0 → 74.4 (costo $1,320)
+
+🧾 **Snapshot: atributos Base vs Óptimo (compacto)**
+║   Atributo                     | Base                             | Óptimo                           ║
+║   -------------------------------------------------------------------------------------------------- ║
+║   1st Flr SF                   | 1,656                            | 1,696                            ║
+║   2nd Flr SF                   | 0                                | 0                                ║
+║   3Ssn Porch                   | 0                                | 0                                ║
+║   Alley                        | No aplica                        | No aplica                        ║
+║   Bedroom AbvGr                | 3                                | 3                                ║
+║   Bldg Type                    | 1Fam                             | 1Fam                             ║
+║   Bsmt Cond                    | Gd                               | Gd                               ║
+║   Bsmt Exposure                | Gd                               | Gd                               ║
+║   Bsmt Full Bath               | 1                                | 1                                ║
+║   Bsmt Half Bath               | 0                                | 0                                ║
+║   Bsmt Qual                    | TA                               | TA                               ║
+║   Bsmt Unf SF                  | 441                              | 0                                ║
+║   BsmtFin SF 1                 | 639                              | 1,002                            ║
+║   BsmtFin SF 2                 | 0                                | 78                               ║
+║   BsmtFin Type 1               | BLQ                              | BLQ                              ║
+║   BsmtFin Type 2               | Unf                              | Unf                              ║
+║   Central Air                  | Y                                | Y                                ║
+║   Condition 1                  | Norm                             | Norm                             ║
+║   Condition 2                  | Norm                             | Norm                             ║
+║   Electrical                   | SBrkr                            | SBrkr                            ║
+║   Enclosed Porch               | 0                                | 0                                ║
+║   Exter Cond                   | TA                               | TA                               ║
+║   Exter Qual                   | TA                               | TA                               ║
+║   Exterior 1st                 | BrkFace                          | BrkFace                          ║
+║   Exterior 2nd                 | Plywood                          | Plywood                          ║
+║   Fence                        | No aplica                        | No aplica                        ║
+║   Fireplace Qu                 | Gd                               | Gd                               ║
+║   Fireplaces                   | 2                                | 2                                ║
+║   Foundation                   | CBlock                           | CBlock                           ║
+║   Full Bath                    | 1                                | 1                                ║
+║   FunctioNo aplical            | Typ                              | Typ                              ║
+║   Garage Area                  | 528                              | 528                              ║
+║   Garage Cars                  | 2                                | 2                                ║
+║   Garage Cond                  | TA                               | TA                               ║
+║   Garage Finish                | Fin                              | Fin                              ║
+║   Garage Qual                  | TA                               | TA                               ║
+║   Garage Type                  | Attchd                           | Attchd                           ║
+║   Garage Yr Blt                | 1,960                            | 1,960                            ║
+║   Gr Liv Area                  | 1,656                            | 1,696                            ║
+║   Half Bath                    | 0                                | -0                               ║
+║   Heating                      | GasA                             | GasA                             ║
+║   Heating QC                   | Fa                               | Fa                               ║
+║   House Style                  | 1Story                           | 1Story                           ║
+║   Kitchen AbvGr                | 1                                | 1                                ║
+║   Kitchen Qual                 | TA                               | TA                               ║
+║   Land Contour                 | Lvl                              | Lvl                              ║
+║   Land Slope                   | Gtl                              | Gtl                              ║
+║   Lot Area                     | 31,770                           | 31,770                           ║
+║   Lot Config                   | Corner                           | Corner                           ║
+║   Lot Frontage                 | 141                              | 141                              ║
+║   Lot Shape                    | IR1                              | IR1                              ║
+║   Low Qual Fin SF              | 0                                | 0                                ║
+║   MS SubClass                  | 20                               | 20                               ║
+║   MS Zoning                    | RL                               | RL                               ║
+║   Mas Vnr Area                 | 112                              | 112                              ║
+║   Mas Vnr Type                 | Stone                            | Stone                            ║
+║   Misc Feature                 | No aplica                        | No aplica                        ║
+/Users/josefaabettdelatorrep./Desktop/PUC/College/Semestre 8/Taller de Investigación Operativa (Capstone) (ICS2122-1)/Optimizacion-Casas-Ames-Iowa-Capstone-/venv/lib/python3.11/site-packages/sklearn/base.py:348: InconsistentVersionWarning: Trying to unpickle estimator LinearRegression from version 1.7.1 when using version 1.3.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+/Users/josefaabettdelatorrep./Desktop/PUC/College/Semestre 8/Taller de Investigación Operativa (Capstone) (ICS2122-1)/Optimizacion-Casas-Ames-Iowa-Capstone-/venv/lib/python3.11/site-packages/sklearn/base.py:465: UserWarning: X does not have valid feature names, but LinearRegression was fitted with feature names
+  warnings.warn(
+║   Misc Val                     | 0                                | 0                                ║
+║   Mo Sold                      | 5                                | 5                                ║
+║   Neighborhood                 | No aplicames                     | No aplicames                     ║
+║   Open Porch SF                | 62                               | 74                               ║
+║   Order                        | 1                                | 1                                ║
+║   Overall Cond                 | 5                                | 5                                ║
+║   Overall Qual                 | 6                                | 6                                ║
+║   PID                          | 526,301,100                      | 526,301,100                      ║
+║   Paved Drive                  | P                                | P                                ║
+║   Pool Area                    | 0                                | 0                                ║
+║   Pool QC                      | No aplica                        | No aplica                        ║
+║   Roof Matl                    | CompShg                          | CompShg                          ║
+║   Roof Style                   | Hip                              | Hip                              ║
+║   Sale Condition               | Normal                           | Normal                           ║
+║   Sale Type                    | WD                               | WD                               ║
+║   SalePrice                    | 215,000                          | 215,000                          ║
+║   SalePrice_Present            | 315,596                          | 315,596                          ║
+║   Screen Porch                 | 0                                | 0                                ║
+║   Street                       | Pave                             | Pave                             ║
+║   TotRms AbvGrd                | 7                                | 7                                ║
+║   Total Bsmt SF                | 1,080                            | 1,080                            ║
+║   Utilities                    | AllPub                           | AllPub                           ║
+║   Wood Deck SF                 | 210                              | 231                              ║
+║   Year Built                   | 1,960                            | 1,960                            ║
+║   Year Remod/Add               | 1,960                            | 1,960                            ║
+║   Yr Sold                      | 2,010                            | 2,010                            ║
+
+============================================================
+            FIN RESULTADOS DE LA OPTIMIZACIÓN
+============================================================
+
+
+============================================================
+  COMPARACIÓN: XGBoost vs Regresión Base
+============================================================
+
+💰 COMPARACIÓN DE PREDICTORES:
+  Precio base (actual):        $315,174
+  Precio remodelado (XGBoost): $344,134  (+9.2%)
+  Precio remodelado (Regresión): $263,907  (+-16.3%)
+
+  📊 Diferencia XGBoost vs Regresión:
+     Absoluta: $80,227
+     Porcentaje: +30.40%
+
+  ✅ XGBoost SUPERA a Regresión por 30.40%
+
+[CHECKS]
+  max |slack| KIT_     = 0.000e+00
+  max |slack| EXT_     = 0.000e+00
+  max |slack| MVT_     = 0.000e+00
+  max |slack| ROOF_    = 0.000e+00
+  max |slack| GaFin_   = 0.000e+00
+  max |slack| HEAT_    = 1.000e+00
+  max |slack| BSMT_    = 0.000e+00
+  max |slack| UTIL_    = 0.000e+00
+  max |slack| R        = 3.007e+04
+  max |slack| AREA_    = 2.924e+04
+  max |slack| PoolQC_  = 0.000e+00
+  BUDGET slack = 61132.644000

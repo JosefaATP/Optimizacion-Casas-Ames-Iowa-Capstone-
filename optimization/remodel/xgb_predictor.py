@@ -259,5 +259,22 @@ class XGBBundle:
         _coerce_quality_ordinals_inplace(X_fixed, self.quality_cols)
         _coerce_utilities_ordinal_inplace(X_fixed)
         # No hay OHE en el pre, el pipe espera solo columnas numéricas (incluyendo dummies)
-        y = self.pipe_full.predict(X_fixed)
-        return pd.Series(y, index=X.index)
+        # Con versiones nuevas de sklearn, el ColumnTransformer con 'passthrough' pickled
+        # puede fallar; alineamos columnas y predecimos directamente con el regressor.
+        cols = self.feature_names_in()
+        X_aligned = pd.DataFrame(columns=cols)
+        for c in cols:
+            if c in X_fixed.columns:
+                X_aligned[c] = [float(pd.to_numeric(X_fixed[c].iloc[0], errors="coerce") or 0.0)]
+            else:
+                X_aligned[c] = [0.0]
+
+        try:
+            y = self.reg.predict(X_aligned)
+        except Exception:
+            y = self.reg.predict(X_aligned.values)
+
+        y = pd.Series(y, index=X.index if isinstance(X, pd.DataFrame) else None)
+        if self.is_log_target():
+            y = y.apply(np.exp)
+        return y

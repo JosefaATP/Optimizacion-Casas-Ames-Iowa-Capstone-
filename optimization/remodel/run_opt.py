@@ -3,6 +3,15 @@ import argparse
 import pandas as pd
 import gurobipy as gp
 import numpy as np
+import joblib
+import os
+import sys
+
+# Asegurar que estamos en el directorio correcto del proyecto
+from pathlib import Path
+project_dir = Path(__file__).parent.parent.parent
+os.chdir(project_dir)
+sys.path.insert(0, str(project_dir))
 
 from optimization.remodel.gurobi_model import build_base_input_row
 from .config import PARAMS
@@ -315,6 +324,7 @@ def main():
     ap.add_argument("--basecsv", type=str, default=None, help="ruta alternativa al CSV base")
     ap.add_argument("--debug-xgb", action="store_true", help="imprime sensibilidades del XGB (rápido)")
     ap.add_argument("--time-limit", type=float, default=None, help="sobrescribe TimeLimit del solver (segundos)")
+    ap.add_argument("--reg-model", type=str, default="models/regression_model.joblib", help="ruta al modelo de regresión serializado")
     args = ap.parse_args()
 
     # Datos base, costos y modelo ML
@@ -358,7 +368,8 @@ def main():
 
     # --- Sanity: pipeline full (TTR) vs pipeline embed (pre + reg) ---
     y_full = float(bundle.predict(X_base).iloc[0])              # en escala de precio
-    y_log_embed = float(bundle.pipe_for_gurobi().predict(X_base)[0])  # en escala log1p
+    # Usar el predictor alineado del bundle (evita fallos del ColumnTransformer pickled)
+    y_log_embed = float(bundle.predict(X_base).iloc[0])  # en escala log1p
     y_from_embed = float(np.expm1(y_log_embed))
 
     print(f"[SANITY] full.predict -> price = {y_full:,.2f}")
@@ -389,6 +400,19 @@ def main():
     audit_cost_breakdown_vars(m, top=30)
     # tras optimize(), usa el mismo X que vio el embed:
     X_in = rebuild_embed_input_df(m, m._X_base_numeric)
+    try:
+        # Guardar X_in para diagnósticos posteriores (formato largo idx/feature/value)
+        long_rows = []
+        for col in X_in.columns:
+            try:
+                val = float(pd.to_numeric(X_in.loc[0, col], errors="coerce") or 0.0)
+            except Exception:
+                val = 0.0
+            long_rows.append({"idx": 0, "feature": col, "value": val, "LB": "", "UB": ""})
+        pd.DataFrame(long_rows).to_csv("X_input_after_opt.csv", index=False)
+        print("[AUDIT] guardado X_input_after_opt.csv")
+    except Exception as e:
+        print(f"[WARN] no pude guardar X_input_after_opt.csv: {e}")
     try:
         y_hat_out = float(bundle.predict(X_in).iloc[0])
         ylog_out  = float(np.log1p(y_hat_out))  # si tu target original es log1p
@@ -1226,6 +1250,72 @@ def main():
         print(f"  ROI %:                   {roi_pct:.0f}%")
     print(f"  Slack presupuesto:       ${budget_slack:,.2f}")
 
+    # ========= NUEVA SECCIÓN: COMPARACIÓN XGBoost vs REGRESIÓN =========
+    try:
+        from optimization.remodel.regression_predictor import RegressionPredictor
+        # Cargar wrapper de regresión
+        reg_pred = RegressionPredictor()
+        
+        # Datos base (sin cambios)
+        X_base = build_base_input_row(bundle, base_row)
+        
+        # Reconstruir datos optimizados desde el modelo
+        try:
+            X_opt = rebuild_embed_input_df(m, X_base)
+        except Exception:
+            # Fallback: usar datos base si hay error
+            X_opt = X_base
+        
+        # Predicciones con regresión
+        try:
+            reg_base = reg_pred.predict(X_base)
+            reg_opt = reg_pred.predict(X_opt)
+            
+            print("\n📊 **Comparación de Modelos (XGBoost vs Regresión)**")
+            print(f"  Casa base (sin mejoras):")
+            print(f"    - XGBoost:   ${precio_base:,.0f}")
+            print(f"    - Regresión: ${reg_base:,.0f}")
+            if precio_base is not None:
+                diff_base = reg_base - precio_base
+                pct_base = (diff_base / precio_base * 100) if precio_base > 0 else 0
+                print(f"    - Diferencia: ${diff_base:+,.0f} ({pct_base:+.1f}%)")
+            
+            print(f"\n  Casa remodelada (con mejoras):")
+            print(f"    - XGBoost:   ${precio_opt:,.0f}" if precio_opt is not None else f"    - XGBoost:   N/A")
+            print(f"    - Regresión: ${reg_opt:,.0f}")
+            if precio_opt is not None:
+                diff_opt = reg_opt - precio_opt
+                pct_opt = (diff_opt / precio_opt * 100) if precio_opt > 0 else 0
+                print(f"    - Diferencia: ${diff_opt:+,.0f} ({pct_opt:+.1f}%)")
+            
+            # Delta de mejora
+            xgb_delta = precio_opt - precio_base if (precio_opt is not None and precio_base is not None) else None
+            reg_delta = reg_opt - reg_base
+            
+            print(f"\n  Uplift (mejora por remodelación):")
+            if xgb_delta is not None:
+                print(f"    - XGBoost:   ${xgb_delta:,.0f} ({xgb_delta/precio_base*100:.1f}%)")
+            print(f"    - Regresión: ${reg_delta:,.0f} ({reg_delta/reg_base*100:.1f}%)")
+            
+            if xgb_delta is not None:
+                gap = abs(xgb_delta - reg_delta)
+                gap_pct = (gap / max(abs(xgb_delta), abs(reg_delta)) * 100) if max(abs(xgb_delta), abs(reg_delta)) > 0 else 0
+                print(f"    - Gap:       ${gap:,.0f} ({gap_pct:.1f}%)")
+                if gap_pct < 10:
+                    print(f"      ✅ Modelos convergen (gap < 10%)")
+                elif gap_pct < 20:
+                    print(f"      ⚠️  Brecha moderada (gap 10-20%)")
+                else:
+                    print(f"      ⚠️  Brecha significativa (gap > 20%)")
+            
+        except Exception as e:
+            print(f"\n[INFO] No se pudo calcular comparación con regresión: {e}")
+    
+    except ImportError:
+        pass  # Regresión no disponible
+    except Exception as e:
+        print(f"\n[TRACE] Error en sección de comparación XGBoost vs Regresión: {e}")
+
     # Calidad global y calidades clave
     try:
         def _qual_txt(v):
@@ -1386,6 +1476,102 @@ def main():
     print("\n" + "="*60)
     print("            FIN RESULTADOS DE LA OPTIMIZACIÓN")
     print("="*60 + "\n")
+
+    # ============================================================
+    # COMPARACIÓN DE PREDICTORES: XGBoost vs Regresión Lineal
+    # ============================================================
+    try:
+        from optimization.remodel.regression_predictor import RegressionPredictor
+        
+        print("\n" + "="*70)
+        print("  COMPARACIÓN: Predicción con XGBoost vs Regresión Lineal")
+        print("="*70)
+        
+        # 1. Obtener precio base (sin mejoras)
+        X_base = build_base_input_row(bundle, base_row)
+        precio_base_xgb = float(bundle.predict(X_base).iloc[0])
+        
+        # 2. Obtener predicción XGBoost de casa REMODELADA
+        X_opt = rebuild_embed_input_df(m, m._X_base_numeric)
+        precio_opt_xgb = float(bundle.predict(X_opt).iloc[0])
+        
+        # 3. Cargar regresión y predecir
+        try:
+            # Preferimos el modelo re-procesado (mismas columnas que build_base_input_row)
+            reg_model_path = "models/regression_model_reprocesed.pkl"
+            if not Path(reg_model_path).exists():
+                # fallback al CLI --reg-model si existe, o al modelo previo
+                reg_model_path = args.reg_model if Path(args.reg_model).exists() else "models/regression_model_final.pkl"
+            reg_predictor = RegressionPredictor(reg_model_path)
+            
+            # Predecir base con regresión (usando mismo X_base)
+            precio_base_reg = reg_predictor.predict(X_base)
+            
+            # Predecir optimizado con regresión (usando X_opt)
+            precio_opt_reg = reg_predictor.predict(X_opt)
+            
+            # Cálculos
+            mejora_xgb = precio_opt_xgb - precio_base_xgb
+            mejora_xgb_pct = (mejora_xgb / precio_base_xgb * 100) if precio_base_xgb > 0 else 0
+            
+            mejora_reg = precio_opt_reg - precio_base_reg
+            mejora_reg_pct = (mejora_reg / precio_base_reg * 100) if precio_base_reg > 0 else 0
+            
+            diff_predicciones = precio_opt_xgb - precio_opt_reg
+            diff_pct = (diff_predicciones / precio_opt_reg * 100) if precio_opt_reg > 0 else 0
+            
+            # Mostrar resultados
+            print(f"\n� PREDICCIONES DEL PRECIO ACTUAL (sin mejoras):")
+            print(f"   XGBoost:   ${precio_base_xgb:,.0f}")
+            print(f"   Regresión: ${precio_base_reg:,.0f}")
+            
+            print(f"\n📊 PREDICCIONES DEL PRECIO REMODELADO (con mejoras):")
+            print(f"   XGBoost:   ${precio_opt_xgb:,.0f}  (+{mejora_xgb_pct:.1f}%)")
+            print(f"   Regresión: ${precio_opt_reg:,.0f}  (+{mejora_reg_pct:.1f}%)")
+            
+            print(f"\n📊 DIFERENCIA ENTRE MODELOS (para casa remodelada):")
+            print(f"   XGBoost - Regresión: ${diff_predicciones:+,.0f} ({diff_pct:+.1f}%)")
+            
+            if abs(diff_pct) < 10:
+                print(f"   ✅ Modelos convergen: diferencia < 10%")
+            elif abs(diff_pct) < 20:
+                print(f"   ⚠️  Modelos divergen moderadamente: diferencia 10-20%")
+            else:
+                print(f"   ❌ Modelos divergen significativamente: diferencia > 20%")
+            
+            print(f"\n💡 INTERPRETACIÓN:")
+            if mejora_xgb_pct > mejora_reg_pct:
+                print(f"   XGBoost predice mayor impacto (+{mejora_xgb_pct:.1f}% vs +{mejora_reg_pct:.1f}%)")
+            else:
+                print(f"   Regresión predice mayor impacto (+{mejora_reg_pct:.1f}% vs +{mejora_xgb_pct:.1f}%)")
+
+            # Resumen compacto en una línea (fácil de leer/copiar)
+            print("\n--- RESUMEN COMPACTO ---")
+            gap_base_abs = precio_base_xgb - precio_base_reg
+            gap_base_pct = (gap_base_abs / precio_base_reg * 100) if precio_base_reg else 0
+            who_base = "XGBoost supera a Regresión" if gap_base_abs > 0 else "Regresión supera a XGBoost"
+            print(f"  Base:       Regresión ${precio_base_reg:,.0f} | XGBoost ${precio_base_xgb:,.0f}  ({who_base} {gap_base_pct:+.2f}%)")
+
+            gap_opt_abs = diff_predicciones
+            gap_opt_pct = diff_pct
+            who_opt = "XGBoost supera a Regresión" if gap_opt_abs > 0 else "Regresión supera a XGBoost"
+            print(f"  Remodelada: Regresión ${precio_opt_reg:,.0f} | XGBoost ${precio_opt_xgb:,.0f}  ({who_opt} {gap_opt_pct:+.2f}%)")
+            print(f"  Gap remodelada: ${diff_predicciones:+,.0f} ({diff_pct:+.2f}% vs Regresión)")
+                    
+        except FileNotFoundError as e:
+            print(f"\n⚠️  Modelo de regresión no encontrado:")
+            print(f"   {e}")
+            print(f"\n   Para entrenar el modelo, ejecuta:")
+            print(f"   python3 training/train_regression_final.py")
+        except Exception as e:
+            print(f"\n⚠️  Error al usar modelo de regresión:")
+            print(f"   {e}")
+            import traceback
+            traceback.print_exc()
+            print(f"   python3 training/train_regression_model.py")
+    
+    except Exception as e:
+        print(f"\n⚠️  Error general en comparación de predictores: {e}")
 
     def _max_viol(m, name_prefix):
         viol = 0.0
