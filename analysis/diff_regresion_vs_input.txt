@@ -1,0 +1,4 @@
+Total features regresión: 299
+Total features que le entregamos (build_base_input_row): 299
+Faltan en input vs regresión: 0
+Sobra en input vs regresión: 0

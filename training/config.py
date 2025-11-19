@@ -20,18 +20,19 @@ class Config:
     test_size: float = 0.2
 
     xgb_params = {
-        "n_estimators": 1800,
-        "learning_rate": 0.025,
-        "max_depth": 5,
-        "min_child_weight": 10,
-        "subsample": 0.7,
-        "colsample_bytree": 0.7,
-        "reg_lambda": 2.0,
-        "reg_alpha": 0.0,
-        "tree_method": "hist",
-        "objective": "reg:squarederror",
-        "n_jobs": -1,
-        "random_state": 42,
+    "n_estimators": 2843,
+    "learning_rate": 0.042345759919321546,
+    "max_depth": 3,
+    "min_child_weight": 4.0,
+    "gamma": 0.050035425161215466,
+    "subsample": 0.5205384818739047,
+    "colsample_bytree": 0.5693415844980262,
+    "reg_lambda": 3.827629507754387,
+    "reg_alpha": 0.05963017089026609,
+    "tree_method": "hist",
+    "objective": "reg:squarederror",
+    "n_jobs": -1,
+    "random_state": 42
     }
 
     # Si luego quieres restricciones monotónicas, defínelas aquí

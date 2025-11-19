@@ -130,8 +130,66 @@ def _qual_base_ord(base_row, col: str) -> int:
         pass
     return MAP.get(val, -1)
 
+def _prep_row_for_regression(base_row: pd.Series) -> pd.Series:
+    """
+    Replica la depuración usada en la regresión:
+    - fusiona sótano y porches
+    - elimina columnas redundantes/bajas
+    - elimina categóricas descartadas o redundantes
+    """
+    row = base_row.to_dict()
+
+    def _as_float(x, default=0.0) -> float:
+        try:
+            v = float(pd.to_numeric(x, errors="coerce"))
+            return v if np.isfinite(v) else default
+        except Exception:
+            return default
+
+    # --- Total Bsmt SF = suma de componentes (si existen) ---
+    bsmt_parts = ["BsmtFin SF 1", "BsmtFin SF 2", "Bsmt Unf SF"]
+    bsmt_fin1 = _as_float(row.get("BsmtFin SF 1", 0.0))
+    bsmt_fin2 = _as_float(row.get("BsmtFin SF 2", 0.0))
+    bsmt_unf  = _as_float(row.get("Bsmt Unf SF", 0.0))
+    bsmt_sum = bsmt_fin1 + bsmt_fin2 + bsmt_unf
+    if bsmt_sum > 0 or "Total Bsmt SF" not in row:
+        row["Total Bsmt SF"] = bsmt_sum if bsmt_sum > 0 else _as_float(base_row.get("Total Bsmt SF", 0.0))
+    row["Bsmt Finished SF"] = bsmt_fin1 + bsmt_fin2
+    row["Bsmt Finished Ratio"] = (row["Bsmt Finished SF"] / row["Total Bsmt SF"]) if row["Total Bsmt SF"] else 0.0
+    for p in bsmt_parts:
+        row.pop(p, None)
+
+    # --- TotalPorch = Screen + 3Ssn + Open + Enclosed ---
+    porch_parts = ["Screen Porch", "3Ssn Porch", "Open Porch SF", "Enclosed Porch"]
+    porch_sum = sum(_as_float(row.get(p, 0.0)) for p in porch_parts)
+    if porch_sum > 0 or "TotalPorch" not in row:
+        row["TotalPorch"] = porch_sum
+    for p in porch_parts:
+        row.pop(p, None)
+
+    # --- alias simples que usa la regresión ---
+    if "Gr Liv Area" in row:
+        row["Above Grade SF"] = _as_float(row.get("Gr Liv Area", 0.0))
+
+    # --- columnas a eliminar (redundantes o muy débiles) ---
+    drop_cols = [
+        "Garage Yr Blt", "Garage Yr Built", "GarageYrBlt",
+        "1st Flr SF", "2nd Flr SF", "TotRms AbvGrd",
+        "Garage Area",
+        "Mas Vnr Area", "Mas Vnr Type",
+        "Misc Val", "Pool Area", "Mo Sold", "Yr Sold",
+        "Street", "Utilities", "Condition2", "HouseStyle", "BldgType",
+        "Exterior2nd", "GarageCond", "ExterQual",
+    ]
+    for c in drop_cols:
+        row.pop(c, None)
+
+    return pd.Series(row)
+
+
 # fila de entrada numerica exacta para el regressor
 def build_base_input_row(bundle: XGBBundle, base_row: pd.Series) -> pd.DataFrame:
+    base_row = _prep_row_for_regression(base_row)
     cols = list(bundle.feature_names_in())
     row = {}
     for c in cols:

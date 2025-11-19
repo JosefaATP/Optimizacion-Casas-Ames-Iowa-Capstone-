@@ -511,11 +511,23 @@ def main():
         Si tu reporter imprime 0 pero aquí sale >0, el problema está en el reporter.
         """
         try:
+            if m.SolCount == 0 or m.Status not in (gp.GRB.OPTIMAL, gp.GRB.SUBOPTIMAL):
+                print("\n=== AUDIT COSTS ===")
+                print(f"  [WARN] MIP sin solución disponible (status={m.Status}, SolCount={m.SolCount}).")
+                return
+        except Exception:
+            pass
+
+        try:
             y_price = float(m._y_price_var.X)
         except Exception:
             y_price = float("nan")
         uplift = y_price - float(base_price)
-        obj    = float(m.objVal)
+        # ObjVal es el atributo oficial; objVal falla en algunas versiones
+        try:
+            obj = float(m.ObjVal)
+        except Exception:
+            obj = float(getattr(m, "objVal", float("nan")))
         # Lee el costo directamente del modelo (fuente de verdad)
         cost_var = m.getVarByName("cost_model") or getattr(m, "_cost_var", None)
         if cost_var is not None:
@@ -1255,6 +1267,13 @@ def main():
         from optimization.remodel.regression_predictor import RegressionPredictor
         # Cargar wrapper de regresión
         reg_pred = RegressionPredictor()
+        # Cargar modelo uplift si existe
+        uplift_pkg = None
+        try:
+            import joblib as _jl
+            uplift_pkg = _jl.load("models/regression_uplift.pkl")
+        except Exception:
+            uplift_pkg = None
         
         # Datos base (sin cambios)
         X_base = build_base_input_row(bundle, base_row)
@@ -1265,18 +1284,57 @@ def main():
         except Exception:
             # Fallback: usar datos base si hay error
             X_opt = X_base
+        # Recalcular agregados para columnas que sí están en el CSV (evita que las agregadas se queden desfasadas)
+        try:
+            if "Total Bsmt SF" in X_opt.columns:
+                for frame in (X_opt, X_base):
+                    b1 = float(pd.to_numeric(frame.get("BsmtFin SF 1", 0), errors="coerce") or 0.0)
+                    b2 = float(pd.to_numeric(frame.get("BsmtFin SF 2", 0), errors="coerce") or 0.0)
+                    bu = float(pd.to_numeric(frame.get("Bsmt Unf SF", 0), errors="coerce") or 0.0)
+                    frame.loc[0, "Total Bsmt SF"] = b1 + b2 + bu
+            if "Gr Liv Area" in X_opt.columns:
+                for frame in (X_opt, X_base):
+                    flr1 = float(pd.to_numeric(frame.get("1st Flr SF", 0), errors="coerce") or 0.0)
+                    flr2 = float(pd.to_numeric(frame.get("2nd Flr SF", 0), errors="coerce") or 0.0)
+                    lowq = float(pd.to_numeric(frame.get("Low Qual Fin SF", 0), errors="coerce") or 0.0)
+                    frame.loc[0, "Gr Liv Area"] = flr1 + flr2 + lowq
+        except Exception:
+            pass
         
         # Predicciones con regresión
         try:
             reg_base = reg_pred.predict(X_base)
-            reg_opt = reg_pred.predict(X_opt)
+            reg_opt_main = reg_pred.predict(X_opt)
+            
+            # Si hay uplift, calcular delta con variables remodelables
+            reg_opt = reg_opt_main
+            if uplift_pkg is not None:
+                uplift_model = uplift_pkg["model"]
+                uplift_feats = uplift_pkg.get("feature_names", [])
+                def _subset(df_in):
+                    df_sub = pd.DataFrame(columns=uplift_feats)
+                    for c in uplift_feats:
+                        df_sub[c] = [float(pd.to_numeric(df_in.loc[0, c], errors="coerce") or 0.0) if c in df_in.columns else 0.0]
+                    return df_sub
+                Xb_u = _subset(X_base)
+                Xo_u = _subset(X_opt)
+                delta_uplift = float(uplift_model.predict(Xo_u)[0] - uplift_model.predict(Xb_u)[0])
+                reg_opt = reg_base + delta_uplift
 
             # Predicciones de XGBoost consistentes: usar el precio del MIP si existe, si no, bundle.predict
             precio_opt_xgb_pred = float(bundle.predict(X_opt).iloc[0]) if precio_opt is None else precio_opt
             precio_opt_xgb_display = precio_opt if precio_opt is not None else precio_opt_xgb_pred
             
+            # Precio real de la casa base según el dataset (referencia)
+            try:
+                precio_real_base = float(pd.to_numeric(base_row.get("SalePrice_Present", None), errors="coerce"))
+            except Exception:
+                precio_real_base = None
+
             print("\n📊 **Comparación de Modelos (XGBoost vs Regresión)**")
             print(f"  Casa base (sin mejoras):")
+            if precio_real_base:
+                print(f"    - Precio real (dataset): ${precio_real_base:,.0f}")
             print(f"    - XGBoost:   ${precio_base:,.0f}")
             print(f"    - Regresión: ${reg_base:,.0f}")
             if precio_base is not None:
