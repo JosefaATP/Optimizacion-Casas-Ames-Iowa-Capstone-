@@ -1,0 +1,72 @@
+[
+  {
+    "name": "starter_1fam",
+    "budgets": [350000, 400000, 450000],
+    "profile": "balanced",
+    "bldgs": ["1Fam"],
+    "constraints": {"min_beds": 2, "min_fullbath": 1, "min_overallqual": 6, "min_grliv": 900}
+  },
+  {
+    "name": "moveup_1fam",
+    "budgets": [500000, 600000, 700000],
+    "profile": "balanced",
+    "bldgs": ["1Fam"],
+    "constraints": {"min_beds": 3, "min_fullbath": 2, "min_overallqual": 7, "min_grliv": 1300}
+  },
+  {
+    "name": "premium_1fam",
+    "budgets": [800000, 900000, 1000000],
+    "profile": "balanced",
+    "bldgs": ["1Fam"],
+    "constraints": {"min_beds": 4, "min_fullbath": 3, "min_kitchen": 2, "min_overallqual": 9, "min_grliv": 2000, "min_garage_area": 500}
+  },
+  {
+    "name": "compact_duplex_highqual",
+    "budgets": [500000, 600000],
+    "profile": "balanced",
+    "bldgs": ["Duplex"],
+    "constraints": {"min_beds": 3, "min_fullbath": 2, "min_overallqual": 8, "max_grliv": 1600}
+  },
+  {
+    "name": "premium_duplex",
+    "budgets": [650000, 750000, 850000],
+    "profile": "balanced",
+    "bldgs": ["Duplex"],
+    "constraints": {"min_beds": 4, "min_fullbath": 3, "min_overallqual": 9, "min_kitchen": 2, "min_grliv": 1900, "min_garage_area": 400}
+  },
+  {
+    "name": "townhouse_mid",
+    "budgets": [450000, 550000, 650000],
+    "profile": "balanced",
+    "bldgs": ["TwnhsE"],
+    "constraints": {"min_beds": 3, "min_fullbath": 2, "min_overallqual": 7, "max_grliv": 1700}
+  },
+  {
+    "name": "investor_low",
+    "budgets": [300000, 350000, 400000],
+    "profile": "balanced",
+    "bldgs": ["1Fam", "Duplex"],
+    "constraints": {"min_beds": 2, "min_fullbath": 1, "max_grliv": 1200, "min_overallqual": 6}
+  },
+  {
+    "name": "high_density_mix",
+    "budgets": [600000, 700000],
+    "profiles": ["balanced", "bound"],
+    "bldgs": ["1Fam", "Duplex", "TwnhsE"],
+    "constraints": {"min_beds": 3, "min_fullbath": 2, "min_overallqual": 8}
+  },
+  {
+    "name": "min_baths_vs_beds",
+    "budgets": [500000, 650000],
+    "profile": "balanced",
+    "bldgs": ["1Fam"],
+    "constraints": {"min_beds": 4, "min_fullbath": 3, "min_halfbath": 1}
+  },
+  {
+    "name": "garage_focus",
+    "budgets": [550000, 650000, 750000],
+    "profile": "balanced",
+    "bldgs": ["1Fam", "Duplex"],
+    "constraints": {"min_garage_area": 400, "max_garage_area": 700, "min_beds": 3, "min_fullbath": 2}
+  }
+]

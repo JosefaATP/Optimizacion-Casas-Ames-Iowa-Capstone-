@@ -22,6 +22,11 @@
 \pgfplotstableread[col sep=comma]{roi_hist.csv}{\roihist}
 \pgfplotstableread[col sep=comma]{price_by_lot.csv}{\lotdata}
 \pgfplotstableread[col sep=comma]{features_vs_baseline_top.csv}{\featuredata}
+\pgfplotstableread[col sep=comma]{mip_scenarios_summary.csv}{\mipscenarios}
+\pgfplotstableread[col sep=comma]{mip_scenarios_roi_by_budget.csv}{\mipdetail}
+\pgfplotstableread[col sep=comma]{sensitivity/scenarios.csv}{\scenarios}
+\pgfplotstablecreatecol[create col/expr={\thisrow{roi_xgb}*100}]{roi_xgb_pct}{\scenarios}
+\pgfplotstablecreatecol[create col/expr={\thisrow{roi_reg}*100}]{roi_reg_pct}{\scenarios}
 
 \section{Resumen ejecutivo}
 \begin{itemize}
@@ -49,7 +54,39 @@ Todos los experimentos corrieron con los mismos hiperpar\'ametros del modelo MIP
   \end{tabular}
 \end{table}
 
-\section{Comparaci\'on con la regresi\'on}
+\section{Sensibilidad general de regresi\'on/XGB}
+El pipeline de modelamiento se ejecuta en dos niveles: primero se valida que la regresi\'on y el XGB mantengan la misma jerarqu\'ia en los experimentos generales (remodel y construcci\'on) y luego se profundiza en el benchmark de construcci\'on. Esta secci\'on resume la capa transversal antes de entrar al detalle espec\'ifico.
+
+\subsection{Contexto remodel vs. construcci\'on}
+\begin{itemize}
+  \item \textbf{Remodel:} Las corridas \texttt{remodel\_benchmark.csv} conservan los tiers low/mid/high (18k, 50k y 120k~USD) y sirven como \emph{stress test} del stack predictivo. El ROI extremo proviene de presupuestos peque\~nos frente a mejoras puntuales, por lo que se usan como filtro r\'apido antes de campa\~nas de remodelaci\'on.
+  \item \textbf{Construcci\'on:} Las 723 soluciones factibles resumidas en \texttt{summary\_overview.json} muestran precios XGB promedio de \num{507296}~USD frente a \num{468394}~USD de la regresi\'on (brecha \num{38902}~USD, 8~\%). El ROI medio es 8.6~\% con slack medio \num{250538}~USD y una utilidad promedio de \num{31693}~USD, por lo que esta capa sirve como baseline para cualquier lectura posterior.
+\end{itemize}
+
+\subsection{Sensibilidad del dise\~no (predictores)}
+El script \texttt{run\_sensitivity.py} genera barridos controlados sobre los predictores (archivos bajo \texttt{bench\_out/construction\_benchmark/sensitivity}). La barrida univariada \texttt{univariate.csv} muestra que, para el perfil base (Veenker, lote 7k~ft$^2$), la utilidad siempre es negativa porque el costo crece m\'as r\'apido que el precio. Las mejores combinaciones son minimalistas: superficies habitables de 900~ft$^2$, dos dormitorios, un ba\~no completo y sin medios ba\~nos ni segundas cocinas (archivo \texttt{univariate.csv:2-40}). Incrementar dormitorios, ba\~nos o \emph{Overall Qual} por encima de 8 s\'olo agrava la p\'erdida, lo que refuerza la idea de rendimientos decrecientes observada en la secci\'on econ\'omica.
+
+Los barridos bivariados confirman el patr\'on: matrices \texttt{bivariate\_Gr\_Liv\_Area\_\_Overall\_Qual.csv} y \texttt{bivariate\_Gr\_Liv\_Area\_\_Full\_Bath.csv} muestran que la combinaci\'on ``m\'inimo metraje + calidad media'' domina cualquier configuraci\'on de lujo, y \texttt{bivariate\_Bedroom\_AbvGr\_\_Full\_Bath.csv:2-17} evidencia que pasar de dos dormitorios / un ba\~no a configuraciones mayores reduce la utilidad en m\'as de 100~k~USD.
+
+\subsubsection*{Escenarios tipo}
+\pgfplotstabletypeset[
+  columns={scenario,price_xgb,cost,utility_xgb,roi_xgb_pct},
+  columns/scenario/.style={column name=Escenario,string type},
+  columns/price_xgb/.style={column name=Precio XGB, sci=false, fixed, precision=0},
+  columns/cost/.style={column name=Costo, sci=false, fixed, precision=0},
+  columns/utility_xgb/.style={column name=Utilidad XGB, sci=false, fixed, precision=0},
+  columns/roi_xgb_pct/.style={column name=ROI XGB (\%), fixed, fixed zerofill, precision=1},
+  every head row/.style={before row=\toprule, after row=\midrule},
+  every last row/.style={after row=\bottomrule},
+  font=\small,
+]{\scenarios}
+
+La tabla anterior (datos en \texttt{sensitivity/scenarios.csv}) resume tres dise\~nos de referencia. El modelo XGB confirma que incluso la casa econ\'omica necesita m\'as de 380~k~USD adicionales para ser rentable; la versi\'on premium empeora el ROI hasta -65~\%, de modo que no conviene sobredimensionar calidades mientras los costos unitarios no bajen.
+
+\subsubsection*{An\'alisis de costos (tornado)}
+La variaci\'on de costos (\texttt{tornado.csv}) revela que el rubro que m\'as impacta la utilidad es el costo base de construcci\'on (variar \emph{construction\_cost} en \(\pm 20\%\) cambia la utilidad XGB en hasta 101~k~USD), seguido por los coeficientes de dormitorios (46.8~k~USD) y cocina (24~k~USD). Mejorar la eficiencia de mano de obra o negociar materiales en esos rubros es la palanca m\'as efectiva antes de pensar en nuevos atributos.
+
+\section{Construcci\'on: comparaci\'on Regresi\'on vs. XGB}
 \subsection{Brecha global por presupuesto}
 La Figura~\ref{fig:budgetPrices} muestra que el XGB entrega primas entre 10k y 46k USD sobre la regresi\'on para todos los presupuestos. La diferencia aumenta con el capital porque el XGB captura amenities high-end que la regresi\'on (lineal) suaviza.
 
@@ -80,21 +117,8 @@ La Figura~\ref{fig:budgetPrices} muestra que el XGB entrega primas entre 10k y 4
 \subsection{Barrios con mayor uplift}
 \begin{figure}[h]
   \centering
-  \begin{tikzpicture}
-    \begin{axis}[
-      width=0.95\textwidth, height=6cm,
-      ybar,
-      ylabel={Gap promedio USD (XGB - Reg)},
-      xtick=data,
-      xticklabels from table={\neighdata}{neighborhood},
-      xticklabel style={rotate=45, anchor=east},
-      bar width=8pt,
-      ymajorgrids=true,
-    ]
-      \addplot+[fill=blue!65] table[x expr=\coordindex,y=avg_delta_abs]{\neighdata};
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Barrios con mayor uplift promedio. Los ``premium'' (SawyerW, Veenker, NoRidge, Blueste) concentran las mayores brechas.}
+  \includegraphics[width=0.9\textwidth]{figures/gap_by_neighborhood.png}
+  \caption{Barrios con mayor uplift promedio (XGB vs. Reg). El eje horizontal ordena el gap para facilitar la lectura.}
   \label{fig:gapNeigh}
 \end{figure}
 Los barrios del quintil superior de precio hist\'orico (SawyerW, Veenker, NoRidge, Blueste) capturan el mayor gap porque el MIP construye garages Ex, acabados Kitchen/Bath Ex o Screen Porch extensos que la regresi\'on lineal no pondera correctamente. Esto evidencia que la regresi\'on sirve como baseline conservadora, pero la decisi\'on de invertir debe basarse en la predicci\'on XGB.
@@ -124,7 +148,7 @@ La superposici\'on permite ver que los presupuestos altos tienden a concentrarse
 
 SawyerW y Veenker lideran en ROI (11~\%), alcanzando utilidades medias de 70k USD por casa. Barrios como NPkVill o SWISU muestran ROI similares pero con precios objetivo m\'as bajos, lo que permite calibrar la cartera seg\'un apetito de riesgo.
 
-\section{Rentabilidad y control de riesgo}
+\section{Construcci\'on: rentabilidad y control de riesgo}
 \subsection{Distribuci\'on del ROI}
 \begin{figure}[h]
   \centering
@@ -189,7 +213,7 @@ Los casos negativos se concentran en el presupuesto de 400k (21~\% de esas corri
 
 Esta tabla replica los KPIs definidos en el Informe~2: el \emph{Porcentaje neto de mejora} se reporta como ``Uplift (\%)'', mientras que ``Presupuesto usado (\%)'' cuantifica el uso efectivo de capital. Se observa el mismo patr\'on que en la entrega anterior: el tier de 400k usa apenas 91~\% del presupuesto y entrega el mayor ROI porcentual (11~\%), mientras que los tiers altos consumen menos del 65~\% del capital disponible y, aunque elevan la utilidad absoluta, diluyen el retorno relativo. Esto valida la hip\'otesis de rendimientos decrecientes y de sobreinversi\'on que quer\'iamos evidenciar para la siguiente entrega.
 
-\section{Sensibilidad al tama\~no de lote}
+\section{Construcci\'on: sensibilidad al tama\~no de lote}
 \begin{figure}[h]
   \centering
   \begin{tikzpicture}
@@ -206,7 +230,57 @@ Esta tabla replica los KPIs definidos en el Informe~2: el \emph{Porcentaje neto 
 \end{figure}
 La curva es casi plana incluso tras a\~nadir los extremos (1\,300 y 31\,700~ft$^2$). Esto respalda la hip\'otesis de saturaci\'on: una vez aseguradas calidades altas, el valor marginal del terreno es peque\~no. Para explotar lotes grandes habr\'ia que habilitar amenities espec\'ificas (pool, ADU, paisajismo) o segmentos con precios sombra diferenciados.
 
-\section{Perfil constructivo vs. base hist\'orica}
+\section{Construcci\'on: sensibilidad MIP por escenarios}
+Usando \texttt{run\_mip\_sensitivity.py} se definieron 10 escenarios “tipo” (starter, move-up, premium, compact, etc.) con combinaciones de presupuesto y restricciones (\( \geq \) dormitorios, ba\~nos, calidad, superficie). Cada corrida guarda el tag del escenario en \texttt{mip\_scenarios.csv}; el script \texttt{process\_mip\_scenarios.py} produce tabulados resumidos (\texttt{mip\_scenarios\_summary.csv} y \texttt{mip\_scenarios\_roi\_by\_budget.csv}) usados aqu\'i.
+
+\paragraph{Definici\'on de escenarios}
+\begin{description}
+  \item[\textbf{Starter 1Fam}] Presupuestos 350--450k USD, vivienda unifamiliar b\'asica con al menos 2 dormitorios, 1 ba\~no completo, calidad \( \geq 6 \) y \(\geq\)900~ft$^2$ de \emph{Gr Liv Area}.
+  \item[\textbf{Move-up 1Fam}] 500--700k USD, orientado a familias que suben de segmento: 3 dormitorios, 2 ba\~nos, calidad \( \geq 7 \) y 1\,300~ft$^2$ m\'inimos.
+  \item[\textbf{Premium 1Fam}] 800k--1M USD, 4 dormitorios, 3 ba\~nos completos, 2 cocinas, calidad \( \geq 9 \), al menos 2\,000~ft$^2$ y garages de \(\geq\)500~ft$^2$.
+  \item[\textbf{Compact Duplex HighQual}] 500--600k USD, duplex premium pero acotado: 3 dormitorios, 2 ba\~nos, calidad \( \geq 8 \) y l\'imite de 1\,600~ft$^2$ para mantener el perfil compacto.
+  \item[\textbf{Premium Duplex}] 650--850k USD, duplex amplio con 4 dormitorios, 3 ba\~nos, 2 cocinas y garages \(\geq\)400~ft$^2$.
+  \item[\textbf{Townhouse Mid}] 450--650k USD, \emph{townhouse} en mediana gama (TwnhsE) con 3 dormitorios, 2 ba\~nos y l\'imite de 1\,700~ft$^2$.
+  \item[\textbf{Investor Low}] 300--400k USD, mezcla 1Fam/Duplex pensada para inversionistas frugales: 2 dormitorios, 1 ba\~no, \emph{Gr Liv Area} \(\leq\)1\,200~ft$^2$ y calidad \( \geq 6 \).
+  \item[\textbf{High Density Mix}] 600--700k USD, combina 1Fam/Duplex/Townhouse con perfiles ``balanced''/``bound'' y exige 3 dormitorios, 2 ba\~nos y calidad \( \geq 8 \).
+  \item[\textbf{Min Baths vs Beds}] 500--650k USD, 1Fam con foco en confort: 4 dormitorios, 3 ba\~nos completos y al menos un medio ba\~no.
+  \item[\textbf{Garage Focus}] 550--750k USD, mezcla 1Fam/Duplex con garages entre 400 y 700~ft$^2$, 3 dormitorios y 2 ba\~nos.
+\end{description}
+Cuando hablamos de \emph{escenarios compactos} nos referimos a Starter, Townhouse Mid, Investor Low y Compact Duplex HighQual; todos limitan la superficie habitable (\(\leq\)1\,700~ft$^2$) y operan con presupuestos \(\leq\)600k USD, de ah\'i que mantengan costos contenidos.
+
+\begin{table}[h]
+  \centering
+  \caption{Escenarios con mayor ROI (datos de \texttt{mip\_scenarios\_summary.csv}).}
+  \label{tab:mip-scenarios}
+  \footnotesize
+  \begin{tabular}{lccc rr}
+    \toprule
+    Escenario & Budget min & Budget max & Mejor budget & ROI prom. (\%) & ROI max. (\%) \\
+    \midrule
+    high\_density\_mix & 600k & 700k & 600k & 0.95 & 5.88 \\
+    townhouse\_mid & 550k & 650k & 650k & 1.18 & 5.06 \\
+    moveup\_1fam & 500k & 700k & 700k & -2.18 & 3.26 \\
+    garage\_focus & 550k & 750k & 650k & 0.28 & 3.25 \\
+    compact\_duplex\_highqual & 500k & 600k & 500k & 1.56 & 1.60 \\
+    min\_baths\_vs\_beds & 500k & 650k & 650k & -11.12 & -1.51 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+La tabla anterior muestra que s\'olo los escenarios compactos (Starter, Townhouse Mid, Investor Low y Compact Duplex) se acercan a ROI positivos, y que los premium requieren >800~k~USD para sostener las calidades exigidas. Aun as\'i, todos los escenarios mantienen slack elevados (200–400~k USD), lo que confirma que el presupuesto no es el cuello de botella sino los costos unitarios.
+
+El ROI promedio es menos negativo en estas variantes compactas que en los premium, porque limitan la superficie y mantienen costos contenidos. Aun as\'i, incluso esas combinaciones siguen mostrando retornos negativos, lo que refuerza que el cuello de botella es el costo unitario y no el presupuesto.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/mip_roi_vs_budget.png}
+  \caption{ROI (\%) por presupuesto en escenarios representativos (fuente: \texttt{mip\_roi\_vs\_budget.png}).}
+  \label{fig:mipRoiBudget}
+\end{figure}
+
+El gr\'afico confirma rendimientos decrecientes: aumentar el budget mejora la utilidad absoluta (menor slack) pero no revierte la p\'erdida porcentual. Las curvas se aplanan sobre -50~\%, por lo que las inversiones de alto presupuesto s\'olo tienen sentido si se introducen ingresos adicionales (amenities o subsidios). Los escenarios premium etiquetados como ``A'' y ``B'' son los menos sensibles gracias a restricciones compartidas, pero su ROI sigue anclado en torno a -55~\%.
+
+\section{Construcci\'on: perfil constructivo vs. base hist\'orica}
 \begin{figure}[h]
   \centering
   \begin{tikzpicture}
@@ -251,7 +325,7 @@ La curva es casi plana incluso tras a\~nadir los extremos (1\,300 y 31\,700~ft$^
 \end{figure}
 El MIP prioriza aumentar \emph{Gr Liv Area}, s\'otano y garage hasta el l\'imite permitido del barrio, mientras que dormitorios y ba\~nos se mantienen cercanos a la media. La columna ``Overall Qual'' evidencia que siempre se trabaja dentro del rango autorizado (Avg--Ex) pero inclin\'andose sistem\'aticamente hacia calidades sobresalientes, lo que explica la brecha con la regresi\'on y las utilidades observadas.
 
-\section{Viabilidad e infactibilidades}
+\section{Construcci\'on: viabilidad e infactibilidades}
 Los 61 escenarios infactibles comparten un rasgo: presupuesto de 400k en barrios/lotes donde el costo base de cimientos, garage y acabados supera ese techo. El benchmark deja trazados esos casos en \texttt{missing\_combos.csv} para evitar invertir tiempo de dise\~no comercial en oportunidades inviables. Para presupuestos \ensuremath{\geq}600k no se observaron infactibilidades.
 
 \section{Conclusiones y siguientes pasos}

@@ -37,6 +37,7 @@ def plot_neighborhood_gap(df: pd.DataFrame) -> None:
     ax.bar(df["neighborhood"], df["avg_delta_abs"], color="#377eb8")
     ax.set_ylabel("Gap promedio (USD)")
     ax.set_xlabel("Barrio")
+    ax.set_xticks(range(len(df["neighborhood"])))
     ax.set_xticklabels(df["neighborhood"], rotation=45, ha="right")
     ax.grid(True, axis="y", linestyle="--", alpha=0.5)
     fig.tight_layout()
@@ -49,6 +50,7 @@ def plot_roi_hist(df: pd.DataFrame) -> None:
     ax.bar(df["bucket"], df["count"], color="#4daf4a")
     ax.set_xlabel("ROI (intervalos)")
     ax.set_ylabel("Frecuencia")
+    ax.set_xticks(range(len(df["bucket"])))
     ax.set_xticklabels(df["bucket"], rotation=45, ha="right")
     ax.grid(True, axis="y", linestyle="--", alpha=0.5)
     fig.tight_layout()
@@ -127,6 +129,48 @@ def plot_delta_pct_histogram(runs_df: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+def plot_mip_scenario_summary(summary_df: pd.DataFrame) -> None:
+    if summary_df.empty:
+        return
+    df = summary_df.sort_values("max_roi_pct", ascending=False).head(10)
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.bar(df["scenario"], df["max_roi_pct"], color="#5a9bd5")
+    ax.set_ylabel("ROI máximo (%)")
+    ax.set_xlabel("Escenario MIP")
+    ax.set_xticks(range(len(df["scenario"])))
+    ax.set_xticklabels(df["scenario"], rotation=45, ha="right")
+    ax.grid(True, axis="y", linestyle="--", alpha=0.4)
+    fig.tight_layout()
+    fig.savefig(FIG_DIR / "mip_scenario_roi_summary.png", dpi=300)
+    plt.close(fig)
+
+
+def plot_mip_roi_vs_budget(detail_df: pd.DataFrame) -> None:
+    if detail_df.empty:
+        return
+    keep = [
+        "starter_1fam",
+        "moveup_1fam",
+        "premium_1fam",
+        "compact_duplex_highqual",
+        "premium_duplex",
+    ]
+    fig, ax = plt.subplots(figsize=(7.5, 4.5))
+    for scen in keep:
+        sdf = detail_df[detail_df["scenario"] == scen].sort_values("budget")
+        if sdf.empty:
+            continue
+        label = scen.replace("_", " ").title()
+        ax.plot(sdf["budget"], sdf["roi_pct"], marker="o", label=label)
+    ax.set_xlabel("Presupuesto (USD)")
+    ax.set_ylabel("ROI (%)")
+    ax.grid(True, axis="both", linestyle="--", alpha=0.4)
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(FIG_DIR / "mip_roi_vs_budget.png", dpi=300)
+    plt.close(fig)
+
+
 def main() -> None:
     budget = load_csv("price_by_budget.csv")
     neighborhood = load_csv("delta_by_neighborhood_top.csv")
@@ -134,6 +178,8 @@ def main() -> None:
     lot_df = load_csv("price_by_lot.csv")
     features_df = load_csv("features_vs_baseline_top.csv")
     runs_df = pd.read_csv(BASE_DIR.parent / "benchmark_runs.csv")
+    mip_summary_path = BASE_DIR / "mip_scenarios_summary.csv"
+    mip_detail_path = BASE_DIR / "mip_scenarios_roi_by_budget.csv"
 
     plot_budget_prices(budget)
     plot_neighborhood_gap(neighborhood)
@@ -142,6 +188,12 @@ def main() -> None:
     plot_price_by_lot(lot_df)
     plot_features_vs_baseline(features_df.iloc[:6])
     plot_delta_pct_histogram(runs_df)
+    if mip_summary_path.exists():
+        mip_summary = pd.read_csv(mip_summary_path)
+        plot_mip_scenario_summary(mip_summary)
+    if mip_detail_path.exists():
+        mip_detail = pd.read_csv(mip_detail_path)
+        plot_mip_roi_vs_budget(mip_detail)
 
 
 if __name__ == "__main__":

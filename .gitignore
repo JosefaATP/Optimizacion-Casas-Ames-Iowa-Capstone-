@@ -29,3 +29,6 @@ logs/
 # gurobi
 gurobi.lic
 gurobi.log
+
+.ilp
+.lp

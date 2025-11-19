@@ -19,6 +19,39 @@ from .gurobi_model import build_mip_embed, summarize_solution
 from .preprocess_regresion import load_regression_reference_df, prepare_regression_input
 
 
+def _var_from_x(m: gp.Model, name: str):
+    x = getattr(m, "_x", {})
+    var = x.get(name)
+    if var is None:
+        var = x.get(name.replace(" ", "_"))
+    return var
+
+
+def _add_bounds(model: gp.Model, var: gp.Var | None, lb, ub, label: str):
+    if var is None:
+        return
+    if lb is not None:
+        model.addConstr(var >= lb, name=f"user_lb_{label}")
+    if ub is not None:
+        model.addConstr(var <= ub, name=f"user_ub_{label}")
+
+
+def _apply_user_constraints(model: gp.Model, args) -> None:
+    rv = getattr(model, "_report_vars", {})
+    lb_ub_pairs = [
+        (rv.get("Bedrooms"), args.min_beds, args.max_beds, "beds"),
+        (rv.get("FullBath"), args.min_fullbath, args.max_fullbath, "fullbath"),
+        (rv.get("HalfBath"), args.min_halfbath, args.max_halfbath, "halfbath"),
+        (rv.get("Kitchen"), args.min_kitchen, args.max_kitchen, "kitchen"),
+        (rv.get("Garage Area") or _var_from_x(model, "Garage Area"), args.min_garage_area, args.max_garage_area, "garage_area"),
+        (rv.get("Total Bsmt SF") or _var_from_x(model, "Total Bsmt SF"), args.min_totalbsmt, args.max_totalbsmt, "total_bsmt"),
+        (_var_from_x(model, "Overall Qual"), args.min_overallqual, args.max_overallqual, "overallqual"),
+        (_var_from_x(model, "Gr Liv Area"), args.min_grliv, args.max_grliv, "grliv"),
+    ]
+    for var, lb, ub, label in lb_ub_pairs:
+        _add_bounds(model, var, lb, ub, label)
+
+
 def money(v: float) -> str:
     try:
         f = float(pd.to_numeric(v, errors="coerce"))
@@ -376,6 +409,24 @@ def main():
     ap.add_argument("--bldg", type=str, default=None, help="tipo de edificio (por ejemplo: 1Fam, TwnhsE, TwnhsI, Duplex, 2FmCon)")
     ap.add_argument("--reg-model", type=str, default=None, help="Ruta opcional a un modelo de regresión lineal (joblib) para comparar precios")
     ap.add_argument("--reg-basecsv", type=str, default=None, help="CSV limpio utilizado para entrenar la regresión lineal")
+    # Sensibilidades de diseño (bounds manuales)
+    ap.add_argument("--min-beds", type=float, default=None, help="Cota inferior para Bedrooms")
+    ap.add_argument("--max-beds", type=float, default=None, help="Cota superior para Bedrooms")
+    ap.add_argument("--min-fullbath", type=float, default=None, help="Mínimo de baños completos")
+    ap.add_argument("--max-fullbath", type=float, default=None, help="Máximo de baños completos")
+    ap.add_argument("--min-halfbath", type=float, default=None, help="Mínimo de medios baños")
+    ap.add_argument("--max-halfbath", type=float, default=None, help="Máximo de medios baños")
+    ap.add_argument("--min-kitchen", type=float, default=None, help="Mínimo de cocinas")
+    ap.add_argument("--max-kitchen", type=float, default=None, help="Máximo de cocinas")
+    ap.add_argument("--min-overallqual", type=float, default=None, help="Mínimo de Overall Qual")
+    ap.add_argument("--max-overallqual", type=float, default=None, help="Máximo de Overall Qual")
+    ap.add_argument("--min-grliv", type=float, default=None, help="Mínimo de Gr Liv Area (ft2)")
+    ap.add_argument("--max-grliv", type=float, default=None, help="Máximo de Gr Liv Area (ft2)")
+    ap.add_argument("--min-garage-area", type=float, default=None, help="Mínimo de Garage Area (ft2)")
+    ap.add_argument("--max-garage-area", type=float, default=None, help="Máximo de Garage Area (ft2)")
+    ap.add_argument("--min-totalbsmt", type=float, default=None, help="Mínimo de Total Bsmt SF")
+    ap.add_argument("--max-totalbsmt", type=float, default=None, help="Máximo de Total Bsmt SF")
+    ap.add_argument("--tag", type=str, default=None, help="Etiqueta opcional para identificar la corrida (se guarda en el CSV)")
     args = ap.parse_args()
 
     reg_model = None
@@ -485,6 +536,7 @@ def main():
         bundle.autocalibrate_offset(None)
 
     m: gp.Model = build_mip_embed(base_row=base_row, budget=args.budget, ct=ct, bundle=bundle)
+    _apply_user_constraints(m, args)
 
     # Si se especifica barrio, fuerza mínimos de atributos = cuantil bajo/min del barrio (guard-rail)
     neigh_token = base_row.get("Neighborhood", args.neigh)
@@ -642,6 +694,7 @@ def main():
             row = {
                 'timestamp': datetime.utcnow().isoformat(),
                 'profile': args.profile,
+                'tag': str(args.tag or ""),
                 'neigh': str(base_row.get('Neighborhood', args.neigh or 'N/A')),
                 'lot': float(base_row.get('LotArea', args.lot or 0.0)),
                 'budget': float(args.budget),
@@ -677,6 +730,7 @@ def main():
                 'overall_cond': xfeat('Overall Cond'),
                 'kitchen_qual': xfeat('Kitchen Qual'),
                 'heating_qc': xfeat('Heating QC'),
+                'bldg_type': args.bldg or "",
             }
             write_header = not os.path.exists(args.outcsv)
             with open(args.outcsv, 'a', newline='') as f:

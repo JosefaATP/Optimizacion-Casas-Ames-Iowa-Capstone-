@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.11.19)  19 NOV 2025 14:13
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.11.19)  19 NOV 2025 16:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -741,10 +741,13 @@ PGFPlots: reading {roi_by_neighborhood.csv}
 PGFPlots: reading {roi_hist.csv}
 PGFPlots: reading {price_by_lot.csv}
 PGFPlots: reading {features_vs_baseline_top.csv}
+PGFPlots: reading {mip_scenarios_summary.csv}
+PGFPlots: reading {mip_scenarios_roi_by_budget.csv}
+PGFPlots: reading {sensitivity/scenarios.csv}
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <10.95> on input line 28.
+(Font)              <10.95> on input line 33.
 
-Overfull \hbox (17.9576pt too wide) in paragraph at lines 29--30
+Overfull \hbox (17.9576pt too wide) in paragraph at lines 34--35
 []\OT1/cmr/bx/n/10.95 Brecha pre-dic-tiva: \OT1/cmr/m/n/10.95 El XGB es-tima pr
 e-cios \OT1/cmr/m/it/10.95 post-obra \OT1/cmr/m/n/10.95 en $507[]296$ USD prome
 -dio vs. $468[]394$ USD
@@ -753,49 +756,109 @@ e-cios \OT1/cmr/m/it/10.95 post-obra \OT1/cmr/m/n/10.95 en $507[]296$ USD prome
 [1
 
 {C:/Users/valen/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
-<figures/delta_pct_by_budget.png, id=18, 505.89pt x 289.08pt>
+Overfull \hbox (6.95673pt too wide) in paragraph at lines 67--68
+\OT1/cmtt/m/n/10.95 bench[]out/construction[]benchmark/sensitivity\OT1/cmr/m/n/
+10.95 ). La bar-rida uni-vari-ada \OT1/cmtt/m/n/10.95 univariate.csv \OT1/cmr/m
+/n/10.95 mues-
+ []
+
+
+Overfull \hbox (15.12675pt too wide) in paragraph at lines 69--70
+[]\OT1/cmr/m/n/10.95 Los bar-ri-dos bi-vari-a-dos con-fir-man el patr^^Son: ma-
+tri-ces \OT1/cmtt/m/n/10.95 bivariate[]Gr[]Liv[]Area[][]Overall[]Qual.csv
+ []
+
+
+Overfull \hbox (20.78444pt too wide) in paragraph at lines 69--70
+\OT1/cmr/m/n/10.95 dad me-dia'' dom-ina cualquier con-fig-u-raci^^Son de lujo, 
+y \OT1/cmtt/m/n/10.95 bivariate[]Bedroom[]AbvGr[][]Full[]Bath.csv:2-17
+ []
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 82.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 82.
+[2]
+<figures/gap_by_neighborhood.png, id=22, 542.025pt x 289.08pt>
+File: figures/gap_by_neighborhood.png Graphic file (type png)
+<use figures/gap_by_neighborhood.png>
+Package pdftex.def Info: figures/gap_by_neighborhood.png  used on input line 12
+0.
+(pdftex.def)             Requested size: 422.77664pt x 225.49031pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<figures/delta_pct_by_budget.png, id=24, 505.89pt x 289.08pt>
 File: figures/delta_pct_by_budget.png Graphic file (type png)
 <use figures/delta_pct_by_budget.png>
-Package pdftex.def Info: figures/delta_pct_by_budget.png  used on input line 10
-5.
+Package pdftex.def Info: figures/delta_pct_by_budget.png  used on input line 12
+9.
 (pdftex.def)             Requested size: 422.77664pt x 241.59045pt.
- [2]
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 123.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 123.
-Package pgfplots info on input line 141: Using 'lua backend=false' for axis: x 
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[3]
+Package pgfplots info on input line 165: Using 'lua backend=false' for axis: x 
 coord trafo unsupported.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[3 <./figures/delta_pct_by_budget.png>]
-Package pgfplots info on input line 162: Using 'lua backend=false' for axis: x 
+Package pgfplots info on input line 186: Using 'lua backend=false' for axis: x 
 coord trafo unsupported.
 
-Overfull \hbox (181.91277pt too wide) in paragraph at lines 188--189
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[4 <./figures/gap_by_neighborhood.png>]
+Overfull \hbox (181.91277pt too wide) in paragraph at lines 212--213
 [] 
  []
 
-[4]
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[5] [6] (benchmark_report.aux)
+[5 <./figures/delta_pct_by_budget.png>]
+Overfull \hbox (138.25856pt too wide) in paragraph at lines 234--235
+\OT1/cmtt/m/n/10.95 process[]mip[]scenarios.py \OT1/cmr/m/n/10.95 pro-duce tab-
+u-la-dos re-sum-i-dos (\OT1/cmtt/m/n/10.95 mip[]scenarios[]summary.csv \OT1/cmr
+/m/n/10.95 y \OT1/cmtt/m/n/10.95 mip[]scenarios[]roi[]by[]budget.csv\OT1/cmr/m/
+n/10.95 )
+ []
+
+[6]
+Overfull \hbox (33.39882pt too wide) in paragraph at lines 245--246
+[]\OT1/cmr/m/n/10.95 600--700k USD, com-bina 1Fam/Duplex/Townhouse con per-file
+s ``bal-anced''/``bound''
+ []
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <9> on input line 256.
+[7]
+<figures/mip_roi_vs_budget.png, id=44, 542.025pt x 325.215pt>
+File: figures/mip_roi_vs_budget.png Graphic file (type png)
+<use figures/mip_roi_vs_budget.png>
+Package pdftex.def Info: figures/mip_roi_vs_budget.png  used on input line 276.
+
+(pdftex.def)             Requested size: 399.29463pt x 239.58345pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[8 <./figures/mip_roi_vs_budget.png>] [9] (benchmark_report.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 28655 strings out of 474486
- 789213 string characters out of 5743754
- 1963542 words of memory out of 5000000
- 50541 multiletter control sequences out of 15000+600000
- 564095 words of font info for 56 fonts, out of 8000000 for 9000
+ 28873 strings out of 474486
+ 796117 string characters out of 5743754
+ 1961542 words of memory out of 5000000
+ 50750 multiletter control sequences out of 15000+600000
+ 565007 words of font info for 59 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,19n,107p,740b,2563s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 99i,19n,107p,794b,2563s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\valen\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm
 1095.pk><C:/Users/valen/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfon
 ts/cm/cmbx10.pfb><C:/Users/valen/AppData/Local/Programs/MiKTeX/fonts/type1/publ
@@ -805,13 +868,14 @@ X/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/valen/AppData/Local/Progra
 ms/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/valen/AppData/Loca
 l/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Users/valen/AppD
 ata/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/val
-en/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/
-Users/valen/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10
-.pfb><C:/Users/valen/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/
-cm/cmtt10.pfb>
-Output written on benchmark_report.pdf (6 pages, 255175 bytes).
+en/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/Us
+ers/valen/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.p
+fb><C:/Users/valen/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm
+/cmti10.pfb><C:/Users/valen/AppData/Local/Programs/MiKTeX/fonts/type1/public/am
+sfonts/cm/cmtt10.pfb>
+Output written on benchmark_report.pdf (9 pages, 505899 bytes).
 PDF statistics:
- 82 PDF objects out of 1000 (max. 8388607)
+ 102 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 18 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 28 words of extra memory for PDF output out of 10000 (max. 10000000)
 
