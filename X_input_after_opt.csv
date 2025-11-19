@@ -32,7 +32,7 @@ idx,feature,value,LB,UB
 30,Fireplace Qu,2.0,2.0,4.0
 31,Garage Yr Blt,2025.0,0.0,inf
 32,Garage Cars,3.0,-0.0,4.0
-33,Garage Area,450.0,0.0,1163.75
+33,Garage Area,460.0,0.0,1163.75
 34,Garage Qual,4.0,2.0,4.0
 35,Garage Cond,4.0,-1.0,4.0
 36,Wood Deck SF,0.0,0.0,525.9
@@ -88,7 +88,7 @@ idx,feature,value,LB,UB
 86,Land Slope_Gtl,1.0,0.0,1.0
 87,Land Slope_Mod,0.0,0.0,1.0
 88,Land Slope_Sev,0.0,0.0,1.0
-89,Neighborhood_Blmngtn,1.0,0.0,1.0
+89,Neighborhood_Blmngtn,0.0,0.0,1.0
 90,Neighborhood_Blueste,0.0,0.0,1.0
 91,Neighborhood_BrDale,0.0,0.0,1.0
 92,Neighborhood_BrkSide,0.0,0.0,1.0
@@ -115,7 +115,7 @@ idx,feature,value,LB,UB
 113,Neighborhood_Somerst,0.0,0.0,1.0
 114,Neighborhood_StoneBr,0.0,0.0,1.0
 115,Neighborhood_Timber,0.0,0.0,1.0
-116,Neighborhood_Veenker,0.0,0.0,1.0
+116,Neighborhood_Veenker,1.0,0.0,1.0
 117,Condition 1_Artery,0.0,0.0,1.0
 118,Condition 1_Feedr,0.0,0.0,1.0
 119,Condition 1_Norm,1.0,0.0,1.0
@@ -200,8 +200,8 @@ idx,feature,value,LB,UB
 198,Mas Vnr Type_NoAplica,0.0,0.0,1.0
 199,Mas Vnr Type_Stone,0.0,0.0,1.0
 200,Foundation_BrkTil,0.0,0.0,1.0
-201,Foundation_CBlock,0.0,0.0,1.0
-202,Foundation_PConc,1.0,0.0,1.0
+201,Foundation_CBlock,1.0,0.0,1.0
+202,Foundation_PConc,0.0,0.0,1.0
 203,Foundation_Slab,0.0,0.0,1.0
 204,Foundation_Stone,0.0,0.0,1.0
 205,Foundation_Wood,0.0,0.0,1.0

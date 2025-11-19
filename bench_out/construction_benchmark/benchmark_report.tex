@@ -1,0 +1,265 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\sisetup{group-separator={,},group-minimum-digits=4}
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18}
+\title{Benchmark Construcci\'on: Comparaci\'on XGB vs. Regresi\'on}
+\date{\today}
+\author{Reporte autom\'atico}
+
+\begin{document}
+\maketitle
+
+\pgfplotstableread[col sep=comma]{price_by_budget.csv}{\budgetdata}
+\pgfplotstablecreatecol[create col/expr={\thisrow{avg_roi}*100}]{avg_roi_pct}{\budgetdata}
+\pgfplotstableread[col sep=comma]{delta_by_neighborhood_top.csv}{\neighdata}
+\pgfplotstableread[col sep=comma]{roi_by_neighborhood.csv}{\roitab}
+\pgfplotstableread[col sep=comma]{roi_hist.csv}{\roihist}
+\pgfplotstableread[col sep=comma]{price_by_lot.csv}{\lotdata}
+\pgfplotstableread[col sep=comma]{features_vs_baseline_top.csv}{\featuredata}
+
+\section{Resumen ejecutivo}
+\begin{itemize}
+  \item \textbf{Cobertura:} 28 barrios, 7 tama\~nos de lote (1\,300--31\,700~ft$^2$) y 4 presupuestos (400k--1M USD). De las 784 combinaciones posibles, 723 fueron factibles (\texttt{status=2}) y 61 quedaron infactibles, todas asociadas al presupuesto de 400k USD.
+  \item \textbf{Brecha predictiva:} El XGB estima precios \emph{post-obra} en \num{507296}~USD promedio vs. \num{468394}~USD de la regresi\'on lineal; la brecha media es \num{38902}~USD (8~\%). En barrios premium como SawyerW y Veenker el gap supera los \num{80000}~USD (Figura~\ref{fig:gapNeigh}).
+  \item \textbf{Rentabilidad:} La utilidad (precio--costo) media es \num{31693}~USD con ROI medio 8.6~\% (p25 4.9~\%, p75 11.8~\%). Un 12.6~\% de las corridas presenta ROI negativo (Figuras~\ref{fig:roiHist} y \ref{fig:negatives}), lo que permite filtrar escenarios antes de invertir en planos.
+  \item \textbf{KPIs Informe 2:} Cada corrida guarda el porcentaje neto de mejora (\emph{Uplift}) y el porcentaje de presupuesto usado. Los agregados muestran que el tier 400k genera +3.2~\% de aumento frente a la regresi\'on consumiendo 91~\% del capital, mientras que 1M sube 9.5~\% pero usa solo 50~\% del presupuesto.
+  \item \textbf{Slack presupuestario:} Aun en el presupuesto de 1M USD se conserva un slack medio de \num{504727}~USD, lo que abre espacio para imponer restricciones ESG, smart-home o amenities espec\'ificas sin sacrificar utilidad.
+  \item \textbf{Perfil de producto:} El optimizador empuja las viviendas a calidades ``Above Average--Excellent'': m\'as \emph{Gr Liv Area}, s\'otano y garage que las medias hist\'oricas de cada barrio (Figura~\ref{fig:features}), manteniendo un n\'umero moderado de recintos.
+\end{itemize}
+
+\section{Dise\~no experimental y cobertura}
+Todos los experimentos corrieron con los mismos hiperpar\'ametros del modelo MIP de construcci\'on, usando como referencia el pipeline de regresi\'on lineal y el modelo XGB entrenado sobre la base de Ames. La Tabla~\ref{tab:coverage} resume las combinaciones resueltas; las infactibilidades de 400k se listan en \texttt{missing\_combos.csv} para trazabilidad.
+
+\begin{table}[h]
+  \centering
+  \caption{Cobertura del benchmark.}
+  \label{tab:coverage}
+  \begin{tabular}{lcccc}
+    \toprule
+    Barrios & Lotes & Presupuestos & Combinaciones te\'oricas & Corridas factibles \\
+    \midrule
+    28 & 7 & 4 & 784 & 723 factibles + 61 infactibles (400k) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Comparaci\'on con la regresi\'on}
+\subsection{Brecha global por presupuesto}
+La Figura~\ref{fig:budgetPrices} muestra que el XGB entrega primas entre 10k y 46k USD sobre la regresi\'on para todos los presupuestos. La diferencia aumenta con el capital porque el XGB captura amenities high-end que la regresi\'on (lineal) suaviza.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.9\textwidth, height=6cm,
+      xlabel={Presupuesto (kUSD)}, ylabel={Precio medio (USD)},
+      xmin=350, xmax=1050,
+      ymin=350000, ymax=660000,
+      ymajorgrids=true,
+      legend style={at={(0.02,0.98)},anchor=north west},
+      legend cell align=left,
+    ]
+      \addplot+[mark=*, thick, color=blue] table[x expr=\thisrow{budget}/1000,y=avg_price_xgb]{\budgetdata};
+      \addlegendentry{Precio XGB}
+      \addplot+[mark=square*, thick, color=orange] table[x expr=\thisrow{budget}/1000,y=avg_price_reg]{\budgetdata};
+      \addlegendentry{Precio regresi\'on}
+      \addplot+[mark=triangle*, dashed, color=black] table[x expr=\thisrow{budget}/1000,y=avg_delta_abs]{\budgetdata};
+      \addlegendentry{Brecha XGB-Reg}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Precio medio seg\'un presupuesto. El gap XGB--Reg crece con el capital disponible.}
+  \label{fig:budgetPrices}
+\end{figure}
+
+\subsection{Barrios con mayor uplift}
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.95\textwidth, height=6cm,
+      ybar,
+      ylabel={Gap promedio USD (XGB - Reg)},
+      xtick=data,
+      xticklabels from table={\neighdata}{neighborhood},
+      xticklabel style={rotate=45, anchor=east},
+      bar width=8pt,
+      ymajorgrids=true,
+    ]
+      \addplot+[fill=blue!65] table[x expr=\coordindex,y=avg_delta_abs]{\neighdata};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Barrios con mayor uplift promedio. Los ``premium'' (SawyerW, Veenker, NoRidge, Blueste) concentran las mayores brechas.}
+  \label{fig:gapNeigh}
+\end{figure}
+Los barrios del quintil superior de precio hist\'orico (SawyerW, Veenker, NoRidge, Blueste) capturan el mayor gap porque el MIP construye garages Ex, acabados Kitchen/Bath Ex o Screen Porch extensos que la regresi\'on lineal no pondera correctamente. Esto evidencia que la regresi\'on sirve como baseline conservadora, pero la decisi\'on de invertir debe basarse en la predicci\'on XGB.
+
+\subsection{Distribuci\'on de brecha porcentual por presupuesto}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/delta_pct_by_budget.png}
+  \caption{Histograma de brecha porcentual (XGB--Reg) segmentado por presupuesto.}
+  \label{fig:deltaPctBudget}
+\end{figure}
+La superposici\'on permite ver que los presupuestos altos tienden a concentrarse en brechas entre 8~\% y 15~\%, mientras que en 400k aparece mayor dispersi\'on (desde ligeras subestimaciones negativas hasta gap superiores a 20~\%). Esta lectura ayuda a priorizar en qu\'e presupuestos conviene confiar en la regresi\'on como cota inferior y cu\'ando el XGB aporta una prima relevante.
+
+\subsection{Ranking de ROI por barrio}
+\pgfplotstabletypeset[
+  row predicate/.code={\ifnum\pgfplotstablerow<8\relax\else\pgfplotstableuserowfalse\fi},
+  columns={neighborhood,avg_roi,avg_price,avg_delta_abs,n_runs},
+  columns/neighborhood/.style={column name=Barrio,string type},
+  columns/avg_roi/.style={column name=ROI prom., fixed, fixed zerofill, precision=3},
+  columns/avg_price/.style={column name=Precio XGB prom., sci=false, fixed, precision=0},
+  columns/avg_delta_abs/.style={column name=Gap XGB-Reg, sci=false, fixed, precision=0},
+  columns/n_runs/.style={column name=Corridas},
+  every head row/.style={before row=\toprule, after row=\midrule},
+  every last row/.style={after row=\bottomrule},
+  font=\small,
+]{\roitab}
+
+SawyerW y Veenker lideran en ROI (11~\%), alcanzando utilidades medias de 70k USD por casa. Barrios como NPkVill o SWISU muestran ROI similares pero con precios objetivo m\'as bajos, lo que permite calibrar la cartera seg\'un apetito de riesgo.
+
+\section{Rentabilidad y control de riesgo}
+\subsection{Distribuci\'on del ROI}
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.9\textwidth, height=5cm,
+      ybar,
+      xlabel={ROI (intervalos)}, ylabel={Frecuencia},
+      symbolic x coords={-0.20---0.15,-0.15---0.10,-0.10---0.05,-0.05--0.00,0.00--0.05,0.05--0.10,0.10--0.15,0.15--0.20,0.20--0.25,0.25--0.30,0.30--0.35,0.35--0.40},
+      xtick=data,
+      xticklabel style={rotate=45, font=\scriptsize},
+      bar width=8pt,
+      ymajorgrids=true,
+    ]
+      \addplot+[fill=blue!65] table[x=bucket,y=count]{\roihist};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Distribuci\'on de ROI (723 soluciones). El 75~\% cae entre 0~\% y 14~\%; los extremos cubren [-17.7~\%, 38.3~\%].}
+  \label{fig:roiHist}
+\end{figure}
+La curva deja tres mensajes concretos para el comit\'e: (i) el 75~\% de las corridas cae entre 0~\% y 14~\%, por lo que el negocio es estable pero no explosivo; (ii) la cola izquierda (12.6~\%) aparece cuando el costo m\'inimo exigido es demasiado alto para el barrio y la utilidad se vuelve negativa; y (iii) las colas derechas (>30~\%) son muy puntuales: se dan s\'olo en barrios con slack suficiente para finishes extraordinarios. Esto aterriza la idea de saturaci\'on econ\'omica: subir presupuesto eleva la utilidad absoluta, pero el retorno porcentual converge r\'apido.
+
+\subsection{Escenarios con ROI negativo}
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.7\textwidth, height=4.2cm,
+      ybar, ymin=0,
+      ylabel={Casos ROI $<0$}, xlabel={Presupuesto},
+      symbolic x coords={400000.0,600000.0,800000.0,1000000.0},
+      xtick=data,
+      nodes near coords,
+      ymajorgrids=true,
+    ]
+      \addplot+[fill=red!70] table[x=budget,y=neg_runs]{\budgetdata};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Conteo de corridas con utilidad negativa por presupuesto (antes de descartar las infactibilidades de 400k).}
+  \label{fig:negatives}
+\end{figure}
+Los casos negativos se concentran en el presupuesto de 400k (21~\% de esas corridas) porque no alcanza para financiar la calidad m\'inima exigida en algunos barrios. Con capitales de 600k--1M el porcentaje cae bajo 10~\%, lo que respalda usar el benchmark como filtro previo para reuniones con el comit\'e de inversi\'on.
+
+\subsection{M\'etricas completas por presupuesto}
+\pgfplotstabletypeset[
+  columns={budget,avg_price_xgb,avg_price_reg,avg_delta_abs,avg_delta_pct,avg_slack,avg_obj,avg_roi_pct,avg_budget_used_pct,neg_runs,n_runs},
+  columns/budget/.style={column name=Presupuesto, fixed, precision=0},
+  columns/avg_price_xgb/.style={column name=Precio XGB, sci=false, fixed, precision=0},
+  columns/avg_price_reg/.style={column name=Precio Reg, sci=false, fixed, precision=0},
+  columns/avg_delta_abs/.style={column name=Gap USD, sci=false, fixed, precision=0},
+  columns/avg_delta_pct/.style={column name=Uplift (\%), fixed, precision=2},
+  columns/avg_slack/.style={column name=Slack, sci=false, fixed, precision=0},
+  columns/avg_obj/.style={column name=Utilidad, sci=false, fixed, precision=0},
+  columns/avg_roi_pct/.style={column name=ROI (\%), fixed, precision=1},
+  columns/avg_budget_used_pct/.style={column name=Presupuesto usado (\%), fixed, precision=1},
+  columns/neg_runs/.style={column name=ROI$<0$},
+  columns/n_runs/.style={column name=Corridas},
+  every head row/.style={before row=\toprule, after row=\midrule},
+  every last row/.style={after row=\bottomrule},
+  font=\small,
+]{\budgetdata}
+
+Esta tabla replica los KPIs definidos en el Informe~2: el \emph{Porcentaje neto de mejora} se reporta como ``Uplift (\%)'', mientras que ``Presupuesto usado (\%)'' cuantifica el uso efectivo de capital. Se observa el mismo patr\'on que en la entrega anterior: el tier de 400k usa apenas 91~\% del presupuesto y entrega el mayor ROI porcentual (11~\%), mientras que los tiers altos consumen menos del 65~\% del capital disponible y, aunque elevan la utilidad absoluta, diluyen el retorno relativo. Esto valida la hip\'otesis de rendimientos decrecientes y de sobreinversi\'on que quer\'iamos evidenciar para la siguiente entrega.
+
+\section{Sensibilidad al tama\~no de lote}
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.9\textwidth, height=5cm,
+      xlabel={Lot Area (ft$^2$)}, ylabel={Precio XGB promedio},
+      ymajorgrids=true,
+    ]
+      \addplot+[mark=*, color=blue] table[x=lot_area,y=avg_price_xgb]{\lotdata};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Precio promedio vs. superficie de lote.}
+  \label{fig:lot}
+\end{figure}
+La curva es casi plana incluso tras a\~nadir los extremos (1\,300 y 31\,700~ft$^2$). Esto respalda la hip\'otesis de saturaci\'on: una vez aseguradas calidades altas, el valor marginal del terreno es peque\~no. Para explotar lotes grandes habr\'ia que habilitar amenities espec\'ificas (pool, ADU, paisajismo) o segmentos con precios sombra diferenciados.
+
+\section{Perfil constructivo vs. base hist\'orica}
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{groupplot}[
+      group style={group size=3 by 2, horizontal sep=1.1cm, vertical sep=1.1cm},
+      ymin=0,
+      ylabel style={font=\small},
+      xlabel style={font=\small},
+      ymajorgrids=true,
+      width=0.32\textwidth,
+      height=4.5cm,
+    ]
+      \nextgroupplot[title={Gr Liv Area}]
+        \addplot+[ybar, fill=blue!60, bar width=6pt, xtick=data,
+          xticklabels from table={\featuredata}{neighborhood},
+          xticklabel style={rotate=45, font=\scriptsize}]
+          table[x expr=\coordindex, y=bench_gr_liv_area]{\featuredata};
+        \addplot+[ybar, fill=orange!70, bar width=6pt] table[x expr=\coordindex, y=base_gr_liv_area]{\featuredata};
+        \legend{Benchmark,Base}
+      \nextgroupplot[title={Total Bsmt}, xticklabels=\empty]
+        \addplot+[ybar, fill=blue!60, bar width=6pt] table[x expr=\coordindex, y=bench_bsmt]{\featuredata};
+        \addplot+[ybar, fill=orange!70, bar width=6pt] table[x expr=\coordindex, y=base_bsmt]{\featuredata};
+      \nextgroupplot[title={Garage Area}, xticklabels=\empty]
+        \addplot+[ybar, fill=blue!60, bar width=6pt] table[x expr=\coordindex, y=bench_garage_area]{\featuredata};
+        \addplot+[ybar, fill=orange!70, bar width=6pt] table[x expr=\coordindex, y=base_garage_area]{\featuredata};
+      \nextgroupplot[title={Dormitorios}]
+        \addplot+[ybar, fill=blue!60, bar width=6pt, xtick=data,
+          xticklabels from table={\featuredata}{neighborhood},
+          xticklabel style={rotate=45, font=\scriptsize}]
+          table[x expr=\coordindex, y=bench_beds]{\featuredata};
+        \addplot+[ybar, fill=orange!70, bar width=6pt] table[x expr=\coordindex, y=base_beds]{\featuredata};
+      \nextgroupplot[title={Baths}, xticklabels=\empty]
+        \addplot+[ybar, fill=blue!60, bar width=6pt] table[x expr=\coordindex, y=bench_fullbath]{\featuredata};
+        \addplot+[ybar, fill=orange!70, bar width=6pt] table[x expr=\coordindex, y=base_fullbath]{\featuredata};
+      \nextgroupplot[title={Overall Qual}, xticklabels=\empty]
+        \addplot+[ybar, fill=blue!60, bar width=6pt] table[x expr=\coordindex, y=bench_overall]{\featuredata};
+        \addplot+[ybar, fill=orange!70, bar width=6pt] table[x expr=\coordindex, y=base_overall]{\featuredata};
+    \end{groupplot}
+  \end{tikzpicture}
+  \caption{Comparaci\'on de atributos promedio entre el benchmark y la base hist\'orica.}
+  \label{fig:features}
+\end{figure}
+El MIP prioriza aumentar \emph{Gr Liv Area}, s\'otano y garage hasta el l\'imite permitido del barrio, mientras que dormitorios y ba\~nos se mantienen cercanos a la media. La columna ``Overall Qual'' evidencia que siempre se trabaja dentro del rango autorizado (Avg--Ex) pero inclin\'andose sistem\'aticamente hacia calidades sobresalientes, lo que explica la brecha con la regresi\'on y las utilidades observadas.
+
+\section{Viabilidad e infactibilidades}
+Los 61 escenarios infactibles comparten un rasgo: presupuesto de 400k en barrios/lotes donde el costo base de cimientos, garage y acabados supera ese techo. El benchmark deja trazados esos casos en \texttt{missing\_combos.csv} para evitar invertir tiempo de dise\~no comercial en oportunidades inviables. Para presupuestos \ensuremath{\geq}600k no se observaron infactibilidades.
+
+\section{Conclusiones y siguientes pasos}
+\begin{itemize}
+  \item La regresi\'on lineal subestima 5--15~\% del precio realista post-obra. El XGB debe ser la referencia comercial y la regresi\'on queda como cota conservadora.
+  \item El ROI medio (8.6~\%) muestra rendimientos decrecientes: conviene priorizar presupuestos 400k--600k para eficiencia y usar 800k--1M cuando se busquen slack altos para amenidades especiales.
+  \item El modelo ya detecta autom\'aticamente escenarios con ROI negativo o incluso infactibles, evitando gastos en planos o marketing para proyectos perdedores.
+  \item Existe espacio para ampliar el estudio incorporando presupuestos intermedios (500k, 700k), percentiles de mercado extremos (p10/p90) y objetivos que valoricen lotes grandes (paisajismo o ADU). Adem\'as, se puede exigir un ROI m\'inimo por barrio para generar portafolios m\'as conservadores.
+\end{itemize}
+
+\end{document}

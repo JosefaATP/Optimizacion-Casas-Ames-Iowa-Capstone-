@@ -1,0 +1,128 @@
+\ Model construction_embed_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Maximize
+ 
+Subject To
+ 7.4__first_floor_always: Floor1 = 1
+ 7.1.4__AFullBath: - AreaFullBath1 - AreaFullBath2 + AreaFullBath = 0
+ 7.1.5__AHalfBath: - AreaHalfBath1 - AreaHalfBath2 + AreaHalfBath = 0
+ 11.3__AKitchen: - AreaKitchen1 - AreaKitchen2 + AreaKitchen = 0
+ 11.3__ABedroom: - AreaBedroom1 - AreaBedroom2 + AreaBedroom = 0
+ 7.1.8__2nd_min_if_on: x_2nd_Flr_SF - 350 Floor2 >= 0
+ part__fplaces_sum: - x_Fireplaces + Fireplaces_TA + Fireplaces_Gd
+   + Fireplaces_Ex = 0
+ part__agarage_sum: - x_Garage_Area + AGarage_TA + AGarage_Gd + AGarage_Ex
+   = 0
+ onehot__eq: zEQ_TA + zEQ_Gd + zEQ_Ex = 1
+ 7.10__baths_vs_bed: 3 FullBath - 2 Bedrooms <= 0
+ 11.xx__fullbath_min1: FullBath >= 1
+ part__apool_sum: - x_Pool_Area + APool_TA + APool_Gd + APool_Ex = 0
+ 7.0__bsmt_unf_zero: x_Bsmt_Unf_SF = 0
+ 7.8__bsmt_parts_sum: - x_Bsmt_Unf_SF + x_Total_Bsmt_SF - BsmtFinSF1
+   - BsmtFinSF2 = 0
+ 11.20__min_area_full_bath: AreaFullBath - 40 FullBath >= 0
+ 11.20__min_area_bedroom: AreaBedroom - 70 Bedrooms >= 0
+ 7.20__AreaFoundation_eq_1st: - x_1st_Flr_SF + AreaFoundation = 0
+ 7.20__fa_ge_lin__CBlock: - 4200 Foundation__CBlock - AreaFoundation
+   + FA__CBlock >= -4200
+ 7.21.1__ak1_cap: - 300 Floor1 + AreaKitchen1 <= 0
+ 7.21.2__ak2_cap: - 200 Floor2 + AreaKitchen2 <= 0
+ 7.21.1__partition_1st: - x_1st_Flr_SF + AreaFullBath1 + AreaHalfBath1
+   + AreaKitchen1 + AreaBedroom1 + AreaOther1 + Remainder1 = 0
+ 7.21.2__partition_2nd: - x_2nd_Flr_SF + AreaFullBath2 + AreaHalfBath2
+   + AreaKitchen2 + AreaBedroom2 + AreaOther2 + Remainder2 = 0
+ def_cost_model: - 230 x_Bsmt_Unf_SF - 50 x_Wood_Deck_SF
+   - 77.5 x_Open_Porch_SF - 80 x_Enclosed_Porch - 157.5 x_3Ssn_Porch
+   - 72.5 x_Screen_Porch - 31750 Floor1 - 230 AreaOther1 - 230 AreaOther2
+   - 200 AreaKitchen - 500 AreaFullBath - 500 AreaHalfBath
+   - 325 AreaBedroom - 2500 Fireplaces_TA - 3525 Fireplaces_Gd
+   - 4550 Fireplaces_Ex - 24038 GarageFinish__Fin - 20769 GarageFinish__RFn
+   - 17500 GarageFinish__Unf - 54 AGarage_TA - 57.6 AGarage_Gd
+   - 60 AGarage_Ex - 6500 zHQ_TA - 8250 zHQ_Gd - 10000 zHQ_Ex
+   - 18883.75 zEQ_TA - 22833.06 zEQ_Gd - 106250 zEQ_Ex
+   - 1773 Heating__Floor - 5750 Heating__GasA - 8500 Heating__GasW
+   - 6300 Heating__Grav - 5000 Heating__OthW - 3700 Heating__Wall
+   - 5362 CentralAir__Y - 1587.5 Electrical__SBrkr - 2500 Electrical__FuseA
+   - 1675 Electrical__FuseF - 850 Electrical__FuseP - 1075 Electrical__Mix
+   - 4 PavedDrive__Y - 5 PavedDrive__P - PavedDrive__N
+   - 48000 MiscFeature__Elev - 32100 MiscFeature__Gar2
+   - 50000 MiscFeature__Othr - 5631 MiscFeature__Shed
+   - 15774 MiscFeature__TenC - 17352 RoofMatl__ClyTile
+   - 20000 RoofMatl__CompShg - 8011.95 RoofMatl__Membran
+   - 11739 RoofMatl__Metal - 7600 RoofMatl__Roll - 8550 RoofMatl__Tar&Grv
+   - 22500 RoofMatl__WdShake - 19500 RoofMatl__WdShngl - 70.4 APool_TA
+   - 80.96 APool_Gd - 88 APool_Ex - 15 BsmtFinSF1 - 15 BsmtFinSF2
+   - 12500 Exterior1st__VinylSd - 9600 Exterior1st__MetalSd
+   - 12500 Exterior1st__Wd_Sdng - 21300 Exterior1st__HdBoard
+   - 5629 Exterior1st__Stucco - 8461.81 Exterior1st__Plywood
+   - 14674 Exterior1st__CemntBd - 22000 Exterior1st__BrkFace
+   - 26000 Exterior1st__BrkComm - 21900 Exterior1st__WdShngl
+   - 19000 Exterior1st__AsbShng - 50216.5 Exterior1st__Stone
+   - 16500 Exterior1st__ImStucc - 22500 Exterior1st__AsphShn
+   - 10300 Exterior1st__CBlock - 12500 Exterior2nd__VinylSd
+   - 9600 Exterior2nd__MetalSd - 12500 Exterior2nd__Wd_Sdng
+   - 21300 Exterior2nd__HdBoard - 5629 Exterior2nd__Stucco
+   - 8461.81 Exterior2nd__Plywood - 14674 Exterior2nd__CemntBd
+   - 22000 Exterior2nd__BrkFace - 26000 Exterior2nd__BrkComm
+   - 21900 Exterior2nd__WdShngl - 19000 Exterior2nd__AsbShng
+   - 50216.5 Exterior2nd__Stone - 16500 Exterior2nd__ImStucc
+   - 22500 Exterior2nd__AsphShn - 10300 Exterior2nd__CBlock
+   - 1.21 MvProd__BrkCmn - 15 MvProd__BrkFace - 22.5 MvProd__CBlock
+   - 27.5 MvProd__Stone - 22 FA__BrkTil - 12 FA__CBlock - 10 FA__PConc
+   - 10 FA__Slab - 23.5 FA__Stone - 40 FA__Wood - 230 Remainder1
+   - 230 Remainder2 + cost_model = 0
+ budget: cost_model <= 200000
+ neigh_floor__1st_Flr_SF: x_1st_Flr_SF >= 624
+ neigh_mode__Foundation: Foundation__CBlock = 1
+Bounds
+ x_Bsmt_Unf_SF free
+ x_1st_Flr_SF free
+ x_2nd_Flr_SF free
+ AreaFullBath1 free
+ AreaFullBath2 free
+ AreaHalfBath1 free
+ AreaHalfBath2 free
+ AreaKitchen1 free
+ AreaKitchen2 free
+ AreaBedroom1 free
+ AreaBedroom2 free
+ AreaOther1 free
+ AreaOther2 free
+ AreaKitchen free
+ AreaFullBath free
+ AreaBedroom free
+ FullBath free
+ Bedrooms free
+ Fireplaces_TA free
+ AGarage_TA free
+ APool_TA free
+ BsmtFinSF1 free
+ BsmtFinSF2 free
+ AreaFoundation free
+ FA__CBlock free
+ Remainder1 free
+ Remainder2 free
+ cost_model free
+Binaries
+ Floor1 Floor2 GarageFinish__Fin GarageFinish__RFn GarageFinish__Unf zHQ_TA
+ zHQ_Gd zHQ_Ex zEQ_TA zEQ_Gd zEQ_Ex Heating__Floor Heating__GasA
+ Heating__GasW Heating__Grav Heating__OthW Heating__Wall CentralAir__Y
+ Electrical__SBrkr Electrical__FuseA Electrical__FuseF Electrical__FuseP
+ Electrical__Mix PavedDrive__Y PavedDrive__P PavedDrive__N
+ MiscFeature__Elev MiscFeature__Gar2 MiscFeature__Othr MiscFeature__Shed
+ MiscFeature__TenC RoofMatl__ClyTile RoofMatl__CompShg RoofMatl__Membran
+ RoofMatl__Metal RoofMatl__Roll RoofMatl__Tar&Grv RoofMatl__WdShake
+ RoofMatl__WdShngl Exterior1st__VinylSd Exterior1st__MetalSd
+ Exterior1st__Wd_Sdng Exterior1st__HdBoard Exterior1st__Stucco
+ Exterior1st__Plywood Exterior1st__CemntBd Exterior1st__BrkFace
+ Exterior1st__BrkComm Exterior1st__WdShngl Exterior1st__AsbShng
+ Exterior1st__Stone Exterior1st__ImStucc Exterior1st__AsphShn
+ Exterior1st__CBlock Exterior2nd__VinylSd Exterior2nd__MetalSd
+ Exterior2nd__Wd_Sdng Exterior2nd__HdBoard Exterior2nd__Stucco
+ Exterior2nd__Plywood Exterior2nd__CemntBd Exterior2nd__BrkFace
+ Exterior2nd__BrkComm Exterior2nd__WdShngl Exterior2nd__AsbShng
+ Exterior2nd__Stone Exterior2nd__ImStucc Exterior2nd__AsphShn
+ Exterior2nd__CBlock Foundation__CBlock
+Generals
+ x_Fireplaces FullBath Bedrooms
+End
