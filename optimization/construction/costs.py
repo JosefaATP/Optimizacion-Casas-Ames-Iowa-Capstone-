@@ -21,6 +21,10 @@ class CostTables:
     fullbath_area_cap_second: float = 110.0     # ft2 por baño completo en 2do piso
     halfbath_area_cap_first: float = 80.0       # ft2 por medio baño en 1er piso
     halfbath_area_cap_second: float = 60.0      # ft2 por medio baño en 2do piso
+    totag_max_ratio: float = 1.1                # Max área sobre rasante respecto al lote
+    roof_area_max_ratio: float = 1.4            # AreaExterior/ActualRoofArea <= ratio * lot_area
+    roof_projection_max_ratio: float = 0.8      # PR1/PR2 <= ratio * lot_area
+    misc_val_cap: float = 100000.0              # USD, bound para Misc Val en fallback
 
     # ====== COCINA (paquetes) [REMOVED for construction; keep for compatibility] ======
     # En construcción usaremos costos por área diferenciados por calidad.

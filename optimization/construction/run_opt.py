@@ -381,9 +381,9 @@ def main():
 
     # Auto‑calibración del offset b0 (alinear y_log embed con margen del XGB)
     try:
-        bundle.autocalibrate_offset(None)
+        bundle.autocalibrate_offset(base_row)
     except Exception:
-        pass
+        bundle.autocalibrate_offset(None)
 
     m: gp.Model = build_mip_embed(base_row=base_row, budget=args.budget, ct=ct, bundle=bundle)
 
@@ -411,6 +411,8 @@ def main():
     m.Params.FeasibilityTol = 1e-7
     m.Params.IntFeasTol = 1e-7
     m.Params.OptimalityTol = 1e-7
+    m.Params.FuncPieces = 500
+    m.Params.FuncPieceError = 1e-6
     if prof == "feasible":
         m.Params.NumericFocus = 2
         m.Params.MIPFocus = 1         # prioriza factibilidad

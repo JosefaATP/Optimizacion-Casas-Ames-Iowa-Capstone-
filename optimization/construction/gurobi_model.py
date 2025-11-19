@@ -132,7 +132,7 @@ def _enforce_exclusive_ohe(m: gp.Model, x: Dict[str, gp.Var], feat_order: list[s
 
 # ===================== inputs en el orden del XGB (features) ======================
 
-def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row, lot_area) -> tuple[List[str], Dict[str, gp.Var]]:
+def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row, lot_area, ct=None) -> tuple[List[str], Dict[str, gp.Var]]:
     # Importante: usar el orden que ve el Booster (ColumnTransformer numeric cols)
     try:
         feat_order: List[str] = list(bundle.booster_feature_order())
@@ -153,6 +153,9 @@ def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row, lot_area) -> tup
         "Heating QC", "Kitchen Qual", "Garage Qual", "Garage Cond",
         "Pool QC", "Fireplace Qu",
     }
+
+    roof_area_ratio = float(getattr(ct, "roof_area_max_ratio", 1.4) if ct is not None else 1.4)
+    roof_proj_ratio = float(getattr(ct, "roof_projection_max_ratio", 0.8) if ct is not None else 0.8)
 
     for col in feat_order:
         val = X_base_row[col] if col in X_base_row.index else None
@@ -191,6 +194,10 @@ def _build_x_inputs(m: gp.Model, bundle: XGBBundle, X_base_row, lot_area) -> tup
             ub = min(ub, 0.25 * lot_area)
         elif col == "Pool Area":
             ub = min(ub, 0.10 * lot_area)
+        elif col in ("PlanRoofArea", "ActualRoofArea"):
+            ub = min(ub, roof_area_ratio * lot_area)
+        elif col in ("PR1", "PR2"):
+            ub = min(ub, roof_proj_ratio * lot_area)
 
         if col == "Lot Area" and val is not None and not math.isnan(val):
             v = m.addVar(lb=float(val), ub=float(val), name=f"x_const__{col}")
@@ -305,7 +312,8 @@ def _tighten_bounds_from_booster(m: gp.Model, bundle: XGBBundle,
 # ========================= embed del XGB (y_log, y_price) =========================
 
 def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
-                      feat_order: List[str], x: Dict[str, gp.Var]) -> tuple[gp.Var, gp.Var]:
+                      feat_order: List[str], x: Dict[str, gp.Var],
+                      ct=None) -> tuple[gp.Var, gp.Var]:
     # y_log que usa el XGB
     y_log = m.addVar(lb=-1e6, ub=1e6, name="y_log")
 
@@ -333,21 +341,28 @@ def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
     y_log_cal = m.addVar(lb=-1e6, ub=1e6, name="y_log_cal")
     m.addConstr(y_log_cal == y_log + b0, name="YLOG_CAL")
 
-    # map log -> price via PWL expm1 (tu entrenamiento usa log1p)
+    import numpy as np
+    min_log, max_log = 10.3, 13.8
+    y_log.LB = float(min_log); y_log.UB = float(max_log)
+
+    y_price_raw = m.addVar(lb=0.0, name="y_price_exp")
     y_price = m.addVar(lb=0.0, name="y_price")
 
-    import numpy as np
-    # rango razonable de log-precio, ajusta si quieres: p in [30k, 1.0M] -> log p en [10.3, 13.8]
-    # Densificamos la PWL para reducir error (convexo): más puntos en [10.3,13.8]
-    xs = np.linspace(10.3, 13.8, 401)
-    ys = np.expm1(xs)
+    try:
+        m.addGenConstrExp(y_log_cal, y_price_raw, name="EXP_y_price")
+    except Exception:
+        # fallback to PWL if Exp no disponible
+        xs = np.linspace(min_log, max_log, 401)
+        ys = np.exp(xs)
+        m.addGenConstrPWL(y_log_cal, y_price_raw, xs.tolist(), ys.tolist(), name="PWL_exp_fallback")
 
-    y_log.LB = float(min(xs)); y_log.UB = float(max(xs))
-    y_price.LB = float(min(ys)); y_price.UB = float(max(ys))
-    m.update()
+    m.addConstr(y_price_raw == y_price + 1.0, name="EXP_shift")
 
-
-    m.addGenConstrPWL(y_log_cal, y_price, xs.tolist(), ys.tolist(), name="PWL_exp")
+    y_price.LB = 0.0
+    try:
+        y_price.UB = float(np.expm1(max_log))
+    except Exception:
+        pass
 
     return y_log_cal, y_price
 
@@ -679,7 +694,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     lot_frontage = float(base_row.get("Lot Frontage", getattr(ct, "lot_frontage_ft", 60)))
 
     # features X en el orden del XGB
-    feat_order, x = _build_x_inputs(m, bundle, base_row, lot_area)
+    feat_order, x = _build_x_inputs(m, bundle, base_row, lot_area, ct)
 
         # fijar LOT AREA al valor de entrada
     key_lot = _find_x_key(x, "Lot Area")
@@ -1262,8 +1277,10 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         try:
             m.addGenConstrIndicator(MF["No aplica"], True, misc_val == 0.0, name="11.xx__miscval_zero_if_na")
         except Exception:
-            # fallback: misc_val <= 0 si No aplica (y LB>=0) ⇒ 0
-            m.addConstr(misc_val <= 1e-6 * (1 - MF["No aplica"]), name="11.xx__miscval_leq_zero_if_na")
+            cap = float(getattr(ct, "misc_val_cap", 100000.0))
+            # fallback lineal: fuerza misc_val a 0 cuando No aplica = 1 y lo acota cuando es seleccionable
+            m.addConstr(misc_val <= cap * (1 - MF["No aplica"]), name="11.xx__miscval_leq_if_na")
+            m.addConstr(misc_val >= -cap * (1 - MF["No aplica"]), name="11.xx__miscval_geq_if_na")
 
     # ====== Overall Qual (1..10) derivado de calidades principales ======
     try:
@@ -1684,6 +1701,16 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
                 expr_ag += x2
             m.addConstr(TotAG == expr_ag, name="def__total_ag")
 
+            lot_area_float = float(lot_area)
+            totag_ratio = float(getattr(ct, 'totag_max_ratio', 1.1))
+            if lot_area_float > 0.0:
+                TotAGShare = m.addVar(lb=0.0, name="TotalAboveGradeShare")
+                m.addConstr(TotAG == lot_area_float * TotAGShare, name="share__total_ag_scale")
+                m.addConstr(TotAGShare <= totag_ratio, name="share__total_ag_ub")
+            else:
+                TotAGShare = None
+                m.addConstr(TotAG <= totag_ratio * lot_area_float, name="share__total_ag_ub_scalar")
+
             rem_lo = float(getattr(ct, 'rem_share_min', 0.15))
             rem_hi = float(getattr(ct, 'rem_share_max', 0.25))
             oth_lo = float(getattr(ct, 'other_share_min', 0.20))
@@ -1696,12 +1723,33 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
             if Remainder2 is not None:
                 expr_rem += Remainder2
             m.addConstr(Rsum == expr_rem, name="def__remainder_sum")
-            m.addConstr(Rsum >= rem_lo * TotAG, name="share__remainder_ge")
-            m.addConstr(Rsum <= rem_hi * TotAG, name="share__remainder_le")
+            if lot_area_float > 0.0:
+                RShare = m.addVar(lb=0.0, name="RemainderShare")
+                m.addConstr(Rsum == lot_area_float * RShare, name="share__remainder_scale")
+                if TotAGShare is not None:
+                    m.addConstr(RShare >= rem_lo * TotAGShare, name="share__remainder_ge")
+                    m.addConstr(RShare <= rem_hi * TotAGShare, name="share__remainder_le")
+                else:
+                    # fallback: compara contra TotAG directamente
+                    m.addConstr(RShare >= rem_lo * (TotAG / max(lot_area_float, 1.0)), name="share__remainder_ge_fallback")
+                    m.addConstr(RShare <= rem_hi * (TotAG / max(lot_area_float, 1.0)), name="share__remainder_le_fallback")
+            else:
+                m.addConstr(Rsum >= rem_lo * TotAG, name="share__remainder_ge")
+                m.addConstr(Rsum <= rem_hi * TotAG, name="share__remainder_le")
 
             if AreaOther is not None:
-                m.addConstr(AreaOther >= oth_lo * TotAG, name="share__other_ge")
-                m.addConstr(AreaOther <= oth_hi * TotAG, name="share__other_le")
+                if lot_area_float > 0.0:
+                    AOshare = m.addVar(lb=0.0, name="AreaOtherShare")
+                    m.addConstr(AreaOther == lot_area_float * AOshare, name="share__other_scale")
+                    if TotAGShare is not None:
+                        m.addConstr(AOshare >= oth_lo * TotAGShare, name="share__other_ge")
+                        m.addConstr(AOshare <= oth_hi * TotAGShare, name="share__other_le")
+                    else:
+                        m.addConstr(AOshare >= oth_lo * (TotAG / max(lot_area_float, 1.0)), name="share__other_ge_fallback")
+                        m.addConstr(AOshare <= oth_hi * (TotAG / max(lot_area_float, 1.0)), name="share__other_le_fallback")
+                else:
+                    m.addConstr(AreaOther >= oth_lo * TotAG, name="share__other_ge")
+                    m.addConstr(AreaOther <= oth_hi * TotAG, name="share__other_le")
     except Exception:
         pass
 
@@ -1728,15 +1776,17 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
 
     if x1 is not None:
         # si hay 1er piso: P1 <= 2*(x1/smin + smin); si no hay: P1 <= 0
-        m.addConstr(P1 <= 2*((x1 / smin) + smin) + Uperim1*(1 - Floor1), name="7.23__p1_ub_linear")
-        m.addConstr(P1 <= Uperim1 * Floor1, name="7.23__p1_onoff")
-        # LB seguro cuando hay 1er piso
+        m.addConstr(P1 <= 2*((x1 / smin) + smin), name="7.23__p1_ub_linear")
         m.addConstr(P1 >= 4*smin * Floor1, name="7.23__p1_lb_linear")
+        m.addConstr(P1 <= Uperim1 * Floor1, name="7.23__p1_onoff")
 
     if x2 is not None:
-        # si hay 2do piso: P2 <= 2*(x2/smin + smin); si no hay: P2 <= 0
-        m.addConstr(P2 <= 2*((x2 / smin) + smin) + Uperim2*(1 - Floor2), name="7.23__p2_ub_linear")
-        m.addConstr(P2 <= Uperim2 * Floor2, name="7.23__p2_onoff")
+        try:
+            m.addGenConstrIndicator(Floor2, True, P2 <= 2*((x2 / smin) + smin), name="7.23__p2_ub_indicator")
+            m.addGenConstrIndicator(Floor2, False, P2 == 0.0, name="7.23__p2_off")
+        except Exception:
+            m.addConstr(P2 <= 2*((x2 / smin) + smin) + Uperim2*(1 - Floor2), name="7.23__p2_ub_linear")
+            m.addConstr(P2 <= Uperim2 * Floor2, name="7.23__p2_onoff")
         # LB seguro cuando hay 2do piso
         m.addConstr(P2 >= 4*smin * Floor2, name="7.23__p2_lb_linear")
 
@@ -1833,11 +1883,12 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     # estrechar bounds antes de embebido (reduce big-M)
     _tighten_bounds_from_booster(m, bundle, feat_order, x)
 
-    y_log, y_price = _attach_xgb_embed(m, bundle, feat_order, x)
+    y_log, y_price = _attach_xgb_embed(m, bundle, feat_order, x, ct)
 
     # objetivo = precio - costo, con presupuesto
     m.setObjective(y_price - cost_var, GRB.MAXIMIZE)
     m.addConstr(cost_var <= budget, name="budget")
+    #m.addConstr(y_price >= cost_var, name="profit_nonnegative")
 
     # Auditoria y etiquetas para post-proceso
     m._y_price_var = y_price
