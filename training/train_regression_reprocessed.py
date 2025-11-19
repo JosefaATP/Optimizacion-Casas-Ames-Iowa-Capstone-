@@ -105,17 +105,30 @@ else:
     print("❌ No se puede procesar sin bundle")
     sys.exit(1)
 
-# ============================================================================
-# ENTRENAR REGRESIÓN CON DATOS RE-PROCESADOS
-# ============================================================================
+# Opcional: eliminar columnas altamente colineales que bloquean peso en componentes (ej. Total Bsmt SF)
+drop_cols = [c for c in ["Total Bsmt SF"] if c in X.columns]
+if drop_cols:
+    print(f"\n⚙️  Eliminando columnas colineales para dar peso a componentes: {drop_cols}")
+    X = X.drop(columns=drop_cols)
 
-from sklearn.linear_model import LinearRegression
+# ============================================================================
+# ENTRENAR REGRESIÓN CON DATOS RE-PROCESADOS (ESCALADO + RIDGE)
+# ============================================================================
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Ridge
 
-print(f"\n🔄 Entrenando LinearRegression con datos re-procesados...")
-model = LinearRegression()
+alpha = 1e-6  # regularización casi nula para no matar metros/baños
+print(f"\n🔄 Entrenando Ridge con StandardScaler (alpha={alpha})...")
+ridge_reg = Ridge(alpha=alpha, fit_intercept=True)
+model = Pipeline([
+    ("scaler", StandardScaler()),
+    ("ridge", ridge_reg),
+])
 model.fit(X, y)
 
-print(f"✓ Modelo entrenado")
+best_alpha = alpha
+print(f"✓ Modelo entrenado (Ridge + scaler) | alpha = {best_alpha}")
 
 # ============================================================================
 # EVALUAR
@@ -137,7 +150,20 @@ print(f"  R² (log): {r2:.4f}")
 print(f"  RMSE (real): ${rmse_real:,.0f}")
 print(f"  MAE (real): ${mae_real:,.0f}")
 print(f"  MAPE: {mape:.2f}%")
-
+# Mostrar pesos aproximados (en espacio log) para features clave
+try:
+    ridge = model.named_steps["ridge"]
+    scaler = model.named_steps["scaler"]
+    coef = ridge.coef_.ravel()
+    scale = scaler.scale_
+    feat_series = pd.Series(coef / scale, index=X.columns)  # efecto por unidad en log-space
+    keys = ["Gr Liv Area", "1st Flr SF", "BsmtFin SF 1", "Bsmt Unf SF", "Full Bath", "Half Bath", "Bedroom AbvGr"]
+    print("\n🔎 Pesos (log por unidad) en features remodelables:")
+    for k in keys:
+        if k in feat_series.index:
+            print(f"  - {k}: {feat_series[k]:+.6f}")
+except Exception:
+    pass
 # ============================================================================
 # PRUEBA CON CASA ESPECÍFICA (PID 526301100)
 # ============================================================================
@@ -150,6 +176,11 @@ try:
     
     # Procesar IGUAL que entrenamiento
     X_test = build_base_input_row(bundle, test_row)
+    # Alinear columnas con X (por si eliminaste algunas)
+    for col in X.columns:
+        if col not in X_test.columns:
+            X_test[col] = 0.0
+    X_test = X_test[X.columns]
     
     # Predecir
     pred_log = model.predict(X_test)[0]
@@ -193,6 +224,8 @@ model_pkg = {
     "mape": float(mape),
     "processed_with": "build_base_input_row from run_opt.py",
     "n_training_samples": len(X),
+    "estimator": "Ridge",
+    "alpha": best_alpha,
 }
 
 output_path = Path("models/regression_model_reprocesed.pkl")
@@ -202,7 +235,7 @@ with open(output_path, "wb") as f:
     pickle.dump(model_pkg, f)
 
 print(f"✓ Guardado en: {output_path}")
-print(f"  - Modelo: LinearRegression")
+print(f"  - Modelo: Ridge + StandardScaler")
 print(f"  - Features: {len(X.columns)}")
 print(f"  - Procesados con: build_base_input_row")
 print(f"  - Compatible con: run_opt.py al 100%")

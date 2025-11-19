@@ -1270,6 +1270,10 @@ def main():
         try:
             reg_base = reg_pred.predict(X_base)
             reg_opt = reg_pred.predict(X_opt)
+
+            # Predicciones de XGBoost consistentes: usar el precio del MIP si existe, si no, bundle.predict
+            precio_opt_xgb_pred = float(bundle.predict(X_opt).iloc[0]) if precio_opt is None else precio_opt
+            precio_opt_xgb_display = precio_opt if precio_opt is not None else precio_opt_xgb_pred
             
             print("\n📊 **Comparación de Modelos (XGBoost vs Regresión)**")
             print(f"  Casa base (sin mejoras):")
@@ -1281,15 +1285,15 @@ def main():
                 print(f"    - Diferencia: ${diff_base:+,.0f} ({pct_base:+.1f}%)")
             
             print(f"\n  Casa remodelada (con mejoras):")
-            print(f"    - XGBoost:   ${precio_opt:,.0f}" if precio_opt is not None else f"    - XGBoost:   N/A")
+            print(f"    - XGBoost:   ${precio_opt_xgb_display:,.0f}")
             print(f"    - Regresión: ${reg_opt:,.0f}")
-            if precio_opt is not None:
-                diff_opt = reg_opt - precio_opt
-                pct_opt = (diff_opt / precio_opt * 100) if precio_opt > 0 else 0
+            if precio_opt_xgb_display is not None:
+                diff_opt = reg_opt - precio_opt_xgb_display
+                pct_opt = (diff_opt / precio_opt_xgb_display * 100) if precio_opt_xgb_display > 0 else 0
                 print(f"    - Diferencia: ${diff_opt:+,.0f} ({pct_opt:+.1f}%)")
             
-            # Delta de mejora
-            xgb_delta = precio_opt - precio_base if (precio_opt is not None and precio_base is not None) else None
+            # Delta de mejora usando las mismas fuentes externas para consistencia
+            xgb_delta = precio_opt_xgb_display - precio_base if (precio_opt_xgb_display is not None and precio_base is not None) else None
             reg_delta = reg_opt - reg_base
             
             print(f"\n  Uplift (mejora por remodelación):")
@@ -1307,6 +1311,28 @@ def main():
                     print(f"      ⚠️  Brecha moderada (gap 10-20%)")
                 else:
                     print(f"      ⚠️  Brecha significativa (gap > 20%)")
+            
+            # Contribución aproximada por cambio (top 5) para entender divergencia
+            try:
+                changes = []
+                for col in X_base.columns:
+                    bval = float(pd.to_numeric(X_base.loc[0, col], errors="coerce") or 0.0)
+                    oval = float(pd.to_numeric(X_opt.loc[0, col], errors="coerce") or 0.0)
+                    if bval != oval:
+                        changes.append((col, bval, oval))
+                contribs = []
+                for col, bval, oval in changes:
+                    X_tmp = X_base.copy()
+                    X_tmp.loc[0, col] = oval
+                    reg_tmp = reg_pred.predict(X_tmp)
+                    xgb_tmp = float(bundle.predict(X_tmp).iloc[0])
+                    contribs.append((col, reg_tmp - reg_base, xgb_tmp - precio_base))
+                contribs_top = sorted(contribs, key=lambda x: abs(x[1]), reverse=True)[:5]
+                print("\n  Contribuciones (cambio individual vs base) - top 5 por impacto en Regresión:")
+                for col, dreg, dxgb in contribs_top:
+                    print(f"    - {col}: Reg Δ${dreg:,.0f} | XGB Δ${dxgb:,.0f}")
+            except Exception:
+                pass
             
         except Exception as e:
             print(f"\n[INFO] No se pudo calcular comparación con regresión: {e}")
@@ -1405,6 +1431,27 @@ def main():
         for nombre, base_val, new_val, cost_val in cambios_costos:
             suf = f" (costo {money(cost_val)})" if (cost_val is not None and cost_val > 0) else ""
             print(f"  - {nombre}: {base_val} → {new_val}{suf}")
+        # Añadir cambios explícitos de baños/dormitorios si aplican
+        def _get_num(X, col, fallback):
+            try:
+                return float(pd.to_numeric(X.loc[0, col], errors="coerce"))
+            except Exception:
+                return fallback
+        try:
+            base_fb = _get_num(m._X_base_numeric, "Full Bath", base_row.get("Full Bath", 0))
+            opt_fb = _get_num(X_in if 'X_in' in locals() else m._X_base_numeric, "Full Bath", base_fb)
+            if opt_fb != base_fb:
+                print(f"  - Baños completos: {base_fb:g} → {opt_fb:g}")
+            base_hb = _get_num(m._X_base_numeric, "Half Bath", base_row.get("Half Bath", 0))
+            opt_hb = _get_num(X_in if 'X_in' in locals() else m._X_base_numeric, "Half Bath", base_hb)
+            if opt_hb != base_hb:
+                print(f"  - Medios baños: {base_hb:g} → {opt_hb:g}")
+            base_bed = _get_num(m._X_base_numeric, "Bedroom AbvGr", base_row.get("Bedroom AbvGr", 0))
+            opt_bed = _get_num(X_in if 'X_in' in locals() else m._X_base_numeric, "Bedroom AbvGr", base_bed)
+            if opt_bed != base_bed:
+                print(f"  - Dormitorios: {base_bed:g} → {opt_bed:g}")
+        except Exception:
+            pass
     else:
         print("  (No se detectaron cambios)")
 
@@ -1493,7 +1540,7 @@ def main():
         
         # 2. Obtener predicción XGBoost de casa REMODELADA
         X_opt = rebuild_embed_input_df(m, m._X_base_numeric)
-        precio_opt_xgb = float(bundle.predict(X_opt).iloc[0])
+        precio_opt_xgb = float(precio_opt) if precio_opt is not None else float(bundle.predict(X_opt).iloc[0])
         
         # 3. Cargar regresión y predecir
         try:
@@ -1552,11 +1599,12 @@ def main():
             who_base = "XGBoost supera a Regresión" if gap_base_abs > 0 else "Regresión supera a XGBoost"
             print(f"  Base:       Regresión ${precio_base_reg:,.0f} | XGBoost ${precio_base_xgb:,.0f}  ({who_base} {gap_base_pct:+.2f}%)")
 
-            gap_opt_abs = diff_predicciones
-            gap_opt_pct = diff_pct
+            xgb_opt_show = precio_opt_xgb_display
+            gap_opt_abs = xgb_opt_show - precio_opt_reg
+            gap_opt_pct = (gap_opt_abs / precio_opt_reg * 100) if precio_opt_reg else 0
             who_opt = "XGBoost supera a Regresión" if gap_opt_abs > 0 else "Regresión supera a XGBoost"
-            print(f"  Remodelada: Regresión ${precio_opt_reg:,.0f} | XGBoost ${precio_opt_xgb:,.0f}  ({who_opt} {gap_opt_pct:+.2f}%)")
-            print(f"  Gap remodelada: ${diff_predicciones:+,.0f} ({diff_pct:+.2f}% vs Regresión)")
+            print(f"  Remodelada: Regresión ${precio_opt_reg:,.0f} | XGBoost ${xgb_opt_show:,.0f}  ({who_opt} {gap_opt_pct:+.2f}%)")
+            print(f"  Gap remodelada: ${gap_opt_abs:+,.0f} ({gap_opt_pct:+.2f}% vs Regresión)")
                     
         except FileNotFoundError as e:
             print(f"\n⚠️  Modelo de regresión no encontrado:")
