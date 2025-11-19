@@ -345,24 +345,21 @@ def _attach_xgb_embed(m: gp.Model, bundle: XGBBundle,
     min_log, max_log = 10.3, 13.8
     y_log.LB = float(min_log); y_log.UB = float(max_log)
 
-    y_price_raw = m.addVar(lb=0.0, name="y_price_exp")
     y_price = m.addVar(lb=0.0, name="y_price")
 
+    max_price = float(np.expm1(max_log))
     try:
-        m.addGenConstrExp(y_log_cal, y_price_raw, name="EXP_y_price")
-    except Exception:
-        # fallback to PWL if Exp no disponible
-        xs = np.linspace(min_log, max_log, 401)
-        ys = np.exp(xs)
-        m.addGenConstrPWL(y_log_cal, y_price_raw, xs.tolist(), ys.tolist(), name="PWL_exp_fallback")
-
-    m.addConstr(y_price_raw == y_price + 1.0, name="EXP_shift")
-
-    y_price.LB = 0.0
-    try:
-        y_price.UB = float(np.expm1(max_log))
+        y_price.UB = max_price
     except Exception:
         pass
+
+    # Aproximación PWL densa para expm1 (evita violaciones numéricas de GenConstrExp)
+    n_pts = 401
+    xs = np.linspace(min_log, max_log, n_pts)
+    xs[0] = min_log
+    xs[-1] = max_log
+    ys = np.expm1(xs)
+    m.addGenConstrPWL(y_log_cal, y_price, xs.tolist(), ys.tolist(), name="PWL_expm1")
 
     return y_log_cal, y_price
 

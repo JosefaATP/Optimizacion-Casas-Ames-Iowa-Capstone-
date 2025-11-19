@@ -4,15 +4,19 @@ ASCII solo (sin emojis) para evitar problemas de consola en Windows.
 """
 
 import argparse
+from datetime import datetime
 import pandas as pd
 import numpy as np
 import gurobipy as gp
+import joblib
+import re
 
-from .config import PARAMS
+from .config import PARAMS, PATHS
 from .io import get_base_house, load_base_df
 from . import costs
 from .xgb_predictor import XGBBundle
 from .gurobi_model import build_mip_embed, summarize_solution
+from .preprocess_regresion import load_regression_reference_df, prepare_regression_input
 
 
 def money(v: float) -> str:
@@ -134,6 +138,27 @@ def compute_neigh_modes(neigh: str, base_csv_path=None) -> dict[str, str]:
     return modes
 
 
+def canonicalize_category(value: str | None, column: str, base_csv_path=None) -> str | None:
+    if value is None:
+        return None
+    try:
+        df = load_base_df(base_csv_path)
+    except Exception:
+        return value
+    if column not in df.columns:
+        return value
+    uniq = df[column].dropna().unique()
+    norm_map = {_norm_key(v): v for v in uniq}
+    token = _norm_key(value)
+    if token in norm_map:
+        canon = norm_map[token]
+        if canon != value:
+            print(f"[WARN] {column} '{value}' no encontrado exactamente; usando '{canon}'")
+        return canon
+    print(f"[WARN] {column} '{value}' no existe en la base; se usa tal cual")
+    return value
+
+
 def enforce_neigh_modes(m: gp.Model, modes: dict[str, str]):
     """Fija categorías al valor modal del barrio si existe la OHE correspondiente."""
     for col, val in modes.items():
@@ -243,8 +268,8 @@ def audit_predict_outside(m: gp.Model, bundle: XGBBundle):
             return float('nan')
 
     try:
-        # Para auditoría, usa SIEMPRE el pipeline completo (sin early stopping)
-        y_full = bundle.pipe_full.predict(Z)
+        # Usa el mismo predictor (con early stopping) que en el embed
+        y_full = bundle.predict(Z)
         y_out = _first_scalar(y_full)
         print(f"[AUDIT] predict fuera = {y_out:,.2f}")
         # Diagnóstico: comparar y_log interno vs margin del XGB afuera
@@ -278,6 +303,61 @@ def audit_predict_outside(m: gp.Model, bundle: XGBBundle):
         print(f"[AUDIT] fallo predict fuera: {e}")
 
 
+def _norm_key(name: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(name).lower())
+
+
+def materialize_optimal_input_df(m: gp.Model) -> pd.DataFrame | None:
+    Xi = getattr(m, "_X_input", None)
+    if Xi is None:
+        return None
+    if isinstance(Xi, dict) and "order" in Xi and "x" in Xi:
+        order = list(Xi["order"])
+        xvars = Xi["x"]
+        df = pd.DataFrame([[0.0] * len(order)], columns=order)
+        for c in order:
+            v = xvars.get(c)
+            try:
+                df.loc[0, c] = float(v.X) if hasattr(v, "X") else float(v)
+            except Exception:
+                df.loc[0, c] = 0.0
+        return df
+    if hasattr(Xi, "copy"):
+        df = Xi.copy()
+        for c in getattr(df, "columns", []):
+            try:
+                val = df.loc[0, c]
+                df.loc[0, c] = float(val.X) if hasattr(val, "X") else float(val)
+            except Exception:
+                continue
+        return df
+    return None
+
+
+def report_regression_comparison(m: gp.Model, reg_model, *, reg_df=None, feature_names=None, base_row=None):
+    if reg_model is None:
+        m._reg_price = float("nan")
+        return
+    X_df = materialize_optimal_input_df(m)
+    if X_df is None:
+        print("[REG] no se pudo reconstruir X_input para la regresión")
+        m._reg_price = float("nan")
+        return
+    feat_order = feature_names or list(getattr(reg_model, "feature_names_in_", []))
+    try:
+        X_reg = prepare_regression_input(X_df, base_row, feat_order, reg_df)
+        precio_reg = float(reg_model.predict(X_reg)[0])
+        y_price = getattr(m, "_y_price_var", None)
+        precio_xgb = float(y_price.X) if y_price is not None else float("nan")
+        delta = precio_xgb - precio_reg if pd.notna(precio_xgb) else float("nan")
+        pct = (delta / precio_reg * 100) if precio_reg not in (0.0, None) else float("nan")
+        print(f"[REG] precio_reg_lineal = ${precio_reg:,.0f} | delta_vs_XGB = ${delta:,.0f} ({pct:.2f}%)")
+        m._reg_price = precio_reg
+    except Exception as e:
+        print(f"[REG] no se pudo evaluar la regresión: {e}")
+        m._reg_price = float("nan")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pid", type=int, default=None)
@@ -294,7 +374,21 @@ def main():
     ap.add_argument("--audit", action="store_true")
     ap.add_argument("--outcsv", type=str, default=None, help="ruta CSV para append de resultados por corrida")
     ap.add_argument("--bldg", type=str, default=None, help="tipo de edificio (por ejemplo: 1Fam, TwnhsE, TwnhsI, Duplex, 2FmCon)")
+    ap.add_argument("--reg-model", type=str, default=None, help="Ruta opcional a un modelo de regresión lineal (joblib) para comparar precios")
+    ap.add_argument("--reg-basecsv", type=str, default=None, help="CSV limpio utilizado para entrenar la regresión lineal")
     args = ap.parse_args()
+
+    reg_model = None
+    reg_path = args.reg_model or str(getattr(PATHS, "reg_model_file", ""))
+    if reg_path:
+        try:
+            reg_model = joblib.load(reg_path)
+            print(f"[REG] modelo cargado desde {reg_path}")
+        except Exception as e:
+            print(f"[REG] no se pudo cargar la regresión ({reg_path}): {e}")
+    reg_model_path = reg_path if reg_model is not None else None
+    reg_df = load_regression_reference_df(args.reg_basecsv) if reg_model is not None else None
+    reg_features = list(getattr(reg_model, "feature_names_in_", [])) if reg_model is not None else None
 
     def _make_seed_row(neigh: str, lot: float) -> pd.Series:
         base_defaults = {
@@ -356,6 +450,8 @@ def main():
         })
         return pd.Series(base_defaults)
 
+    neigh_arg = canonicalize_category(args.neigh, "Neighborhood", base_csv_path=args.basecsv) if args.neigh else args.neigh
+
     if args.pid is not None:
         base = get_base_house(args.pid, base_csv=args.basecsv)
         try:
@@ -363,7 +459,10 @@ def main():
         except AttributeError:
             base_row = base if isinstance(base, pd.Series) else pd.Series(base)
     else:
-        base_row = _make_seed_row(args.neigh, args.lot)
+        base_row = _make_seed_row(neigh_arg, args.lot)
+    base_row["Neighborhood"] = canonicalize_category(base_row.get("Neighborhood"), "Neighborhood", base_csv_path=args.basecsv)
+    if base_row.get("Neighborhood"):
+        args.neigh = base_row["Neighborhood"]
     # Override de tipo de edificio si se pide por CLI
     if args.bldg:
         try:
@@ -388,7 +487,7 @@ def main():
     m: gp.Model = build_mip_embed(base_row=base_row, budget=args.budget, ct=ct, bundle=bundle)
 
     # Si se especifica barrio, fuerza mínimos de atributos = cuantil bajo/min del barrio (guard-rail)
-    neigh_token = args.neigh or base_row.get("Neighborhood", None)
+    neigh_token = base_row.get("Neighborhood", args.neigh)
     if neigh_token:
         means = compute_neigh_means(str(neigh_token), base_csv_path=args.basecsv, quantile=0.10)
         if means:
@@ -463,6 +562,8 @@ def main():
         print("[WARN] no hay solucion valida")
         return
 
+    report_regression_comparison(m, reg_model, reg_df=reg_df, feature_names=reg_features, base_row=base_row)
+
     y_var = getattr(m, "_y_price_var", None)
     c_var = m.getVarByName("cost_model") or getattr(m, "_cost_var", None)
     y_price = float(y_var.X) if y_var is not None else float("nan")
@@ -494,7 +595,21 @@ def main():
 
     print("\n" + "="*60)
     print("                     FIN RESULTADOS")
-    print("="*60 + "\n")
+    print("="*60)
+
+    reg_price = float(getattr(m, "_reg_price", float("nan")))
+    precio_xgb = y_price
+    if not np.isnan(reg_price):
+        delta = precio_xgb - reg_price
+        pct = (delta / reg_price * 100.0) if reg_price not in (0.0, None) else float("nan")
+        print("\n==============================")
+        print("     COMPARACIÓN CON REGRESIÓN")
+        print("==============================")
+        print(f"  Precio XGB (post):        {money(precio_xgb)}")
+        print(f"  Precio regresión lineal:  {money(reg_price)}")
+        print(f"  Diferencia XGB-REG:       {money(delta)} ({pct:.2f}%)\n")
+    else:
+        print("\n[CREG] no se pudo calcular comparación con regresión\n")
 
     # ================= CSV append (si se pidió) =================
     if args.outcsv:
@@ -508,28 +623,60 @@ def main():
                     return float(v.X) if hasattr(v, 'X') else (float(v) if v is not None else float('nan'))
                 except Exception:
                     return float('nan')
+            reg_price = float(getattr(m, "_reg_price", float('nan')))
+            delta_reg = (y_price - reg_price) if (np.isfinite(y_price) and np.isfinite(reg_price)) else float('nan')
+            delta_reg_pct = ((delta_reg / reg_price) * 100.0) if np.isfinite(delta_reg) and reg_price not in (0.0, None) else float('nan')
+            price_out = float(getattr(m, '_diag_y_price_out', float('nan')))
+            y_log_in = float(getattr(m, '_y_log_var', None).X) if getattr(m, '_y_log_var', None) is not None else float('nan')
+            y_log_out = float(getattr(m, '_diag_y_log_out', float('nan')))
+            budget_val = float(getattr(m, "_budget_usd", args.budget))
+            slack_val = budget_val - total_cost if np.isfinite(total_cost) else float('nan')
+            opt_df = materialize_optimal_input_df(m)
+            def xfeat(name):
+                if opt_df is not None and name in opt_df.columns:
+                    try:
+                        return float(opt_df.loc[0, name])
+                    except Exception:
+                        return float('nan')
+                return float('nan')
             row = {
+                'timestamp': datetime.utcnow().isoformat(),
+                'profile': args.profile,
                 'neigh': str(base_row.get('Neighborhood', args.neigh or 'N/A')),
                 'lot': float(base_row.get('LotArea', args.lot or 0.0)),
                 'budget': float(args.budget),
                 'status': int(getattr(m, 'Status', -1)),
                 'runtime_s': float(getattr(m, 'Runtime', 0.0)),
                 'gap': float(getattr(m, 'MIPGap', float('nan'))),
+                'xgb_model': str(getattr(bundle, 'model_path', PATHS.xgb_model_file)),
+                'reg_model': reg_model_path or "",
                 'y_price': y_price,
-                'y_price_out': float(getattr(m, '_diag_y_price_out', float('nan'))),
-                'y_log_in': float(getattr(m, '_y_log_var', None).X) if getattr(m, '_y_log_var', None) is not None else float('nan'),
-                'y_log_out': float(getattr(m, '_diag_y_log_out', float('nan'))),
+                'y_price_out': price_out,
+                'y_log_in': y_log_in,
+                'y_log_out': y_log_out,
+                'reg_price': reg_price,
+                'delta_reg_abs': delta_reg,
+                'delta_reg_pct': delta_reg_pct,
                 'cost': total_cost,
                 'obj': obj,
+                'slack': slack_val,
                 'floor1': vnum('Floor1'),
                 'floor2': vnum('Floor2'),
                 'area_1st': vnum('1st Flr SF'),
                 'area_2nd': vnum('2nd Flr SF'),
                 'bsmt': vnum('Total Bsmt SF'),
+                'gr_liv_area': xfeat('Gr Liv Area'),
+                'garage_area': xfeat('Garage Area'),
+                'screen_porch': xfeat('Screen Porch'),
+                'pool_area': xfeat('Pool Area'),
                 'beds': vnum('Bedrooms'),
                 'fullbath': vnum('FullBath'),
                 'halfbath': vnum('HalfBath'),
                 'kitchen': vnum('Kitchen'),
+                'overall_qual': xfeat('Overall Qual'),
+                'overall_cond': xfeat('Overall Cond'),
+                'kitchen_qual': xfeat('Kitchen Qual'),
+                'heating_qc': xfeat('Heating QC'),
             }
             write_header = not os.path.exists(args.outcsv)
             with open(args.outcsv, 'a', newline='') as f:

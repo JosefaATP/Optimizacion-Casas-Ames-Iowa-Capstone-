@@ -326,6 +326,27 @@ class XGBBundle:
             y_fallback = self.pipe_full.predict(X_fixed)
             return pd.Series(y_fallback, index=X.index)
 
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+
+        try:
+            if n_use is not None and n_use > 0:
+                y_pred_log = self.reg.predict(Xp, iteration_range=(0, n_use))
+            else:
+                y_pred_log = self.reg.predict(Xp)
+            if self.log_target:
+                y_pred = np.expm1(y_pred_log)
+            else:
+                y_pred = y_pred_log
+            return pd.Series(y_pred, index=X.index)
+        except Exception:
+            # último recurso: pipe completo
+            y_fallback = self.pipe_full.predict(X_fixed)
+            return pd.Series(y_fallback, index=X.index)
+
     def predict_log_raw(self, X: pd.DataFrame) -> pd.Series:
         """Predice la salida cruda del XGB (margin = y_log), sin inverse_func.
         Respeta early stopping usando iteration_range si está disponible.
@@ -358,28 +379,6 @@ class XGBBundle:
             except Exception:
                 y_log = y
             return pd.Series(y_log, index=X.index)
-
-        # Usar el mismo número de árboles que en el embed si está disponible
-        n_use = None
-        try:
-            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
-        except Exception:
-            n_use = None
-
-        try:
-            if n_use is not None and n_use > 0:
-                y_pred_log = self.reg.predict(Xp, iteration_range=(0, n_use))
-            else:
-                y_pred_log = self.reg.predict(Xp)
-            if self.log_target:
-                y_pred = np.expm1(y_pred_log)
-            else:
-                y_pred = y_pred_log
-            return pd.Series(y_pred, index=X.index)
-        except Exception:
-            # último recurso: pipe completo
-            y_fallback = self.pipe_full.predict(X_fixed)
-            return pd.Series(y_fallback, index=X.index)
 
 
     def attach_to_gurobi(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:

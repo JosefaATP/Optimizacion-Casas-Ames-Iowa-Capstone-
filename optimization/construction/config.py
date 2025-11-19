@@ -11,6 +11,7 @@ class Paths(BaseModel):
     # carpeta donde esta TU modelo elegido
     model_dir: Path = repo_root / "models" / "xgb" / "datos_nuevos"
     xgb_model_file: Path = model_dir / "model_xgb.joblib"
+    reg_model_file: Path = repo_root / "models" / "reg" / "base_reg_vale.joblib"
     # CSV por defecto (puedes sobreescribir por CLI si quieres)
     base_csv: Path = data_dir / "processed"/"base_completa_sin_nulos.csv"
 
