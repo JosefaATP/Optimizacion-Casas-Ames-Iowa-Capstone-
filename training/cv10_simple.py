@@ -17,10 +17,10 @@ BEST_PARAMS = {
     "colsample_bytree": 0.43051657642562313,
     "reg_lambda": 3.364253417277695,
     "reg_alpha": 0.052422719530854305,
-    "objective": "reg:squarederror",
-    "random_state": SEED,
-    "n_jobs": -1,
     "tree_method": "hist",
+    "objective": "reg:squarederror",
+    "n_jobs": -1,
+    "random_state": SEED,
 }
 
 DROP_COLS = ["PID", "Order", "SalePrice", "\ufeffOrder"]

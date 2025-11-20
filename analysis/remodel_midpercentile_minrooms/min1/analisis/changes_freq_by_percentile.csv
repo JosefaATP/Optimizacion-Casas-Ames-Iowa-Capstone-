@@ -1,0 +1,18 @@
+percentile_label,col,count,n_opt,rate_in_group
+p50,1st Flr SF,2,2,1.0
+p50,Bedroom AbvGr,2,2,1.0
+p50,Bsmt Cond,2,2,1.0
+p50,Bsmt Qual,2,2,1.0
+p50,Bsmt Unf SF,2,2,1.0
+p50,BsmtFin SF 1,2,2,1.0
+p50,Exter Cond,2,2,1.0
+p50,Exter Qual,2,2,1.0
+p50,Fireplace Qu,2,2,1.0
+p50,Garage Cars,2,2,1.0
+p50,Garage Cond,2,2,1.0
+p50,Garage Qual,2,2,1.0
+p50,Gr Liv Area,2,2,1.0
+p50,Heating QC,2,2,1.0
+p50,Kitchen Qual,2,2,1.0
+p50,Low Qual Fin SF,2,2,1.0
+p50,Utilities,2,2,1.0

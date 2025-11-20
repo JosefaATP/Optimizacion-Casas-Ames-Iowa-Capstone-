@@ -168,6 +168,7 @@ class CaseResult:
     obj_val: float | None
     changes: list[dict]
     xgb_features_path: str
+    model_path: str
 
 
 def _summarize_changes(base_row: pd.Series, opt_row: pd.Series) -> list[dict]:
@@ -191,7 +192,14 @@ def _summarize_changes(base_row: pd.Series, opt_row: pd.Series) -> list[dict]:
     return changes
 
 
-def run_case(pid: int, budget: float, bundle: XGBBundle, quality_floor: str | None, base_csv: Optional[Path] = None) -> tuple[CaseResult, dict]:
+def run_case(
+    pid: int,
+    budget: float,
+    bundle: XGBBundle,
+    quality_floor: str | None,
+    base_csv: Optional[Path] = None,
+    out_dir: Path = Path("optimization/sensibilidad_remodelacion"),
+) -> tuple[CaseResult, dict]:
     base = get_base_house(pid, base_csv)
     ct = CostTables()
 
@@ -260,7 +268,6 @@ def run_case(pid: int, budget: float, bundle: XGBBundle, quality_floor: str | No
     changes = _summarize_changes(base.row, opt_row) if has_solution else []
 
     # Guardar features listos para XGB
-    out_dir = Path("optimization/sensibilidad_remodelacion")
     out_dir.mkdir(parents=True, exist_ok=True)
     feat_path = out_dir / f"xgb_features_pid{pid}_b{int(budget)}{'_q'+str(floor_ord) if floor_ord is not None else ''}.csv"
     opt_feat.to_csv(feat_path, index=False)
@@ -282,6 +289,7 @@ def run_case(pid: int, budget: float, bundle: XGBBundle, quality_floor: str | No
         obj_val=obj_val,
         changes=changes,
         xgb_features_path=str(feat_path),
+        model_path=str(bundle.model_path),
     )
 
     extra = {
@@ -315,6 +323,14 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--basecsv", type=str, default=None, help="CSV base (opcional)")
     ap.add_argument("--budgets", type=float, nargs="+", default=[20000, 50000, 100000])
     ap.add_argument("--percentiles", type=float, nargs="+", default=[0.25, 0.5, 0.75])
+    ap.add_argument("--outdir", type=str, default="optimization/sensibilidad_remodelacion",
+                    help="Carpeta de salida (resumen.csv, detalles.jsonl, features)")
+    ap.add_argument("--model-path", type=str, default=None,
+                    help="Ruta al model_xgb.joblib a usar (por defecto PATHS.xgb_model_file)")
+    ap.add_argument("--max-base-bedrooms", type=float, default=None,
+                    help="Si se define, solo usa pids con Bedroom AbvGr base <= este valor.")
+    ap.add_argument("--min-neighborhood-count", type=int, default=10,
+                    help="Para --neighborhood all, mínimo de casas necesarias por barrio (default 10).")
     return ap.parse_args()
 
 
@@ -322,23 +338,25 @@ def main():
     args = parse_args()
 
     df = load_base_df(args.basecsv)
+    if args.max_base_bedrooms is not None and "Bedroom AbvGr" in df.columns:
+        df = df.loc[pd.to_numeric(df["Bedroom AbvGr"], errors="coerce") <= args.max_base_bedrooms]
     nb_counts = df["Neighborhood"].value_counts()
     neighborhoods = []
     if args.neighborhood.lower() == "all":
-        neighborhoods = list(nb_counts[nb_counts >= 10].index)
+        neighborhoods = list(nb_counts[nb_counts >= args.min_neighborhood_count].index)
     else:
         neighborhoods = [args.neighborhood]
 
     quality_levels = [None]  # calidades fijas deshabilitadas
 
-    out_dir = Path("optimization/sensibilidad_remodelacion")
+    out_dir = Path(args.outdir)
     out_dir.mkdir(parents=True, exist_ok=True)
     summary_rows: List[CaseResult] = []
     details_path = out_dir / "detalles.jsonl"
     if details_path.exists():
         details_path.unlink()
 
-    bundle = XGBBundle()
+    bundle = XGBBundle(Path(args.model_path)) if args.model_path else XGBBundle()
 
     # contador de progreso
     total_cases = 0
@@ -353,7 +371,14 @@ def main():
         for pick in picks:
             for budget in args.budgets:
                 for q_floor in quality_levels:
-                    res, extra = run_case(pick["pid"], budget, bundle, q_floor, args.basecsv)
+                    res, extra = run_case(
+                        pick["pid"],
+                        budget,
+                        bundle,
+                        q_floor,
+                        args.basecsv,
+                        out_dir,
+                    )
                     res.percentile_label = pick["label"]
                     res.percentile_value = pick["price_val"]
                     summary_rows.append(res)

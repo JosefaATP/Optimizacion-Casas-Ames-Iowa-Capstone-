@@ -1,4 +1,6 @@
+Total casos: 225
 Total casos OPTIMAL: 225
+Tasa OPTIMAL global: 100.00%
 
 Top 5 cambios más frecuentes (overall):
  - Gr Liv Area: 225 veces
@@ -6,3 +8,8 @@ Top 5 cambios más frecuentes (overall):
  - Bsmt Qual: 225 veces
  - Utilities: 225 veces
  - Exter Cond: 225 veces
+
+Top 3 cambios con mayor net_gain medio:
+ - Kitchen AbvGr: 199821.8 net_gain medio
+ - Screen Porch: 199698.9 net_gain medio
+ - Bedroom AbvGr: 164933.8 net_gain medio

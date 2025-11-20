@@ -1,0 +1,15 @@
+Total casos: 225
+Total casos OPTIMAL: 225
+Tasa OPTIMAL global: 100.00%
+
+Top 5 cambios más frecuentes (overall):
+ - Exter Qual: 225 veces
+ - Exter Cond: 225 veces
+ - Low Qual Fin SF: 225 veces
+ - Gr Liv Area: 225 veces
+ - Garage Qual: 225 veces
+
+Top 3 cambios con mayor net_gain medio:
+ - Kitchen AbvGr: 147391.7 net_gain medio
+ - Bedroom AbvGr: 145520.1 net_gain medio
+ - Garage Area: 144818.4 net_gain medio

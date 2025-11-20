@@ -1,0 +1,817 @@
+combo,count
+1st Flr SF + Bedroom AbvGr,2
+Bsmt Unf SF + Exter Cond + Kitchen Qual,2
+Bsmt Unf SF + BsmtFin SF 1 + Kitchen Qual,2
+Bsmt Unf SF + BsmtFin SF 1 + Low Qual Fin SF,2
+Bsmt Unf SF + BsmtFin SF 1 + Utilities,2
+Bsmt Unf SF + Exter Cond + Exter Qual,2
+Bsmt Unf SF + Exter Cond + Fireplace Qu,2
+Bsmt Unf SF + Exter Cond + Garage Cars,2
+Bsmt Unf SF + Exter Cond + Garage Cond,2
+Bsmt Unf SF + Exter Cond + Garage Qual,2
+Bsmt Unf SF + Exter Cond + Gr Liv Area,2
+Bsmt Unf SF + Exter Cond + Heating QC,2
+Bsmt Unf SF + Exter Cond + Low Qual Fin SF,2
+Bsmt Unf SF + BsmtFin SF 1 + Gr Liv Area,2
+Bsmt Unf SF + Exter Cond + Utilities,2
+Bsmt Unf SF + Exter Qual + Fireplace Qu,2
+Bsmt Unf SF + Exter Qual + Garage Cars,2
+Bsmt Unf SF + Exter Qual + Garage Cond,2
+Bsmt Unf SF + Exter Qual + Garage Qual,2
+Bsmt Unf SF + Exter Qual + Gr Liv Area,2
+Bsmt Unf SF + Exter Qual + Heating QC,2
+Bsmt Unf SF + Exter Qual + Kitchen Qual,2
+Bsmt Unf SF + Exter Qual + Low Qual Fin SF,2
+Bsmt Unf SF + Exter Qual + Utilities,2
+Bsmt Unf SF + BsmtFin SF 1 + Heating QC,2
+Bsmt Unf SF + BsmtFin SF 1 + Garage Qual,2
+1st Flr SF + Bsmt Cond,2
+Bsmt Qual + Gr Liv Area + Low Qual Fin SF,2
+Bsmt Qual + Garage Cond + Kitchen Qual,2
+Bsmt Qual + Garage Cond + Low Qual Fin SF,2
+Bsmt Qual + Garage Cond + Utilities,2
+Bsmt Qual + Garage Qual + Gr Liv Area,2
+Bsmt Qual + Garage Qual + Heating QC,2
+Bsmt Qual + Garage Qual + Kitchen Qual,2
+Bsmt Qual + Garage Qual + Low Qual Fin SF,2
+Bsmt Qual + Garage Qual + Utilities,2
+Bsmt Qual + Gr Liv Area + Heating QC,2
+Bsmt Qual + Gr Liv Area + Kitchen Qual,2
+Bsmt Qual + Gr Liv Area + Utilities,2
+Bsmt Unf SF + BsmtFin SF 1 + Garage Cond,2
+Bsmt Qual + Heating QC + Kitchen Qual,2
+Bsmt Qual + Heating QC + Low Qual Fin SF,2
+Bsmt Qual + Heating QC + Utilities,2
+Bsmt Qual + Kitchen Qual + Low Qual Fin SF,2
+Bsmt Qual + Kitchen Qual + Utilities,2
+Bsmt Qual + Low Qual Fin SF + Utilities,2
+Bsmt Unf SF + BsmtFin SF 1 + Exter Cond,2
+Bsmt Unf SF + BsmtFin SF 1 + Exter Qual,2
+Bsmt Unf SF + BsmtFin SF 1 + Fireplace Qu,2
+Bsmt Unf SF + BsmtFin SF 1 + Garage Cars,2
+Bsmt Unf SF + Fireplace Qu + Garage Cars,2
+Bsmt Unf SF + Fireplace Qu + Garage Cond,2
+Bsmt Unf SF + Fireplace Qu + Garage Qual,2
+BsmtFin SF 1 + Exter Cond + Garage Cond,2
+Bsmt Unf SF + Gr Liv Area + Utilities,2
+Bsmt Unf SF + Heating QC + Kitchen Qual,2
+Bsmt Unf SF + Heating QC + Low Qual Fin SF,2
+Bsmt Unf SF + Heating QC + Utilities,2
+Bsmt Unf SF + Kitchen Qual + Low Qual Fin SF,2
+Bsmt Unf SF + Kitchen Qual + Utilities,2
+Bsmt Unf SF + Low Qual Fin SF + Utilities,2
+BsmtFin SF 1 + Exter Cond + Exter Qual,2
+BsmtFin SF 1 + Exter Cond + Fireplace Qu,2
+BsmtFin SF 1 + Exter Cond + Garage Cars,2
+BsmtFin SF 1 + Exter Cond + Garage Qual,2
+Bsmt Unf SF + Fireplace Qu + Gr Liv Area,2
+BsmtFin SF 1 + Exter Cond + Gr Liv Area,2
+BsmtFin SF 1 + Exter Cond + Heating QC,2
+BsmtFin SF 1 + Exter Cond + Kitchen Qual,2
+BsmtFin SF 1 + Exter Cond + Low Qual Fin SF,2
+BsmtFin SF 1 + Exter Cond + Utilities,2
+BsmtFin SF 1 + Exter Qual + Fireplace Qu,2
+BsmtFin SF 1 + Exter Qual + Garage Cars,2
+BsmtFin SF 1 + Exter Qual + Garage Cond,2
+BsmtFin SF 1 + Exter Qual + Garage Qual,2
+BsmtFin SF 1 + Exter Qual + Gr Liv Area,2
+Bsmt Unf SF + Gr Liv Area + Low Qual Fin SF,2
+Bsmt Unf SF + Gr Liv Area + Kitchen Qual,2
+Bsmt Unf SF + Gr Liv Area + Heating QC,2
+Bsmt Unf SF + Garage Qual + Utilities,2
+Bsmt Unf SF + Fireplace Qu + Heating QC,2
+Bsmt Unf SF + Fireplace Qu + Kitchen Qual,2
+Bsmt Unf SF + Fireplace Qu + Low Qual Fin SF,2
+Bsmt Unf SF + Fireplace Qu + Utilities,2
+Bsmt Unf SF + Garage Cars + Garage Cond,2
+Bsmt Unf SF + Garage Cars + Garage Qual,2
+Bsmt Unf SF + Garage Cars + Gr Liv Area,2
+Bsmt Unf SF + Garage Cars + Heating QC,2
+Bsmt Unf SF + Garage Cars + Kitchen Qual,2
+Bsmt Unf SF + Garage Cars + Low Qual Fin SF,2
+Bsmt Unf SF + Garage Cars + Utilities,2
+Bsmt Unf SF + Garage Cond + Garage Qual,2
+Bsmt Unf SF + Garage Cond + Gr Liv Area,2
+Bsmt Unf SF + Garage Cond + Heating QC,2
+Bsmt Unf SF + Garage Cond + Kitchen Qual,2
+Bsmt Unf SF + Garage Cond + Low Qual Fin SF,2
+Bsmt Unf SF + Garage Cond + Utilities,2
+Bsmt Unf SF + Garage Qual + Gr Liv Area,2
+Bsmt Unf SF + Garage Qual + Heating QC,2
+Bsmt Unf SF + Garage Qual + Kitchen Qual,2
+Bsmt Unf SF + Garage Qual + Low Qual Fin SF,2
+Bsmt Qual + Garage Cond + Heating QC,2
+Bsmt Qual + Garage Cond + Gr Liv Area,2
+Bsmt Qual + Garage Cond + Garage Qual,2
+Bsmt Cond + Gr Liv Area + Utilities,2
+Bsmt Cond + Garage Cond + Low Qual Fin SF,2
+Bsmt Cond + Garage Cond + Utilities,2
+Bsmt Cond + Garage Qual + Gr Liv Area,2
+Bsmt Cond + Garage Qual + Heating QC,2
+Bsmt Cond + Garage Qual + Kitchen Qual,2
+Bsmt Cond + Garage Qual + Low Qual Fin SF,2
+Bsmt Cond + Garage Qual + Utilities,2
+Bsmt Cond + Gr Liv Area + Heating QC,2
+Bsmt Cond + Gr Liv Area + Kitchen Qual,2
+Bsmt Cond + Gr Liv Area + Low Qual Fin SF,2
+Bsmt Cond + Heating QC + Kitchen Qual,2
+Bsmt Qual + Bsmt Unf SF + Garage Qual,2
+Bsmt Cond + Heating QC + Low Qual Fin SF,2
+Bsmt Cond + Heating QC + Utilities,2
+Bsmt Cond + Kitchen Qual + Low Qual Fin SF,2
+Bsmt Cond + Kitchen Qual + Utilities,2
+Bsmt Cond + Low Qual Fin SF + Utilities,2
+Bsmt Qual + Bsmt Unf SF + BsmtFin SF 1,2
+Bsmt Qual + Bsmt Unf SF + Exter Cond,2
+Bsmt Qual + Bsmt Unf SF + Exter Qual,2
+Bsmt Qual + Bsmt Unf SF + Fireplace Qu,2
+Bsmt Qual + Bsmt Unf SF + Garage Cars,2
+Bsmt Cond + Garage Cond + Kitchen Qual,2
+Bsmt Cond + Garage Cond + Heating QC,2
+Bsmt Cond + Garage Cond + Gr Liv Area,2
+Bsmt Cond + Garage Cond + Garage Qual,2
+Bsmt Cond + Exter Qual + Garage Qual,2
+Bsmt Cond + Exter Qual + Gr Liv Area,2
+Bsmt Cond + Exter Qual + Heating QC,2
+Bsmt Cond + Exter Qual + Kitchen Qual,2
+Bsmt Cond + Exter Qual + Low Qual Fin SF,2
+Bsmt Cond + Exter Qual + Utilities,2
+Bsmt Cond + Fireplace Qu + Garage Cars,2
+Bsmt Cond + Fireplace Qu + Garage Cond,2
+Bsmt Cond + Fireplace Qu + Garage Qual,2
+Bsmt Cond + Fireplace Qu + Gr Liv Area,2
+Bsmt Cond + Fireplace Qu + Heating QC,2
+Bsmt Cond + Fireplace Qu + Kitchen Qual,2
+Bsmt Cond + Fireplace Qu + Low Qual Fin SF,2
+Bsmt Cond + Fireplace Qu + Utilities,2
+Bsmt Cond + Garage Cars + Garage Cond,2
+Bsmt Cond + Garage Cars + Garage Qual,2
+Bsmt Cond + Garage Cars + Gr Liv Area,2
+Bsmt Cond + Garage Cars + Heating QC,2
+Bsmt Cond + Garage Cars + Kitchen Qual,2
+Bsmt Cond + Garage Cars + Low Qual Fin SF,2
+Bsmt Cond + Garage Cars + Utilities,2
+Bsmt Qual + Bsmt Unf SF + Garage Cond,2
+Bsmt Qual + Bsmt Unf SF + Gr Liv Area,2
+Bsmt Qual + Garage Cars + Utilities,2
+Bsmt Qual + Fireplace Qu + Garage Qual,2
+Bsmt Qual + Exter Qual + Garage Cars,2
+Bsmt Qual + Exter Qual + Garage Cond,2
+Bsmt Qual + Exter Qual + Garage Qual,2
+Bsmt Qual + Exter Qual + Gr Liv Area,2
+Bsmt Qual + Exter Qual + Heating QC,2
+Bsmt Qual + Exter Qual + Kitchen Qual,2
+Bsmt Qual + Exter Qual + Low Qual Fin SF,2
+Bsmt Qual + Exter Qual + Utilities,2
+Bsmt Qual + Fireplace Qu + Garage Cars,2
+Bsmt Qual + Fireplace Qu + Garage Cond,2
+Bsmt Qual + Fireplace Qu + Gr Liv Area,2
+Bsmt Qual + Bsmt Unf SF + Heating QC,2
+Bsmt Qual + Fireplace Qu + Heating QC,2
+Bsmt Qual + Fireplace Qu + Kitchen Qual,2
+Bsmt Qual + Fireplace Qu + Low Qual Fin SF,2
+Bsmt Qual + Fireplace Qu + Utilities,2
+Bsmt Qual + Garage Cars + Garage Cond,2
+Bsmt Qual + Garage Cars + Garage Qual,2
+Bsmt Qual + Garage Cars + Gr Liv Area,2
+Bsmt Qual + Garage Cars + Heating QC,2
+Bsmt Qual + Garage Cars + Kitchen Qual,2
+Bsmt Qual + Garage Cars + Low Qual Fin SF,2
+Bsmt Qual + Exter Qual + Fireplace Qu,2
+Bsmt Qual + Exter Cond + Utilities,2
+Bsmt Qual + Exter Cond + Low Qual Fin SF,2
+Bsmt Qual + Exter Cond + Kitchen Qual,2
+Bsmt Qual + Bsmt Unf SF + Kitchen Qual,2
+Bsmt Qual + Bsmt Unf SF + Low Qual Fin SF,2
+Bsmt Qual + Bsmt Unf SF + Utilities,2
+Bsmt Qual + BsmtFin SF 1 + Exter Cond,2
+Bsmt Qual + BsmtFin SF 1 + Exter Qual,2
+Bsmt Qual + BsmtFin SF 1 + Fireplace Qu,2
+Bsmt Qual + BsmtFin SF 1 + Garage Cars,2
+Bsmt Qual + BsmtFin SF 1 + Garage Cond,2
+Bsmt Qual + BsmtFin SF 1 + Garage Qual,2
+Bsmt Qual + BsmtFin SF 1 + Gr Liv Area,2
+Bsmt Qual + BsmtFin SF 1 + Heating QC,2
+Bsmt Qual + BsmtFin SF 1 + Kitchen Qual,2
+Bsmt Qual + BsmtFin SF 1 + Low Qual Fin SF,2
+Bsmt Qual + BsmtFin SF 1 + Utilities,2
+Bsmt Qual + Exter Cond + Exter Qual,2
+Bsmt Qual + Exter Cond + Fireplace Qu,2
+Bsmt Qual + Exter Cond + Garage Cars,2
+Bsmt Qual + Exter Cond + Garage Cond,2
+Bsmt Qual + Exter Cond + Garage Qual,2
+Bsmt Qual + Exter Cond + Gr Liv Area,2
+Bsmt Qual + Exter Cond + Heating QC,2
+BsmtFin SF 1 + Exter Qual + Heating QC,2
+BsmtFin SF 1 + Exter Qual + Kitchen Qual,2
+BsmtFin SF 1 + Exter Qual + Low Qual Fin SF,2
+Fireplace Qu + Gr Liv Area + Low Qual Fin SF,2
+Fireplace Qu + Garage Cond + Kitchen Qual,2
+Fireplace Qu + Garage Cond + Low Qual Fin SF,2
+Fireplace Qu + Garage Cond + Utilities,2
+Fireplace Qu + Garage Qual + Gr Liv Area,2
+Fireplace Qu + Garage Qual + Heating QC,2
+Fireplace Qu + Garage Qual + Kitchen Qual,2
+Fireplace Qu + Garage Qual + Low Qual Fin SF,2
+Fireplace Qu + Garage Qual + Utilities,2
+Fireplace Qu + Gr Liv Area + Heating QC,2
+Fireplace Qu + Gr Liv Area + Kitchen Qual,2
+Fireplace Qu + Gr Liv Area + Utilities,2
+Garage Cars + Garage Cond + Utilities,2
+Fireplace Qu + Heating QC + Kitchen Qual,2
+Fireplace Qu + Heating QC + Low Qual Fin SF,2
+Fireplace Qu + Heating QC + Utilities,2
+Fireplace Qu + Kitchen Qual + Low Qual Fin SF,2
+Fireplace Qu + Kitchen Qual + Utilities,2
+Fireplace Qu + Low Qual Fin SF + Utilities,2
+Garage Cars + Garage Cond + Garage Qual,2
+Garage Cars + Garage Cond + Gr Liv Area,2
+Garage Cars + Garage Cond + Heating QC,2
+Garage Cars + Garage Cond + Kitchen Qual,2
+Fireplace Qu + Garage Cond + Heating QC,2
+Fireplace Qu + Garage Cond + Gr Liv Area,2
+Fireplace Qu + Garage Cond + Garage Qual,2
+Fireplace Qu + Garage Cars + Utilities,2
+Exter Qual + Garage Qual + Gr Liv Area,2
+Exter Qual + Garage Qual + Heating QC,2
+Exter Qual + Garage Qual + Kitchen Qual,2
+Exter Qual + Garage Qual + Low Qual Fin SF,2
+Exter Qual + Garage Qual + Utilities,2
+Exter Qual + Gr Liv Area + Heating QC,2
+Exter Qual + Gr Liv Area + Kitchen Qual,2
+Exter Qual + Gr Liv Area + Low Qual Fin SF,2
+Exter Qual + Gr Liv Area + Utilities,2
+Exter Qual + Heating QC + Kitchen Qual,2
+Exter Qual + Heating QC + Low Qual Fin SF,2
+Exter Qual + Heating QC + Utilities,2
+Exter Qual + Kitchen Qual + Low Qual Fin SF,2
+Exter Qual + Kitchen Qual + Utilities,2
+Exter Qual + Low Qual Fin SF + Utilities,2
+Fireplace Qu + Garage Cars + Garage Cond,2
+Fireplace Qu + Garage Cars + Garage Qual,2
+Fireplace Qu + Garage Cars + Gr Liv Area,2
+Fireplace Qu + Garage Cars + Heating QC,2
+Fireplace Qu + Garage Cars + Kitchen Qual,2
+Fireplace Qu + Garage Cars + Low Qual Fin SF,2
+Garage Cars + Garage Cond + Low Qual Fin SF,2
+Garage Cars + Garage Qual + Gr Liv Area,2
+Exter Qual + Garage Cond + Low Qual Fin SF,2
+Garage Qual + Kitchen Qual + Low Qual Fin SF,2
+Garage Cond + Kitchen Qual + Low Qual Fin SF,2
+Garage Cond + Kitchen Qual + Utilities,2
+Garage Cond + Low Qual Fin SF + Utilities,2
+Garage Qual + Gr Liv Area + Heating QC,2
+Garage Qual + Gr Liv Area + Kitchen Qual,2
+Garage Qual + Gr Liv Area + Low Qual Fin SF,2
+Garage Qual + Gr Liv Area + Utilities,2
+Garage Qual + Heating QC + Kitchen Qual,2
+Garage Qual + Heating QC + Low Qual Fin SF,2
+Garage Qual + Heating QC + Utilities,2
+Garage Qual + Kitchen Qual + Utilities,2
+Garage Cars + Garage Qual + Heating QC,2
+Garage Qual + Low Qual Fin SF + Utilities,2
+Gr Liv Area + Heating QC + Kitchen Qual,2
+Gr Liv Area + Heating QC + Low Qual Fin SF,2
+Gr Liv Area + Heating QC + Utilities,2
+Gr Liv Area + Kitchen Qual + Low Qual Fin SF,2
+Gr Liv Area + Kitchen Qual + Utilities,2
+Gr Liv Area + Low Qual Fin SF + Utilities,2
+Heating QC + Kitchen Qual + Low Qual Fin SF,2
+Heating QC + Kitchen Qual + Utilities,2
+Heating QC + Low Qual Fin SF + Utilities,2
+Garage Cond + Heating QC + Utilities,2
+Garage Cond + Heating QC + Low Qual Fin SF,2
+Garage Cond + Heating QC + Kitchen Qual,2
+Garage Cond + Gr Liv Area + Utilities,2
+Garage Cars + Garage Qual + Kitchen Qual,2
+Garage Cars + Garage Qual + Low Qual Fin SF,2
+Garage Cars + Garage Qual + Utilities,2
+Garage Cars + Gr Liv Area + Heating QC,2
+Garage Cars + Gr Liv Area + Kitchen Qual,2
+Garage Cars + Gr Liv Area + Low Qual Fin SF,2
+Garage Cars + Gr Liv Area + Utilities,2
+Garage Cars + Heating QC + Kitchen Qual,2
+Garage Cars + Heating QC + Low Qual Fin SF,2
+Garage Cars + Heating QC + Utilities,2
+Garage Cars + Kitchen Qual + Low Qual Fin SF,2
+Garage Cars + Kitchen Qual + Utilities,2
+Garage Cars + Low Qual Fin SF + Utilities,2
+Garage Cond + Garage Qual + Gr Liv Area,2
+Garage Cond + Garage Qual + Heating QC,2
+Garage Cond + Garage Qual + Kitchen Qual,2
+Garage Cond + Garage Qual + Low Qual Fin SF,2
+Garage Cond + Garage Qual + Utilities,2
+Garage Cond + Gr Liv Area + Heating QC,2
+Garage Cond + Gr Liv Area + Kitchen Qual,2
+Garage Cond + Gr Liv Area + Low Qual Fin SF,2
+Exter Qual + Garage Cond + Utilities,2
+Exter Qual + Garage Cond + Kitchen Qual,2
+BsmtFin SF 1 + Exter Qual + Utilities,2
+BsmtFin SF 1 + Low Qual Fin SF + Utilities,2
+BsmtFin SF 1 + Garage Qual + Utilities,2
+BsmtFin SF 1 + Gr Liv Area + Heating QC,2
+BsmtFin SF 1 + Gr Liv Area + Kitchen Qual,2
+BsmtFin SF 1 + Gr Liv Area + Low Qual Fin SF,2
+BsmtFin SF 1 + Gr Liv Area + Utilities,2
+BsmtFin SF 1 + Heating QC + Kitchen Qual,2
+BsmtFin SF 1 + Heating QC + Low Qual Fin SF,2
+BsmtFin SF 1 + Heating QC + Utilities,2
+BsmtFin SF 1 + Kitchen Qual + Low Qual Fin SF,2
+BsmtFin SF 1 + Kitchen Qual + Utilities,2
+Exter Cond + Exter Qual + Fireplace Qu,2
+Exter Cond + Fireplace Qu + Gr Liv Area,2
+Exter Cond + Exter Qual + Garage Cars,2
+Exter Cond + Exter Qual + Garage Cond,2
+Exter Cond + Exter Qual + Garage Qual,2
+Exter Cond + Exter Qual + Gr Liv Area,2
+Exter Cond + Exter Qual + Heating QC,2
+Exter Cond + Exter Qual + Kitchen Qual,2
+Exter Cond + Exter Qual + Low Qual Fin SF,2
+Exter Cond + Exter Qual + Utilities,2
+Exter Cond + Fireplace Qu + Garage Cars,2
+Exter Cond + Fireplace Qu + Garage Cond,2
+BsmtFin SF 1 + Garage Qual + Low Qual Fin SF,2
+BsmtFin SF 1 + Garage Qual + Kitchen Qual,2
+BsmtFin SF 1 + Garage Qual + Heating QC,2
+BsmtFin SF 1 + Garage Qual + Gr Liv Area,2
+BsmtFin SF 1 + Fireplace Qu + Garage Cars,2
+BsmtFin SF 1 + Fireplace Qu + Garage Cond,2
+BsmtFin SF 1 + Fireplace Qu + Garage Qual,2
+BsmtFin SF 1 + Fireplace Qu + Gr Liv Area,2
+BsmtFin SF 1 + Fireplace Qu + Heating QC,2
+BsmtFin SF 1 + Fireplace Qu + Kitchen Qual,2
+BsmtFin SF 1 + Fireplace Qu + Low Qual Fin SF,2
+BsmtFin SF 1 + Fireplace Qu + Utilities,2
+BsmtFin SF 1 + Garage Cars + Garage Cond,2
+BsmtFin SF 1 + Garage Cars + Garage Qual,2
+BsmtFin SF 1 + Garage Cars + Gr Liv Area,2
+BsmtFin SF 1 + Garage Cars + Heating QC,2
+BsmtFin SF 1 + Garage Cars + Kitchen Qual,2
+BsmtFin SF 1 + Garage Cars + Low Qual Fin SF,2
+BsmtFin SF 1 + Garage Cars + Utilities,2
+BsmtFin SF 1 + Garage Cond + Garage Qual,2
+BsmtFin SF 1 + Garage Cond + Gr Liv Area,2
+BsmtFin SF 1 + Garage Cond + Heating QC,2
+BsmtFin SF 1 + Garage Cond + Kitchen Qual,2
+BsmtFin SF 1 + Garage Cond + Low Qual Fin SF,2
+BsmtFin SF 1 + Garage Cond + Utilities,2
+Exter Cond + Fireplace Qu + Garage Qual,2
+Exter Cond + Fireplace Qu + Heating QC,2
+Exter Qual + Garage Cond + Heating QC,2
+Exter Qual + Fireplace Qu + Kitchen Qual,2
+Exter Cond + Heating QC + Low Qual Fin SF,2
+Exter Cond + Heating QC + Utilities,2
+Exter Cond + Kitchen Qual + Low Qual Fin SF,2
+Exter Cond + Kitchen Qual + Utilities,2
+Exter Cond + Low Qual Fin SF + Utilities,2
+Exter Qual + Fireplace Qu + Garage Cars,2
+Exter Qual + Fireplace Qu + Garage Cond,2
+Exter Qual + Fireplace Qu + Garage Qual,2
+Exter Qual + Fireplace Qu + Gr Liv Area,2
+Exter Qual + Fireplace Qu + Heating QC,2
+Exter Qual + Fireplace Qu + Low Qual Fin SF,2
+Exter Cond + Fireplace Qu + Kitchen Qual,2
+Exter Qual + Fireplace Qu + Utilities,2
+Exter Qual + Garage Cars + Garage Cond,2
+Exter Qual + Garage Cars + Garage Qual,2
+Exter Qual + Garage Cars + Gr Liv Area,2
+Exter Qual + Garage Cars + Heating QC,2
+Exter Qual + Garage Cars + Kitchen Qual,2
+Exter Qual + Garage Cars + Low Qual Fin SF,2
+Exter Qual + Garage Cars + Utilities,2
+Exter Qual + Garage Cond + Garage Qual,2
+Exter Qual + Garage Cond + Gr Liv Area,2
+Exter Cond + Heating QC + Kitchen Qual,2
+Exter Cond + Gr Liv Area + Utilities,2
+Exter Cond + Gr Liv Area + Low Qual Fin SF,2
+Exter Cond + Gr Liv Area + Kitchen Qual,2
+Exter Cond + Fireplace Qu + Low Qual Fin SF,2
+Exter Cond + Fireplace Qu + Utilities,2
+Exter Cond + Garage Cars + Garage Cond,2
+Exter Cond + Garage Cars + Garage Qual,2
+Exter Cond + Garage Cars + Gr Liv Area,2
+Exter Cond + Garage Cars + Heating QC,2
+Exter Cond + Garage Cars + Kitchen Qual,2
+Exter Cond + Garage Cars + Low Qual Fin SF,2
+Exter Cond + Garage Cars + Utilities,2
+Exter Cond + Garage Cond + Garage Qual,2
+Exter Cond + Garage Cond + Gr Liv Area,2
+Exter Cond + Garage Cond + Heating QC,2
+Exter Cond + Garage Cond + Kitchen Qual,2
+Exter Cond + Garage Cond + Low Qual Fin SF,2
+Exter Cond + Garage Cond + Utilities,2
+Exter Cond + Garage Qual + Gr Liv Area,2
+Exter Cond + Garage Qual + Heating QC,2
+Exter Cond + Garage Qual + Kitchen Qual,2
+Exter Cond + Garage Qual + Low Qual Fin SF,2
+Exter Cond + Garage Qual + Utilities,2
+Exter Cond + Gr Liv Area + Heating QC,2
+Bsmt Cond + Exter Qual + Garage Cond,2
+Bsmt Cond + Exter Qual + Garage Cars,2
+Bsmt Cond + Exter Qual + Fireplace Qu,2
+1st Flr SF + Bedroom AbvGr + BsmtFin SF 1,2
+Gr Liv Area + Utilities,2
+Heating QC + Kitchen Qual,2
+Heating QC + Low Qual Fin SF,2
+Heating QC + Utilities,2
+Kitchen Qual + Low Qual Fin SF,2
+Kitchen Qual + Utilities,2
+Low Qual Fin SF + Utilities,2
+1st Flr SF + Bedroom AbvGr + Bsmt Cond,2
+1st Flr SF + Bedroom AbvGr + Bsmt Qual,2
+1st Flr SF + Bedroom AbvGr + Bsmt Unf SF,2
+1st Flr SF + Bedroom AbvGr + Exter Cond,2
+1st Flr SF + Bsmt Cond + Bsmt Unf SF,2
+1st Flr SF + Bedroom AbvGr + Exter Qual,2
+1st Flr SF + Bedroom AbvGr + Fireplace Qu,2
+1st Flr SF + Bedroom AbvGr + Garage Cars,2
+1st Flr SF + Bedroom AbvGr + Garage Cond,2
+1st Flr SF + Bedroom AbvGr + Garage Qual,2
+1st Flr SF + Bedroom AbvGr + Gr Liv Area,2
+1st Flr SF + Bedroom AbvGr + Heating QC,2
+1st Flr SF + Bedroom AbvGr + Kitchen Qual,2
+1st Flr SF + Bedroom AbvGr + Low Qual Fin SF,2
+1st Flr SF + Bedroom AbvGr + Utilities,2
+Gr Liv Area + Low Qual Fin SF,2
+Gr Liv Area + Kitchen Qual,2
+Gr Liv Area + Heating QC,2
+Garage Qual + Utilities,2
+Fireplace Qu + Heating QC,2
+Fireplace Qu + Kitchen Qual,2
+Fireplace Qu + Low Qual Fin SF,2
+Fireplace Qu + Utilities,2
+Garage Cars + Garage Cond,2
+Garage Cars + Garage Qual,2
+Garage Cars + Gr Liv Area,2
+Garage Cars + Heating QC,2
+Garage Cars + Kitchen Qual,2
+Garage Cars + Low Qual Fin SF,2
+Garage Cars + Utilities,2
+Garage Cond + Garage Qual,2
+Garage Cond + Gr Liv Area,2
+Garage Cond + Heating QC,2
+Garage Cond + Kitchen Qual,2
+Garage Cond + Low Qual Fin SF,2
+Garage Cond + Utilities,2
+Garage Qual + Gr Liv Area,2
+Garage Qual + Heating QC,2
+Garage Qual + Kitchen Qual,2
+Garage Qual + Low Qual Fin SF,2
+1st Flr SF + Bsmt Cond + Bsmt Qual,2
+1st Flr SF + Bsmt Cond + BsmtFin SF 1,2
+Fireplace Qu + Garage Qual,2
+1st Flr SF + BsmtFin SF 1 + Exter Cond,2
+1st Flr SF + Bsmt Unf SF + Exter Qual,2
+1st Flr SF + Bsmt Unf SF + Fireplace Qu,2
+1st Flr SF + Bsmt Unf SF + Garage Cars,2
+1st Flr SF + Bsmt Unf SF + Garage Cond,2
+1st Flr SF + Bsmt Unf SF + Garage Qual,2
+1st Flr SF + Bsmt Unf SF + Gr Liv Area,2
+1st Flr SF + Bsmt Unf SF + Heating QC,2
+1st Flr SF + Bsmt Unf SF + Kitchen Qual,2
+1st Flr SF + Bsmt Unf SF + Low Qual Fin SF,2
+1st Flr SF + Bsmt Unf SF + Utilities,2
+1st Flr SF + BsmtFin SF 1 + Exter Qual,2
+1st Flr SF + Bsmt Cond + Exter Cond,2
+1st Flr SF + BsmtFin SF 1 + Fireplace Qu,2
+1st Flr SF + BsmtFin SF 1 + Garage Cars,2
+1st Flr SF + BsmtFin SF 1 + Garage Cond,2
+1st Flr SF + BsmtFin SF 1 + Garage Qual,2
+1st Flr SF + BsmtFin SF 1 + Gr Liv Area,2
+1st Flr SF + BsmtFin SF 1 + Heating QC,2
+1st Flr SF + BsmtFin SF 1 + Kitchen Qual,2
+1st Flr SF + BsmtFin SF 1 + Low Qual Fin SF,2
+1st Flr SF + BsmtFin SF 1 + Utilities,2
+1st Flr SF + Exter Cond + Exter Qual,2
+1st Flr SF + Bsmt Unf SF + Exter Cond,2
+1st Flr SF + Bsmt Unf SF + BsmtFin SF 1,2
+1st Flr SF + Bsmt Qual + Utilities,2
+1st Flr SF + Bsmt Qual + Low Qual Fin SF,2
+1st Flr SF + Bsmt Cond + Exter Qual,2
+1st Flr SF + Bsmt Cond + Fireplace Qu,2
+1st Flr SF + Bsmt Cond + Garage Cars,2
+1st Flr SF + Bsmt Cond + Garage Cond,2
+1st Flr SF + Bsmt Cond + Garage Qual,2
+1st Flr SF + Bsmt Cond + Gr Liv Area,2
+1st Flr SF + Bsmt Cond + Heating QC,2
+1st Flr SF + Bsmt Cond + Kitchen Qual,2
+1st Flr SF + Bsmt Cond + Low Qual Fin SF,2
+1st Flr SF + Bsmt Cond + Utilities,2
+1st Flr SF + Bsmt Qual + Bsmt Unf SF,2
+1st Flr SF + Bsmt Qual + BsmtFin SF 1,2
+1st Flr SF + Bsmt Qual + Exter Cond,2
+1st Flr SF + Bsmt Qual + Exter Qual,2
+1st Flr SF + Bsmt Qual + Fireplace Qu,2
+1st Flr SF + Bsmt Qual + Garage Cars,2
+1st Flr SF + Bsmt Qual + Garage Cond,2
+1st Flr SF + Bsmt Qual + Garage Qual,2
+1st Flr SF + Bsmt Qual + Gr Liv Area,2
+1st Flr SF + Bsmt Qual + Heating QC,2
+1st Flr SF + Bsmt Qual + Kitchen Qual,2
+Fireplace Qu + Gr Liv Area,2
+Fireplace Qu + Garage Cond,2
+1st Flr SF + Exter Cond + Garage Cars,2
+Bsmt Cond + Garage Cars,2
+Bedroom AbvGr + Heating QC,2
+Bedroom AbvGr + Kitchen Qual,2
+Bedroom AbvGr + Low Qual Fin SF,2
+Bedroom AbvGr + Utilities,2
+Bsmt Cond + Bsmt Qual,2
+Bsmt Cond + Bsmt Unf SF,2
+Bsmt Cond + BsmtFin SF 1,2
+Bsmt Cond + Exter Cond,2
+Bsmt Cond + Exter Qual,2
+Bsmt Cond + Fireplace Qu,2
+Bsmt Cond + Garage Cond,2
+Bsmt Qual + Garage Cars,2
+Bsmt Cond + Garage Qual,2
+Bsmt Cond + Gr Liv Area,2
+Bsmt Cond + Heating QC,2
+Bsmt Cond + Kitchen Qual,2
+Bsmt Cond + Low Qual Fin SF,2
+Bsmt Cond + Utilities,2
+Bsmt Qual + Bsmt Unf SF,2
+Bsmt Qual + BsmtFin SF 1,2
+Bsmt Qual + Exter Cond,2
+Bsmt Qual + Exter Qual,2
+Bedroom AbvGr + Gr Liv Area,2
+Bedroom AbvGr + Garage Qual,2
+Bedroom AbvGr + Garage Cond,2
+Bedroom AbvGr + Garage Cars,2
+1st Flr SF + Bsmt Qual,2
+1st Flr SF + Bsmt Unf SF,2
+1st Flr SF + BsmtFin SF 1,2
+1st Flr SF + Exter Cond,2
+1st Flr SF + Exter Qual,2
+1st Flr SF + Fireplace Qu,2
+1st Flr SF + Garage Cars,2
+1st Flr SF + Garage Cond,2
+1st Flr SF + Garage Qual,2
+1st Flr SF + Gr Liv Area,2
+1st Flr SF + Heating QC,2
+1st Flr SF + Kitchen Qual,2
+1st Flr SF + Low Qual Fin SF,2
+1st Flr SF + Utilities,2
+Bedroom AbvGr + Bsmt Cond,2
+Bedroom AbvGr + Bsmt Qual,2
+Bedroom AbvGr + Bsmt Unf SF,2
+Bedroom AbvGr + BsmtFin SF 1,2
+Bedroom AbvGr + Exter Cond,2
+Bedroom AbvGr + Exter Qual,2
+Bedroom AbvGr + Fireplace Qu,2
+Bsmt Qual + Fireplace Qu,2
+Bsmt Qual + Garage Cond,2
+Fireplace Qu + Garage Cars,2
+Exter Cond + Kitchen Qual,2
+BsmtFin SF 1 + Kitchen Qual,2
+BsmtFin SF 1 + Low Qual Fin SF,2
+BsmtFin SF 1 + Utilities,2
+Exter Cond + Exter Qual,2
+Exter Cond + Fireplace Qu,2
+Exter Cond + Garage Cars,2
+Exter Cond + Garage Cond,2
+Exter Cond + Garage Qual,2
+Exter Cond + Gr Liv Area,2
+Exter Cond + Heating QC,2
+Exter Cond + Low Qual Fin SF,2
+Bsmt Qual + Garage Qual,2
+Exter Cond + Utilities,2
+Exter Qual + Fireplace Qu,2
+Exter Qual + Garage Cars,2
+Exter Qual + Garage Cond,2
+Exter Qual + Garage Qual,2
+Exter Qual + Gr Liv Area,2
+Exter Qual + Heating QC,2
+Exter Qual + Kitchen Qual,2
+Exter Qual + Low Qual Fin SF,2
+Exter Qual + Utilities,2
+BsmtFin SF 1 + Heating QC,2
+BsmtFin SF 1 + Gr Liv Area,2
+BsmtFin SF 1 + Garage Qual,2
+BsmtFin SF 1 + Garage Cond,2
+Bsmt Qual + Gr Liv Area,2
+Bsmt Qual + Heating QC,2
+Bsmt Qual + Kitchen Qual,2
+Bsmt Qual + Low Qual Fin SF,2
+Bsmt Qual + Utilities,2
+Bsmt Unf SF + BsmtFin SF 1,2
+Bsmt Unf SF + Exter Cond,2
+Bsmt Unf SF + Exter Qual,2
+Bsmt Unf SF + Fireplace Qu,2
+Bsmt Unf SF + Garage Cars,2
+Bsmt Unf SF + Garage Cond,2
+Bsmt Unf SF + Garage Qual,2
+Bsmt Unf SF + Gr Liv Area,2
+Bsmt Unf SF + Heating QC,2
+Bsmt Unf SF + Kitchen Qual,2
+Bsmt Unf SF + Low Qual Fin SF,2
+Bsmt Unf SF + Utilities,2
+BsmtFin SF 1 + Exter Cond,2
+BsmtFin SF 1 + Exter Qual,2
+BsmtFin SF 1 + Fireplace Qu,2
+BsmtFin SF 1 + Garage Cars,2
+1st Flr SF + Exter Cond + Fireplace Qu,2
+1st Flr SF + Exter Cond + Garage Cond,2
+Bsmt Cond + Exter Cond + Utilities,2
+Bedroom AbvGr + Garage Cond + Kitchen Qual,2
+Bedroom AbvGr + Garage Cars + Garage Cond,2
+Bedroom AbvGr + Garage Cars + Garage Qual,2
+Bedroom AbvGr + Garage Cars + Gr Liv Area,2
+Bedroom AbvGr + Garage Cars + Heating QC,2
+Bedroom AbvGr + Garage Cars + Kitchen Qual,2
+Bedroom AbvGr + Garage Cars + Low Qual Fin SF,2
+Bedroom AbvGr + Garage Cars + Utilities,2
+Bedroom AbvGr + Garage Cond + Garage Qual,2
+Bedroom AbvGr + Garage Cond + Gr Liv Area,2
+Bedroom AbvGr + Garage Cond + Heating QC,2
+Bedroom AbvGr + Garage Cond + Low Qual Fin SF,2
+Bedroom AbvGr + Heating QC + Low Qual Fin SF,2
+Bedroom AbvGr + Garage Cond + Utilities,2
+Bedroom AbvGr + Garage Qual + Gr Liv Area,2
+Bedroom AbvGr + Garage Qual + Heating QC,2
+Bedroom AbvGr + Garage Qual + Kitchen Qual,2
+Bedroom AbvGr + Garage Qual + Low Qual Fin SF,2
+Bedroom AbvGr + Garage Qual + Utilities,2
+Bedroom AbvGr + Gr Liv Area + Heating QC,2
+Bedroom AbvGr + Gr Liv Area + Kitchen Qual,2
+Bedroom AbvGr + Gr Liv Area + Low Qual Fin SF,2
+Bedroom AbvGr + Gr Liv Area + Utilities,2
+Bedroom AbvGr + Fireplace Qu + Utilities,2
+Bedroom AbvGr + Fireplace Qu + Low Qual Fin SF,2
+Bedroom AbvGr + Fireplace Qu + Kitchen Qual,2
+Bedroom AbvGr + Fireplace Qu + Heating QC,2
+Bedroom AbvGr + Exter Cond + Garage Cars,2
+Bedroom AbvGr + Exter Cond + Garage Cond,2
+Bedroom AbvGr + Exter Cond + Garage Qual,2
+Bedroom AbvGr + Exter Cond + Gr Liv Area,2
+Bedroom AbvGr + Exter Cond + Heating QC,2
+Bedroom AbvGr + Exter Cond + Kitchen Qual,2
+Bedroom AbvGr + Exter Cond + Low Qual Fin SF,2
+Bedroom AbvGr + Exter Cond + Utilities,2
+Bedroom AbvGr + Exter Qual + Fireplace Qu,2
+Bedroom AbvGr + Exter Qual + Garage Cars,2
+Bedroom AbvGr + Exter Qual + Garage Cond,2
+Bedroom AbvGr + Exter Qual + Garage Qual,2
+Bedroom AbvGr + Exter Qual + Gr Liv Area,2
+Bedroom AbvGr + Exter Qual + Heating QC,2
+Bedroom AbvGr + Exter Qual + Kitchen Qual,2
+Bedroom AbvGr + Exter Qual + Low Qual Fin SF,2
+Bedroom AbvGr + Exter Qual + Utilities,2
+Bedroom AbvGr + Fireplace Qu + Garage Cars,2
+Bedroom AbvGr + Fireplace Qu + Garage Cond,2
+Bedroom AbvGr + Fireplace Qu + Garage Qual,2
+Bedroom AbvGr + Fireplace Qu + Gr Liv Area,2
+Bedroom AbvGr + Heating QC + Kitchen Qual,2
+Bedroom AbvGr + Heating QC + Utilities,2
+Bedroom AbvGr + Exter Cond + Exter Qual,2
+Bsmt Cond + BsmtFin SF 1 + Kitchen Qual,2
+Bsmt Cond + Bsmt Unf SF + Low Qual Fin SF,2
+Bsmt Cond + Bsmt Unf SF + Utilities,2
+Bsmt Cond + BsmtFin SF 1 + Exter Cond,2
+Bsmt Cond + BsmtFin SF 1 + Exter Qual,2
+Bsmt Cond + BsmtFin SF 1 + Fireplace Qu,2
+Bsmt Cond + BsmtFin SF 1 + Garage Cars,2
+Bsmt Cond + BsmtFin SF 1 + Garage Cond,2
+Bsmt Cond + BsmtFin SF 1 + Garage Qual,2
+Bsmt Cond + BsmtFin SF 1 + Gr Liv Area,2
+Bsmt Cond + BsmtFin SF 1 + Heating QC,2
+Bsmt Cond + BsmtFin SF 1 + Low Qual Fin SF,2
+Bedroom AbvGr + Kitchen Qual + Low Qual Fin SF,2
+Bsmt Cond + BsmtFin SF 1 + Utilities,2
+Bsmt Cond + Exter Cond + Exter Qual,2
+Bsmt Cond + Exter Cond + Fireplace Qu,2
+Bsmt Cond + Exter Cond + Garage Cars,2
+Bsmt Cond + Exter Cond + Garage Cond,2
+Bsmt Cond + Exter Cond + Garage Qual,2
+Bsmt Cond + Exter Cond + Gr Liv Area,2
+Bsmt Cond + Exter Cond + Heating QC,2
+Bsmt Cond + Exter Cond + Kitchen Qual,2
+Bsmt Cond + Exter Cond + Low Qual Fin SF,2
+Bsmt Cond + Bsmt Unf SF + Kitchen Qual,2
+Bsmt Cond + Bsmt Unf SF + Heating QC,2
+Bsmt Cond + Bsmt Unf SF + Gr Liv Area,2
+Bsmt Cond + Bsmt Unf SF + Garage Qual,2
+Bedroom AbvGr + Kitchen Qual + Utilities,2
+Bedroom AbvGr + Low Qual Fin SF + Utilities,2
+Bsmt Cond + Bsmt Qual + Bsmt Unf SF,2
+Bsmt Cond + Bsmt Qual + BsmtFin SF 1,2
+Bsmt Cond + Bsmt Qual + Exter Cond,2
+Bsmt Cond + Bsmt Qual + Exter Qual,2
+Bsmt Cond + Bsmt Qual + Fireplace Qu,2
+Bsmt Cond + Bsmt Qual + Garage Cars,2
+Bsmt Cond + Bsmt Qual + Garage Cond,2
+Bsmt Cond + Bsmt Qual + Garage Qual,2
+Bsmt Cond + Bsmt Qual + Gr Liv Area,2
+Bsmt Cond + Bsmt Qual + Heating QC,2
+Bsmt Cond + Bsmt Qual + Kitchen Qual,2
+Bsmt Cond + Bsmt Qual + Low Qual Fin SF,2
+Bsmt Cond + Bsmt Qual + Utilities,2
+Bsmt Cond + Bsmt Unf SF + BsmtFin SF 1,2
+Bsmt Cond + Bsmt Unf SF + Exter Cond,2
+Bsmt Cond + Bsmt Unf SF + Exter Qual,2
+Bsmt Cond + Bsmt Unf SF + Fireplace Qu,2
+Bsmt Cond + Bsmt Unf SF + Garage Cars,2
+Bsmt Cond + Bsmt Unf SF + Garage Cond,2
+Bedroom AbvGr + Exter Cond + Fireplace Qu,2
+Bedroom AbvGr + BsmtFin SF 1 + Utilities,2
+1st Flr SF + Exter Cond + Garage Qual,2
+1st Flr SF + Garage Qual + Gr Liv Area,2
+1st Flr SF + Garage Cars + Heating QC,2
+1st Flr SF + Garage Cars + Kitchen Qual,2
+1st Flr SF + Garage Cars + Low Qual Fin SF,2
+1st Flr SF + Garage Cars + Utilities,2
+1st Flr SF + Garage Cond + Garage Qual,2
+1st Flr SF + Garage Cond + Gr Liv Area,2
+1st Flr SF + Garage Cond + Heating QC,2
+1st Flr SF + Garage Cond + Kitchen Qual,2
+1st Flr SF + Garage Cond + Low Qual Fin SF,2
+1st Flr SF + Garage Cond + Utilities,2
+1st Flr SF + Garage Qual + Heating QC,2
+1st Flr SF + Kitchen Qual + Utilities,2
+1st Flr SF + Garage Qual + Kitchen Qual,2
+1st Flr SF + Garage Qual + Low Qual Fin SF,2
+1st Flr SF + Garage Qual + Utilities,2
+1st Flr SF + Gr Liv Area + Heating QC,2
+1st Flr SF + Gr Liv Area + Kitchen Qual,2
+1st Flr SF + Gr Liv Area + Low Qual Fin SF,2
+1st Flr SF + Gr Liv Area + Utilities,2
+1st Flr SF + Heating QC + Kitchen Qual,2
+1st Flr SF + Heating QC + Low Qual Fin SF,2
+1st Flr SF + Heating QC + Utilities,2
+1st Flr SF + Garage Cars + Gr Liv Area,2
+1st Flr SF + Garage Cars + Garage Qual,2
+1st Flr SF + Garage Cars + Garage Cond,2
+1st Flr SF + Fireplace Qu + Utilities,2
+1st Flr SF + Exter Cond + Gr Liv Area,2
+1st Flr SF + Exter Cond + Heating QC,2
+1st Flr SF + Exter Cond + Kitchen Qual,2
+1st Flr SF + Exter Cond + Low Qual Fin SF,2
+1st Flr SF + Exter Cond + Utilities,2
+1st Flr SF + Exter Qual + Fireplace Qu,2
+1st Flr SF + Exter Qual + Garage Cars,2
+1st Flr SF + Exter Qual + Garage Cond,2
+1st Flr SF + Exter Qual + Garage Qual,2
+1st Flr SF + Exter Qual + Gr Liv Area,2
+1st Flr SF + Exter Qual + Heating QC,2
+1st Flr SF + Exter Qual + Kitchen Qual,2
+1st Flr SF + Exter Qual + Low Qual Fin SF,2
+1st Flr SF + Exter Qual + Utilities,2
+1st Flr SF + Fireplace Qu + Garage Cars,2
+1st Flr SF + Fireplace Qu + Garage Cond,2
+1st Flr SF + Fireplace Qu + Garage Qual,2
+1st Flr SF + Fireplace Qu + Gr Liv Area,2
+1st Flr SF + Fireplace Qu + Heating QC,2
+1st Flr SF + Fireplace Qu + Kitchen Qual,2
+1st Flr SF + Fireplace Qu + Low Qual Fin SF,2
+1st Flr SF + Kitchen Qual + Low Qual Fin SF,2
+1st Flr SF + Low Qual Fin SF + Utilities,2
+Bedroom AbvGr + BsmtFin SF 1 + Low Qual Fin SF,2
+Bedroom AbvGr + Bsmt Unf SF + Kitchen Qual,2
+Bedroom AbvGr + Bsmt Qual + Utilities,2
+Bedroom AbvGr + Bsmt Unf SF + BsmtFin SF 1,2
+Bedroom AbvGr + Bsmt Unf SF + Exter Cond,2
+Bedroom AbvGr + Bsmt Unf SF + Exter Qual,2
+Bedroom AbvGr + Bsmt Unf SF + Fireplace Qu,2
+Bedroom AbvGr + Bsmt Unf SF + Garage Cars,2
+Bedroom AbvGr + Bsmt Unf SF + Garage Cond,2
+Bedroom AbvGr + Bsmt Unf SF + Garage Qual,2
+Bedroom AbvGr + Bsmt Unf SF + Gr Liv Area,2
+Bedroom AbvGr + Bsmt Unf SF + Heating QC,2
+Bedroom AbvGr + Bsmt Unf SF + Low Qual Fin SF,2
+Bedroom AbvGr + Bsmt Cond + Bsmt Qual,2
+Bedroom AbvGr + Bsmt Unf SF + Utilities,2
+Bedroom AbvGr + BsmtFin SF 1 + Exter Cond,2
+Bedroom AbvGr + BsmtFin SF 1 + Exter Qual,2
+Bedroom AbvGr + BsmtFin SF 1 + Fireplace Qu,2
+Bedroom AbvGr + BsmtFin SF 1 + Garage Cars,2
+Bedroom AbvGr + BsmtFin SF 1 + Garage Cond,2
+Bedroom AbvGr + BsmtFin SF 1 + Garage Qual,2
+Bedroom AbvGr + BsmtFin SF 1 + Gr Liv Area,2
+Bedroom AbvGr + BsmtFin SF 1 + Heating QC,2
+Bedroom AbvGr + BsmtFin SF 1 + Kitchen Qual,2
+Bedroom AbvGr + Bsmt Qual + Low Qual Fin SF,2
+Bedroom AbvGr + Bsmt Qual + Kitchen Qual,2
+Bedroom AbvGr + Bsmt Qual + Heating QC,2
+Bedroom AbvGr + Bsmt Qual + Gr Liv Area,2
+Bedroom AbvGr + Bsmt Cond + Bsmt Unf SF,2
+Bedroom AbvGr + Bsmt Cond + BsmtFin SF 1,2
+Bedroom AbvGr + Bsmt Cond + Exter Cond,2
+Bedroom AbvGr + Bsmt Cond + Exter Qual,2
+Bedroom AbvGr + Bsmt Cond + Fireplace Qu,2
+Bedroom AbvGr + Bsmt Cond + Garage Cars,2
+Bedroom AbvGr + Bsmt Cond + Garage Cond,2
+Bedroom AbvGr + Bsmt Cond + Garage Qual,2
+Bedroom AbvGr + Bsmt Cond + Gr Liv Area,2
+Bedroom AbvGr + Bsmt Cond + Heating QC,2
+Bedroom AbvGr + Bsmt Cond + Kitchen Qual,2
+Bedroom AbvGr + Bsmt Cond + Low Qual Fin SF,2
+Bedroom AbvGr + Bsmt Cond + Utilities,2
+Bedroom AbvGr + Bsmt Qual + Bsmt Unf SF,2
+Bedroom AbvGr + Bsmt Qual + BsmtFin SF 1,2
+Bedroom AbvGr + Bsmt Qual + Exter Cond,2
+Bedroom AbvGr + Bsmt Qual + Exter Qual,2
+Bedroom AbvGr + Bsmt Qual + Fireplace Qu,2
+Bedroom AbvGr + Bsmt Qual + Garage Cars,2
+Bedroom AbvGr + Bsmt Qual + Garage Cond,2
+Bedroom AbvGr + Bsmt Qual + Garage Qual,2
+Kitchen Qual + Low Qual Fin SF + Utilities,2

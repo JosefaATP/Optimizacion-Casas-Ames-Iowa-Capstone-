@@ -1,0 +1,480 @@
+neighborhood,col,count,n_opt,rate_in_group
+Blmngtn,1st Flr SF,3,9,0.3333333333333333
+Blmngtn,Bedroom AbvGr,3,9,0.3333333333333333
+Blmngtn,Bsmt Cond,9,9,1.0
+Blmngtn,Bsmt Qual,9,9,1.0
+Blmngtn,Bsmt Unf SF,9,9,1.0
+Blmngtn,BsmtFin SF 1,9,9,1.0
+Blmngtn,BsmtFin SF 2,9,9,1.0
+Blmngtn,Exter Cond,9,9,1.0
+Blmngtn,Exter Qual,9,9,1.0
+Blmngtn,Fireplace Qu,9,9,1.0
+Blmngtn,Full Bath,3,9,0.3333333333333333
+Blmngtn,Garage Area,2,9,0.2222222222222222
+Blmngtn,Garage Cars,6,9,0.6666666666666666
+Blmngtn,Garage Cond,9,9,1.0
+Blmngtn,Garage Qual,9,9,1.0
+Blmngtn,Gr Liv Area,9,9,1.0
+Blmngtn,Heating QC,9,9,1.0
+Blmngtn,Kitchen Qual,9,9,1.0
+Blmngtn,Low Qual Fin SF,9,9,1.0
+Blmngtn,Open Porch SF,6,9,0.6666666666666666
+Blmngtn,Utilities,9,9,1.0
+Blmngtn,Wood Deck SF,5,9,0.5555555555555556
+Blueste,1st Flr SF,2,9,0.2222222222222222
+Blueste,Bedroom AbvGr,2,9,0.2222222222222222
+Blueste,Bsmt Cond,9,9,1.0
+Blueste,Bsmt Qual,9,9,1.0
+Blueste,Bsmt Unf SF,9,9,1.0
+Blueste,BsmtFin SF 1,9,9,1.0
+Blueste,BsmtFin SF 2,1,9,0.1111111111111111
+Blueste,Exter Cond,9,9,1.0
+Blueste,Exter Qual,9,9,1.0
+Blueste,Fireplace Qu,9,9,1.0
+Blueste,Full Bath,2,9,0.2222222222222222
+Blueste,Garage Cars,9,9,1.0
+Blueste,Garage Cond,9,9,1.0
+Blueste,Garage Qual,9,9,1.0
+Blueste,Gr Liv Area,9,9,1.0
+Blueste,Heating QC,9,9,1.0
+Blueste,Kitchen Qual,9,9,1.0
+Blueste,Low Qual Fin SF,9,9,1.0
+Blueste,Utilities,9,9,1.0
+Blueste,Wood Deck SF,2,9,0.2222222222222222
+BrDale,Bsmt Cond,9,9,1.0
+BrDale,Bsmt Qual,9,9,1.0
+BrDale,Bsmt Unf SF,9,9,1.0
+BrDale,BsmtFin SF 1,9,9,1.0
+BrDale,Exter Cond,9,9,1.0
+BrDale,Exter Qual,9,9,1.0
+BrDale,Fireplace Qu,9,9,1.0
+BrDale,Garage Cars,9,9,1.0
+BrDale,Garage Cond,9,9,1.0
+BrDale,Garage Qual,9,9,1.0
+BrDale,Gr Liv Area,9,9,1.0
+BrDale,Heating QC,9,9,1.0
+BrDale,Kitchen Qual,9,9,1.0
+BrDale,Low Qual Fin SF,9,9,1.0
+BrDale,Open Porch SF,2,9,0.2222222222222222
+BrDale,Utilities,9,9,1.0
+BrkSide,1st Flr SF,2,9,0.2222222222222222
+BrkSide,Bsmt Cond,9,9,1.0
+BrkSide,Bsmt Qual,9,9,1.0
+BrkSide,Bsmt Unf SF,9,9,1.0
+BrkSide,BsmtFin SF 1,9,9,1.0
+BrkSide,BsmtFin SF 2,1,9,0.1111111111111111
+BrkSide,Exter Cond,9,9,1.0
+BrkSide,Exter Qual,9,9,1.0
+BrkSide,Fireplace Qu,9,9,1.0
+BrkSide,Garage Cars,9,9,1.0
+BrkSide,Garage Cond,9,9,1.0
+BrkSide,Garage Qual,9,9,1.0
+BrkSide,Gr Liv Area,9,9,1.0
+BrkSide,Half Bath,2,9,0.2222222222222222
+BrkSide,Heating QC,9,9,1.0
+BrkSide,Kitchen Qual,9,9,1.0
+BrkSide,Low Qual Fin SF,9,9,1.0
+BrkSide,Utilities,9,9,1.0
+BrkSide,Wood Deck SF,2,9,0.2222222222222222
+ClearCr,1st Flr SF,4,9,0.4444444444444444
+ClearCr,Bsmt Cond,9,9,1.0
+ClearCr,Bsmt Qual,9,9,1.0
+ClearCr,Bsmt Unf SF,9,9,1.0
+ClearCr,BsmtFin SF 1,9,9,1.0
+ClearCr,BsmtFin SF 2,8,9,0.8888888888888888
+ClearCr,Exter Cond,9,9,1.0
+ClearCr,Exter Qual,9,9,1.0
+ClearCr,Fireplace Qu,9,9,1.0
+ClearCr,Full Bath,4,9,0.4444444444444444
+ClearCr,Garage Cars,9,9,1.0
+ClearCr,Garage Cond,9,9,1.0
+ClearCr,Garage Qual,9,9,1.0
+ClearCr,Gr Liv Area,9,9,1.0
+ClearCr,Heating QC,9,9,1.0
+ClearCr,Kitchen Qual,9,9,1.0
+ClearCr,Low Qual Fin SF,9,9,1.0
+ClearCr,Utilities,9,9,1.0
+CollgCr,1st Flr SF,2,9,0.2222222222222222
+CollgCr,Bedroom AbvGr,2,9,0.2222222222222222
+CollgCr,Bsmt Cond,9,9,1.0
+CollgCr,Bsmt Qual,9,9,1.0
+CollgCr,Bsmt Unf SF,9,9,1.0
+CollgCr,BsmtFin SF 1,9,9,1.0
+CollgCr,BsmtFin SF 2,1,9,0.1111111111111111
+CollgCr,Exter Cond,9,9,1.0
+CollgCr,Exter Qual,9,9,1.0
+CollgCr,Fireplace Qu,9,9,1.0
+CollgCr,Full Bath,2,9,0.2222222222222222
+CollgCr,Garage Area,6,9,0.6666666666666666
+CollgCr,Garage Cars,9,9,1.0
+CollgCr,Garage Cond,9,9,1.0
+CollgCr,Garage Qual,9,9,1.0
+CollgCr,Gr Liv Area,9,9,1.0
+CollgCr,Heating QC,9,9,1.0
+CollgCr,Kitchen Qual,9,9,1.0
+CollgCr,Low Qual Fin SF,9,9,1.0
+CollgCr,Open Porch SF,3,9,0.3333333333333333
+CollgCr,Utilities,9,9,1.0
+CollgCr,Wood Deck SF,7,9,0.7777777777777778
+Crawfor,1st Flr SF,5,9,0.5555555555555556
+Crawfor,Bsmt Cond,9,9,1.0
+Crawfor,Bsmt Qual,9,9,1.0
+Crawfor,Bsmt Unf SF,9,9,1.0
+Crawfor,BsmtFin SF 1,9,9,1.0
+Crawfor,BsmtFin SF 2,5,9,0.5555555555555556
+Crawfor,Enclosed Porch,5,9,0.5555555555555556
+Crawfor,Exter Cond,9,9,1.0
+Crawfor,Exter Qual,9,9,1.0
+Crawfor,Fireplace Qu,9,9,1.0
+Crawfor,Full Bath,5,9,0.5555555555555556
+Crawfor,Garage Cars,9,9,1.0
+Crawfor,Garage Cond,9,9,1.0
+Crawfor,Garage Qual,9,9,1.0
+Crawfor,Gr Liv Area,9,9,1.0
+Crawfor,Heating QC,9,9,1.0
+Crawfor,Kitchen Qual,9,9,1.0
+Crawfor,Low Qual Fin SF,9,9,1.0
+Crawfor,Utilities,9,9,1.0
+Edwards,1st Flr SF,5,9,0.5555555555555556
+Edwards,Bsmt Cond,9,9,1.0
+Edwards,Bsmt Qual,9,9,1.0
+Edwards,Bsmt Unf SF,9,9,1.0
+Edwards,BsmtFin SF 1,7,9,0.7777777777777778
+Edwards,BsmtFin SF 2,4,9,0.4444444444444444
+Edwards,Exter Cond,9,9,1.0
+Edwards,Exter Qual,9,9,1.0
+Edwards,Fireplace Qu,9,9,1.0
+Edwards,Full Bath,5,9,0.5555555555555556
+Edwards,Garage Cars,9,9,1.0
+Edwards,Garage Cond,9,9,1.0
+Edwards,Garage Qual,9,9,1.0
+Edwards,Gr Liv Area,9,9,1.0
+Edwards,Heating QC,9,9,1.0
+Edwards,Kitchen Qual,9,9,1.0
+Edwards,Low Qual Fin SF,9,9,1.0
+Edwards,Open Porch SF,3,9,0.3333333333333333
+Edwards,Utilities,9,9,1.0
+Edwards,Wood Deck SF,3,9,0.3333333333333333
+Gilbert,1st Flr SF,3,9,0.3333333333333333
+Gilbert,Bsmt Cond,9,9,1.0
+Gilbert,Bsmt Qual,9,9,1.0
+Gilbert,Bsmt Unf SF,9,9,1.0
+Gilbert,BsmtFin SF 1,9,9,1.0
+Gilbert,BsmtFin SF 2,6,9,0.6666666666666666
+Gilbert,Exter Cond,9,9,1.0
+Gilbert,Exter Qual,9,9,1.0
+Gilbert,Fireplace Qu,9,9,1.0
+Gilbert,Full Bath,3,9,0.3333333333333333
+Gilbert,Garage Cars,9,9,1.0
+Gilbert,Garage Cond,9,9,1.0
+Gilbert,Garage Qual,9,9,1.0
+Gilbert,Gr Liv Area,9,9,1.0
+Gilbert,Heating QC,9,9,1.0
+Gilbert,Kitchen Qual,9,9,1.0
+Gilbert,Low Qual Fin SF,9,9,1.0
+Gilbert,Open Porch SF,3,9,0.3333333333333333
+Gilbert,Utilities,9,9,1.0
+IDOTRR,Bsmt Cond,9,9,1.0
+IDOTRR,Bsmt Qual,9,9,1.0
+IDOTRR,Bsmt Unf SF,6,9,0.6666666666666666
+IDOTRR,BsmtFin SF 1,6,9,0.6666666666666666
+IDOTRR,BsmtFin SF 2,2,9,0.2222222222222222
+IDOTRR,Exter Cond,9,9,1.0
+IDOTRR,Exter Qual,9,9,1.0
+IDOTRR,Fireplace Qu,9,9,1.0
+IDOTRR,Garage Cars,9,9,1.0
+IDOTRR,Garage Cond,9,9,1.0
+IDOTRR,Garage Qual,9,9,1.0
+IDOTRR,Gr Liv Area,9,9,1.0
+IDOTRR,Heating QC,9,9,1.0
+IDOTRR,Kitchen Qual,9,9,1.0
+IDOTRR,Low Qual Fin SF,9,9,1.0
+IDOTRR,Utilities,9,9,1.0
+MeadowV,Bsmt Cond,9,9,1.0
+MeadowV,Bsmt Qual,9,9,1.0
+MeadowV,Bsmt Unf SF,3,9,0.3333333333333333
+MeadowV,BsmtFin SF 1,3,9,0.3333333333333333
+MeadowV,Exter Cond,9,9,1.0
+MeadowV,Exter Qual,9,9,1.0
+MeadowV,Fireplace Qu,9,9,1.0
+MeadowV,Garage Cars,9,9,1.0
+MeadowV,Garage Cond,9,9,1.0
+MeadowV,Garage Qual,9,9,1.0
+MeadowV,Gr Liv Area,9,9,1.0
+MeadowV,Heating QC,9,9,1.0
+MeadowV,Kitchen Qual,9,9,1.0
+MeadowV,Low Qual Fin SF,9,9,1.0
+MeadowV,Utilities,9,9,1.0
+Mitchel,1st Flr SF,2,9,0.2222222222222222
+Mitchel,Bsmt Cond,9,9,1.0
+Mitchel,Bsmt Qual,9,9,1.0
+Mitchel,Bsmt Unf SF,6,9,0.6666666666666666
+Mitchel,BsmtFin SF 1,6,9,0.6666666666666666
+Mitchel,BsmtFin SF 2,5,9,0.5555555555555556
+Mitchel,Exter Cond,9,9,1.0
+Mitchel,Exter Qual,9,9,1.0
+Mitchel,Fireplace Qu,9,9,1.0
+Mitchel,Full Bath,2,9,0.2222222222222222
+Mitchel,Garage Cars,9,9,1.0
+Mitchel,Garage Cond,9,9,1.0
+Mitchel,Garage Qual,9,9,1.0
+Mitchel,Gr Liv Area,9,9,1.0
+Mitchel,Heating QC,9,9,1.0
+Mitchel,Kitchen Qual,9,9,1.0
+Mitchel,Low Qual Fin SF,9,9,1.0
+Mitchel,Utilities,9,9,1.0
+NPkVill,Bsmt Cond,9,9,1.0
+NPkVill,Bsmt Qual,9,9,1.0
+NPkVill,Bsmt Unf SF,9,9,1.0
+NPkVill,BsmtFin SF 1,9,9,1.0
+NPkVill,Exter Cond,9,9,1.0
+NPkVill,Exter Qual,9,9,1.0
+NPkVill,Fireplace Qu,9,9,1.0
+NPkVill,Garage Cars,9,9,1.0
+NPkVill,Garage Cond,9,9,1.0
+NPkVill,Garage Qual,9,9,1.0
+NPkVill,Gr Liv Area,9,9,1.0
+NPkVill,Heating QC,9,9,1.0
+NPkVill,Kitchen Qual,9,9,1.0
+NPkVill,Low Qual Fin SF,9,9,1.0
+NPkVill,Utilities,9,9,1.0
+NPkVill,Wood Deck SF,3,9,0.3333333333333333
+NWAmes,1st Flr SF,5,9,0.5555555555555556
+NWAmes,Bsmt Cond,9,9,1.0
+NWAmes,Bsmt Qual,9,9,1.0
+NWAmes,Bsmt Unf SF,9,9,1.0
+NWAmes,BsmtFin SF 1,9,9,1.0
+NWAmes,BsmtFin SF 2,4,9,0.4444444444444444
+NWAmes,Exter Cond,9,9,1.0
+NWAmes,Exter Qual,9,9,1.0
+NWAmes,Fireplace Qu,9,9,1.0
+NWAmes,Full Bath,5,9,0.5555555555555556
+NWAmes,Garage Cars,9,9,1.0
+NWAmes,Garage Cond,9,9,1.0
+NWAmes,Garage Qual,9,9,1.0
+NWAmes,Gr Liv Area,9,9,1.0
+NWAmes,Heating QC,9,9,1.0
+NWAmes,Kitchen Qual,9,9,1.0
+NWAmes,Low Qual Fin SF,9,9,1.0
+NWAmes,Open Porch SF,3,9,0.3333333333333333
+NWAmes,Utilities,9,9,1.0
+No aplicames,1st Flr SF,2,9,0.2222222222222222
+No aplicames,Bsmt Cond,9,9,1.0
+No aplicames,Bsmt Qual,9,9,1.0
+No aplicames,Bsmt Unf SF,9,9,1.0
+No aplicames,BsmtFin SF 1,9,9,1.0
+No aplicames,BsmtFin SF 2,7,9,0.7777777777777778
+No aplicames,Exter Cond,9,9,1.0
+No aplicames,Exter Qual,9,9,1.0
+No aplicames,Fireplace Qu,9,9,1.0
+No aplicames,Full Bath,2,9,0.2222222222222222
+No aplicames,Garage Cars,9,9,1.0
+No aplicames,Garage Cond,9,9,1.0
+No aplicames,Garage Qual,9,9,1.0
+No aplicames,Gr Liv Area,9,9,1.0
+No aplicames,Heating QC,9,9,1.0
+No aplicames,Kitchen Qual,9,9,1.0
+No aplicames,Low Qual Fin SF,9,9,1.0
+No aplicames,Utilities,9,9,1.0
+NoRidge,1st Flr SF,8,9,0.8888888888888888
+NoRidge,Bedroom AbvGr,5,9,0.5555555555555556
+NoRidge,Bsmt Cond,9,9,1.0
+NoRidge,Bsmt Qual,9,9,1.0
+NoRidge,Bsmt Unf SF,9,9,1.0
+NoRidge,BsmtFin SF 1,6,9,0.6666666666666666
+NoRidge,BsmtFin SF 2,6,9,0.6666666666666666
+NoRidge,Exter Cond,9,9,1.0
+NoRidge,Exter Qual,9,9,1.0
+NoRidge,Fireplace Qu,9,9,1.0
+NoRidge,Full Bath,5,9,0.5555555555555556
+NoRidge,Garage Area,4,9,0.4444444444444444
+NoRidge,Garage Cond,9,9,1.0
+NoRidge,Garage Qual,9,9,1.0
+NoRidge,Gr Liv Area,9,9,1.0
+NoRidge,Heating QC,9,9,1.0
+NoRidge,Kitchen AbvGr,1,9,0.1111111111111111
+NoRidge,Kitchen Qual,9,9,1.0
+NoRidge,Low Qual Fin SF,9,9,1.0
+NoRidge,Open Porch SF,4,9,0.4444444444444444
+NoRidge,Utilities,9,9,1.0
+NoRidge,Wood Deck SF,3,9,0.3333333333333333
+NridgHt,1st Flr SF,8,9,0.8888888888888888
+NridgHt,Bedroom AbvGr,2,9,0.2222222222222222
+NridgHt,Bsmt Cond,9,9,1.0
+NridgHt,Bsmt Qual,9,9,1.0
+NridgHt,Bsmt Unf SF,9,9,1.0
+NridgHt,BsmtFin SF 1,9,9,1.0
+NridgHt,BsmtFin SF 2,9,9,1.0
+NridgHt,Exter Cond,9,9,1.0
+NridgHt,Exter Qual,9,9,1.0
+NridgHt,Fireplace Qu,9,9,1.0
+NridgHt,Full Bath,8,9,0.8888888888888888
+NridgHt,Garage Area,3,9,0.3333333333333333
+NridgHt,Garage Cond,9,9,1.0
+NridgHt,Garage Qual,9,9,1.0
+NridgHt,Gr Liv Area,9,9,1.0
+NridgHt,Heating QC,9,9,1.0
+NridgHt,Kitchen Qual,9,9,1.0
+NridgHt,Low Qual Fin SF,9,9,1.0
+NridgHt,Utilities,9,9,1.0
+NridgHt,Wood Deck SF,2,9,0.2222222222222222
+OldTown,1st Flr SF,5,9,0.5555555555555556
+OldTown,Bsmt Cond,9,9,1.0
+OldTown,Bsmt Qual,9,9,1.0
+OldTown,Bsmt Unf SF,7,9,0.7777777777777778
+OldTown,BsmtFin SF 1,7,9,0.7777777777777778
+OldTown,Exter Cond,9,9,1.0
+OldTown,Exter Qual,9,9,1.0
+OldTown,Fireplace Qu,9,9,1.0
+OldTown,Full Bath,2,9,0.2222222222222222
+OldTown,Garage Cars,9,9,1.0
+OldTown,Garage Cond,9,9,1.0
+OldTown,Garage Qual,9,9,1.0
+OldTown,Gr Liv Area,9,9,1.0
+OldTown,Half Bath,3,9,0.3333333333333333
+OldTown,Heating QC,9,9,1.0
+OldTown,Kitchen Qual,9,9,1.0
+OldTown,Low Qual Fin SF,9,9,1.0
+OldTown,Open Porch SF,3,9,0.3333333333333333
+OldTown,Utilities,9,9,1.0
+SWISU,Bsmt Cond,9,9,1.0
+SWISU,Bsmt Qual,9,9,1.0
+SWISU,Bsmt Unf SF,9,9,1.0
+SWISU,BsmtFin SF 1,9,9,1.0
+SWISU,BsmtFin SF 2,4,9,0.4444444444444444
+SWISU,Exter Cond,9,9,1.0
+SWISU,Exter Qual,9,9,1.0
+SWISU,Fireplace Qu,9,9,1.0
+SWISU,Garage Cars,9,9,1.0
+SWISU,Garage Cond,9,9,1.0
+SWISU,Garage Qual,9,9,1.0
+SWISU,Gr Liv Area,9,9,1.0
+SWISU,Heating QC,9,9,1.0
+SWISU,Kitchen Qual,9,9,1.0
+SWISU,Low Qual Fin SF,9,9,1.0
+SWISU,Utilities,9,9,1.0
+Sawyer,1st Flr SF,4,9,0.4444444444444444
+Sawyer,Bsmt Cond,9,9,1.0
+Sawyer,Bsmt Qual,9,9,1.0
+Sawyer,Bsmt Unf SF,9,9,1.0
+Sawyer,BsmtFin SF 1,9,9,1.0
+Sawyer,BsmtFin SF 2,2,9,0.2222222222222222
+Sawyer,Exter Cond,9,9,1.0
+Sawyer,Exter Qual,9,9,1.0
+Sawyer,Fireplace Qu,9,9,1.0
+Sawyer,Garage Cars,9,9,1.0
+Sawyer,Garage Cond,9,9,1.0
+Sawyer,Garage Qual,9,9,1.0
+Sawyer,Gr Liv Area,9,9,1.0
+Sawyer,Half Bath,4,9,0.4444444444444444
+Sawyer,Heating QC,9,9,1.0
+Sawyer,Kitchen Qual,9,9,1.0
+Sawyer,Low Qual Fin SF,9,9,1.0
+Sawyer,Utilities,9,9,1.0
+Sawyer,Wood Deck SF,3,9,0.3333333333333333
+SawyerW,1st Flr SF,3,9,0.3333333333333333
+SawyerW,Bedroom AbvGr,1,9,0.1111111111111111
+SawyerW,Bsmt Cond,9,9,1.0
+SawyerW,Bsmt Qual,9,9,1.0
+SawyerW,Bsmt Unf SF,9,9,1.0
+SawyerW,BsmtFin SF 1,9,9,1.0
+SawyerW,BsmtFin SF 2,6,9,0.6666666666666666
+SawyerW,Exter Cond,9,9,1.0
+SawyerW,Exter Qual,9,9,1.0
+SawyerW,Fireplace Qu,9,9,1.0
+SawyerW,Full Bath,3,9,0.3333333333333333
+SawyerW,Garage Area,2,9,0.2222222222222222
+SawyerW,Garage Cars,6,9,0.6666666666666666
+SawyerW,Garage Cond,9,9,1.0
+SawyerW,Garage Qual,9,9,1.0
+SawyerW,Gr Liv Area,9,9,1.0
+SawyerW,Heating QC,9,9,1.0
+SawyerW,Kitchen Qual,9,9,1.0
+SawyerW,Low Qual Fin SF,9,9,1.0
+SawyerW,Utilities,9,9,1.0
+Somerst,1st Flr SF,5,9,0.5555555555555556
+Somerst,Bedroom AbvGr,5,9,0.5555555555555556
+Somerst,Bsmt Cond,9,9,1.0
+Somerst,Bsmt Qual,9,9,1.0
+Somerst,Bsmt Unf SF,9,9,1.0
+Somerst,BsmtFin SF 1,9,9,1.0
+Somerst,BsmtFin SF 2,6,9,0.6666666666666666
+Somerst,Exter Cond,9,9,1.0
+Somerst,Exter Qual,9,9,1.0
+Somerst,Fireplace Qu,9,9,1.0
+Somerst,Full Bath,2,9,0.2222222222222222
+Somerst,Garage Area,2,9,0.2222222222222222
+Somerst,Garage Cars,6,9,0.6666666666666666
+Somerst,Garage Cond,9,9,1.0
+Somerst,Garage Qual,9,9,1.0
+Somerst,Gr Liv Area,9,9,1.0
+Somerst,Heating QC,9,9,1.0
+Somerst,Kitchen Qual,9,9,1.0
+Somerst,Low Qual Fin SF,9,9,1.0
+Somerst,Open Porch SF,5,9,0.5555555555555556
+Somerst,Utilities,9,9,1.0
+StoneBr,1st Flr SF,7,9,0.7777777777777778
+StoneBr,Bedroom AbvGr,5,9,0.5555555555555556
+StoneBr,Bsmt Cond,9,9,1.0
+StoneBr,Bsmt Qual,9,9,1.0
+StoneBr,Bsmt Unf SF,9,9,1.0
+StoneBr,BsmtFin SF 1,8,9,0.8888888888888888
+StoneBr,BsmtFin SF 2,3,9,0.3333333333333333
+StoneBr,Exter Cond,9,9,1.0
+StoneBr,Exter Qual,9,9,1.0
+StoneBr,Fireplace Qu,9,9,1.0
+StoneBr,Full Bath,7,9,0.7777777777777778
+StoneBr,Garage Area,3,9,0.3333333333333333
+StoneBr,Garage Cars,6,9,0.6666666666666666
+StoneBr,Garage Cond,9,9,1.0
+StoneBr,Garage Qual,9,9,1.0
+StoneBr,Gr Liv Area,9,9,1.0
+StoneBr,Half Bath,1,9,0.1111111111111111
+StoneBr,Heating QC,9,9,1.0
+StoneBr,Kitchen AbvGr,1,9,0.1111111111111111
+StoneBr,Kitchen Qual,9,9,1.0
+StoneBr,Low Qual Fin SF,9,9,1.0
+StoneBr,Open Porch SF,6,9,0.6666666666666666
+StoneBr,Utilities,9,9,1.0
+StoneBr,Wood Deck SF,6,9,0.6666666666666666
+Timber,1st Flr SF,5,9,0.5555555555555556
+Timber,Bedroom AbvGr,2,9,0.2222222222222222
+Timber,Bsmt Cond,9,9,1.0
+Timber,Bsmt Qual,9,9,1.0
+Timber,Bsmt Unf SF,9,9,1.0
+Timber,BsmtFin SF 1,9,9,1.0
+Timber,BsmtFin SF 2,6,9,0.6666666666666666
+Timber,Exter Cond,9,9,1.0
+Timber,Exter Qual,9,9,1.0
+Timber,Fireplace Qu,9,9,1.0
+Timber,Full Bath,5,9,0.5555555555555556
+Timber,Garage Area,3,9,0.3333333333333333
+Timber,Garage Cars,6,9,0.6666666666666666
+Timber,Garage Cond,9,9,1.0
+Timber,Garage Qual,9,9,1.0
+Timber,Gr Liv Area,9,9,1.0
+Timber,Heating QC,9,9,1.0
+Timber,Kitchen Qual,9,9,1.0
+Timber,Low Qual Fin SF,9,9,1.0
+Timber,Open Porch SF,6,9,0.6666666666666666
+Timber,Utilities,9,9,1.0
+Timber,Wood Deck SF,3,9,0.3333333333333333
+Veenker,1st Flr SF,6,9,0.6666666666666666
+Veenker,Bedroom AbvGr,6,9,0.6666666666666666
+Veenker,Bsmt Cond,9,9,1.0
+Veenker,Bsmt Qual,9,9,1.0
+Veenker,Bsmt Unf SF,6,9,0.6666666666666666
+Veenker,BsmtFin SF 1,6,9,0.6666666666666666
+Veenker,BsmtFin SF 2,6,9,0.6666666666666666
+Veenker,Exter Cond,9,9,1.0
+Veenker,Exter Qual,9,9,1.0
+Veenker,Fireplace Qu,9,9,1.0
+Veenker,Garage Cars,9,9,1.0
+Veenker,Garage Cond,9,9,1.0
+Veenker,Garage Qual,9,9,1.0
+Veenker,Gr Liv Area,9,9,1.0
+Veenker,Heating QC,9,9,1.0
+Veenker,Kitchen Qual,9,9,1.0
+Veenker,Low Qual Fin SF,9,9,1.0
+Veenker,Open Porch SF,3,9,0.3333333333333333
+Veenker,Utilities,9,9,1.0

@@ -1,0 +1,35 @@
+neighborhood,col,count,n_opt,rate_in_group
+CollgCr,1st Flr SF,1,1,1.0
+CollgCr,Bedroom AbvGr,1,1,1.0
+CollgCr,Bsmt Cond,1,1,1.0
+CollgCr,Bsmt Qual,1,1,1.0
+CollgCr,Bsmt Unf SF,1,1,1.0
+CollgCr,BsmtFin SF 1,1,1,1.0
+CollgCr,Exter Cond,1,1,1.0
+CollgCr,Exter Qual,1,1,1.0
+CollgCr,Fireplace Qu,1,1,1.0
+CollgCr,Garage Cars,1,1,1.0
+CollgCr,Garage Cond,1,1,1.0
+CollgCr,Garage Qual,1,1,1.0
+CollgCr,Gr Liv Area,1,1,1.0
+CollgCr,Heating QC,1,1,1.0
+CollgCr,Kitchen Qual,1,1,1.0
+CollgCr,Low Qual Fin SF,1,1,1.0
+CollgCr,Utilities,1,1,1.0
+OldTown,1st Flr SF,1,1,1.0
+OldTown,Bedroom AbvGr,1,1,1.0
+OldTown,Bsmt Cond,1,1,1.0
+OldTown,Bsmt Qual,1,1,1.0
+OldTown,Bsmt Unf SF,1,1,1.0
+OldTown,BsmtFin SF 1,1,1,1.0
+OldTown,Exter Cond,1,1,1.0
+OldTown,Exter Qual,1,1,1.0
+OldTown,Fireplace Qu,1,1,1.0
+OldTown,Garage Cars,1,1,1.0
+OldTown,Garage Cond,1,1,1.0
+OldTown,Garage Qual,1,1,1.0
+OldTown,Gr Liv Area,1,1,1.0
+OldTown,Heating QC,1,1,1.0
+OldTown,Kitchen Qual,1,1,1.0
+OldTown,Low Qual Fin SF,1,1,1.0
+OldTown,Utilities,1,1,1.0

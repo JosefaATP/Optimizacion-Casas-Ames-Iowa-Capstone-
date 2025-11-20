@@ -1,0 +1,18 @@
+budget,col,count,n_opt,rate_in_group
+50000.0,1st Flr SF,2,2,1.0
+50000.0,Bedroom AbvGr,2,2,1.0
+50000.0,Bsmt Cond,2,2,1.0
+50000.0,Bsmt Qual,2,2,1.0
+50000.0,Bsmt Unf SF,2,2,1.0
+50000.0,BsmtFin SF 1,2,2,1.0
+50000.0,Exter Cond,2,2,1.0
+50000.0,Exter Qual,2,2,1.0
+50000.0,Fireplace Qu,2,2,1.0
+50000.0,Garage Cars,2,2,1.0
+50000.0,Garage Cond,2,2,1.0
+50000.0,Garage Qual,2,2,1.0
+50000.0,Gr Liv Area,2,2,1.0
+50000.0,Heating QC,2,2,1.0
+50000.0,Kitchen Qual,2,2,1.0
+50000.0,Low Qual Fin SF,2,2,1.0
+50000.0,Utilities,2,2,1.0

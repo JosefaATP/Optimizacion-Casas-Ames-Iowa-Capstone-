@@ -1,75 +1,75 @@
-percentile_label,col,count
-p25,1st Flr SF,23
-p25,Bedroom AbvGr,7
-p25,Bsmt Cond,75
-p25,Bsmt Qual,75
-p25,Bsmt Unf SF,69
-p25,BsmtFin SF 1,69
-p25,BsmtFin SF 2,61
-p25,Enclosed Porch,5
-p25,Exter Cond,75
-p25,Exter Qual,75
-p25,Fireplace Qu,75
-p25,Full Bath,13
-p25,Garage Area,8
-p25,Garage Cars,66
-p25,Garage Cond,75
-p25,Garage Qual,75
-p25,Gr Liv Area,75
-p25,Half Bath,8
-p25,Heating QC,75
-p25,Kitchen AbvGr,1
-p25,Kitchen Qual,75
-p25,Low Qual Fin SF,75
-p25,Open Porch SF,11
-p25,Utilities,75
-p25,Wood Deck SF,22
-p50,1st Flr SF,29
-p50,Bedroom AbvGr,7
-p50,Bsmt Cond,75
-p50,Bsmt Qual,75
-p50,Bsmt Unf SF,69
-p50,BsmtFin SF 1,69
-p50,BsmtFin SF 2,69
-p50,Exter Cond,75
-p50,Exter Qual,75
-p50,Fireplace Qu,75
-p50,Full Bath,19
-p50,Garage Area,7
-p50,Garage Cars,66
-p50,Garage Cond,75
-p50,Garage Qual,75
-p50,Gr Liv Area,75
-p50,Half Bath,10
-p50,Heating QC,75
-p50,Kitchen Qual,75
-p50,Low Qual Fin SF,75
-p50,Open Porch SF,11
-p50,Screen Porch,5
-p50,Utilities,75
-p50,Wood Deck SF,17
-p75,1st Flr SF,34
-p75,Bedroom AbvGr,12
-p75,Bsmt Cond,75
-p75,Bsmt Qual,75
-p75,Bsmt Unf SF,69
-p75,BsmtFin SF 1,63
-p75,BsmtFin SF 2,65
-p75,Exter Cond,75
-p75,Exter Qual,75
-p75,Fireplace Qu,75
-p75,Full Bath,17
-p75,Garage Area,8
-p75,Garage Cars,60
-p75,Garage Cond,75
-p75,Garage Qual,75
-p75,Gr Liv Area,75
-p75,Half Bath,11
-p75,Heating QC,75
-p75,Kitchen AbvGr,1
-p75,Kitchen Qual,75
-p75,Low Qual Fin SF,75
-p75,Open Porch SF,23
-p75,Screen Porch,3
-p75,Utilities,75
-p75,Wood Deck SF,6
+percentile_label,col,count,n_opt,rate_in_group
+p25,1st Flr SF,23,75,0.30666666666666664
+p25,Bedroom AbvGr,7,75,0.09333333333333334
+p25,Bsmt Cond,75,75,1.0
+p25,Bsmt Qual,75,75,1.0
+p25,Bsmt Unf SF,69,75,0.92
+p25,BsmtFin SF 1,69,75,0.92
+p25,BsmtFin SF 2,61,75,0.8133333333333334
+p25,Enclosed Porch,5,75,0.06666666666666667
+p25,Exter Cond,75,75,1.0
+p25,Exter Qual,75,75,1.0
+p25,Fireplace Qu,75,75,1.0
+p25,Full Bath,13,75,0.17333333333333334
+p25,Garage Area,8,75,0.10666666666666667
+p25,Garage Cars,66,75,0.88
+p25,Garage Cond,75,75,1.0
+p25,Garage Qual,75,75,1.0
+p25,Gr Liv Area,75,75,1.0
+p25,Half Bath,8,75,0.10666666666666667
+p25,Heating QC,75,75,1.0
+p25,Kitchen AbvGr,1,75,0.013333333333333334
+p25,Kitchen Qual,75,75,1.0
+p25,Low Qual Fin SF,75,75,1.0
+p25,Open Porch SF,11,75,0.14666666666666667
+p25,Utilities,75,75,1.0
+p25,Wood Deck SF,22,75,0.29333333333333333
+p50,1st Flr SF,29,75,0.38666666666666666
+p50,Bedroom AbvGr,7,75,0.09333333333333334
+p50,Bsmt Cond,75,75,1.0
+p50,Bsmt Qual,75,75,1.0
+p50,Bsmt Unf SF,69,75,0.92
+p50,BsmtFin SF 1,69,75,0.92
+p50,BsmtFin SF 2,69,75,0.92
+p50,Exter Cond,75,75,1.0
+p50,Exter Qual,75,75,1.0
+p50,Fireplace Qu,75,75,1.0
+p50,Full Bath,19,75,0.25333333333333335
+p50,Garage Area,7,75,0.09333333333333334
+p50,Garage Cars,66,75,0.88
+p50,Garage Cond,75,75,1.0
+p50,Garage Qual,75,75,1.0
+p50,Gr Liv Area,75,75,1.0
+p50,Half Bath,10,75,0.13333333333333333
+p50,Heating QC,75,75,1.0
+p50,Kitchen Qual,75,75,1.0
+p50,Low Qual Fin SF,75,75,1.0
+p50,Open Porch SF,11,75,0.14666666666666667
+p50,Screen Porch,5,75,0.06666666666666667
+p50,Utilities,75,75,1.0
+p50,Wood Deck SF,17,75,0.22666666666666666
+p75,1st Flr SF,34,75,0.4533333333333333
+p75,Bedroom AbvGr,12,75,0.16
+p75,Bsmt Cond,75,75,1.0
+p75,Bsmt Qual,75,75,1.0
+p75,Bsmt Unf SF,69,75,0.92
+p75,BsmtFin SF 1,63,75,0.84
+p75,BsmtFin SF 2,65,75,0.8666666666666667
+p75,Exter Cond,75,75,1.0
+p75,Exter Qual,75,75,1.0
+p75,Fireplace Qu,75,75,1.0
+p75,Full Bath,17,75,0.22666666666666666
+p75,Garage Area,8,75,0.10666666666666667
+p75,Garage Cars,60,75,0.8
+p75,Garage Cond,75,75,1.0
+p75,Garage Qual,75,75,1.0
+p75,Gr Liv Area,75,75,1.0
+p75,Half Bath,11,75,0.14666666666666667
+p75,Heating QC,75,75,1.0
+p75,Kitchen AbvGr,1,75,0.013333333333333334
+p75,Kitchen Qual,75,75,1.0
+p75,Low Qual Fin SF,75,75,1.0
+p75,Open Porch SF,23,75,0.30666666666666664
+p75,Screen Porch,3,75,0.04
+p75,Utilities,75,75,1.0
+p75,Wood Deck SF,6,75,0.08

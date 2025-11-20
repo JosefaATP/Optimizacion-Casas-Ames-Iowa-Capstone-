@@ -1,0 +1,15 @@
+Total casos: 2
+Total casos OPTIMAL: 2
+Tasa OPTIMAL global: 100.00%
+
+Top 5 cambios más frecuentes (overall):
+ - 1st Flr SF: 2 veces
+ - Garage Cars: 2 veces
+ - Low Qual Fin SF: 2 veces
+ - Kitchen Qual: 2 veces
+ - Heating QC: 2 veces
+
+Top 3 cambios con mayor net_gain medio:
+ - 1st Flr SF: 74311.5 net_gain medio
+ - Garage Cars: 74311.5 net_gain medio
+ - Low Qual Fin SF: 74311.5 net_gain medio

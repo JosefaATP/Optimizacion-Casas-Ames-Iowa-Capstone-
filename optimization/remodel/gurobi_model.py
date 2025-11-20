@@ -1425,7 +1425,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     if ("Full Bath" in x) or ("Full Bath" in base_row):
         m.addConstr(_val_or_var("Full Bath") >= 1, name="R5_min_fullbath")
     if ("Bedroom AbvGr" in x) or ("Bedroom AbvGr" in base_row):
-        m.addConstr(_val_or_var("Bedroom AbvGr") >= 1, name="R5_min_bedrooms")
+        m.addConstr(_val_or_var("Bedroom AbvGr") >= 2, name="R5_min_bedrooms") # cambiado de 1 a 2
     if ("Kitchen AbvGr" in x) or ("Kitchen AbvGr" in base_row):
         m.addConstr(_val_or_var("Kitchen AbvGr") >= 1, name="R5_min_kitchen")
 
