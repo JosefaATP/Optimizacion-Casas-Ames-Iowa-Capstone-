@@ -1,0 +1,134 @@
+\documentclass[12pt]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+\graphicspath{{analysis/figures/}}
+\sisetup{group-separator = {,}, output-decimal-marker = {,}}
+
+\title{Brecha entre XGBoost y Regresión Lineal\\
+Comparación de valuaciones base y remodeladas}
+\author{Capstone ICS2122 -- Grupo 05}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Contexto y objetivos}
+El proyecto del Capstone (Informe\_2) busca estimar el valor de viviendas de Ames (Iowa) y determinar configuraciones óptimas de remodelación o construcción para maximizar el precio esperado sujeto a restricciones técnicas, de calidad y presupuesto. En la rama de \texttt{optimization/remodel} el flujo \texttt{run\_opt.py} resuelve un MIP que emula intervenciones (mejoras de calidad, ampliaciones, materiales, etc.) y luego valora la casa base y la remodelada usando dos modelos predictivos:
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{XGBoost}: modelo no lineal entrenado con one-hot encoding completo y que se usa como objetivo principal de los procesos de optimización.
+    \item \textbf{Regresión lineal}: ajuste lineal sobre \(\log(\text{SalePrice})\) calibrado en \texttt{training/train\_regression\_final.py} y desplegado mediante \texttt{optimization/remodel/regression\_predictor.py}.
+\end{itemize}
+Durante las últimas corridas se detectó un cambio relevante en la brecha promedio entre ambas valuaciones: la regresión tiende a sobreestimar el valor de las casas base (\(+3{,}8\,\%\)) pero subestima drásticamente las casas remodeladas (hasta \(-19{,}9\,\%\)). Este informe documenta los datos usados, cuantifica la magnitud y sentido del cambio y explica sus causas para incorporarlo en el informe formal.
+
+\section{Datos y procedimientos}
+Se analizaron los archivos generados por \texttt{scripts/batch\_model\_gap.py}, en particular \texttt{analysis/model\_gap\_runs\_budget\_X.csv} para presupuestos de 18k, 50k, 80k, 90k y 120k USD. Cada archivo contiene los precios reales (\texttt{base\_real}), las valuaciones de ambos modelos para la casa original y la remodelada, y las diferencias absolutas y porcentuales (\(\Delta = \text{Regresión} - \text{XGBoost}\)). Los casos de 18k, 50k y 120k incluyen 100 PIDs muestreados del set filtrado (\texttt{data/raw/df\_final\_regresion.csv}); los demás presupuestos tienen menos observaciones y se usaron sólo como referencia.
+
+Se construyó \texttt{analysis/model\_gap\_summary.csv} con estadísticas agregadas (promedios, extremos y proporción de casas donde la regresión supera al XGBoost). Además, se generaron gráficas de apoyo en \texttt{analysis/figures/} para visualizar la evolución de la brecha, su distribución y la dinámica entre las predicciones de ambos modelos.
+
+\section{Resultados cuantitativos}
+La Tabla~\ref{tab:summary} resume los promedios para los tres presupuestos con 100 corridas. La brecha base es siempre positiva, porque la regresión lineal corrige más rápido el sesgo negativo que ambos modelos tienen respecto al precio real (MAE de \$23k contra \$27k). Al movernos al escenario remodelado la brecha cambia de signo y se amplifica a medida que aumentamos el presupuesto.
+
+\begin{table}[H]
+    \centering
+    \caption{Promedio de valuaciones y brechas por presupuesto (100 casas).}
+    \label{tab:summary}
+    \begin{tabular}{lrrrrrrrrr}
+        \toprule
+        Presupuesto & Casos & Base XGB & Base Reg & \(\Delta\) Base & \(\Delta\) Base (\%) & Remod. XGB & Remod. Reg & \(\Delta\) Remod. & \(\Delta\) Remod. (\%) \\
+        \midrule
+        \$18{,}000  & 100 & \$244{,}077 & \$255{,}182 & \$11{,}105 & \(+3{,}8\%\)  & \$309{,}680 & \$258{,}612 & \(-\$51{,}068\) & \(-16{,}3\%\) \\
+        \$50{,}000  & 100 & \$244{,}435 & \$255{,}783 & \$11{,}348 & \(+3{,}9\%\)  & \$325{,}475 & \$260{,}226 & \(-\$65{,}249\) & \(-18{,}8\%\) \\
+        \$120{,}000 & 100 & \$244{,}435 & \$255{,}783 & \$11{,}348 & \(+3{,}9\%\)  & \$334{,}196 & \$261{,}057 & \(-\$73{,}139\) & \(-19{,}9\%\) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+La Figura~\ref{fig:avg_pct} muestra que la brecha base permanece prácticamente inalterable (porque no depende del presupuesto), mientras que la brecha de casas remodeladas es monotónica y alcanza casi \(-20\,\%\) cuando se permite invertir 120k. El histograma de la Figura~\ref{fig:distribution} evidencia que:
+\begin{enumerate}[leftmargin=0.9cm]
+    \item Con 18k todavía existen casas donde la regresión supera al XGBoost (cola positiva de hasta \(+2{,}1\,\%\)).
+    \item Desde 50k en adelante la distribución se mueve por completo al lado negativo (la regresión jamás supera al XGBoost y la brecha mínima llega a \(-39\,\%\)).
+    \item A 120k el grueso de los casos se sitúa entre \(-15\,\%\) y \(-25\,\%\).
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{avg_pct_gap_vs_budget.png}
+    \caption{Diferencia porcentual promedio \((\text{Regresión} - \text{XGBoost})/\text{XGBoost}\) por presupuesto.}
+    \label{fig:avg_pct}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{opt_gap_distribution.png}
+    \caption{Distribución de \(\Delta\%\) en casas remodeladas. Positivos sólo aparecen con presupuesto 18k.}
+    \label{fig:distribution}
+\end{figure}
+
+\section{Explicación del cambio en la brecha}
+\subsection{Sesgos en la estimación de la casa base}
+Ambos modelos presentan sesgo negativo respecto al precio real (\(-\$21{,}4\)k para XGBoost y \(-\$10{,}1\)k para la regresión), pero el ajuste lineal aplica una transformación logarítmica que reduce la penalización a los outliers de alto precio. Como \(68{-}69\%\) de las casas de la muestra son de gama media-alta, la regresión corrige más este sesgo y queda por encima del XGBoost en promedio (\(+11\,\text{k}\) o \(+3{,}8\,\%\)).
+
+\subsection{Respuesta no lineal ante remodelaciones}
+La remodelación simultánea cambia múltiples variables del set \texttt{optimization/remodel/features.py}: calidades ordinales, dummies de materiales, metros cuadrados y nuevas habitaciones. El modelo XGBoost captura la interacción entre esas mejoras (efectos superaditivos cuando se sube la calidad en cocina, exterior, baños y metros útiles al mismo tiempo). En cambio, la regresión sólo suma coeficientes individuales, por lo que pierde valor marginal cuando se combinan upgrades grandes.
+
+La Figura~\ref{fig:scatter} muestra el caso de 120k: la regresión se satura alrededor de \$260k incluso cuando XGBoost proyecta valores sobre \$400k. Corroborando lo anterior, la Tabla~\ref{tab:corr} evidencia que la correlación entre el precio remodelado de XGBoost y la brecha porcentual alcanza \(-0{,}51\) para 120k; es decir, mientras mayor es la valoración del ensamble, más cae la regresión relativa.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{opt_pred_scatter_120k.png}
+    \caption{Predicciones remodeladas (\$120k). La diagonal representa igualdad entre modelos.}
+    \label{fig:scatter}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \caption{Correlaciones con la brecha remodelada y proporción de casas donde la regresión supera al XGBoost.}
+    \label{tab:corr}
+    \begin{tabular}{lrrrr}
+        \toprule
+        Presupuesto & \(\rho(\text{opt XGB}, \Delta\%)\) & \(\rho(\text{precio real}, \Delta\%)\) & \% casas base con Reg$>$XGB & \% casas remodeladas con Reg$>$XGB \\
+        \midrule
+        \$18{,}000  & \(-0{,}06\) & \(+0{,}04\) & \(68\%\) & \(1\%\) \\
+        \$50{,}000  & \(-0{,}38\) & \(-0{,}27\) & \(69\%\) & \(0\%\) \\
+        \$120{,}000 & \(-0{,}51\) & \(-0{,}37\) & \(69\%\) & \(0\%\) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Dependencia con el valor base}
+Al segmentar por el precio real de la casa de origen (Figura~\ref{fig:base}), la brecha remodelada aumenta en magnitud para las viviendas más caras. Estas casas parten con buenas calidades y, al agregar aún más mejoras, el vector de features resultante cae fuera de la órbita donde la regresión fue entrenada. El XGBoost es más flexible y extrapola a valores altos, mientras que el modelo lineal aplica incrementos uniformes e infravalora el resultado final.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diff_vs_baseprice.png}
+    \caption{Relación entre el precio real de la casa base y la brecha remodelada.}
+    \label{fig:base}
+\end{figure}
+
+\section{Implicancias y recomendaciones}
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Sentido del cambio}: la brecha pasa de \(+\!3{,}8\,\%\) en la casa base a un rango de \(-16\,\%\) a \(-20\,\%\) en la casa remodelada porque los upgrades activan interacciones que sólo XGBoost reconoce. El cambio es monotónico con el presupuesto.
+    \item \textbf{Impacto}: al usar la regresión como referencia secundaria, los reportes subestiman el beneficio económico de las remodelaciones grandes (hasta \(\$73\,000\) en promedio y \(\$310\,000\) en el peor caso). Esto afecta la comunicación de resultados y la validación cruzada entre modelos.
+    \item \textbf{Causas}: sesgo residual en las estimaciones base, saturación lineal frente a combinaciones amplias de mejoras y extrapolación limitada fuera del rango observado.
+    \item \textbf{Acciones sugeridas}: (1) recalibrar la regresión incluyendo interacciones clave o términos polinomiales para los features modificables; (2) entrenar la regresión en datos sintéticos generados por \texttt{run\_opt.py} para cubrir los vectores extremos; (3) reportar sistemáticamente la brecha por presupuesto usando los archivos \texttt{analysis/model\_gap\_summary.csv} y las gráficas adjuntas para contextualizar cada corrida.
+\end{itemize}
+
+\section*{Referencias de archivos}
+\begin{itemize}[leftmargin=1.2cm]
+    \item CSV fuente: \texttt{analysis/model\_gap\_runs\_budget\_N.csv} con \(N \in \{18\,000, 50\,000, 80\,000, 90\,000, 120\,000\}\).
+    \item Estadísticos agregados: \texttt{analysis/model\_gap\_summary.csv}.
+    \item Figuras: \texttt{analysis/figures/*.png}.
+\end{itemize}
+
+\end{document}

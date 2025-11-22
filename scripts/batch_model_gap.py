@@ -31,6 +31,7 @@ def _to_float(txt: str) -> Optional[float]:
 class RunResult:
     pid: int
     budget: float
+    price_base_reported: Optional[float]
     base_real: Optional[float]
     base_xgb: Optional[float]
     base_reg: Optional[float]
@@ -40,20 +41,29 @@ class RunResult:
     opt_reg: Optional[float]
     diff_opt_abs: Optional[float]
     diff_opt_pct: Optional[float]
+    total_cost_model: Optional[float]
+    roi_xgb_pct: Optional[float]
+    roi_reg_pct: Optional[float]
 
 
 def parse_run_opt_output(text: str, pid: int, budget: float) -> RunResult:
     lines = text.splitlines()
 
+    price_base_reported = None
     base_real = None
     base_xgb = None
     base_reg = None
     opt_xgb = None
     opt_reg = None
+    total_cost_model = None
 
     for ln in lines:
         if "Precio real (dataset)" in ln:
             base_real = _to_float(ln)
+        elif "Precio casa base:" in ln:
+            price_base_reported = _to_float(ln)
+        elif "Costos totales (modelo):" in ln:
+            total_cost_model = _to_float(ln)
         elif "Casa base" in ln and "$" in ln and base_xgb is None and base_reg is None:
             # solo ancla de bloque; los valores vienen debajo
             continue
@@ -92,9 +102,24 @@ def parse_run_opt_output(text: str, pid: int, budget: float) -> RunResult:
         diff_opt_abs = opt_reg - opt_xgb
         diff_opt_pct = diff_opt_abs / opt_xgb * 100
 
+    def _calc_roi_pct(opt_price: Optional[float]) -> Optional[float]:
+        if (
+            opt_price is None
+            or total_cost_model is None
+            or total_cost_model == 0
+            or price_base_reported is None
+        ):
+            return None
+        utilidad = (opt_price - total_cost_model) - price_base_reported
+        return utilidad / total_cost_model * 100.0
+
+    roi_xgb_pct = _calc_roi_pct(opt_xgb)
+    roi_reg_pct = _calc_roi_pct(opt_reg)
+
     return RunResult(
         pid=pid,
         budget=budget,
+        price_base_reported=price_base_reported,
         base_real=base_real,
         base_xgb=base_xgb,
         base_reg=base_reg,
@@ -104,6 +129,9 @@ def parse_run_opt_output(text: str, pid: int, budget: float) -> RunResult:
         opt_reg=opt_reg,
         diff_opt_abs=diff_opt_abs,
         diff_opt_pct=diff_opt_pct,
+        total_cost_model=total_cost_model,
+        roi_xgb_pct=roi_xgb_pct,
+        roi_reg_pct=roi_reg_pct,
     )
 
 
