@@ -1,5 +1,5 @@
 idx,feature,value,LB,UB
-0,Lot Frontage,110.0,0.0,175.53
+0,Lot Frontage,140.0,0.0,175.53
 1,Lot Area,7000.0,7000.0,7000.0
 2,Utilities,3.0,-1.0,4.0
 3,Overall Qual,9.0,0.0,inf
@@ -11,32 +11,32 @@ idx,feature,value,LB,UB
 9,Exter Cond,4.0,-1.0,4.0
 10,Bsmt Qual,4.0,2.0,4.0
 11,Bsmt Cond,4.0,-1.0,4.0
-12,BsmtFin SF 1,1259.0,0.0,1984.5
-13,BsmtFin SF 2,216.0,0.0,757.05
+12,BsmtFin SF 1,1258.999999,0.0,1984.5
+13,BsmtFin SF 2,216.0000010000001,0.0,757.05
 14,Bsmt Unf SF,0.0,0.0,1812.68
 15,Total Bsmt SF,1475.0,0.0,2514.48
 16,Heating QC,3.0,2.0,4.0
-17,1st Flr SF,1800.0,0.0,2534.9
+17,1st Flr SF,1488.0,0.0,2534.9
 18,2nd Flr SF,0.0,0.0,1641.54
 19,Low Qual Fin SF,0.0,0.0,inf
-20,Gr Liv Area,1800.0,0.0,3421.76
+20,Gr Liv Area,1488.0,0.0,3421.76
 21,Bsmt Full Bath,2.0,0.0,2.02
 22,Bsmt Half Bath,0.0,0.0,1.01
-23,Full Bath,3.0,-0.0,6.0
+23,Full Bath,1.0,-0.0,6.0
 24,Half Bath,0.0,-0.0,5.0
-25,Bedroom AbvGr,5.0,-0.0,7.0
+25,Bedroom AbvGr,2.0,-0.0,7.0
 26,Kitchen AbvGr,1.0,-0.0,3.0
 27,Kitchen Qual,4.0,2.0,4.0
-28,TotRms AbvGrd,9.0,0.0,12.08
+28,TotRms AbvGrd,7.0,0.0,12.08
 29,Fireplaces,2.0,-0.0,3.0
 30,Fireplace Qu,2.0,2.0,4.0
 31,Garage Yr Blt,2025.0,0.0,inf
 32,Garage Cars,3.0,-0.0,4.0
-33,Garage Area,460.0,0.0,1163.75
+33,Garage Area,450.0,0.0,1163.75
 34,Garage Qual,4.0,2.0,4.0
 35,Garage Cond,4.0,-1.0,4.0
 36,Wood Deck SF,0.0,0.0,525.9
-37,Open Porch SF,40.0,0.0,488.81
+37,Open Porch SF,0.0,0.0,488.81
 38,Enclosed Porch,0.0,0.0,292.75
 39,3Ssn Porch,0.0,0.0,1750.0
 40,Screen Porch,162.0,0.0,268.27
@@ -88,7 +88,7 @@ idx,feature,value,LB,UB
 86,Land Slope_Gtl,1.0,0.0,1.0
 87,Land Slope_Mod,0.0,0.0,1.0
 88,Land Slope_Sev,0.0,0.0,1.0
-89,Neighborhood_Blmngtn,0.0,0.0,1.0
+89,Neighborhood_Blmngtn,1.0,0.0,1.0
 90,Neighborhood_Blueste,0.0,0.0,1.0
 91,Neighborhood_BrDale,0.0,0.0,1.0
 92,Neighborhood_BrkSide,0.0,0.0,1.0
@@ -115,7 +115,7 @@ idx,feature,value,LB,UB
 113,Neighborhood_Somerst,0.0,0.0,1.0
 114,Neighborhood_StoneBr,0.0,0.0,1.0
 115,Neighborhood_Timber,0.0,0.0,1.0
-116,Neighborhood_Veenker,1.0,0.0,1.0
+116,Neighborhood_Veenker,0.0,0.0,1.0
 117,Condition 1_Artery,0.0,0.0,1.0
 118,Condition 1_Feedr,0.0,0.0,1.0
 119,Condition 1_Norm,1.0,0.0,1.0
@@ -133,9 +133,9 @@ idx,feature,value,LB,UB
 131,Condition 2_RRAe,0.0,0.0,1.0
 132,Condition 2_RRAn,0.0,0.0,1.0
 133,Condition 2_RRNn,0.0,0.0,1.0
-134,Bldg Type_1Fam,0.0,0.0,1.0
+134,Bldg Type_1Fam,1.0,0.0,1.0
 135,Bldg Type_2fmCon,0.0,0.0,1.0
-136,Bldg Type_Duplex,1.0,0.0,1.0
+136,Bldg Type_Duplex,0.0,0.0,1.0
 137,Bldg Type_Twnhs,0.0,0.0,1.0
 138,Bldg Type_TwnhsE,0.0,0.0,1.0
 139,House Style_1.5Fin,0.0,0.0,1.0
@@ -143,11 +143,11 @@ idx,feature,value,LB,UB
 141,House Style_1Story,0.0,0.0,1.0
 142,House Style_2.5Fin,0.0,0.0,1.0
 143,House Style_2.5Unf,0.0,0.0,1.0
-144,House Style_2Story,0.0,0.0,1.0
+144,House Style_2Story,1.0,0.0,1.0
 145,House Style_SFoyer,0.0,0.0,1.0
 146,House Style_SLvl,0.0,0.0,1.0
-147,Roof Style_Flat,1.0,0.0,1.0
-148,Roof Style_Gable,0.0,0.0,1.0
+147,Roof Style_Flat,0.0,0.0,1.0
+148,Roof Style_Gable,1.0,0.0,1.0
 149,Roof Style_Gambrel,0.0,0.0,1.0
 150,Roof Style_Hip,0.0,0.0,1.0
 151,Roof Style_Mansard,0.0,0.0,1.0
@@ -200,8 +200,8 @@ idx,feature,value,LB,UB
 198,Mas Vnr Type_NoAplica,0.0,0.0,1.0
 199,Mas Vnr Type_Stone,0.0,0.0,1.0
 200,Foundation_BrkTil,0.0,0.0,1.0
-201,Foundation_CBlock,1.0,0.0,1.0
-202,Foundation_PConc,0.0,0.0,1.0
+201,Foundation_CBlock,0.0,0.0,1.0
+202,Foundation_PConc,1.0,0.0,1.0
 203,Foundation_Slab,0.0,0.0,1.0
 204,Foundation_Stone,0.0,0.0,1.0
 205,Foundation_Wood,0.0,0.0,1.0

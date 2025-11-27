@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" font-family="Helvetica, Arial, sans-serif">
+<rect width="100%" height="100%" fill="white"/>
+<text x="450.0" y="24" text-anchor="middle" font-size="16" fill="#111" font-weight="bold">ROI promedio (%) - Top 10 barrios</text>
+<text x="10" y="58.7" font-size="12" fill="#333">South &amp; West of Iowa State University</text>
+<rect x="220" y="40.0" width="640.0" height="26" fill="#377eb8" rx="3" ry="3"/>
+<text x="866.0" y="58.7" font-size="12" fill="#333">29.6%</text>
+<text x="10" y="94.7" font-size="12" fill="#333">Old Town</text>
+<rect x="220" y="76.0" width="632.0" height="26" fill="#377eb8" rx="3" ry="3"/>
+<text x="858.0" y="94.7" font-size="12" fill="#333">29.2%</text>
+<text x="10" y="130.7" font-size="12" fill="#333">Brookside</text>
+<rect x="220" y="112.0" width="624.6" height="26" fill="#377eb8" rx="3" ry="3"/>
+<text x="850.6" y="130.7" font-size="12" fill="#333">28.9%</text>
+<text x="10" y="166.7" font-size="12" fill="#333">Iowa DOT and Rail Road</text>
+<rect x="220" y="148.0" width="527.4" height="26" fill="#377eb8" rx="3" ry="3"/>
+<text x="753.4" y="166.7" font-size="12" fill="#333">24.4%</text>
+<text x="10" y="202.7" font-size="12" fill="#333">Edwards</text>
+<rect x="220" y="184.0" width="386.0" height="26" fill="#377eb8" rx="3" ry="3"/>
+<text x="612.0" y="202.7" font-size="12" fill="#333">17.9%</text>
+<text x="10" y="238.7" font-size="12" fill="#333">Meadow Village</text>
+<rect x="220" y="220.0" width="245.1" height="26" fill="#377eb8" rx="3" ry="3"/>
+<text x="471.1" y="238.7" font-size="12" fill="#333">11.3%</text>
+<text x="10" y="274.7" font-size="12" fill="#333">Crawford</text>
+<rect x="220" y="256.0" width="238.1" height="26" fill="#377eb8" rx="3" ry="3"/>
+<text x="464.1" y="274.7" font-size="12" fill="#333">11.0%</text>
+<text x="10" y="310.7" font-size="12" fill="#333">Gilbert</text>
+<rect x="220" y="292.0" width="231.4" height="26" fill="#377eb8" rx="3" ry="3"/>
+<text x="457.4" y="310.7" font-size="12" fill="#333">10.7%</text>
+<text x="10" y="346.7" font-size="12" fill="#333">Sawyer</text>
+<rect x="220" y="328.0" width="228.9" height="26" fill="#377eb8" rx="3" ry="3"/>
+<text x="454.9" y="346.7" font-size="12" fill="#333">10.6%</text>
+<text x="10" y="382.7" font-size="12" fill="#333">Greens</text>
+<rect x="220" y="364.0" width="227.0" height="26" fill="#377eb8" rx="3" ry="3"/>
+<text x="453.0" y="382.7" font-size="12" fill="#333">10.5%</text>
+</svg>
