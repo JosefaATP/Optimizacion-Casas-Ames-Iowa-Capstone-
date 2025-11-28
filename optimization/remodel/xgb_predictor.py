@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import re
 import json
+import gurobipy as gp
 
 from sklearn.pipeline import Pipeline as SKPipeline
 from sklearn.compose import ColumnTransformer, TransformedTargetRegressor
@@ -175,6 +176,27 @@ class XGBBundle:
     def __init__(self, model_path: Path = PATHS.xgb_model_file):
         self.model_path = model_path
         self.pipe_full: SKPipeline = joblib.load(self.model_path)
+        # best_iteration/best_ntree_limit para truncar árboles si aplica
+        self.n_trees_use: int | None = None
+        meta_path = self.model_path.parent / "meta.json"
+        try:
+            if meta_path.exists():
+                meta = json.loads(meta_path.read_text())
+                ntree = meta.get("best_ntree_limit") or meta.get("best_iteration")
+                if ntree is not None:
+                    try:
+                        nt = int(ntree)
+                        # best_ntree_limit suele ser best_iteration + 1
+                        self.n_trees_use = nt if nt > 0 else None
+                    except Exception:
+                        self.n_trees_use = None
+        except Exception:
+            self.n_trees_use = None
+
+        # Para que el embed (gurobi_ml) y las predicciones externas usen el mismo
+        # número de árboles, desactivamos el truncado por early stopping.
+        # (gurobi_ml no sabe recortar árboles, así que aquí igualamos ambos mundos.)
+        self.n_trees_use = None
 
         self.feats = list(getattr(self.pipe_full, "feature_names_in_", []))
         self.quality_cols = [c for c in QUALITY_CANDIDATE_NAMES if c in self.feats]
@@ -238,11 +260,19 @@ class XGBBundle:
         except Exception:
             pass
 
-        # Pipeline a embedir: MISMO pre aplanado + MISMO regressor
+        # Pipeline a embedir: MISMO pre aplanado + MISMO regressor (SIN TransformedTargetRegressor)
+        # CRÍTICO: si pipe_full tiene TransformedTargetRegressor, el embed predice en escala RAW (log1p)
+        # mientras que predict() del bundle predice en escala ORIGINAL.
+        # Usamos el XGBRegressor bruto para que el MIP use log1p internamente.
         self.pipe_for_embed: SKPipeline = SKPipeline(steps=[
             ("pre", self.pre),
-            ("xgb", self.reg),
+            ("xgb", self.reg),  # XGBRegressor sin wrapper TransformedTargetRegressor
         ])
+        self.b0_offset: float = 0.0
+        
+        # INFO: pipe_for_gurobi() predice en escala LOG1P (raw XGB margin)
+        # mientras que predict() predice en escala ORIGINAL (precio).
+        # Esto es INTENCIONAL: el MIP trabaja con log1p internamente.
 
     def feature_names_in(self) -> List[str]:
         return list(getattr(self.pipe_full, "feature_names_in_", []))
@@ -254,10 +284,368 @@ class XGBBundle:
         return self.pipe_for_embed
 
     def predict(self, X: pd.DataFrame) -> pd.Series:
-        # Asegura calidades/utilities como int si corresponde (tú ya lo haces)
+        """Predice en escala original respetando n_trees_use (early stopping)."""
         X_fixed = X.copy()
         _coerce_quality_ordinals_inplace(X_fixed, self.quality_cols)
         _coerce_utilities_ordinal_inplace(X_fixed)
-        # No hay OHE en el pre, el pipe espera solo columnas numéricas (incluyendo dummies)
-        y = self.pipe_full.predict(X_fixed)
-        return pd.Series(y, index=X.index)
+
+        try:
+            Xp = self.pre.transform(X_fixed)
+        except Exception:
+            # fallback: pipeline completo
+            y_fallback = self.pipe_full.predict(X_fixed)
+            return pd.Series(y_fallback, index=X.index)
+
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+
+        try:
+            if n_use is not None and n_use > 0:
+                y_pred_log = self.reg.predict(Xp, iteration_range=(0, n_use))
+            else:
+                y_pred_log = self.reg.predict(Xp)
+            y_pred = np.expm1(y_pred_log) if self.log_target else y_pred_log
+            return pd.Series(y_pred, index=X.index)
+        except Exception:
+            y_fallback = self.pipe_full.predict(X_fixed)
+            return pd.Series(y_fallback, index=X.index)
+
+    def predict_log_raw(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Predice el margen crudo del XGB (y_log) respetando n_trees_use.
+        Útil para comparar con el embed dentro del MIP.
+        """
+        X_fixed = X.copy()
+        _coerce_quality_ordinals_inplace(X_fixed, self.quality_cols)
+        _coerce_utilities_ordinal_inplace(X_fixed)
+        try:
+            Xp = self.pre.transform(X_fixed)
+        except Exception:
+            Xp = X_fixed.values
+
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+
+        try:
+            if n_use is not None and n_use > 0:
+                y_log = self.reg.predict(Xp, output_margin=True, iteration_range=(0, n_use))
+            else:
+                y_log = self.reg.predict(Xp, output_margin=True)
+            return pd.Series(y_log, index=X.index)
+        except Exception:
+            # fallback: predice en escala original y revierte si corresponde
+            y = self.pipe_full.predict(X_fixed)
+            try:
+                y_log = np.log1p(y)
+            except Exception:
+                y_log = y
+            return pd.Series(y_log, index=X.index)
+
+    # === utilidades para autocalibrar (igual que en construcción) ===
+    def booster_feature_order(self) -> List[str]:
+        """Orden de features que ve el Booster (passthrough numérico)."""
+        cols: List[str] = []
+        try:
+            ct: ColumnTransformer = self.pre
+            trs = ct.transformers_ if hasattr(ct, "transformers_") else ct.transformers
+            for item in trs:
+                name, transformer, tcols = item[0], item[1], item[2]
+                if name == "num":
+                    cols = list(tcols)
+                    break
+            if not cols and trs:
+                cols = list(trs[0][2])
+        except Exception:
+            pass
+        if not cols:
+            cols = self.feature_names_in()
+        return cols
+
+    def _get_dumps_limited(self):
+        try:
+            bst = self.reg.get_booster()
+        except Exception:
+            bst = getattr(self.reg, "_Booster", None)
+        if bst is None:
+            raise RuntimeError("XGBBundle: no pude obtener Booster para calibración")
+        dumps = bst.get_dump(with_stats=False, dump_format="json")
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+        if n_use is not None and 0 < n_use < len(dumps):
+            dumps = dumps[:n_use]
+        return dumps
+
+    def _eval_sum_leaves(self, Xp_row: np.ndarray) -> float:
+        dumps = self._get_dumps_limited()
+        s = 0.0
+        for js in dumps:
+            node = json.loads(js)
+            cur = node
+            while True:
+                if "leaf" in cur:
+                    s += float(cur.get("leaf") or 0.0)
+                    break
+                f_idx = int(str(cur.get("split", "0")).replace("f", ""))
+                thr = float(cur.get("split_condition", 0.0))
+                yes_id = cur.get("yes")
+                no_id = cur.get("no")
+                val = float(Xp_row[f_idx]) if f_idx < len(Xp_row) else 0.0
+                go_yes = (val < thr)
+                next_id = yes_id if go_yes else no_id
+                nxt = None
+                for ch in cur.get("children", []):
+                    if ch.get("nodeid") == next_id:
+                        nxt = ch
+                        break
+                if nxt is None and cur.get("children"):
+                    nxt = cur["children"][0]
+                if nxt is None:
+                    break
+                cur = nxt
+        return float(s)
+
+    def autocalibrate_offset(self, X_ref: pd.DataFrame | None = None) -> float:
+        """
+        Para el embed manual (suma de hojas), calculamos b0 alineando con el margen del regressor.
+        """
+        try:
+            feats = self.feature_names_in()
+            if X_ref is None:
+                Z = pd.DataFrame([[0.0] * len(feats)], columns=feats)
+            else:
+                if hasattr(X_ref, "iloc"):
+                    row = X_ref.iloc[0].to_dict()
+                elif isinstance(X_ref, dict):
+                    row = X_ref
+                else:
+                    row = {c: 0.0 for c in feats}
+                Z = pd.DataFrame([{c: float(row.get(c, 0.0)) for c in feats}])
+
+            Xp = self.pre.transform(Z)
+            try:
+                if hasattr(Xp, "toarray"):
+                    Xp_arr = Xp.toarray()
+                else:
+                    Xp_arr = Xp
+            except Exception:
+                Xp_arr = Xp
+
+            n_use = None
+            try:
+                n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+            except Exception:
+                n_use = None
+
+            if n_use is not None and n_use > 0:
+                y_out = float(self.reg.predict(Xp_arr, output_margin=True, iteration_range=(0, n_use))[0])
+            else:
+                y_out = float(self.reg.predict(Xp_arr, output_margin=True)[0])
+            y_in = self._eval_sum_leaves(np.ravel(Xp_arr))
+            self.b0_offset = float(y_out - y_in)
+        except Exception:
+            self.b0_offset = 0.0
+        return self.b0_offset
+
+    # === Embebidos de árboles (igual que construcción) ===
+    def attach_to_gurobi(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:
+        import json, math
+
+        try:
+            bst = self.reg.get_booster()
+        except Exception:
+            bst = getattr(self.reg, "_Booster", None)
+        if bst is None:
+            raise RuntimeError("XGBBundle: no pude obtener Booster del modelo")
+
+        dumps = bst.get_dump(with_stats=False, dump_format="json")
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+        if n_use is not None and 0 < n_use < len(dumps):
+            dumps = dumps[:n_use]
+            try:
+                m._xgb_used_trees = int(n_use)
+            except Exception:
+                pass
+
+        # Intenta fijar offset/base_score si no se ha calculado
+        if (self.b0_offset is None) or (abs(self.b0_offset) < 1e-12):
+            try:
+                bs_attr = bst.attr("base_score")
+                if bs_attr is not None:
+                    self.b0_offset = float(bs_attr)
+                else:
+                    # fallback: evalúa predict(output_margin) en el origen y resta suma de hojas
+                    import numpy as _np
+                    zeros = _np.zeros((1, len(x_list)))
+                    y_out = float(self.reg.predict(zeros, output_margin=True)[0])
+                    y_in = self._eval_sum_leaves(zeros.ravel())
+                    self.b0_offset = float(y_out - y_in)
+            except Exception:
+                self.b0_offset = 0.0
+
+        total_expr = gp.LinExpr(0.0)
+
+        def fin(v):
+            try:
+                return math.isfinite(float(v))
+            except Exception:
+                return False
+
+        for t_idx, js in enumerate(dumps):
+            node = json.loads(js)
+
+            leaves = []
+            def walk(nd, path):
+                if "leaf" in nd:
+                    leaves.append((path, float(nd["leaf"])))
+                    return
+                f_idx = int(str(nd["split"]).replace("f", ""))
+                thr = float(nd["split_condition"])
+                yes_id = nd.get("yes")
+                no_id = nd.get("no")
+                
+                # Encontrar explícitamente yes_child y no_child
+                yes_child = None
+                no_child = None
+                for ch in nd.get("children", []):
+                    ch_id = ch.get("nodeid")
+                    if ch_id == yes_id:
+                        yes_child = ch
+                    elif ch_id == no_id:
+                        no_child = ch
+                
+                # Procesar yes_child (x < threshold, es_left=True)
+                if yes_child is not None:
+                    walk(yes_child, path + [(f_idx, thr, True)])
+                
+                # Procesar no_child (x >= threshold, es_left=False)
+                if no_child is not None:
+                    walk(no_child, path + [(f_idx, thr, False)])
+            walk(node, [])
+
+            z = [m.addVar(vtype=gp.GRB.BINARY, name=f"t{t_idx}_leaf{k}") for k in range(len(leaves))]
+            m.addConstr(gp.quicksum(z) == 1, name=f"TREE_{t_idx}_ONEHOT")
+
+            for k, (conds, _) in enumerate(leaves):
+                for (f_idx, thr, is_left) in conds:
+                    xv = x_list[f_idx]
+
+                    lb = float(xv.LB) if fin(getattr(xv, "LB", None)) else -1e6
+                    ub = float(xv.UB) if fin(getattr(xv, "UB", None)) else  1e6
+
+                    if lb >= 0.0 and ub <= 1.0:
+                        thr = 0.5
+
+                    M_le = max(0.0, ub - thr)
+                    M_ge = max(0.0, thr - lb)
+
+                    if is_left:
+                        m.addConstr(xv <= thr + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_le")
+                    else:
+                        m.addConstr(xv >= thr - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge")
+
+            total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))
+
+        m.addConstr(y_log == total_expr, name="YLOG_XGB_SUM")
+
+    def attach_to_gurobi_strict(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:
+        import json, math
+
+        try:
+            bst = self.reg.get_booster()
+        except Exception:
+            bst = getattr(self.reg, "_Booster", None)
+        if bst is None:
+            raise RuntimeError("XGBBundle: no pude obtener Booster del modelo")
+
+        dumps = bst.get_dump(with_stats=False, dump_format="json")
+        n_use = None
+        try:
+            n_use = int(self.n_trees_use) if self.n_trees_use is not None else None
+        except Exception:
+            n_use = None
+        if n_use is not None and 0 < n_use < len(dumps):
+            dumps = dumps[:n_use]
+            try:
+                m._xgb_used_trees = int(n_use)
+            except Exception:
+                pass
+
+        total_expr = gp.LinExpr(0.0)
+
+        def fin(v):
+            try:
+                return math.isfinite(float(v))
+            except Exception:
+                return False
+
+        for t_idx, js in enumerate(dumps):
+            node = json.loads(js)
+
+            leaves = []
+            def walk(nd, path):
+                if "leaf" in nd:
+                    leaves.append((path, float(nd["leaf"])))
+                    return
+                f_idx = int(str(nd["split"]).replace("f", ""))
+                thr = float(nd["split_condition"])
+                yes_id = nd.get("yes")
+                no_id = nd.get("no")
+                
+                # Encontrar explícitamente yes_child y no_child
+                yes_child = None
+                no_child = None
+                for ch in nd.get("children", []):
+                    ch_id = ch.get("nodeid")
+                    if ch_id == yes_id:
+                        yes_child = ch
+                    elif ch_id == no_id:
+                        no_child = ch
+                
+                # Procesar yes_child (x < threshold, es_left=True)
+                if yes_child is not None:
+                    walk(yes_child, path + [(f_idx, thr, True)])
+                
+                # Procesar no_child (x >= threshold, es_left=False)
+                if no_child is not None:
+                    walk(no_child, path + [(f_idx, thr, False)])
+            walk(node, [])
+
+            z = [m.addVar(vtype=gp.GRB.BINARY, name=f"t{t_idx}_leaf{k}") for k in range(len(leaves))]
+            m.addConstr(gp.quicksum(z) == 1, name=f"TREE_{t_idx}_ONEHOT")
+
+            for k, (conds, _) in enumerate(leaves):
+                for (f_idx, thr, is_left) in conds:
+                    xv = x_list[f_idx]
+
+                    lb = float(xv.LB) if fin(getattr(xv, "LB", None)) else -1e6
+                    ub = float(xv.UB) if fin(getattr(xv, "UB", None)) else  1e6
+
+                    if lb >= 0.0 and ub <= 1.0:
+                        thr = 0.5
+
+                    M_le = max(0.0, ub - thr)
+                    M_ge = max(0.0, thr - lb)
+
+                    if is_left:
+                        # x <= thr cuando z=1
+                        m.addConstr(xv <= thr + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_le_strict")
+                    else:
+                        # x >= thr cuando z=1
+                        m.addConstr(xv >= thr + eps - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge_strict")
+
+            total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))
+
+        m.addConstr(y_log == total_expr, name="YLOG_XGB_SUM_STRICT")

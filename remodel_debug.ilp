@@ -1,0 +1,12 @@
+\ Model remodel_embed_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Maximize
+ 
+Subject To
+ AMPL_link_ScreenPorch: x_Screen_Porch = 0
+ T152_R4_f40_ge_strict: x_Screen_Porch - 150 t152_leaf4 >= 1e-06
+Bounds
+ x_Screen_Porch free
+Binaries
+ t152_leaf4
+End

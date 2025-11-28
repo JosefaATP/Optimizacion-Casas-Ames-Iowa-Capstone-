@@ -23,6 +23,7 @@ MODIFIABLE = [
     FeatureSpec("Bsmt Unf SF",  0.0, 100000.0, "C"),
     FeatureSpec("Gr Liv Area", 0.0, 10000.0, "C"),
     FeatureSpec("1st Flr SF", 0.0, 5000.0, "C"),
+    FeatureSpec("Mas Vnr Area", 0.0, 2000.0, "C"),
     #FeatureSpec("2nd Flr SF", 0.0, 4000.0, "C"),
     # --- Mas Vnr Type (binarios) ---
     FeatureSpec("mvt_is_BrkCmn", lb=0, ub=1, vartype="B"),
@@ -116,6 +117,16 @@ MODIFIABLE += [
     FeatureSpec("Pool Area",     0.0, 100000.0, "C"),
 ]
 
+# Amplification flags (10%, 20%, 30%) para cada area
+# Estas permiten enlazar ampliaciones con costos
+COMPONENTS_WITH_AMPL = [
+    "Garage Area", "Wood Deck SF", "Open Porch SF",
+    "Enclosed Porch", "3Ssn Porch", "Screen Porch", "Pool Area"
+]
+for comp in COMPONENTS_WITH_AMPL:
+    safe_name = comp.replace(" ", "")  # e.g., "Open Porch SF" -> "OpenPorchSF"
+    for s in [10, 20, 30]:
+        MODIFIABLE.append(FeatureSpec(name=f"z{s}_{safe_name}", lb=0, ub=1, vartype="B"))
 
 # contadores de ambientes (si van al XGB)
 MODIFIABLE += [
@@ -156,7 +167,7 @@ for nm in EXT_MATS:
 
 # ----- HEATING: elección de tipo -----
 for _nm in ["Floor","GasA","GasW","Grav","OthW","Wall"]:
-    MODIFIABLE.append(FeatureSpec(name=f"heat_is_{_nm}", lb=0, ub=1, vartype="B"))
+    MODIFIABLE.append(FeatureSpec(name=f"Heating_{_nm}", lb=0, ub=1, vartype="B"))
 
 # Banderas de caminos (como en el PDF)
 MODIFIABLE += [

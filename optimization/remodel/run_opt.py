@@ -3,6 +3,10 @@ import argparse
 import pandas as pd
 import gurobipy as gp
 import numpy as np
+import sys, io
+
+# fuerza stdout a utf-8 para evitar UnicodeEncodeError en Windows/PowerShell
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 from optimization.remodel.gurobi_model import build_base_input_row
 from .config import PARAMS
@@ -314,12 +318,30 @@ def main():
     ap.add_argument("--basecsv", type=str, default=None, help="ruta alternativa al CSV base")
     ap.add_argument("--debug-xgb", action="store_true", help="imprime sensibilidades del XGB (rápido)")
     ap.add_argument("--time-limit", type=float, default=None, help="sobrescribe TimeLimit del solver (segundos)")
+    ap.add_argument("--no-upgrades", action="store_true", help="fija todas las decisiones al valor base para alinear y_log (solo debug)")
+    ap.add_argument("--debug-embed-build", action="store_true", help="inspecciona X_input vs base antes de optimizar")
+    ap.add_argument("--debug-tree-mismatch", action="store_true", help="reporta hojas distintas vs booster (primeros arboles)")
     args = ap.parse_args()
 
     # Datos base, costos y modelo ML
     base = get_base_house(args.pid, base_csv=args.basecsv)
     ct = costs.CostTables()
     bundle = XGBBundle()
+    
+    # DEBUG: verificar # de árboles
+    if args.debug_embed_build:
+        try:
+            bst = bundle.reg.get_booster()
+        except:
+            bst = getattr(bundle.reg, "_Booster", None)
+        if bst:
+            dumps = bst.get_dump(with_stats=False, dump_format="json")
+            print(f"[TREE-INFO] Total árboles en booster: {len(dumps)}")
+            print(f"[TREE-INFO] bundle.n_trees_use: {bundle.n_trees_use}")
+            if bundle.n_trees_use and bundle.n_trees_use < len(dumps):
+                print(f"[TREE-INFO] ✓ Usando PRIMEROS {bundle.n_trees_use}/{len(dumps)} árboles")
+            else:
+                print(f"[TREE-INFO] ✗ Usando TODOS {len(dumps)} árboles")
 
     # base_row robusto
     try:
@@ -356,15 +378,73 @@ def main():
             pass
 
     # --- Sanity: pipeline full (TTR) vs pipeline embed (pre + reg) ---
+    # CRÍTICO: comparar en la MISMA escala (log1p del XGB raw margin)
     y_full = float(bundle.predict(X_base).iloc[0])              # en escala de precio
-    y_log_embed = float(bundle.pipe_for_gurobi().predict(X_base)[0])  # en escala log1p
-    y_from_embed = float(np.expm1(y_log_embed))
+    y_log_via_embed = float(bundle.pipe_for_gurobi().predict(X_base)[0])  # log1p raw XGB margin
+    y_log_direct = float(bundle.predict_log_raw(X_base).iloc[0])  # también log1p raw XGB margin (must match)
+    y_from_embed = float(np.expm1(y_log_via_embed))
 
     print(f"[SANITY] full.predict -> price = {y_full:,.2f}")
-    print(f"[SANITY] embed (pre+reg) -> log = {y_log_embed:.6f} | price≈ {y_from_embed:,.2f}")
+    print(f"[SANITY] embed (via pipe) -> log = {y_log_via_embed:.6f}")
+    print(f"[SANITY] direct raw_log -> log = {y_log_direct:.6f}")
+    print(f"[SANITY] expm1(embed_log) -> price~ {y_from_embed:,.2f}")
+    if abs(y_log_via_embed - y_log_direct) > 1e-4:
+        print(f"[WARNING] embed vs direct log mismatch: {abs(y_log_via_embed - y_log_direct):.6f}")
+
+    # ===== modo debug: solo comparar logs sin construir MIP =====
+    if args.no_upgrades:
+        y_log_embed = float(bundle.pipe_for_gurobi().predict(X_base)[0])
+        y_log_direct = float(bundle.predict_log_raw(X_base).iloc[0])
+        delta = y_log_embed - y_log_direct
+        print("[DEBUG] no-upgrades activo: se fija todo a base y NO se arma MIP")
+        print(f"[DEBUG] y_log(embed via pipe)={y_log_embed:.6f} vs y_log(direct raw)={y_log_direct:.6f} | delta={delta:.6f}")
+        if abs(delta) < 1e-5:
+            print("[DEBUG] ✓ Log scales are consistent")
+        else:
+            print(f"[DEBUG] ✗ Log scale mismatch detected: {delta:.6f}")
+        return
 
     # ===== construir y resolver el MIP =====
-    m: gp.Model = build_mip_embed(base_row, args.budget, ct, bundle, base_price=precio_base)
+    m: gp.Model = build_mip_embed(
+        base_row,
+        args.budget,
+        ct,
+        bundle,
+        base_price=precio_base,
+        fix_to_base=False,
+    )
+
+    if args.debug_embed_build:
+        try:
+            def _debug_embed_matrix(m):
+                Xin = m._X_input
+                base_num = m._X_base_numeric
+                n_decision = 0
+                mismatch = []
+                for c in Xin.columns:
+                    val = Xin.iloc[0][c]
+                    if isinstance(val, gp.Var):
+                        n_decision += 1
+                        continue
+                    try:
+                        v = float(val)
+                        b = float(base_num.iloc[0].get(c, 0.0))
+                        if not np.isfinite(v) or not np.isfinite(b):
+                            mismatch.append((c, v, b, "nonfinite"))
+                        elif abs(v - b) > 1e-6:
+                            mismatch.append((c, v, b, "delta"))
+                    except Exception:
+                        mismatch.append((c, val, base_num.iloc[0].get(c, None), "nonfloat"))
+                print(f"[DEBUG-EMBED] decision vars en X_input: {n_decision} | columnas totales: {Xin.shape[1]}")
+                if mismatch:
+                    print(f"[DEBUG-EMBED] columnas no-modificables con mismatch ({len(mismatch)}), primeras 20:")
+                    for c, v, b, why in mismatch[:20]:
+                        print(f"  - {c}: X_in={v} | base={b} | motivo={why}")
+                else:
+                    print("[DEBUG-EMBED] no se detectaron mismatches numéricos en columnas no-decisión.")
+            _debug_embed_matrix(m)
+        except Exception as e:
+            print(f"[DEBUG-EMBED] no se pudo inspeccionar X_input: {e}")
 
     # Parámetros de resolución
     time_limit = args.time_limit if args.time_limit is not None else PARAMS.time_limit
@@ -386,14 +466,64 @@ def main():
 
     m.optimize()
     audit_cost_breakdown_vars(m, top=30)
+    
+    # DEBUG: Check that one-hot constraints are satisfied
+    if args.debug_tree_mismatch:
+        print("\n[ONE-HOT-CHECK]")
+        violations = 0
+        for t_idx in range(min(20, 1058)):
+            leaf_vars = [m.getVarByName(f"t{t_idx}_leaf{k}") for k in range(1000)]
+            leaf_vars = [v for v in leaf_vars if v is not None]
+            if not leaf_vars:
+                continue
+            
+            z_sum = sum(v.X for v in leaf_vars)
+            if abs(z_sum - 1.0) > 0.01:
+                print(f"  Tree {t_idx}: sum(z) = {z_sum:.6f} (VIOLATION!)")
+                violations += 1
+                for k, v in enumerate(leaf_vars[:5]):
+                    print(f"    z[{k}] = {v.X:.6f}")
+        
+        if violations == 0:
+            print(f"  All checked trees have valid one-hot constraints ✓")
+        else:
+            print(f"  {violations} trees have one-hot violations!")
+    
     # tras optimize(), usa el mismo X que vio el embed:
     X_in = rebuild_embed_input_df(m, m._X_base_numeric)
     try:
         y_hat_out = float(bundle.predict(X_in).iloc[0])
-        ylog_out  = float(np.log1p(y_hat_out))  # si tu target original es log1p
-        delta = float(m._y_log_var.X) - ylog_out
+        # CRÍTICO: m._y_log_var está en escala log1p del XGB raw margin
+        # Usar predict_log_raw() para comparación correcta, NO log1p(predict())
+        ylog_out_raw = float(bundle.predict_log_raw(X_in).iloc[0])
+        
+        # DEBUG: print component values
+        try:
+            v_y_log_raw = m.getVarByName("y_log_raw")
+            if v_y_log_raw is not None:
+                y_log_raw_val = float(v_y_log_raw.X)
+                y_log_mip = float(m._y_log_var.X)
+                b0_implied = y_log_mip - y_log_raw_val
+                print(f"[DEBUG] y_log_raw(MIP) = {y_log_raw_val:.6f}")
+                print(f"[DEBUG] y_log(MIP) = {y_log_mip:.6f}")
+                print(f"[DEBUG] b0(implied) = {b0_implied:.6f}")
+                print(f"[DEBUG] ylog_out_raw(external) = {ylog_out_raw:.6f}")
+                print(f"[DEBUG] Difference y_log_raw(external) - y_log_raw(MIP) = {ylog_out_raw - y_log_raw_val:.6f}")
+                
+                # DEBUG: Show first few features' values in MIP vs base
+                print(f"[DEBUG] Feature values in MIP solution:")
+                for fname in list(m._feat_order)[:10]:
+                    v = m._x_vars.get(fname)
+                    if v is not None:
+                        print(f"  {fname}: {v.X:.6f}")
+        except Exception as de:
+            print(f"[DEBUG-ERROR] {de}")
+        
+        delta = float(m._y_log_var.X) - ylog_out_raw
         scale = float(np.exp(delta))
-        print(f"[CALIB] y_log(MIP) - log1p(predict_outside) = {delta:.6f} (≈×{scale:.3f})")
+        print(f"[CALIB] y_log(MIP) - y_log_raw(outside) = {delta:.6f} (≈×{scale:.3f})")
+        if abs(delta) > 1e-3:
+            print(f"[WARNING] Significant y_log divergence detected!")
     except Exception as e:
         print(f"[CALIB] no pude calcular delta: {e}")
 
@@ -486,11 +616,22 @@ def main():
         Si tu reporter imprime 0 pero aquí sale >0, el problema está en el reporter.
         """
         try:
+            status = int(m.Status)
+        except Exception:
+            status = None
+        ok_status = {gp.GRB.OPTIMAL, gp.GRB.SUBOPTIMAL, gp.GRB.TIME_LIMIT}
+        if status is None or status not in ok_status:
+            print(f"[AUDIT] Modelo no óptimo (status={status}), se omite auditoría de costos.")
+            return
+        try:
             y_price = float(m._y_price_var.X)
         except Exception:
             y_price = float("nan")
         uplift = y_price - float(base_price)
-        obj    = float(m.objVal)
+        try:
+            obj = float(m.ObjVal)
+        except Exception:
+            obj = float("nan")
         # Lee el costo directamente del modelo (fuente de verdad)
         cost_var = m.getVarByName("cost_model") or getattr(m, "_cost_var", None)
         if cost_var is not None:
@@ -505,7 +646,7 @@ def main():
         print(f"  y_price (MIP) = {y_price:,.2f}")
         print(f"  uplift        = {uplift:,.2f}  = y_price - y_base")
         print(f"  obj           = {obj:,.2f}      = y_price - cost - y_base")
-        print(f"  ==> cost(model) ≈ {used_cost:,.2f}")
+        print(f"  ==> cost(model) ~ {used_cost:,.2f}")
 
         # Evalúa directamente el LinExpr del costo si lo guardaste
         if hasattr(m, "_lin_cost_expr"):
@@ -557,6 +698,136 @@ def main():
     audit_costs(m, m._base_price_val, bundle)    # 4) Costos: uplift vs obj vs LinExpr
 
     print("\n[AUDIT] Done.\n")
+
+    # ========= DEBUG: TREE MISMATCH (opcional) =========
+    if args.debug_tree_mismatch:
+        try:
+            import json, math
+            bst = bundle.reg.get_booster()
+            dumps = bst.get_dump(with_stats=False, dump_format="json")
+            bo = bundle.booster_feature_order()
+
+            # reconstruye vector de entrada usado por el embed (Var.X si existe, si no toma valor en X_input)
+            X_in_df = getattr(m, "_X_input", None)
+            feat_vals = []
+            for fname in bo:
+                v = m.getVarByName(f"x_{fname}") or m.getVarByName(f"const_{fname}")
+                val = None
+                if v is not None:
+                    try:
+                        val = float(v.X)
+                    except Exception:
+                        val = None
+                if val is None and X_in_df is not None and hasattr(X_in_df, "loc"):
+                    try:
+                        val = float(X_in_df.loc[0, fname])
+                    except Exception:
+                        val = None
+                if val is None:
+                    val = 0.0
+                feat_vals.append(val)
+
+            # usa la misma cantidad de árboles que el embed (n_trees_use) o todos
+            n_use = None
+            try:
+                n_use = int(bundle.n_trees_use or 0)
+            except Exception:
+                n_use = 0
+            max_trees = len(dumps) if n_use <= 0 else min(n_use, len(dumps))
+
+            y_log_sum = 0.0
+            mismatches = []
+            detailed = []
+            no_path = 0
+            EPS = 1e-6
+            for t_idx in range(max_trees):
+                node = json.loads(dumps[t_idx])
+                leaves = []
+                def walk(nd, path):
+                    if "leaf" in nd:
+                        leaves.append((path, float(nd["leaf"])))
+                        return
+                    f_idx = int(str(nd["split"]).replace("f", ""))
+                    thr = float(nd["split_condition"])
+                    yes_id = nd["yes"]
+                    for ch in nd.get("children", []):
+                        is_left = (ch.get("nodeid") == yes_id)
+                        walk(ch, path + [(f_idx, thr, is_left)])
+                walk(node, [])
+
+                expected_idx = None
+                expected_leaf_val = None
+                expected_path = None
+                for k, (path, leaf_val) in enumerate(leaves):
+                    ok = True
+                    for (f_idx, thr, is_left) in path:
+                        if f_idx >= len(feat_vals):
+                            ok = False; break
+                        xv = feat_vals[f_idx]
+                        if is_left:
+                            if not (xv <= thr + 1e-9):
+                                ok = False; break
+                        else:
+                            # embed usa >= thr + EPS para separar ramas
+                            if not (xv >= thr + EPS - 1e-9):
+                                ok = False; break
+                    if ok:
+                        expected_idx = k
+                        expected_leaf_val = leaf_val
+                        expected_path = path
+                        y_log_sum += leaf_val
+                        break
+                if expected_idx is None:
+                    mismatches.append((t_idx, "no_path"))
+                    no_path += 1
+                    detailed.append((t_idx, None, None, None, None, None, None))
+                    continue
+
+                # hoja elegida por el MIP (si existe z_{t_idx}_leaf_k)
+                chosen_idx = None
+                chosen_val = None
+                chosen_path = None
+                for k in range(len(leaves)):
+                    z = m.getVarByName(f"t{t_idx}_leaf{k}")
+                    if z is not None and z.X > 0.5:
+                        chosen_idx = k
+                        chosen_val = leaves[k][1]
+                        chosen_path = leaves[k][0]
+                        break
+                if (chosen_idx is not None) and (chosen_idx != expected_idx):
+                    path_exp = expected_path
+                    path_ch = chosen_path
+                    detailed.append((t_idx, expected_idx, chosen_idx, expected_leaf_val, chosen_val, path_exp, path_ch))
+                    mismatches.append((t_idx, f"chosen={chosen_idx}, expected={expected_idx}"))
+
+            # agrega offset/bias que usa el bundle
+            try:
+                b0 = float(bundle.b0_offset or 0.0)
+            except Exception:
+                b0 = 0.0
+            y_log_manual = y_log_sum + b0
+            y_log_mip = float(m._y_log_var.X)
+            print(f"[TREE-MISMATCH] y_log_manual={y_log_manual:.6f} | y_log(MIP)={y_log_mip:.6f} | Δ={y_log_mip - y_log_manual:+.6f} | b0={b0:.6f} | trees_used={max_trees}")
+            if mismatches:
+                print(f"[TREE-MISMATCH] Mismatches en {len(mismatches)} árboles (de {max_trees}). no_path={no_path}")
+                def path_to_str(path):
+                    if not path:
+                        return "(root)"
+                    parts = []
+                    for (f_idx, thr, is_left) in path:
+                        fname = bo[f_idx] if f_idx < len(bo) else f"f{f_idx}"
+                        xv = feat_vals[f_idx] if f_idx < len(feat_vals) else float("nan")
+                        sign = "<=" if is_left else ">="
+                        parts.append(f"{fname} {sign} {thr:g} (x={xv:g})")
+                    return " & ".join(parts)
+                for rec in detailed[:8]:
+                    if not rec or rec[1] is None or rec[2] is None:
+                        continue
+                    t_idx, exp_idx, ch_idx, exp_val, ch_val, path_exp, path_ch = rec
+                    print(f"  - tree {t_idx}: expected leaf {exp_idx} ({exp_val:+.4f}) path[{path_to_str(path_exp)}]")
+                    print(f"             chosen   {ch_idx} ({ch_val:+.4f}) path[{path_to_str(path_ch)}]")
+        except Exception as e:
+            print(f"[TREE-MISMATCH] no se pudo evaluar: {e}")
 
     # ========= RECONSTRUCCIÓN EXACTA DESDE lo que entró al embed =========
     import numpy as _np
@@ -1198,11 +1469,11 @@ def main():
     print("               RESULTADOS DE LA OPTIMIZACIÓN")
     print("="*60 + "\n")
 
-    print(f"📍 PID: {base_row.get('PID', 'N/A')} – {base_row.get('Neighborhood', 'N/A')} | Presupuesto: ${args.budget:,.0f}")
-    print(f"🧮 Modelo: {m.ModelName if hasattr(m, 'ModelName') else 'Gurobi MIP'}")
-    print(f"⏱️ Tiempo total: {getattr(m, 'Runtime', 0.0):.2f}s | MIP Gap: {getattr(m, 'MIPGap', 0.0)*100:.4f}%\n")
+    print(f"PID: {base_row.get('PID', 'N/A')} | Neighborhood: {base_row.get('Neighborhood', 'N/A')} | Presupuesto: ${args.budget:,.0f}")
+    print(f" Modelo: {m.ModelName if hasattr(m, 'ModelName') else 'Gurobi MIP'}")
+    print(f" Tiempo total: {getattr(m, 'Runtime', 0.0):.2f}s | MIP Gap: {getattr(m, 'MIPGap', 0.0)*100:.4f}%\n")
 
-    print("💰 **Resumen Económico**")
+    print(" **Resumen Económico**")
     print(f"  Precio casa base:        ${precio_base:,.0f}")
     print(f"  Precio casa remodelada:  ${precio_opt:,.0f}"      if precio_opt is not None else "  Precio casa remodelada:  N/A")
     print(f"  Δ Precio:                ${delta_precio:,.0f}"    if delta_precio is not None else "  Δ Precio:                N/A")
@@ -1285,7 +1556,7 @@ def main():
         print(f"[TRACE] Resumen de calidades falló: {e}")
 
     # Cambios resumidos
-    print("\n🏠 **Cambios hechos en la casa**")
+    print("\n **Cambios hechos en la casa**")
     if cambios_costos:
         for nombre, base_val, new_val, cost_val in cambios_costos:
             suf = f" (costo {money(cost_val)})" if (cost_val is not None and cost_val > 0) else ""
@@ -1294,7 +1565,7 @@ def main():
         print("  (No se detectaron cambios)")
 
     # Snapshot Base vs Óptimo (exacto con X_in del embed)
-    print("\n🧾 **Snapshot: atributos Base vs Óptimo (compacto)**")
+    print("\n **Snapshot: atributos Base vs Óptimo (compacto)**")
     try:
         # 1) Reconstruye EXACTAMENTE lo que vio el embed
         X_in = rebuild_embed_input_df(m, m._X_base_numeric)

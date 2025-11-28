@@ -595,9 +595,11 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         for nm, v in mvt_raw.items():
             if _norm(nm) not in NA_KEYS and _cost(nm) < base_cost:
                 m.addConstr(v == 0, name=f"MVT_forbid_cheaper_{nm}")
-        # área no puede bajar
+        # área no puede bajar y (por ahora) la fijamos a la base para evitar upgrades gratis
         if isinstance(mv_area, gp.Var):
             m.addConstr(mv_area >= mv_area_base, name="MVT_area_no_decrease")
+            mv_area.LB = mv_area_base
+            mv_area.UB = mv_area_base
 
     # 5) Costo lineal: solo si CAMBIA el tipo (área * costo_nuevo)
     try:
@@ -1679,52 +1681,76 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     if v_pq is not None:
         print(f"[CHK] Pool QC      LB={v_pq.LB} UB={v_pq.UB}")
 
-    # ================== PREDICTOR XGB (embedding) ==================
-    # Embebo el pipeline (pre aplanado + regressor). NO paso salida, dejo que gurobi_ml la cree.
-    pc = _add_sklearn(m, bundle.pipe_for_gurobi(), X_input)
+    # ================== PREDICTOR XGB (embedding manual árbol a árbol) ==================
+    # Features en el orden del booster (crítico para que las pruebas de cada árbol lean el split correcto)
+    feat_full = list(bundle.feature_names_in())
+    var_by_name: dict[str, gp.Var] = {}
 
-    cand_attrs = ["output_vars","prediction_vars","output","predictions","y"]
-    found = []
-    for att in cand_attrs:
-        if hasattr(pc, att):
+    def _safe_name(name: str) -> str:
+        return (
+            str(name)
+            .replace(" ", "_")
+            .replace("[", "")
+            .replace("]", "")
+            .replace("/", "_")
+        )
+
+    for c in feat_full:
+        val = X_input.loc[0, c]
+        safe_c = _safe_name(c)
+        if isinstance(val, gp.Var):
+            v = val
+        elif isinstance(val, gp.LinExpr):
+            # Si viene como expresión lineal (p.ej. variable derivada), crear var y link
+            v = m.addVar(lb=-gp.GRB.INFINITY, name=f"expr_{safe_c}")
+            m.addConstr(v == val, name=f"link_{safe_c}")
+        else:
             try:
-                obj = getattr(pc, att)
-                # intenta indexar como matriz/lista
-                try:
-                    v = obj[0][0]
-                except Exception:
-                    try:
-                        v = obj[0]
-                    except Exception:
-                        v = obj
-                if hasattr(v, "VarName"):
-                    found.append((att, v))
+                num = float(val)
             except Exception:
-                pass
+                num = 0.0
+            v = m.addVar(lb=num, ub=num, name=f"const_{safe_c}")
+        var_by_name[c] = v
 
-    print("[CHK-PC] candidatos a salida:", [a for a,_ in found])
-    if found:
-        y_emb = found[0][1]
-    else:
-        # fallback legacy
-        try:
-            y_emb = pc.output_vars[0][0]
-        except Exception:
-            try:
-                y_emb = pc.output[0][0]
-            except Exception:
-                try:
-                    y_emb = pc.y[0][0]
-                except Exception:
-                    raise RuntimeError("No pude capturar la salida del embed (gurobi_ml).")
-    
-    m._embed_pc = pc
-    m._feat_order = list(bundle.feature_names_in())
+    booster_order = list(bundle.booster_feature_order())
+    missing = [f for f in booster_order if f not in var_by_name]
+    if missing:
+        sample = ", ".join(missing[:10])
+        print(f"[EMBED] features del booster que no encontré en X_input ({len(missing)}): {sample}")
 
-    # Creo mi y_log “oficial” y lo ligo al del embed
+    x_vars = []
+    for fname in booster_order:
+        v = var_by_name.get(fname)
+        if v is None:
+            # crea dummy fija en 0 para cualquier feature que no esté en X_input
+            v = m.addVar(lb=0.0, ub=0.0, name=f"const_{fname}")
+        x_vars.append(v)
+
+    # y_log crudo de los árboles (sin bias/base_score)
+    y_log_raw = m.addVar(lb=-gp.GRB.INFINITY, name="y_log_raw")
+    # Embedding de árboles XGB: usamos la versión estándar (sin epsilon) para
+    # reproducir exactamente la lógica < vs >= de XGBoost.  Si en algún árbol
+    # las ramas quedaran solapadas, el one‑hot de hojas lo resolverá al elegir
+    # una sola hoja factible.
+    bundle.attach_to_gurobi(m, x_vars, y_log_raw, eps=0.0)
+
+    # offset/base_score del modelo (si no pudo calcularse, se asume 0)
+    try:
+        b0 = float(bundle.b0_offset if hasattr(bundle, "b0_offset") else 0.0)
+        if not np.isfinite(b0):
+            b0 = 0.0
+    except Exception:
+        b0 = 0.0
+
     y_log = m.addVar(lb=-gp.GRB.INFINITY, name="y_log")
-    m.addConstr(y_log == y_emb, name="LINK_ylog_embed")
+    m.addConstr(y_log == y_log_raw + b0, name="YLOG_with_offset")
 
+    # Exponer handlers para auditorías
+    m._feat_order = booster_order
+    m._x_cols = booster_order
+    m._x_vars = {c: v for c, v in zip(booster_order, x_vars)}
+    m._y_log_embed_var = y_log
+    m._embed_pc = None  # no aplica cuando usamos embedding manual
 
     # Si el target está en log, genero y_price con PWL(exp)
     if bundle.is_log_target():
@@ -1734,8 +1760,6 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     else:
         y_price = y_log
 
-    # Exponer handlers para debug
-    m._y_log_embed_var = y_emb
     m._y_log_var = y_log
     m._y_price_var = y_price
     m._base_price_val = base_price

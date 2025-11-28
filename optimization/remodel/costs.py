@@ -9,7 +9,8 @@ class CostTables:
     add_bedroom: float = 0.0
     add_bathroom: float = 0.0
     deck_per_m2: float = 0.0
-    finish_basement_per_f2: float = 15.0
+    # Terminar sótano (USD/ft²); rango del anexo 7–23 → uso 20 para reflejar acabado completo.
+    finish_basement_per_f2: float = 20.0
 
     # ====== COCINA (paquetes) ====== LISTO
 
@@ -48,11 +49,9 @@ class CostTables:
     def util_cost(self, name: str) -> float:
         return float(self.utilities_costs.get(str(name), 0.0))
 
-    # ====== TECHO ====== REVISAR
-    roof_style_costs: Dict[str, float] = field(default_factory=lambda: {
-        "Flat": 3500.0, "Gable": 3000.0, "Gambrel": 4500.0,
-        "Hip": 4000.0, "Mansard": 6000.0, "Shed": 2000.0,
-    }) # <- NO VA
+    # ====== TECHO ======
+    # El informe considera costos por material y demolición; el estilo no agrega costo adicional.
+    roof_style_costs: Dict[str, float] = field(default_factory=dict)
     def roof_style_cost(self, name: str) -> float:
         return float(self.roof_style_costs.get(str(name), 0.0))
 
@@ -79,7 +78,7 @@ class CostTables:
     def mas_vnr_cost(self, name: str) -> float:
         return float(self.mas_vnr_costs_sqft.get(str(name), 0.0))
     
-    # ====== GARAGE FINISH ====== REVISAR
+    # ====== GARAGE FINISH ======
     # costos totales por categoría (USD)
     garage_finish_costs_sqft: Dict[str, float] = field(default_factory=lambda: {
         "No aplica": 0.0,
@@ -90,16 +89,22 @@ class CostTables:
     def garage_finish_cost(self, name: str) -> float:
         return float(self.garage_finish_costs_sqft.get(str(name), 0.0))
 
-    # ====== POOL QUALITY ====== REVISAR
+    # ====== POOL QUALITY ======
     pool_area_cost: float = 88.0  # USD por ft²
 
-    # costos totales por categoría (USD) REVISAR
+    # Porches / decks (USD por ft², según tabla de construcción)
+    wooddeck_cost: float = 50.0
+    openporch_cost: float = 77.5
+    enclosedporch_cost: float = 80.0
+    threessnporch_cost: float = 157.5
+    screenporch_cost: float = 72.5
+
+    # costos totales por categoría (USD)
     poolqc_costs: Dict[str, float] = field(default_factory=lambda: {
         "No aplica": 0.0,
         "Fa": 19000.0,
         "TA": 57667.0,
         "Gd": 96333.0,
-        "Po": 115000.0, #Inventado
         "Ex": 135000.0,
     })
 
@@ -122,11 +127,11 @@ class CostTables:
     })
 
     # ====== PAVED DRIVE ======
-    # costos por categoría (USD, desde el PDF)
+    # costos lump-sum por categoría (USD, según anexo)
     paved_drive_costs: Dict[str, float] = field(default_factory=lambda: {
-        "Y": 4.0,   # entrada totalmente pavimentada
-        "P": 5.0,   # entrada parcialmente pavimentada (promedio)
-        "N": 1.0,   # entrada de grava / tierra
+        "Y": 4908.0,   # entrada totalmente pavimentada
+        "P": 3354.0,   # entrada parcialmente pavimentada (promedio)
+        "N": 1800.0,   # entrada de grava / tierra
     })
 
     def paved_drive_cost(self, name: str) -> float:
@@ -135,19 +140,32 @@ class CostTables:
     # ====== FENCE ======
     # costos por categoría (USD)
     fence_category_costs: Dict[str, float] = field(default_factory=lambda: {
-        "GdPrv": 6300.0,    # buena privacidad (8 pies de altura)
-        "MnPrv": 4700.0,    # privacidad media (6 pies de altura)
-        "GdWo": 1500.0,     # madera buena ($10–$14/ft aprox.)
-        "MnWw": 300.0,      # alambrada económica ($2/ft × 150ft)
-        "No aplica": 0.0,          # sin cerca
+        "GdPrv": 6300.0,
+        "MnPrv": 4700.0,
+        "GdWo": 3232.0,
+        "MnWw": 2400.0,
+        "No aplica": 0.0,
     })
 
     # costo por pie lineal de construcción nueva (USD/ft)
-    fence_build_cost_per_ft: float = 40.0 #ARREGLAR ESTO 
+    fence_build_cost_per_ft: float = 40.0
 
     def fence_category_cost(self, f: str) -> float:
         """Costo por categoría de cerca (remodelación)"""
         return self.fence_category_costs.get(f, 0.0)
+
+    # Costo por tipo de fundación (USD/ft²) según anexo
+    foundation_costs: Dict[str, float] = field(default_factory=lambda: {
+        "CBlock": 12.0,
+        "PConc": 10.0,
+        "Slab": 10.0,
+        "Stone": 23.5,
+        "Wood": 40.0,
+        "No aplica": 0.0,
+    })
+
+    def foundation_cost(self, name: str) -> float:
+        return float(self.foundation_costs.get(str(name), 0.0))
 
 
     # ====== EXTERIOR (LUMPSUM, SIN DEMOLICIÓN) ======
@@ -162,13 +180,13 @@ class CostTables:
         "CemntBd": 14674.0,
         "HdBoard": 21300.0,
         "ImStucc": 16500.0,
-        "MetalSd": 9600.0,
-        "Other": 23461.81,
-        "Plywood": 8461.81,
+        "MetalSd": 11196.0,
+        "Other": 21765.3125,
+        "Plywood": 3461.81,
         "PreCast": 17625.0,
-        "Stone": 50216.50,
+        "Stone": 106250.0,
         "Stucco": 5629.0,
-        "VinylSd": 12500.0,
+        "VinylSd": 17410.0,
         "Wd Sdng": 12500.0,
         "WdShngl": 21900.0,
     })
@@ -244,7 +262,10 @@ class CostTables:
 
     # ====== BSMT COND ======
     bsmt_cond_upgrade_costs: Dict[str, float] = field(default_factory=lambda: {
-        # costo de elegir este nivel como final cuando la base es TA/Fa/Po
+        # costos por nivel final (anexo)
+        "Po": 20000.0,
+        "Fa": 30500.0,
+        "TA": 41000.0,
         "Gd": 51750.0,
         "Ex": 62500.0,
     })
