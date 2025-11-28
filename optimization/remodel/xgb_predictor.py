@@ -558,7 +558,8 @@ class XGBBundle:
 
             total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))
 
-        m.addConstr(y_log == total_expr, name="YLOG_XGB_SUM")
+        total_expr_with_offset = total_expr + self.b0_offset
+        m.addConstr(y_log == total_expr_with_offset, name="YLOG_XGB_SUM")
 
     def attach_to_gurobi_strict(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:
         import json, math
@@ -648,4 +649,5 @@ class XGBBundle:
 
             total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))
 
-        m.addConstr(y_log == total_expr, name="YLOG_XGB_SUM_STRICT")
+        total_expr_with_offset = total_expr + self.b0_offset
+        m.addConstr(y_log == total_expr_with_offset, name="YLOG_XGB_SUM_STRICT")
