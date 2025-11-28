@@ -4,17 +4,31 @@ import pandas as pd
 import gurobipy as gp
 import numpy as np
 import sys, io
+from pathlib import Path
 
 # fuerza stdout a utf-8 para evitar UnicodeEncodeError en Windows/PowerShell
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
+# Agregar directorio raíz del proyecto al path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+from pathlib import Path
+
+# fuerza stdout a utf-8 para evitar UnicodeEncodeError en Windows/PowerShell
+
+# Agregar directorio raíz del proyecto al path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# fuerza stdout a utf-8 para evitar UnicodeEncodeError en Windows/PowerShell
+
 from optimization.remodel.gurobi_model import build_base_input_row
-from .config import PARAMS
-from .io import get_base_house
-from . import costs
-from .xgb_predictor import XGBBundle
-from .gurobi_model import build_mip_embed
-from .features import MODIFIABLE
+from optimization.remodel.config import PARAMS
+from optimization.remodel.io import get_base_house
+from optimization.remodel import costs
+from optimization.remodel.xgb_predictor import XGBBundle
+from optimization.remodel.gurobi_model import build_mip_embed
+from optimization.remodel.features import MODIFIABLE
 
 from shutil import get_terminal_size
 
