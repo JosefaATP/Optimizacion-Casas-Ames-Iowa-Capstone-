@@ -545,8 +545,6 @@ class XGBBundle:
                     lb = float(xv.LB) if fin(getattr(xv, "LB", None)) else -1e6
                     ub = float(xv.UB) if fin(getattr(xv, "UB", None)) else  1e6
 
-                    if lb >= 0.0 and ub <= 1.0:
-                        thr = 0.5
 
                     M_le = max(0.0, ub - thr)
                     M_ge = max(0.0, thr - lb)
@@ -633,8 +631,6 @@ class XGBBundle:
                     lb = float(xv.LB) if fin(getattr(xv, "LB", None)) else -1e6
                     ub = float(xv.UB) if fin(getattr(xv, "UB", None)) else  1e6
 
-                    if lb >= 0.0 and ub <= 1.0:
-                        thr = 0.5
 
                     M_le = max(0.0, ub - thr)
                     M_ge = max(0.0, thr - lb)

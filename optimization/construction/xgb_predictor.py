@@ -447,8 +447,6 @@ class XGBBundle:
 
                     # Dummies (0/1): usar umbral canónico 0.5 para alinear con OHE
                     # Esto reduce discrepancias embed vs fuera cuando XGB guarda thresholds pegados a 0 o 1.
-                    if lb >= 0.0 and ub <= 1.0:
-                        thr = 0.5
 
                     # M dirigidos
                     M_le = max(0.0, ub - thr)
