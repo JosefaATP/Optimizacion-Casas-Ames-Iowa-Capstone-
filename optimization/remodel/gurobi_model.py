@@ -1853,11 +1853,6 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     m.addConstr(y_price >= float(base_price) - 1e-6, name="MIN_PRICE_BASE")
     # Prohibir ROI negativo (opcional pero recomendado)
     m.addConstr(y_price - cost_model >= float(base_price) - 1e-6, name="NO_NEGATIVE_ROI")
-    # Cap ROI a 30%: (y_price - base_price - cost_model) <= 0.3 * cost_model
-    m.addConstr(
-        y_price - float(base_price) - cost_model <= 0.30 * cost_model + 1e-6,
-        name="ROI_CAP_30pct"
-    )
 
 
     # (3) Objetivo
