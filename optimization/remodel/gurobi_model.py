@@ -1431,6 +1431,13 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     lowqual_names = ["Low Qual Fin SF", "LowQualFinSF"]
     lowqual_col = next((c for c in lowqual_names if c in X_input.columns), None)
+    # Bloquea Low Qual Fin SF para evitar inflarla gratis.
+    # [ANTES] quedaba libre (solo igualada en R7).
+    # [AHORA] se fija al valor base.
+    if lowqual_col is not None and lowqual_col in x:
+        base_lowqual = float(pd.to_numeric(base_row.get(lowqual_col, 0), errors="coerce") or 0.0)
+        x[lowqual_col].LB = base_lowqual
+        x[lowqual_col].UB = base_lowqual
     cols_needed = ["Gr Liv Area", "1st Flr SF", "2nd Flr SF"]
     if all(c in X_input.columns for c in cols_needed):
         lhs = _val_or_var("Gr Liv Area")
