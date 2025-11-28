@@ -1,0 +1,60 @@
+═══════════════════════════════════════════════════════════════════════════════════
+DIAGNÓSTICO: ¿POR QUÉ EL ROI ES ~2600% EN LUGAR DE ~30%?
+═══════════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA ENCONTRADO: CONTABILIDAD DE COSTOS INCONSISTENTE EN EL MIP
+───────────────────────────────────────────────────────────────────
+
+El modelo de Gurobi está CALCULANDO COSTOS DE FORMA INCORRECTA:
+
+1. ALGUNAS CATEGORÍAS (Kitchen, Exterior):
+   ✓ Solo cobran si es UPGRADE (ORD[nuevo] > ORD[base])
+   ✓ Esto es CORRECTO: no permite downgrades
+
+2. OTRAS CATEGORÍAS (Electrical):
+   ✗ Previene downgrades PERO la contabilidad está mal
+   ✗ Agrega costo total sin restar costo BASE
+
+EJEMPLO CON ELECTRICAL:
+────────────────────
+Base: SBrkr ($1,587.50)
+Nuevo: FuseA ($2,500) [UPGRADE]
+
+Lo que DEBERÍA costar: $2,500 - $1,587.50 = $912.50
+Lo que el MODELO CALCULA: $2,500 + $800 (demo) = $3,300 ❌
+
+Línea 1169-1170 en gurobi_model.py:
+    lin_cost += ct.electrical_demo_small * vb
+    lin_cost += ct.electrical_cost(nm) * vb
+    
+NO está restando: - ct.electrical_cost(elec_base_name)
+
+───────────────────────────────────────────────────────────────────
+
+IMPACTO EN EL ROI:
+─────────────────
+- Los costos están SUBESTIMADOS
+- El MIP cree que las mejoras cuestan MENOS de lo que realmente cuestan
+- Por lo tanto, elige más mejoras innecesarias
+- Resultado: ROI INFLADO artificialmente
+
+CASOS IDENTIFICADOS EN LA OPTIMIZACIÓN DE PID 908275130:
+────────────────────────────────────────────────────────
+[FREE-UPGR] Cambios en X: 5  |  Cambios SIN COSTO: 5
+
+- Mas Vnr Type_NoAplica          [DEBERÍA tener costo pero aparece GRATIS]
+- BsmtFin Type 1_BLQ → Unf      [DEBERÍA tener costo]
+- BsmtFin Type 2_Unf → BLQ      [DEBERÍA tener costo]
+- Electrical_SBrkr → FuseP      [COSTOS SUBESTIMADOS]
+- Electrical_SBrkr → FuseP      [COSTOS SUBESTIMADOS]
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+RECOMENDACIÓN:
+──────────────
+1. Revisar CADA categoría en gurobi_model.py
+2. Verificar que todos calculen COSTO INCREMENTAL (new_cost - base_cost)
+3. NO permitir cambios a categorías que NO sean en MODIFIABLE
+4. Considerar congelar variables categóricas (no permitir cambios en absoluto)
+
+═══════════════════════════════════════════════════════════════════════════════════
