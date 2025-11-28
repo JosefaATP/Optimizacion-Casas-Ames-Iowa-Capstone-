@@ -9,8 +9,10 @@ class CostTables:
     add_bedroom: float = 0.0
     add_bathroom: float = 0.0
     deck_per_m2: float = 0.0
-    # Terminar sótano (USD/ft²); rango del anexo 7–23 → uso 20 para reflejar acabado completo.
-    finish_basement_per_f2: float = 20.0
+    # Marca de sobrecostos (permisos, demolición, imprevistos) ya absorbidos en cada costo.
+    soft_cost_markup: float = 1.12
+    # Terminar sótano (USD/ft²) elevado para reflejar acabados completos + sobrecostos.
+    finish_basement_per_f2: float = 32.0
 
     # ====== COCINA (paquetes) ====== LISTO
 
@@ -109,11 +111,19 @@ class CostTables:
     })
 
     # ====== COSTOS DE CONSTRUCCIÓN Y AMPLIACIÓN ====== LISTO
-    construction_cost: float = 230.0  # USD/ft²
+    # Costo base por ft² con sobrecostos incluidos
+    construction_cost: float = 257.60  # USD/ft² (230 * 1.12)
 
-    ampl10_cost: float = 82.28   # ampliación pequeña
-    ampl20_cost: float = 106.49  # ampliación moderada
-    ampl30_cost: float = 130.70  # ampliación grande
+    # Costos específicos por ambiente (absorbiendo permisos/demolición)
+    add_kitchen_cost_per_sf: float = 224.0    # 200 * 1.12
+    add_bedroom_cost_per_sf: float = 364.0    # 325 * 1.12
+    add_fullbath_cost: float = 28000.0        # 25,000 * 1.12
+    add_halfbath_cost: float = 11200.0        # 10,000 * 1.12
+
+    # Ampliaciones porcentuales con markup de sobrecostos
+    ampl10_cost: float = 92.15   # ampliación pequeña (82.28 * 1.12)
+    ampl20_cost: float = 119.27  # ampliación moderada (106.49 * 1.12)
+    ampl30_cost: float = 146.38  # ampliación grande (130.70 * 1.12)
     
 
     # ====== GARAGE QUALITY / CONDITION ====== LISTO

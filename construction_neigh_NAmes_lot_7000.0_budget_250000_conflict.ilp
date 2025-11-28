@@ -1,0 +1,19 @@
+\ Model construction_embed_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Maximize
+ 
+Subject To
+ 7.4__first_floor_always: Floor1 = 1
+ def_cost_model: - 230 x_Total_Bsmt_SF - 230 x_1st_Flr_SF
+   - 230 x_2nd_Flr_SF - 88 x_Pool_Area + cost_model = 0
+ budget: cost_model <= 250000
+ 7.23__p1_ub: - 40 Floor1 + P1 + [ - 0.1 x_1st_Flr_SF * Floor1 ] <= 0
+ 7.23__p1_lb: - 140 Floor1 + P1 + [
+   - 0.0285714285714286 x_1st_Flr_SF * Floor1 ] >= 0
+Bounds
+ x_1st_Flr_SF free
+ P1 free
+ cost_model free
+Binaries
+ Floor1
+End

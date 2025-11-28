@@ -454,13 +454,15 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
                 for nm, v in ex2.items():
                     v.UB = 1.0 if nm == ex2_base_name else 0.0
 
+    ex1_base_cost = ct.ext_mat_cost(ex1_base_name)
     for nm, vb in ex1.items():
         if nm != ex1_base_name:
-            lin_cost += ct.ext_mat_cost(nm) * vb
+            lin_cost += (ct.ext_mat_cost(nm) - ex1_base_cost) * vb
     if Ilas2 == 1:
+        ex2_base_cost = ct.ext_mat_cost(ex2_base_name)
         for nm, vb in ex2.items():
             if nm != ex2_base_name:
-                lin_cost += ct.ext_mat_cost(nm) * vb
+                lin_cost += (ct.ext_mat_cost(nm) - ex2_base_cost) * vb
 
     EQ_LEVELS = ["Po","Fa","TA","Gd","Ex"]
     ORD = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
@@ -500,10 +502,10 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     for nm, vb in eq_bin.items():
         if ORD[nm] > exq_base_ord:
-            lin_cost += ct.exter_qual_cost(nm) * vb
+            lin_cost += (ct.exter_qual_cost(nm) - ct.exter_qual_cost(EQ_LEVELS[exq_base_ord])) * vb
     for nm, vb in ec_bin.items():
         if ORD[nm] > exc_base_ord:
-            lin_cost += ct.exter_cond_cost(nm) * vb
+            lin_cost += (ct.exter_cond_cost(nm) - ct.exter_cond_cost(EQ_LEVELS[exc_base_ord])) * vb
 
     # ================== MAS VNR (robusto, sin “bajar” a No aplica) ==================
     MV_CANDIDATES = ["BrkCmn", "BrkFace", "CBlock", "Stone", "No aplica", "NA", "None"]
@@ -616,12 +618,12 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
                 m.addConstr(p <= mv_area,                      name=f"MVT_lin_p_le_a_{nm}")
                 m.addConstr(p <= mv_area_ub * v,               name=f"MVT_lin_p_le_UBb_{nm}")
                 m.addConstr(p >= mv_area - mv_area_ub * (1-v), name=f"MVT_lin_p_ge_a_minus_UB1b_{nm}")
-                lin_cost += _cost(nm) * p
+                lin_cost += (_cost(nm) - base_cost) * p
     else:
         area_term = float(mv_area)
         for nm, v in mvt_raw.items():
             if _norm(nm) not in NA_KEYS and nm != mvt_base_txt and v is not None:
-                lin_cost += _cost(nm) * area_term * v
+                lin_cost += (_cost(nm) - base_cost) * area_term * v
 
     # 6) Log de sanidad
     try:
@@ -870,7 +872,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     for nm in ["Po","Fa","TA","Gd","Ex"]:
         if not base_pq_is_na and nm != pq_base_txt:
-            lin_cost += _pq_cost(nm) * pq[nm]
+            lin_cost += (_pq_cost(nm) - base_cost) * pq[nm]
 
     for nm in PQC:
         col = f"Pool QC_{nm}"
@@ -931,11 +933,11 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         name="AREA_libre_no_negativa"
     )
 
-    lin_cost += ct.construction_cost * (
-        A_Full  * (AddFull  or 0)
-        + A_Half  * (AddHalf  or 0)
-        + A_Kitch * (AddKitch or 0)
-        + A_Bed   * (AddBed   or 0)
+    lin_cost += (
+        ct.add_fullbath_cost      * (AddFull  or 0)
+        + ct.add_halfbath_cost    * (AddHalf  or 0)
+        + ct.add_kitchen_cost_per_sf * A_Kitch * (AddKitch or 0)
+        + ct.add_bedroom_cost_per_sf * A_Bed   * (AddBed   or 0)
     )
 
     for c in COMPONENTES:
@@ -981,6 +983,16 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         m.addConstr(x["Bedroom AbvGr"] == base_counts["Bedroom AbvGr"] + (AddBed   or 0), name="COUNT_bedroom")
     if "Kitchen AbvGr" in x:
         m.addConstr(x["Kitchen AbvGr"] == base_counts["Kitchen AbvGr"] + (AddKitch or 0), name="COUNT_kitchen")
+
+    # TotRms AbvGrd = base + nuevos dormitorios + nuevas cocinas (baños no se cuentan)
+    if "TotRms AbvGrd" in x:
+        tot_base = _num_b("TotRms AbvGrd")
+        tot_var = x["TotRms AbvGrd"]
+        m.addConstr(
+            tot_var == tot_base + (AddBed or 0) + (AddKitch or 0),
+            name="COUNT_totrooms"
+        )
+        _put_var_obj(X_input, "TotRms AbvGrd", tot_var)
 
     for c in COMPONENTES:
         if z[c][10] is not None:
@@ -1167,7 +1179,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     for nm, vb in all_e_bin.items():
         if nm != elec_base_name:
             lin_cost += ct.electrical_demo_small * vb
-            lin_cost += ct.electrical_cost(nm) * vb
+            lin_cost += (ct.electrical_cost(nm) - base_cost_e) * vb
 
     # ================== HEATING + HEATING QC ==================
     HEAT_TYPES = ["Floor", "GasA", "GasW", "Grav", "OthW", "Wall"]
@@ -1306,10 +1318,11 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
                     return 0.0
             return 0.0
 
+        fq_base_cost = _fq_cost(base_fq_txt)
         for nm in FQ_CATS:
             if nm == base_fq_txt:
                 continue
-            lin_cost += _fq_cost(nm) * fq[nm]
+            lin_cost += (_fq_cost(nm) - fq_base_cost) * fq[nm]
 
  
 
@@ -1383,9 +1396,10 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         if col in X_input.columns:
             _put_var_obj(X_input, col, bc_bin[nm])
 
+    bc_base_cost = ct.bsmt_cond_cost(bc_base_txt)
     for nm, vb in bc_bin.items():
         if BC_ORD[nm] > bc_base:
-            lin_cost += ct.bsmt_cond_cost(nm) * vb
+            lin_cost += (ct.bsmt_cond_cost(nm) - bc_base_cost) * vb
 
     # ================== BSMT FIN TYPE1 / TYPE2 ==================
     BS_TYPES = ["GLQ", "ALQ", "BLQ", "Rec", "LwQ", "Unf", "NA"]
@@ -1839,6 +1853,11 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     m.addConstr(y_price >= float(base_price) - 1e-6, name="MIN_PRICE_BASE")
     # Prohibir ROI negativo (opcional pero recomendado)
     m.addConstr(y_price - cost_model >= float(base_price) - 1e-6, name="NO_NEGATIVE_ROI")
+    # Cap ROI a 30%: (y_price - base_price - cost_model) <= 0.3 * cost_model
+    m.addConstr(
+        y_price - float(base_price) - cost_model <= 0.30 * cost_model + 1e-6,
+        name="ROI_CAP_30pct"
+    )
 
 
     # (3) Objetivo

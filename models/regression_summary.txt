@@ -1,0 +1,66 @@
+
+═══════════════════════════════════════════════════════════════════════════════
+RESUMEN: MODELO DE REGRESIÓN LINEAL CON STANDARDSCALER
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 DATOS DE ENTRENAMIENTO
+  ├─ Dataset: data/raw/df_final_regresion.csv
+  ├─ Muestras: 2914
+  ├─ Features: 41
+  └─ Target: log(SalePrice_Present)
+
+🏗️  ARQUITECTURA
+  ├─ Pipeline sklearn con 2 etapas:
+  │  ├─ 1️⃣  StandardScaler: normaliza features → media=0, std=1
+  │  └─ 2️⃣  LinearRegression: regresión sobre features escalados
+  │
+  └─ Ventajas del scaling:
+     ✓ Coeficientes en escala comparable
+     ✓ Mejor estimación del intercepto (crucial para log-space)
+     ✓ Predicciones más calibradas y realistas
+     ✓ Menos sensible a outliers de magnitud de features
+     ✓ Comparación XGBoost vs Regresión ahora tiene sentido
+
+📈 RENDIMIENTO
+  ├─ R² (Train): 0.9002
+  ├─ RMSE (log space): 0.1288
+  ├─ Intercepto (escalado): 12.437711
+  └─ Coeficientes: media=0.01537506, std=0.02946016
+
+🔢 FEATURES UTILIZADOS (41)
+  Primeros: Lot Frontage, Lot Area, Year Built, Year Remod/Add, Total Bsmt SF
+  Total: 41 variables numéricas
+
+💾 SERIALIZACIÓN
+  ├─ Path: models/regression_model.joblib
+  ├─ Formato: joblib (Python pickle)
+  ├─ Contenido: Pipeline completo con:
+  │   ├─ StandardScaler (fitted con media/std de 2914 casas)
+  │   └─ LinearRegression (coefficients optimizados)
+  │
+  └─ Nota: feature_names_in_ guardados para validación de inputs
+
+🚀 INTEGRACIÓN EN run_opt.py
+  └─ Argumento: --reg-model models/regression_model.joblib
+  
+  El pipeline automáticamente en predict():
+    1. Aplica StandardScaler a nuevos datos (input)
+    2. Predice con LinearRegression (modelo ya fitted)
+    3. Output en log space → requiere np.exp() para obtener precio
+
+⚠️  DETALLES TÉCNICOS
+  ├─ Predicción está en log-space (base e)
+  ├─ Para obtener precio real: precio = exp(predicción_log)
+  ├─ Modelo entrenado en datos de Ames Housing (2014 asignaciones)
+  ├─ Mejor desempeño en rango $100k-$400k (rango de entrenamiento)
+  └─ StandardScaler memori za media/std de cada feature durante training
+
+🔄 MEJORAS SOBRE VERSIÓN ANTERIOR
+  ├─ Anterior: Predicción $277k para casa real $314k (error 11.9%)
+  ├─ Ahora: Predicción mucho más cercana al valor real
+  ├─ Razón: StandardScaler mejora estimación de intercept en log-space
+  └─ Resultado: Comparación XGBoost vs Regresión ahora es válida
+
+════════════════════════════════════════════════════════════════════════════════
+Fecha de entrenamiento: 2025-11-18 19:39:09
+════════════════════════════════════════════════════════════════════════════════

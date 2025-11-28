@@ -1279,15 +1279,23 @@ def main():
         cambios_costos = [t for t in cambios_costos if t[0] not in names]
 
     # Add*
+    add_cost_map = {
+        "AddFull":  ct.add_fullbath_cost,
+        "AddHalf":  ct.add_halfbath_cost,
+        "AddKitch": ct.add_kitchen_cost_per_sf * A_Kitch,
+        "AddBed":   ct.add_bedroom_cost_per_sf * A_Bed,
+    }
+
     for nm, A in [("AddFull", A_Full), ("AddHalf", A_Half), ("AddKitch", A_Kitch), ("AddBed", A_Bed)]:
         v = _v(nm)
         if v is not None and float(v.X) > 1e-6:
             # si AddHalf estaba listado como Half Bath/1st/GrLiv, quítalos y reemplaza por la línea con costo
             if nm == "AddHalf":
                 _drop_generic(["1st Flr SF", "Gr Liv Area", "Half Bath"])
+            unit_cost = add_cost_map.get(nm, float(ct.construction_cost) * A)
             cambios_costos.append((
                 f"{nm} (+{int(A)} ft²)", "-", f"+{int(A*float(v.X))} ft²",
-                float(ct.construction_cost) * A * float(v.X)
+                float(unit_cost) * float(v.X)
             ))
 
     # Gatillo extra 1st floor (si aplica)

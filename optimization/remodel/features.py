@@ -23,6 +23,7 @@ MODIFIABLE = [
     FeatureSpec("Bsmt Unf SF",  0.0, 100000.0, "C"),
     FeatureSpec("Gr Liv Area", 0.0, 10000.0, "C"),
     FeatureSpec("1st Flr SF", 0.0, 5000.0, "C"),
+    FeatureSpec("TotRms AbvGrd", 0, 15, "I"),
     FeatureSpec("Mas Vnr Area", 0.0, 2000.0, "C"),
     #FeatureSpec("2nd Flr SF", 0.0, 4000.0, "C"),
     # --- Mas Vnr Type (binarios) ---
