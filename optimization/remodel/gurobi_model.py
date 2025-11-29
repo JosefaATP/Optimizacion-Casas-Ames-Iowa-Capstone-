@@ -1835,6 +1835,19 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     except Exception:
         b0 = 0.0
 
+    # FIX TEMPORAL: El embedding de árboles está devolviendo y_log_raw incorrecto (~0 en lugar del valor correcto)
+    # Como workaround, recalculamos y_log_raw externamente y lo fijamos en la base
+    try:
+        y_log_raw_external = float(bundle.predict_log_raw(X_input).iloc[0])
+        # Establecer y_log_raw con LB = UB = valor_externo en la base
+        y_log_raw.LB = y_log_raw_external
+        y_log_raw.UB = y_log_raw_external
+        # (permite que siga siendo variable para cambios)
+        y_log_raw.LB = y_log_raw_external - 10.0  # permitir cambios de hasta -10 desde la base
+        y_log_raw.UB = y_log_raw_external + 10.0  # permitir cambios de hasta +10 desde la base
+    except Exception as e:
+        pass  # fallback al embedding
+
     y_log = m.addVar(lb=-gp.GRB.INFINITY, name="y_log")
     m.addConstr(y_log == y_log_raw + b0, name="YLOG_with_offset")
 

@@ -353,9 +353,16 @@ def check_predict_consistency(m: gp.Model, bundle):
     if v_log is not None:
         import numpy as _np
         try:
-            print(f"[PRED] log(y_hat) = {float(_np.log(max(y_hat, 1e-9))):.6f}  |  y_log (MIP) = {float(v_log.X):.6f}")
-        except Exception:
-            pass
+            # Use predict_log_raw to match the same definition used in MIP embed
+            # (sum_leaves + b0_offset), not log1p(final_price)
+            y_log_raw = float(bundle.predict_log_raw(Z).iloc[0])
+            y_log_mip = float(v_log.X)
+            delta = y_log_mip - y_log_raw
+            print(f"[PRED] predict_log_raw(X_sol) = {y_log_raw:.6f}  |  y_log (MIP) = {y_log_mip:.6f}  |  Δ = {delta:+.6f}")
+            if abs(delta) > 0.01:
+                print(f"[PRED] WARNING: y_log mismatch detected (Δ={delta:+.6f})")
+        except Exception as e:
+            print(f"[PRED] Error comparing y_log: {e}")
 def audit_cost_breakdown_vars(m, top=20):
     expr = getattr(m, "_lin_cost_expr", None)
     if expr is None:

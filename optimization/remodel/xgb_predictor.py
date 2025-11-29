@@ -304,7 +304,23 @@ class XGBBundle:
             ("pre", self.pre),
             ("xgb", self.reg),  # XGBRegressor sin wrapper TransformedTargetRegressor
         ])
+        
+        # Extraer base_score del booster para usar en predict_log_raw()
         self.b0_offset: float = 0.0
+        try:
+            bst = self.reg.get_booster()
+            json_model = bst.save_raw("json")
+            data = json.loads(json_model)
+            bs_str = data.get("learner", {}).get("learner_model_param", {}).get("base_score", "[0.5]")
+            # Extraer número de formato "[1.2437748E1]"
+            if isinstance(bs_str, str) and "[" in bs_str:
+                m = re.match(r"\[\s*([0-9.eE+-]+)\s*\]", bs_str)
+                if m:
+                    self.b0_offset = float(m.group(1))
+            else:
+                self.b0_offset = float(bs_str) if bs_str else 0.5
+        except Exception:
+            self.b0_offset = 0.5  # fallback al valor por defecto de XGB
         
         # INFO: pipe_for_gurobi() predice en escala LOG1P (raw XGB margin)
         # mientras que predict() predice en escala ORIGINAL (precio).
@@ -351,15 +367,27 @@ class XGBBundle:
 
     def predict_log_raw(self, X: pd.DataFrame) -> pd.Series:
         """
-        Predice el margen crudo del XGB (y_log) respetando n_trees_use.
-        Útil para comparar con el embed dentro del MIP.
+        Predice el margen crudo del XGB (y_log_raw = sum_of_tree_leaves).
+        X puede estar en dos formas:
+        1. Raw (83 features) -> será procesado con self.pre
+        2. Preprocessed (299 features) -> se usa directamente
         """
         X_fixed = X.copy()
-        _coerce_quality_ordinals_inplace(X_fixed, self.quality_cols)
-        _coerce_utilities_ordinal_inplace(X_fixed)
-        try:
-            Xp = self.pre.transform(X_fixed)
-        except Exception:
+        
+        # Detectar si ya está preprocessado
+        is_preprocessed = len(X_fixed.columns) == 299
+        
+        if not is_preprocessed:
+            # Aplicar coerciones de ordinals
+            _coerce_quality_ordinals_inplace(X_fixed, self.quality_cols)
+            _coerce_utilities_ordinal_inplace(X_fixed)
+            # Procesar con el pipeline
+            try:
+                Xp = self.pre.transform(X_fixed)
+            except Exception:
+                Xp = X_fixed.values
+        else:
+            # Ya está procesado, usar directamente
             Xp = X_fixed.values
 
         n_use = None
@@ -369,17 +397,32 @@ class XGBBundle:
             n_use = None
 
         try:
+            # Try using the booster's inplace_predict which should be more accurate
             if n_use is not None and n_use > 0:
-                y_log = self.reg.predict(Xp, output_margin=True, iteration_range=(0, n_use))
+                # Use iteration_range for tree limiting
+                y_raw = self.reg.get_booster().inplace_predict(Xp, iteration_range=(0, n_use), predict_type='margin')
             else:
-                y_log = self.reg.predict(Xp, output_margin=True)
-            return pd.Series(y_log, index=X.index)
+                y_raw = self.reg.get_booster().inplace_predict(Xp, predict_type='margin')
+            return pd.Series(y_raw, index=X.index)
         except Exception:
-            # fallback: predice en escala original y revierte si corresponde
-            y = self.pipe_full.predict(X_fixed)
             try:
-                y_log = np.log1p(y)
-            except Exception:
+                # Fallback to predict with output_margin
+                if n_use is not None and n_use > 0:
+                    y_raw = self.reg.predict(Xp, output_margin=True, iteration_range=(0, n_use))
+                else:
+                    y_raw = self.reg.predict(Xp, output_margin=True)
+                return pd.Series(y_raw, index=X.index)
+            except Exception as e:
+                # Last resort: use full prediction and transform
+                try:
+                    y_pred = self.predict(X)
+                    if self.log_target:
+                        y_raw = np.log1p(y_pred)
+                    else:
+                        y_raw = y_pred
+                    return y_raw
+                except Exception:
+                    return pd.Series([0.0] * len(X), index=X.index)
                 y_log = y
             return pd.Series(y_log, index=X.index)
 
@@ -495,6 +538,9 @@ class XGBBundle:
     def attach_to_gurobi(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:
         import json, math
 
+        # IMPORTANT: Update model to ensure variable bounds are readable
+        m.update()
+
         try:
             bst = self.reg.get_booster()
         except Exception:
@@ -574,24 +620,70 @@ class XGBBundle:
             z = [m.addVar(vtype=gp.GRB.BINARY, name=f"t{t_idx}_leaf{k}") for k in range(len(leaves))]
             m.addConstr(gp.quicksum(z) == 1, name=f"TREE_{t_idx}_ONEHOT")
 
+            # OPTIMIZATION: When all features are fixed (lb==ub), we can determine the UNIQUE correct leaf
+            # by walking the tree with the fixed values
+            # First, collect all features used in this tree
+            tree_features = set()
             for k, (conds, _) in enumerate(leaves):
                 for (f_idx, thr, is_left) in conds:
-                    xv = x_list[f_idx]
+                    if f_idx < len(x_list):
+                        tree_features.add(f_idx)
+            
+            all_fixed = all(
+                fin(getattr(x_list[f_idx], "LB", None)) and 
+                fin(getattr(x_list[f_idx], "UB", None)) and
+                float(x_list[f_idx].LB) == float(x_list[f_idx].UB)
+                for f_idx in tree_features
+            )
+            
+            if all_fixed:
+                # Compute the correct leaf index by walking the tree with fixed values
+                correct_leaf_idx = None
+                for k, (conds, _) in enumerate(leaves):
+                    all_conds_satisfied = True
+                    for (f_idx, thr, is_left) in conds:
+                        xv = x_list[f_idx]
+                        x_val = float(xv.LB)
+                        if is_left:
+                            if not (x_val < thr - 1e-9):  # x < thr
+                                all_conds_satisfied = False
+                                break
+                        else:
+                            if not (x_val >= thr - 1e-9):  # x >= thr
+                                all_conds_satisfied = False
+                                break
+                    
+                    if all_conds_satisfied:
+                        correct_leaf_idx = k
+                        break
+                
+                # Force the correct leaf to be selected
+                if correct_leaf_idx is not None:
+                    m.addConstr(z[correct_leaf_idx] == 1, name=f"TREE_{t_idx}_FORCE_LEAF_{correct_leaf_idx}")
+                    for k in range(len(leaves)):
+                        if k != correct_leaf_idx:
+                            m.addConstr(z[k] == 0, name=f"TREE_{t_idx}_EXCLUDE_LEAF_{k}")
+            else:
+                # Features are not all fixed, use normal Big-M constraints
+                for k, (conds, _) in enumerate(leaves):
+                    for (f_idx, thr, is_left) in conds:
+                        xv = x_list[f_idx]
 
-                    lb = float(xv.LB) if fin(getattr(xv, "LB", None)) else -1e6
-                    ub = float(xv.UB) if fin(getattr(xv, "UB", None)) else  1e6
+                        lb = float(xv.LB) if fin(getattr(xv, "LB", None)) else -1e6
+                        ub = float(xv.UB) if fin(getattr(xv, "UB", None)) else  1e6
 
+                        M_le = max(0.0, ub - thr)
+                        M_ge = max(0.0, thr - lb)
 
-                    M_le = max(0.0, ub - thr)
-                    M_ge = max(0.0, thr - lb)
-
-                    if is_left:
-                        m.addConstr(xv <= thr + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_le")
-                    else:
-                        m.addConstr(xv >= thr - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge")
+                        if is_left:
+                            m.addConstr(xv <= thr + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_le")
+                        else:
+                            m.addConstr(xv >= thr - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge")
 
             total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))
 
+        # The tree outputs sum to tree leaves + base_score
+        # y_log_raw should be: sum of leaves (tree outputs without offset)
         m.addConstr(y_log == total_expr, name="YLOG_XGB_SUM")
 
     def attach_to_gurobi_strict(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:
