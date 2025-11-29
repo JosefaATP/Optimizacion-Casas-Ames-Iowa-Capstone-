@@ -30,5 +30,10 @@ logs/
 gurobi.lic
 gurobi.log
 
-.ilp
-.lp
+*.ilp
+*.lp
+
+analysis/figures/
+models/xgb/datos_nuevos_reexport/
+models/xgb/optimized_params_2843/
+
