@@ -32,3 +32,5 @@ gurobi.log
 
 .ilp
 .lp
+
+ out/
