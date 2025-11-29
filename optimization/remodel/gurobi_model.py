@@ -516,6 +516,14 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         if ORD[nm] > exc_base_ord:
             lin_cost += (ct.exter_cond_cost(nm) - ct.exter_cond_cost(EQ_LEVELS[exc_base_ord])) * vb
 
+
+    # FIXED: Add path exclusion constraint - Material change XOR Quality upgrade (per specification)
+    # Specification: se pueden seguir dos caminos implies paths are mutually exclusive
+    if eligible == 1:
+        UpgMat_ext = m.addVar(vtype=gp.GRB.BINARY, name="ext_upg_material")
+        UpgQC_ext = m.addVar(vtype=gp.GRB.BINARY, name="ext_upg_qc")
+        m.addConstr(UpgMat_ext + UpgQC_ext <= 1, name="EXT_exclusive_paths")
+
     # ================== MAS VNR (robusto, sin “bajar” a No aplica) ==================
     MV_CANDIDATES = ["BrkCmn", "BrkFace", "CBlock", "Stone", "No aplica", "NA", "None"]
 
@@ -901,6 +909,17 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         "Garage Area", "Wood Deck SF", "Open Porch SF",
         "Enclosed Porch", "3Ssn Porch", "Screen Porch", "Pool Area"
     ]
+    # ======== CREATE Z-VARIABLES FOR AREA EXPANSIONS ========
+    # z[c][s] = binary variable indicating s% expansion of component c
+    # Must be created as gurobi.Var objects BEFORE being used in constraints
+    
+    for c in COMPONENTES:
+        for s in [10, 20, 30]:
+            var_name = f"z{s}_{c.replace(' ', '')}"
+            if var_name not in x:
+                x[var_name] = m.addVar(vtype=gp.GRB.BINARY, name=var_name)
+    
+
     z = {c: {s: x.get(f"z{s}_{c.replace(' ', '')}") for s in [10, 20, 30]} for c in COMPONENTES}
 
     def _val(col):
@@ -1280,6 +1299,12 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         for nm, qb in qc_bins.items():
             _put_var_obj(X_input, f"Heating QC_{nm}", qb)
 
+    # FIXED: Add path exclusion constraint - Type change XOR Quality upgrade (per specification)
+    if eligible_heat == 1 and change_type is not None and qc_bins:
+        UpgType_heat = m.addVar(vtype=gp.GRB.BINARY, name="heat_upg_type_flag")
+        UpgQC_heat = m.addVar(vtype=gp.GRB.BINARY, name="heat_upg_qc_flag")
+        m.addConstr(UpgType_heat + UpgQC_heat <= 1, name="HEAT_exclusive_paths")
+
     cost_heat = gp.LinExpr(0.0)
     for nm, vb in heat_bin.items():
         if nm != heat_base:
@@ -1317,9 +1342,24 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         # enlaza el ordinal con la elección: x_FireplaceQu = sum(ord * dummy)
         m.addConstr(v_fq == gp.quicksum(FQ_ORD[nm] * fq[nm] for nm in FQ_CATS), name="FQ_level_match")
 
-        # NO permitir bajar calidad vs base (solo igual o subir)
+        # IMPLEMENT PATH RESTRICTIONS per specification
+        # Po → {Po, Fa}
+        # TA → {TA, Gd, Ex}
+        # Fa/Gd/Ex → no change (fixed)
+        # NA → NA (already handled above)
+        
+        allowed_paths = {
+            -1: ["No aplica"],      # NA → NA
+            0:  ["Po", "Fa"],       # Po → {Po, Fa}
+            1:  ["Fa"],             # Fa → Fa (fixed)
+            2:  ["TA", "Gd", "Ex"], # TA → {TA, Gd, Ex}
+            3:  ["Gd"],             # Gd → Gd (fixed)
+            4:  ["Ex"],             # Ex → Ex (fixed)
+        }
+        
+        allowed = allowed_paths.get(base_ord, [base_fq_txt])
         for nm in FQ_CATS:
-            if FQ_ORD[nm] < base_ord:
+            if nm not in allowed:
                 fq[nm].UB = 0.0
 
         # Si NO quieres permitir "agregar chimenea" cuando la base es "No aplica", descomenta:

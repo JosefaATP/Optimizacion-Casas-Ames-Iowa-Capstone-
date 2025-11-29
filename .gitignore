@@ -30,7 +30,7 @@ logs/
 gurobi.lic
 gurobi.log
 
-.ilp
-.lp
+*.ilp
+*.lp
 
  out/
