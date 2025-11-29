@@ -345,13 +345,25 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
         if improv_terms and "Overall Qual" in X_input.columns:
             n_cols = len(improv_terms)
-            overall_var = m.addVar(lb=1.0, ub=10.0, name="Overall_Qual_calc")
+            # Overall Qual debe ser INTEGER redondeado hacia ABAJO (floor)
+            overall_qual_cont = m.addVar(lb=1.0, ub=10.0, vtype=gp.GRB.CONTINUOUS, name="Overall_Qual_float")
+            overall_var = m.addVar(lb=1.0, ub=10.0, vtype=gp.GRB.INTEGER, name="Overall_Qual_calc")
+            
             avg_delta = (1.0 / n_cols) * gp.quicksum(improv_terms)
             max_boost = 2.0  # si todas las calidades pasan de Po->Ex, suma hasta +2 en OverallQual
+            
+            # Valor continuo antes de redondear
             m.addConstr(
-                overall_var == float(base_overall) + max_boost * avg_delta,
-                name="OverallQual_from_upgrades",
+                overall_qual_cont == float(base_overall) + max_boost * avg_delta,
+                name="OverallQual_from_upgrades_float",
             )
+            
+            # Redondea hacia abajo (floor): overall_var >= overall_qual_cont - 1 AND overall_var <= floor(overall_qual_cont)
+            # En Gurobi, hacemos: overall_var >= overall_qual_cont - 1 (siempre se cumple si es floor)
+            #                     overall_var <= overall_qual_cont (fuerza a ser <= el valor continuo)
+            m.addConstr(overall_var <= overall_qual_cont, name="OverallQual_floor_ub")
+            m.addConstr(overall_var >= overall_qual_cont - 1.0, name="OverallQual_floor_lb")
+            
             X_input.loc[0, "Overall Qual"] = overall_var
             m._overall_qual_var = overall_var
     except Exception as e:
@@ -454,15 +466,12 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
                 for nm, v in ex2.items():
                     v.UB = 1.0 if nm == ex2_base_name else 0.0
 
-    ex1_base_cost = ct.ext_mat_cost(ex1_base_name)
+    # COSTO ABSOLUTO para materiales (no incremental)
     for nm, vb in ex1.items():
-        if nm != ex1_base_name:
-            lin_cost += (ct.ext_mat_cost(nm) - ex1_base_cost) * vb
+        lin_cost += ct.ext_mat_cost(nm) * vb
     if Ilas2 == 1:
-        ex2_base_cost = ct.ext_mat_cost(ex2_base_name)
         for nm, vb in ex2.items():
-            if nm != ex2_base_name:
-                lin_cost += (ct.ext_mat_cost(nm) - ex2_base_cost) * vb
+            lin_cost += ct.ext_mat_cost(nm) * vb
 
     EQ_LEVELS = ["Po","Fa","TA","Gd","Ex"]
     ORD = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
@@ -1183,6 +1192,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     # ================== HEATING + HEATING QC ==================
     HEAT_TYPES = ["Floor", "GasA", "GasW", "Grav", "OthW", "Wall"]
+    # Intenta obtener del diccionario x primero
     heat_bin = {nm: x.get(f"heat_is_{nm}") for nm in HEAT_TYPES if f"heat_is_{nm}" in x}
 
     heat_base = str(base_row.get("Heating", "GasA")).strip()
@@ -1198,13 +1208,30 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         m.addConstr(gp.quicksum(heat_bin.values()) == 1, name="HEAT_pick_one_type")
         for nm, vb in heat_bin.items():
             _put_var_obj(X_input, f"Heating_{nm}", vb)
+    else:
+        # Si no están en x, crear variables binarias de Heating directamente en el modelo
+        # Estas variables PERMANECERÁN después del XGBoost embedding como "heat_is_*"
+        heat_bin = {}
+        for nm in HEAT_TYPES:
+            v = m.addVar(vtype=gp.GRB.BINARY, name=f"heat_is_{nm}")
+            heat_bin[nm] = v
+        
+        # Agregar restricción one-hot para asegurar que solo UNA opción está activa
+        m.addConstr(gp.quicksum(heat_bin.values()) == 1, name="HEAT_pick_one_type")
+        
+        # Agregar al diccionario X_input para que estén disponibles al embedding
+        for nm, vb in heat_bin.items():
+            _put_var_obj(X_input, f"Heating_{nm}", vb)
 
     upg_type = x.get("heat_upg_type")
     upg_qc   = x.get("heat_upg_qc")
 
     eligible_heat = 1 if qc_base <= 2 else 0
-    if (upg_type is not None) and (upg_qc is not None):
-        m.addConstr(upg_type + upg_qc <= eligible_heat, name="HEAT_paths_exclusive")
+    
+    # Solo limita el upgrade de CALIDAD si no es eligible
+    # El cambio de TIPO siempre está permitido
+    if (upg_qc is not None):
+        m.addConstr(upg_qc <= eligible_heat, name="HEAT_qc_upgrade_only_if_eligible")
 
     if "Heating QC" in x:
         m.addConstr(x["Heating QC"] >= qc_base, name="HEAT_qc_upgrade_only")
@@ -1226,6 +1253,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             vb.UB = 0
 
     if eligible_heat == 0:
+        # No se puede cambiar tipo de calefacción si la calidad ya es buena
         for nm, vb in heat_bin.items():
             vb.UB = 1 if nm == heat_base else 0
         if "Heating QC" in x:

@@ -1042,6 +1042,41 @@ def main():
     except Exception:
         pass
 
+    # (2.5) EXTERIOR QUALITY (eq_bin_*, binarias one-hot)
+    try:
+        ORD = {"Po":0,"Fa":1,"TA":2,"Gd":3,"Ex":4}
+        inv = {v:k for k,v in ORD.items()}
+        
+        # Exter Qual
+        exq_base_txt = str(base_row.get("Exter Qual","TA")).strip()
+        exq_base = ORD.get(exq_base_txt, 2)
+        
+        eq_pick = None
+        for nm in ["Po","Fa","TA","Gd","Ex"]:
+            v = m.getVarByName(f"exterqual_is_{nm}")
+            if v is not None and v.X > 0.5:
+                eq_pick = nm; break
+        
+        if eq_pick is not None and ORD[eq_pick] > exq_base:
+            cost_eq = float(ct.exter_qual_cost(eq_pick)) - float(ct.exter_qual_cost(inv[exq_base]))
+            cambios_costos.append(("Exter Qual", inv[exq_base], eq_pick, cost_eq))
+        
+        # Exter Cond
+        exc_base_txt = str(base_row.get("Exter Cond","TA")).strip()
+        exc_base = ORD.get(exc_base_txt, 2)
+        
+        ec_pick = None
+        for nm in ["Po","Fa","TA","Gd","Ex"]:
+            v = m.getVarByName(f"extercond_is_{nm}")
+            if v is not None and v.X > 0.5:
+                ec_pick = nm; break
+        
+        if ec_pick is not None and ORD[ec_pick] > exc_base:
+            cost_ec = float(ct.exter_cond_cost(ec_pick)) - float(ct.exter_cond_cost(inv[exc_base]))
+            cambios_costos.append(("Exter Cond", inv[exc_base], ec_pick, cost_ec))
+    except Exception as e:
+        print(f"[TRACE] Reporter Exter Qual/Cond falló: {e}")
+
     # (3) Utilities (util_* one-hot si existe)
     try:
         util_names = ["ELO","NoSeWa","NoSewr","AllPub"]
@@ -1120,9 +1155,13 @@ def main():
         ex2_new = _pick_ext("ex2_") or ex2_base
 
         if ex1_new != ex1_base:
-            cambios_costos.append(("Exterior 1st", ex1_base, ex1_new, float(ct.ext_mat_cost(ex1_new))))
+            # Costo ABSOLUTO del nuevo material (no incremental)
+            cost_ex1 = float(ct.ext_mat_cost(ex1_new))
+            cambios_costos.append(("Exterior 1st", ex1_base, ex1_new, cost_ex1))
         if ex2_new != ex2_base:
-            cambios_costos.append(("Exterior 2nd", ex2_base, ex2_new, float(ct.ext_mat_cost(ex2_new))))
+            # Costo ABSOLUTO del nuevo material (no incremental)
+            cost_ex2 = float(ct.ext_mat_cost(ex2_new))
+            cambios_costos.append(("Exterior 2nd", ex2_base, ex2_new, cost_ex2))
     except Exception:
         pass
 
