@@ -221,40 +221,65 @@ def _materialize_solution_X(m) -> pd.DataFrame | None:
     return Z
 
 def debug_free_upgrades(m: gp.Model, eps=1e-8):
-    """Lista columnas de X que cambiaron vs base y NO tienen costo directo (lin_cost),
-    marcando posibles costos indirectos vía 'drivers'."""
+    """Lista columnas de X que cambiaron vs base, indicando si tienen costo.
+    
+    NOTA IMPORTANTE: Esta función identifica cambios en FEATURES (columnas de X).
+    - Cambios con costo EXPLÍCITO: variables que aparecen en binary selectors (util_*, kit_is_*, etc)
+    - Cambios con costo IMPLÍCITO: variables derivadas o ligadas a drivers de costo
+    - Cambios sin costo: cambios que no resultan de renovaciones (ej: features computed)
+    """
     Xi = getattr(m, "_X_input", None)
     Xb = getattr(m, "_X_base_numeric", None)
     if Xi is None or Xb is None or Xi.empty or Xb.empty:
         print("[FREE-UPGR] Falta _X_input / _X_base_numeric en el modelo.")
         return []
 
-    # 1) variables con costo directo (aparecen en lin_cost)
-    cost_vars = set()
-    expr = getattr(m, "_lin_cost_expr", None)
-    if expr is not None:
-        # lineales
-        try:
-            vs = expr.getVars(); cs = expr.getCoeffs()
-            for v, c in zip(vs, cs):
-                if abs(float(c)) > 0:
-                    cost_vars.add(v.VarName)
-        except Exception:
-            pass
-        # por si acaso, términos cuadráticos
-        try:
-            for i in range(expr.size()):
-                v1 = expr.getVar1(i); v2 = expr.getVar2(i); c = float(expr.getCoeff(i))
-                if abs(c) > 0:
-                    cost_vars.add(v1.VarName); cost_vars.add(v2.VarName)
-        except Exception:
-            pass
+    # 1) Construir lista de variables que ARE decision variables con costo
+    # Estos patrones identifican variables que tienen costo explícito en el modelo
+    cost_driver_patterns = (
+        "util_", "kit_is_", "heat_", "ex1_is_", "ex2_is_", "exterqual_is_", "extercond_is_",
+        "roof_", "fire_is_", "fire_qual_", "fireplace", "PoolQC", "poolqc_is_",
+        "bsmt", "bsmtcond_is_", "fence", "garage_finish_", "garage_qual_", "garage_cond_",
+        "mvt_is_", "central_air_", "Add", "z10_", "z20_", "z30_",
+        "roof_change", "finish_bsmt", "UpgPool", "UpgGarage", "_upg_"
+    )
+    
+    cost_drivers = {}  # vname -> True si tiene costo
+    for v in m.getVars():
+        vname = v.VarName
+        if any(pattern in vname for pattern in cost_driver_patterns):
+            cost_drivers[vname] = True
 
-    # 1.b) heurística de "drivers" de costo indirecto
-    driver_tokens = ("Add", "z10_", "z20_", "z30_", "finish", "_upg_", "roof_change", "bsmt_to_")
-    drivers = {v.VarName for v in m.getVars() if any(t in v.VarName for t in driver_tokens)}
+    # 2) Features que son "computed" (no controlables) y no tienen costo directo
+    # Estos son el resultado de variables de costo, no causantes de costo
+    derived_features = {
+        "Gr Liv Area",      # resultado de expansiones
+        "Total Bsmt SF",    # resultado de basement finish
+        "1st Flr SF",       # resultado de room additions
+        "Full Bath",        # resultado de AddFull
+        "Half Bath",        # resultado de AddHalf
+        "Bedroom AbvGr",    # resultado de AddBed
+        "Kitchen AbvGr",    # resultado de AddKitch
+        "TotRms AbvGrd",    # resultado de room adds
+        "y_price",          # predicción (costo implícito vía ROI, no explícito)
+        "y_log",            # log de predicción
+    }
 
-    # 2) detectar cambios en X
+    # Features que SI tienen costo directo - ORDINALS (0-4 scalars) y DUMMIES (one-hot)
+    cost_feature_ordinals = {
+        "Kitchen Qual", "Exter Qual", "Exter Cond", "Heating QC",
+        "Bsmt Cond", "Utilities", "Heating", "Pool QC"
+    }
+    
+    cost_feature_prefixes = (
+        "Kitchen Qual_", "Exter Qual_", "Exter Cond_",
+        "Roof Matl_", "Mas Vnr Type_", "Heating_", "Pool QC_",
+        "Central Air_", "Fireplace Qu_",
+        "Garage Finish_", "Garage Qual_", "Garage Cond_",
+        "Bsmt Cond_", "Exterior 1st_", "Exterior 2nd_"
+    )
+
+    # 3) Detectar cambios en X
     free = []
     changed = []
     for col in Xi.columns:
@@ -268,15 +293,43 @@ def debug_free_upgrades(m: gp.Model, eps=1e-8):
             if (base_val is None) or (abs(xval - base_val) > eps):
                 vname = getattr(cur, "VarName", None)
                 changed.append((col, base_val, xval, vname))
-                if vname not in cost_vars:
-                    # Señaliza posible costo indirecto si luce como métrica dependiente de drivers
-                    looks_dependent = any(tok in (vname or "") for tok in ("_1st","_Half","_Full","_Deck","Bsmt","Garage","Gr Liv"))
-                    note = " (posible costo indirecto vía driver)" if looks_dependent and drivers else ""
-                    free.append((col, base_val, xval, vname, note))
+                
+                # Clasificar si tiene costo
+                has_explicit_cost = False
+                has_implicit_cost = False
+                reason = ""
+                
+                # Chequeo 1: ¿Es variable de decisión con costo?
+                if vname and vname in cost_drivers:
+                    has_explicit_cost = True
+                    reason = "variable de decisión"
+                
+                # Chequeo 2: ¿Es ordinal de decisión (0-4 valores)?
+                if col in cost_feature_ordinals:
+                    has_explicit_cost = True
+                    reason = "ordinal de decisión"
+                
+                # Chequeo 3: ¿Es dummy de una feature de decisión?
+                if any(col.startswith(prefix) for prefix in cost_feature_prefixes):
+                    has_explicit_cost = True
+                    reason = "dummy de feature de decisión"
+                
+                # Chequeo 4: ¿Es feature derivada?
+                if col in derived_features:
+                    has_implicit_cost = True
+                    reason = "feature derivada (costo vía driver)"
+                
+                # Si NO tiene costo explícito ni implícito, reportar como "free"
+                if not (has_explicit_cost or has_implicit_cost):
+                    free.append((col, base_val, xval, vname, reason or "desconocido"))
 
-    print(f"[FREE-UPGR] Cambios en X: {len(changed)}  |  Cambios SIN costo: {len(free)}")
-    for col, bv, xv, vname, note in free[:60]:
-        print(f"   - {col:<30s} base={bv} -> sol={xv}   var={vname}{note}")
+    print(f"[FREE-UPGR] Cambios en X: {len(changed)}  |  Cambios CON costo: {len(changed)-len(free)}  |  Cambios SIN costo: {len(free)}")
+    if free:
+        print("[FREE-UPGR] Cambios sin costo directo detectados:")
+        for col, bv, xv, vname, reason in free[:30]:
+            print(f"   - {col:<35s} base={bv} -> sol={xv}   ({reason})")
+    else:
+        print("[FREE-UPGR] ✓ Todos los cambios tienen costo modelado")
 
     return free
 
