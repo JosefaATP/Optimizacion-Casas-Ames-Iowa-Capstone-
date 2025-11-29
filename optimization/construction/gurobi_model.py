@@ -1491,7 +1491,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
 
     # min areas por cuenta para evitar cuartos fantasma
     # 11.20 Áreas mínimas por ambiente (alineado con PDF)
-    m.addConstr(AreaFullBath >= 40 * FullBath,  name="11.20__min_area_full_bath")
+    m.addConstr(AreaFullBath >= 32 * FullBath,  name="11.20__min_area_full_bath") #cambios de 20% original 40
     m.addConstr(AreaHalfBath >= 20 * HalfBath,  name="11.20__min_area_half_bath")
     m.addConstr(AreaKitchen  >= 75 * Kitchen,   name="11.20__min_area_kitchen")
     m.addConstr(AreaBedroom  >= 70 * Bedrooms,  name="11.20__min_area_bedroom")

@@ -10,6 +10,7 @@ import numpy as np
 import gurobipy as gp
 import joblib
 import re
+import pathlib
 
 from .config import PARAMS, PATHS
 from .io import get_base_house, load_base_df
@@ -427,6 +428,8 @@ def main():
     ap.add_argument("--min-totalbsmt", type=float, default=None, help="Mínimo de Total Bsmt SF")
     ap.add_argument("--max-totalbsmt", type=float, default=None, help="Máximo de Total Bsmt SF")
     ap.add_argument("--tag", type=str, default=None, help="Etiqueta opcional para identificar la corrida (se guarda en el CSV)")
+    ap.add_argument("--xinput-outdir", type=str, default=None,
+                    help="Si se define, guarda el vector completo de features optimizadas (X_input) en esta carpeta.")
     args = ap.parse_args()
 
     reg_model = None
@@ -740,6 +743,20 @@ def main():
                 w.writerow(row)
         except Exception as e:
             print(f"[WARN] No se pudo escribir outcsv: {e}")
+
+    # ===== Exportar X_input completo (opcional) =====
+    if args.xinput_outdir:
+        try:
+            outdir = pathlib.Path(args.xinput_outdir)
+            outdir.mkdir(parents=True, exist_ok=True)
+            opt_df = materialize_optimal_input_df(m)
+            if opt_df is not None:
+                neigh_label = str(base_row.get("Neighborhood", args.neigh or "NA")).replace(" ", "_")
+                lot_label = int(base_row.get("LotArea", args.lot or 0.0)) if base_row.get("LotArea", None) is not None else 0
+                fname = f"x_input_{neigh_label}_lot{lot_label}_b{int(args.budget)}.csv"
+                opt_df.to_csv(outdir / fname, index=False)
+        except Exception as e:
+            print(f"[WARN] No se pudo exportar X_input completo: {e}")
 
 
 if __name__ == "__main__":
