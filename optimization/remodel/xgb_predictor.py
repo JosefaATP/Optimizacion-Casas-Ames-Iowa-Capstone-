@@ -13,6 +13,7 @@ from sklearn.pipeline import Pipeline as SKPipeline
 from sklearn.compose import ColumnTransformer, TransformedTargetRegressor
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.exceptions import NotFittedError
+from sklearn.preprocessing import FunctionTransformer
 
 from xgboost import XGBRegressor, Booster
 
@@ -172,6 +173,40 @@ def _fix_base_score_if_needed(reg: XGBRegressor) -> None:
     except Exception:
         return
 
+def _fix_passthrough_transformers(ct: ColumnTransformer) -> None:
+    """
+    Algunos pickles antiguos traen 'passthrough' como string en transformers_,
+    y sklearn 1.7 intenta llamarle .transform. Reemplazo por FunctionTransformer(identity).
+    """
+    try:
+        trs = ct.transformers_ if hasattr(ct, "transformers_") else ct.transformers
+    except Exception:
+        return
+
+    new_trs = []
+    changed = False
+    for item in trs:
+        name, transformer, cols = item[0], item[1], item[2]
+        extras = item[3:] if len(item) > 3 else ()
+        if isinstance(transformer, str) and transformer == "passthrough":
+            transformer = FunctionTransformer(lambda x: x)
+            changed = True
+        new_trs.append((name, transformer, cols, *extras))
+        try:
+            if hasattr(ct, "named_transformers_"):
+                ct.named_transformers_[name] = transformer
+        except Exception:
+            pass
+
+    if changed:
+        try:
+            if hasattr(ct, "transformers_"):
+                ct.transformers_ = new_trs
+            else:
+                ct.transformers = new_trs
+        except Exception:
+            pass
+
 class XGBBundle:
     def __init__(self, model_path: Path = PATHS.xgb_model_file):
         self.model_path = model_path
@@ -209,6 +244,7 @@ class XGBBundle:
         self.log_target: bool = self._ttr is not None
 
         self.pre: ColumnTransformer = self.pipe_full.named_steps["pre"]
+        _fix_passthrough_transformers(self.pre)
 
         if self._ttr is not None:
             self.reg: XGBRegressor = self._ttr.regressor_

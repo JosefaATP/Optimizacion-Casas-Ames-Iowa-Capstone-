@@ -61,6 +61,11 @@ def rebuild_embed_input_df(m, base_X):
                 X_in.loc[0, c] = float(v.X)
             except Exception:
                 X_in.loc[0, c] = 0.0
+        elif hasattr(v, "getValue"):  # gp.LinExpr / QuadExpr
+            try:
+                X_in.loc[0, c] = float(v.getValue())
+            except Exception:
+                X_in.loc[0, c] = 0.0
         else:
             X_in.loc[0, c] = _to_num(v)
 
@@ -688,15 +693,22 @@ def main():
         """
         X_in = rebuild_embed_input_df(m, base_X)
         try:
-            y_hat = float(bundle.predict(X_in).iloc[0])
-            if bundle.is_log_target():
-                import numpy as np
-                y_log = float(np.log1p(y_hat))  # si tu y era log1p
-            else:
-                y_log = float("nan")
+            # Usa la misma escala que el embed: margen raw (log1p) con output_margin
+            y_log = float(bundle.predict_log_raw(X_in).iloc[0])
+            import numpy as np
+            y_hat = float(np.expm1(y_log)) if bundle.is_log_target() else float(bundle.predict(X_in).iloc[0])
             print("\n[AUDIT] Outside predict usando EXACTO el X que vio el embed:")
             print(f"  y_hat(outside from embed X_in) = {y_hat:,.2f}")
             print(f"  y_log(outside)≈ {y_log:.6f} | y_log(MIP)≈ {float(m._y_log_var.X):.6f}")
+            try:
+                y_log_raw_mip = None
+                v_raw = getattr(m, "_y_log_raw_var", None) or m.getVarByName("y_log_raw")
+                if v_raw is not None:
+                    y_log_raw_mip = float(v_raw.X)
+                if y_log_raw_mip is not None and hasattr(bundle, "b0_offset"):
+                    print(f"  y_log_raw(out)≈ {y_log - float(bundle.b0_offset):.6f} | y_log_raw(MIP)≈ {y_log_raw_mip:.6f} | b0_offset≈ {float(bundle.b0_offset):.6f}")
+            except Exception:
+                pass
         except Exception as e:
             print(f"[AUDIT] Falló predict outside con X_in: {e}")
 
@@ -723,23 +735,34 @@ def main():
 
             # reconstruye vector de entrada usado por el embed (Var.X si existe, si no toma valor en X_input)
             X_in_df = getattr(m, "_X_input", None)
-            feat_vals = []
-            for fname in bo:
-                v = m.getVarByName(f"x_{fname}") or m.getVarByName(f"const_{fname}")
-                val = None
-                if v is not None:
+            xvars = getattr(m, "_x_vars", {}) if hasattr(m, "_x_vars") else {}
+
+            def _fetch_feature(fname: str):
+                # 1) Si tenemos xvars (con nombre EXACTO del booster), usa ese
+                if fname in xvars:
+                    v = xvars[fname]
                     try:
-                        val = float(v.X)
+                        return float(v.X) if hasattr(v, "X") else float(v)
                     except Exception:
-                        val = None
-                if val is None and X_in_df is not None and hasattr(X_in_df, "loc"):
+                        pass
+                # 2) Busca var por nombres seguros (espacios -> _, "/" -> "_")
+                safe = fname.replace(" ", "_").replace("/", "_").replace("[", "").replace("]", "")
+                for prefix in ["x_", "const_", "expr_"]:
+                    v = m.getVarByName(prefix + safe)
+                    if v is not None:
+                        try:
+                            return float(v.X)
+                        except Exception:
+                            pass
+                # 3) Busca en el DataFrame original del embed
+                if X_in_df is not None and hasattr(X_in_df, "loc"):
                     try:
-                        val = float(X_in_df.loc[0, fname])
+                        return float(X_in_df.loc[0, fname])
                     except Exception:
-                        val = None
-                if val is None:
-                    val = 0.0
-                feat_vals.append(val)
+                        pass
+                return 0.0
+
+            feat_vals = [_fetch_feature(fname) for fname in bo]
 
             # usa la misma cantidad de árboles que el embed (n_trees_use) o todos
             n_use = None
@@ -779,11 +802,12 @@ def main():
                             ok = False; break
                         xv = feat_vals[f_idx]
                         if is_left:
-                            if not (xv <= thr + 1e-9):
+                            # XGBoost split rule: go left if xv < thr (strict)
+                            if not (xv < thr - 1e-9):
                                 ok = False; break
                         else:
-                            # embed usa >= thr + EPS para separar ramas
-                            if not (xv >= thr + EPS - 1e-9):
+                            # right branch for xv >= thr
+                            if not (xv >= thr - 1e-9):
                                 ok = False; break
                     if ok:
                         expected_idx = k

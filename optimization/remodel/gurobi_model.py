@@ -1660,6 +1660,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         "Garage Cond": (-1.0, 4.0),
         "Utilities": (0.0, 3.0),
     }
+    _MODIF_NAMES = {f.name for f in MODIFIABLE}
 
     # === BOUNDS suaves para entradas numéricas (después del ALIGN, antes de _add_sklearn) ===
     try:
@@ -1673,6 +1674,14 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
         if hasattr(X_input, "loc"):
             for c in X_input.columns:
                 v = X_input.loc[0, c]
+                # Si hay una Var en una columna no declarada como modificable, fíjala al valor base
+                if hasattr(v, "VarName") and c not in _MODIF_NAMES:
+                    try:
+                        base_val_c = float(base_X.iloc[0][c])
+                        m.addConstr(v == base_val_c, name=f"FIX_unmod_{_safe_name(c)}")
+                        continue
+                    except Exception:
+                        pass
                 if hasattr(v, "LB") and hasattr(v, "UB"):
                     if c in ORD_BOUNDS:
                         lb, ub = ORD_BOUNDS[c]
@@ -1742,11 +1751,13 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     # y_log crudo de los árboles (sin bias/base_score)
     y_log_raw = m.addVar(lb=-gp.GRB.INFINITY, name="y_log_raw")
+    m._y_log_raw_var = y_log_raw  # para auditorías
     # Embedding de árboles XGB: usamos la versión estándar (sin epsilon) para
     # reproducir exactamente la lógica < vs >= de XGBoost.  Si en algún árbol
     # las ramas quedaran solapadas, el one‑hot de hojas lo resolverá al elegir
     # una sola hoja factible.
-    bundle.attach_to_gurobi(m, x_vars, y_log_raw, eps=0.0)
+    # eps negativo desplaza el umbral para que empates (x==thr) no se cuelen al lado izquierdo.
+    bundle.attach_to_gurobi(m, x_vars, y_log_raw, eps=-1e-6)
 
     # offset/base_score del modelo (si no pudo calcularse, se asume 0)
     try:

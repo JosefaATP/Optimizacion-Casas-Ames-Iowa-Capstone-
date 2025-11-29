@@ -2,10 +2,10 @@
 matplotlib
 gurobipy>=11.0.3
 xgboost>=2.0
-scikit-learn>=1.3
 pandas>=2.0
 numpy>=1.24
 gurobi-machinelearning>=1.4
 joblib>=1.3
 pydantic>=2.3
-scikit-learn==1.3.2
+# Versión alineada con el modelo reexportado (evita mismatch con 1.3.x)
+scikit-learn==1.7.1
