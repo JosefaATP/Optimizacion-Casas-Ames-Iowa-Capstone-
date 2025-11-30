@@ -1,91 +1,11 @@
 \ Model remodel_embed_copy
 \ LP format - for model browsing. Use MPS format to capture full model detail.
+\ Signature: 0x74aef593b6f2b606
 Maximize
  
 Subject To
- COUNT_fullbath: x_Full_Bath - x_AddFull = 2
- COUNT_halfbath: - x_AddHalf + x_Half_Bath = 1
- COUNT_bedroom: x_Bedroom_AbvGr - x_AddBed = 2
- R4_baths_le_bedrooms: - x_Bedroom_AbvGr + x_Full_Bath + x_Half_Bath <= 0
- COST_eq_linexpr: - 17352 x_roof_matl_is_ClyTile
-   - 8011.95 x_roof_matl_is_Membran - 11739 x_roof_matl_is_Metal
-   - 7600 x_roof_matl_is_Roll - 8550 x_roof_matl_is_Tar&Grv
-   - 22500 x_roof_matl_is_WdShake - 19500 x_roof_matl_is_WdShngl
-   - 1712.5 x_elect_is_FuseA - 887.5 x_elect_is_FuseF
-   - 62.5 x_elect_is_FuseP - 287.5 x_elect_is_Mix
-   - 24038 x_garage_finish_is_Fin - 17500 x_garage_finish_is_Unf
-   - 28000 x_AddFull - 11200 x_AddHalf - 16800 x_AddKitch - 25480 x_AddBed
-   - 51659 x_garage_qual_is_Ex - 51659 x_garage_cond_is_Ex
-   - 37849 x_garage_qual_is_Gd - 37849 x_garage_cond_is_Gd
-   - 14113 x_garage_qual_is_Fa - 14113 x_garage_cond_is_Fa
-   - 4188 x_garage_qual_is_Po - 4188 x_garage_cond_is_Po
-   - 3354 x_paved_drive_is_P - 1800 x_paved_drive_is_N
-   - 7260 x_fence_is_GdPrv - 5660 x_fence_is_MnPrv - 3232 x_fence_is_GdWo
-   - 2400 x_fence_is_MnWw - 19000 x_ex1_is_AsbShng - 22500 x_ex1_is_AsphShn
-   - 26000 x_ex1_is_BrkComm - 22000 x_ex1_is_BrkFace
-   - 10300 x_ex1_is_CBlock - 14674 x_ex1_is_CemntBd
-   - 21300 x_ex1_is_HdBoard - 16500 x_ex1_is_ImStucc
-   - 11196 x_ex1_is_MetalSd - 21765.3125 x_ex1_is_Other
-   - 3461.81 x_ex1_is_Plywood - 17625 x_ex1_is_PreCast
-   - 106250 x_ex1_is_Stone - 5629 x_ex1_is_Stucco - 17410 x_ex1_is_VinylSd
-   - 12500 x_ex1_is_Wd_Sdng - 21900 x_ex1_is_WdShngl
-   - 19000 x_ex2_is_AsbShng - 22500 x_ex2_is_AsphShn
-   - 26000 x_ex2_is_BrkComm - 22000 x_ex2_is_BrkFace
-   - 10300 x_ex2_is_CBlock - 14674 x_ex2_is_CemntBd
-   - 21300 x_ex2_is_HdBoard - 16500 x_ex2_is_ImStucc
-   - 11196 x_ex2_is_MetalSd - 21765.3125 x_ex2_is_Other
-   - 3461.81 x_ex2_is_Plywood - 17625 x_ex2_is_PreCast
-   - 106250 x_ex2_is_Stone - 5629 x_ex2_is_Stucco - 17410 x_ex2_is_VinylSd
-   - 12500 x_ex2_is_Wd_Sdng - 21900 x_ex2_is_WdShngl - 75000 x_b1_is_GLQ
-   - 53500 x_b1_is_ALQ - 32000 x_b1_is_BLQ - 23500 x_b1_is_Rec
-   - 15000 x_b1_is_LwQ - 75000 x_b2_is_GLQ - 53500 x_b2_is_ALQ
-   - 32000 x_b2_is_BLQ - 23500 x_b2_is_Rec - 15000 x_b2_is_LwQ
-   - 4423.2 x_z10_GarageArea - 11449.92 x_z20_GarageArea
-   - 21078.72 x_z30_GarageArea - 1529.69 x_z10_OpenPorchSF
-   - 3959.764 x_z20_OpenPorchSF - 7289.723999999999 x_z30_OpenPorchSF
-   - 180000 kit_is_Ex - 83416.94 exterqual_is_Ex - 3949.31 extercond_is_Gd
-   - 87366.25 extercond_is_Ex - 1.21 mv_area_mvt_BrkCmn
-   - 15 mv_area_mvt_BrkFace - 22.5 mv_area_mvt_CBlock
-   - 27.5 mv_area_mvt_Stone - 10850 roof_change_mat - 10304 x_Add1stFlr
-   - 1773 heat_is_Floor - 8500 heat_is_GasW - 6300 heat_is_Grav
-   - 5000 heat_is_OthW - 3700 heat_is_Wall - 3750 heat_qc_is_Po
-   - 5125 heat_qc_is_Fa - 6500 heat_qc_is_TA - 8250 heat_qc_is_Gd
-   - 1500 fireplace_is_Po - 2000 fireplace_is_Fa - 2500 fireplace_is_TA
-   - 3525 fireplace_is_Gd - 4550 fireplace_is_Ex - 19200 bsmt_finish_all
-   - 10750 bsmtcond_is_Gd - 21500 bsmtcond_is_Ex + cost_model = 0
- BUDGET: cost_model <= 18000
+ ylog_penalty_lb_iter1: y_log >= 12.42124771118164
+ ylog_penalty_ub_iter2: y_log <= 12.35893035888672
 Bounds
- x_Bedroom_AbvGr free
- x_Full_Bath free
- x_Half_Bath free
- cost_model free
-Binaries
- x_roof_matl_is_ClyTile x_roof_matl_is_Membran x_roof_matl_is_Metal
- x_roof_matl_is_Roll x_roof_matl_is_Tar&Grv x_roof_matl_is_WdShake
- x_roof_matl_is_WdShngl x_elect_is_FuseA x_elect_is_FuseF x_elect_is_FuseP
- x_elect_is_Mix x_garage_finish_is_Fin x_garage_finish_is_Unf x_AddFull
- x_AddHalf x_AddKitch x_AddBed x_garage_qual_is_Ex x_garage_cond_is_Ex
- x_garage_qual_is_Gd x_garage_cond_is_Gd x_garage_qual_is_Fa
- x_garage_cond_is_Fa x_garage_qual_is_Po x_garage_cond_is_Po
- x_paved_drive_is_P x_paved_drive_is_N x_fence_is_GdPrv x_fence_is_MnPrv
- x_fence_is_GdWo x_fence_is_MnWw x_ex1_is_AsbShng x_ex1_is_AsphShn
- x_ex1_is_BrkComm x_ex1_is_BrkFace x_ex1_is_CBlock x_ex1_is_CemntBd
- x_ex1_is_HdBoard x_ex1_is_ImStucc x_ex1_is_MetalSd x_ex1_is_Other
- x_ex1_is_Plywood x_ex1_is_PreCast x_ex1_is_Stone x_ex1_is_Stucco
- x_ex1_is_VinylSd x_ex1_is_Wd_Sdng x_ex1_is_WdShngl x_ex2_is_AsbShng
- x_ex2_is_AsphShn x_ex2_is_BrkComm x_ex2_is_BrkFace x_ex2_is_CBlock
- x_ex2_is_CemntBd x_ex2_is_HdBoard x_ex2_is_ImStucc x_ex2_is_MetalSd
- x_ex2_is_Other x_ex2_is_Plywood x_ex2_is_PreCast x_ex2_is_Stone
- x_ex2_is_Stucco x_ex2_is_VinylSd x_ex2_is_Wd_Sdng x_ex2_is_WdShngl
- x_b1_is_GLQ x_b1_is_ALQ x_b1_is_BLQ x_b1_is_Rec x_b1_is_LwQ x_b2_is_GLQ
- x_b2_is_ALQ x_b2_is_BLQ x_b2_is_Rec x_b2_is_LwQ x_z10_GarageArea
- x_z20_GarageArea x_z30_GarageArea x_z10_OpenPorchSF x_z20_OpenPorchSF
- x_z30_OpenPorchSF kit_is_Ex exterqual_is_Ex extercond_is_Gd
- extercond_is_Ex roof_change_mat x_Add1stFlr heat_is_Floor heat_is_GasW
- heat_is_Grav heat_is_OthW heat_is_Wall heat_qc_is_Po heat_qc_is_Fa
- heat_qc_is_TA heat_qc_is_Gd fireplace_is_Po fireplace_is_Fa
- fireplace_is_TA fireplace_is_Gd fireplace_is_Ex bsmt_finish_all
- bsmtcond_is_Gd bsmtcond_is_Ex
-Generals
- x_Bedroom_AbvGr x_Full_Bath x_Half_Bath
+ y_log free
 End

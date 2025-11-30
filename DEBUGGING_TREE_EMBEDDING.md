@@ -167,36 +167,113 @@ cd "c:\Users\valen\OneDrive - uc.cl\UNIVERSIDAD\2024-1\Bases de datos\Optimizaci
 # [TREE-MISMATCH] Mismatches en 77 árboles
 ```
 
-### Próximos Pasos Recomendados
+## Intentos de Solución (hasta 29 Nov 2025, 22:45)
 
-1. **Implementar Opción B o C:** Reformular restricciones para crear fuerza bidireccional
-   - Esto debería forzar que cuando z[k]=1, TODAS las condiciones (incluyendo < vs >=) se respeten
-   
-2. **Aumentar tolerancias de Gurobi** en run_opt.py
-   - Aunque poco probable que ayude, vale la pena intentar
+### Intento 1: Epsilon pequeño (1e-8)
+```python
+xv <= thr - 1e-8 + M_le * (1 - z[k])  # left child con epsilon
+```
+**Resultado:** SIN CAMBIOS - Gurobi no respeta epsilon tan pequeño
+- Mismatch: Aún 77 árboles
+- y_log divergencia: Aún 0.133733
 
-3. **Validar con propiedad base 526351010**
-   - Esta propiedad tiene y_log_raw correcto (sin MIP optimization)
-   - Usar para verificar que la fix no rompe el caso ya funcionando
+### Intento 2: M_ge grande cuando cercano a 0
+```python
+if M_ge < 1e-6:
+    m.addConstr(xv >= thr - 1e6 * (1 - z[k]), ...)
+```
+**Resultado:** SIN CAMBIOS
+- Mismatch: Aún 77 árboles
 
-4. **Testing con múltiples propiedades**
-   - Después del fix, correr en varias propiedades para confirmar patrón
+### Intento 3: Restricciones bidireccionales (INFEASIBLE)
+```python
+# Left child:
+m.addConstr(xv <= thr - 1e-6 + M_le * (1 - z[k]))  # si z[k]=0, puede ser <= thr + M_le
+m.addConstr(xv >= thr - 1e6 * z[k])                # si z[k]=0, fuerza xv >= thr
 
-### Notas Técnicas
+# Right child:
+m.addConstr(xv >= thr - M_ge * (1 - z[k]))        # si z[k]=0, puede ser >= thr - M_ge
+m.addConstr(xv <= thr - 1e-6 + 1e6 * z[k])        # si z[k]=0, fuerza xv <= thr - eps
+```
+**Resultado:** INFEASIBLE - Las restricciones se contradicen
+- Modelo rechazado por Gurobi
+- No hay solución viable
 
-- **base_score (b0):** 12.437748 (este offset está correcto)
-- **Número de árboles:** 914 (todos embebidos)
-- **Número de variables binarias:** 3,961 (selectores de hojas)
-- **Tolerancias actuales:** FeasibilityTol=1e-7, OptimalityTol=1e-7
+### Intento 4: Epsilon más fuerte (1e-5)
+```python
+xv <= thr - 1e-5 + M_le * (1 - z[k])  # left child
+```
+**Resultado:** INFEASIBLE
+- Epsilon de 1e-5 aún crea restricciones impossibles
+- Gurobi no encuentra solución
 
-### Recursos Útiles
+## Análisis del Problema Real
 
-- XGBoost tree split semantics: https://xgboost.readthedocs.io/
-- Big-M formulation theory: Mixed-Integer Programming, Wolsey & Nemhauser
-- Gurobi MIP modeling: https://www.gurobi.com/documentation/
+El verdadero problema podría NO ser las restricciones Big-M directamente, sino:
+
+1. **Bounds iniciales calculados incorrectamente**
+   - Cuando MIP cambia Kitchen AbvGr de 1 → 2, los bounds iniciales (-0, 3) podrían ser demasiado amplios
+   - El MIP puede que esté usando bounds predeterminados que no reflejan las restricciones de árbol
+
+2. **La evaluación de árbol en la traversal del debug podría ser CORRECTA**
+   - Cuando x=2, threshold=2: la rama derecha (x >= 2) es la correcta
+   - Pero el MIP selecciona la rama izquierda porque las constraints no lo fuerzan
+
+3. **Numérica de Gurobi**
+   - Con tolerancia 1e-7, Gurobi podría estar siendo "tolerante" con violaciones pequeñas
+   - Aumentar a 1e-9 podría ayudar pero probablemente no suficiente
+
+## Próximos Pasos a Intentar
+
+### Opción A: Revisar cálculo de bounds en build_mip_embed()
+En `optimization/remodel/gurobi_model.py`, verificar:
+1. Cómo se setean LB/UB para variables continuas de árbol
+2. Si Kitchen AbvGr tiene bounds correctos cuando MIP la optimiza
+3. Si hay restricciones adicionales sobre Kitchen AbvGr que podrían ayudar
+
+### Opción B: Usar indicator constraints (Gurobi feature)
+```python
+# En lugar de Big-M, usar indicator constraints nativo de Gurobi:
+m.addConstr((z[k] == 1) >> (xv <= thr))      # if z[k]=1, then xv <= thr
+m.addConstr((z[k] == 0) >> (xv >= thr))      # if z[k]=0, then xv >= thr
+```
+Esto deja la discretization a Gurobi en lugar de confiar en Big-M.
+
+### Opción C: Reformular como SOS1 (Special Ordered Set)
+```python
+# En lugar de z[k] binaria, usar SOS1 para replicating múltiples ramas
+m.addSOS(gp.GRB.SOS_TYPE1, [var_left, var_right], [1, 2])
+```
+
+### Opción D: Deshabilitar optimización de Kitchen AbvGr
+Agregar restricción fija: `Kitchen_AbvGr.LB = 1; Kitchen_AbvGr.UB = 1`
+Esto evita que el MIP la cambie y verifica si eso elimina el mismatch.
+
+### Opción E: Añadir debugging granular en gurobi_model.py
+Loguear exactamente cómo se crean los bounds y constraintsPara cada variable de árbol,
+permitir trazar por qué Kitchen AbvGr puede ser 2 cuando debería estar 1.
+
+## Recomendación Final para Continuación
+
+**Próxima acción RECOMENDADA:** Implementar **Opción B (Indicator Constraints)**
+
+Razón: Las indicator constraints de Gurobi son más robustas que Big-M y manejan naturalmente los boundary cases. Esto es un feature nativo del solver diseñado exactamente para este tipo de formulación.
+
+```python
+# En xgb_predictor.py, reemplazar la sección Big-M actual:
+
+if is_left:
+    # indicator: if z[k]=1, then x < thr
+    m.addConstr((z[k] == 1) >> (xv <= thr - 1e-6))
+else:
+    # indicator: if z[k]=1, then x >= thr
+    m.addConstr((z[k] == 1) >> (xv >= thr))
+```
+
+Esto es mucho más simple y deja que Gurobi manaje la lógica internally.
 
 ---
 
-**Última actualización:** 29 Nov 2025
-**Estado:** BLOQUEADO en selección de hojas con threshold boundaries
-**Prioridad:** CRÍTICA (impacta precisión de optimización)
+**Última actualización:** 29 Nov 2025, 22:50
+**Estado:** Todos los intentos Big-M fallaron; necesita reformulación
+**Prioridad:** CRÍTICA
