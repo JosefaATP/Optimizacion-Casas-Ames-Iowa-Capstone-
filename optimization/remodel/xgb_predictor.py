@@ -639,7 +639,7 @@ class XGBBundle:
             if all_fixed:
                 # Compute the correct leaf index by walking the tree with fixed values
                 correct_leaf_idx = None
-                for k, (conds, _) in enumerate(leaves):
+                for k, (conds, leaf_val) in enumerate(leaves):
                     all_conds_satisfied = True
                     for (f_idx, thr, is_left) in conds:
                         xv = x_list[f_idx]
@@ -657,6 +657,11 @@ class XGBBundle:
                         correct_leaf_idx = k
                         break
                 
+                # DEBUG: Log forced leaf selection for first 3 trees
+                if t_idx < 3:
+                    import sys
+                    print(f"[TREE-EMBED-FIXED] Tree {t_idx}: all_fixed=True, forced leaf={correct_leaf_idx}, value={leaves[correct_leaf_idx][1]:.6f if correct_leaf_idx is not None else 'N/A'}", file=sys.stderr)
+                
                 # Force the correct leaf to be selected
                 if correct_leaf_idx is not None:
                     m.addConstr(z[correct_leaf_idx] == 1, name=f"TREE_{t_idx}_FORCE_LEAF_{correct_leaf_idx}")
@@ -665,7 +670,7 @@ class XGBBundle:
                             m.addConstr(z[k] == 0, name=f"TREE_{t_idx}_EXCLUDE_LEAF_{k}")
             else:
                 # Features are not all fixed, use normal Big-M constraints
-                for k, (conds, _) in enumerate(leaves):
+                for k, (conds, leaf_val) in enumerate(leaves):
                     for (f_idx, thr, is_left) in conds:
                         xv = x_list[f_idx]
 
@@ -676,8 +681,19 @@ class XGBBundle:
                         M_ge = max(0.0, thr - lb)
 
                         if is_left:
-                            m.addConstr(xv <= thr + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_le")
+                            # Left child: x < thr
+                            # Standard Big-M: xv <= thr + M_le * (1 - z[k])
+                            # When z[k]=1, this gives xv <= thr (allows x < thr and x = thr)
+                            # When z[k]=0, this gives xv <= thr + M_le (allows wider range)
+                            # ISSUE: When x exactly equals thr, we're allowing it in left child
+                            # FIX: Use xv < thr strictly by reformulating as xv <= thr - 1e-8 when z[k]=1
+                            # In Big-M form: xv <= thr - 1e-8 + M_le * (1 - z[k])
+                            # This ensures x < thr (not x <= thr) when leaf is selected
+                            m.addConstr(xv <= thr - 1e-8 + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_lt")
                         else:
+                            # Right child: x >= thr
+                            # Standard Big-M: xv >= thr - M_ge * (1 - z[k])
+                            # When z[k]=1, this gives xv >= thr (exactly what we want)
                             m.addConstr(xv >= thr - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge")
 
             total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))

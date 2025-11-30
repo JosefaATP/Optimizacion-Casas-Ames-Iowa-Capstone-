@@ -276,7 +276,9 @@ def debug_free_upgrades(m: gp.Model, eps=1e-8):
         "Roof Matl_", "Mas Vnr Type_", "Heating_", "Pool QC_",
         "Central Air_", "Fireplace Qu_",
         "Garage Finish_", "Garage Qual_", "Garage Cond_",
-        "Bsmt Cond_", "Exterior 1st_", "Exterior 2nd_"
+        "Bsmt Cond_", "Exterior 1st_", "Exterior 2nd_",
+        "Electrical_",  # ADD: Electrical types (FuseA, FuseF, FuseP, SBrkr, Mix)
+        "Open Porch"    # ADD: Open porch SF changes (porche ampliación)
     )
 
     # 3) Detectar cambios en X
