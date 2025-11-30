@@ -1,0 +1,168 @@
+tier,change,count
+low,Exterior 1st_Plywood,182
+low,Exter Qual,181
+low,Exterior 2nd_Plywood,179
+low,Mas Vnr Type_NoAplica,137
+low,BsmtFin Type 2_Unf,111
+low,Exterior 1st_VinylSd,59
+low,Exterior 2nd_VinylSd,58
+low,BsmtFin Type 1_Unf,45
+low,Exterior 2nd_MetalSd,35
+low,Exterior 1st_Wd Sdng,35
+low,Exterior 1st_MetalSd,34
+low,Exterior 1st_HdBoard,31
+low,Exterior 2nd_Wd Sdng,31
+low,Exterior 2nd_HdBoard,30
+low,BsmtFin Type 1_LwQ,29
+low,BsmtFin Type 1_Rec,22
+low,Garage Cond,15
+low,Garage Qual,15
+low,BsmtFin SF 1,11
+low,Bsmt Unf SF,11
+low,Wood Deck SF,11
+low,BsmtFin Type 2_BLQ,11
+low,Fence_GdWo,10
+low,Fence_No aplica,10
+low,Open Porch SF,10
+low,Enclosed Porch,9
+low,Fireplace Qu,9
+low,BsmtFin Type 1_BLQ,7
+low,BsmtFin SF 2,6
+low,Exterior 2nd_Stucco,6
+low,Garage Area,5
+low,Exterior 1st_CemntBd,5
+low,Exter Cond,5
+low,BsmtFin Type 2_Rec,5
+low,Exterior 1st_Stucco,5
+low,Exterior 1st_AsbShng,4
+low,Exterior 2nd_AsbShng,4
+low,Mas Vnr Type_BrkFace,4
+low,Mas Vnr Type_Stone,4
+low,Screen Porch,3
+low,BsmtFin Type 2_LwQ,3
+low,Exterior 1st_BrkComm,2
+low,BsmtFin Type 1_GLQ,2
+low,Exterior 2nd_ImStucc,1
+low,Kitchen Qual,1
+low,Exterior 1st_BrkFace,1
+low,Exterior 1st_AsphShn,1
+low,Exterior 2nd_AsphShn,1
+low,Exterior 1st_PreCast,1
+low,Exterior 2nd_PreCast,1
+low,BsmtFin Type 2_GLQ,1
+mid,Exterior 2nd_Plywood,221
+mid,Exter Qual,173
+mid,Exterior 1st_Plywood,154
+mid,Mas Vnr Type_NoAplica,142
+mid,BsmtFin Type 2_Unf,116
+mid,Exterior 1st_VinylSd,92
+mid,Exterior 2nd_VinylSd,92
+mid,Exterior 1st_BrkFace,84
+mid,BsmtFin Type 1_Unf,43
+mid,Exterior 1st_Wd Sdng,35
+mid,Exterior 2nd_MetalSd,34
+mid,Exterior 1st_MetalSd,33
+mid,Exterior 1st_HdBoard,33
+mid,Exterior 2nd_HdBoard,32
+mid,Exterior 2nd_Wd Sdng,32
+mid,BsmtFin SF 1,31
+mid,Bsmt Unf SF,31
+mid,BsmtFin Type 1_LwQ,30
+mid,Wood Deck SF,25
+mid,BsmtFin SF 2,23
+mid,BsmtFin Type 1_Rec,22
+mid,Open Porch SF,21
+mid,Garage Cond,15
+mid,Garage Qual,15
+mid,Garage Area,13
+mid,1st Flr SF,13
+mid,Gr Liv Area,13
+mid,Exterior 1st_CemntBd,11
+mid,BsmtFin Type 2_BLQ,11
+mid,Fence_GdWo,10
+mid,Fence_No aplica,10
+mid,Enclosed Porch,9
+mid,Fireplace Qu,9
+mid,TotRms AbvGrd,8
+mid,BsmtFin Type 1_BLQ,7
+mid,Exterior 2nd_Stucco,7
+mid,Exterior 1st_Stucco,6
+mid,Kitchen AbvGr,6
+mid,BsmtFin Type 2_Rec,6
+mid,Exter Cond,5
+mid,Exterior 1st_AsbShng,4
+mid,Mas Vnr Type_BrkFace,4
+mid,Mas Vnr Type_Stone,4
+mid,Exterior 2nd_AsbShng,3
+mid,Screen Porch,3
+mid,BsmtFin Type 2_LwQ,3
+mid,Half Bath,3
+mid,BsmtFin Type 1_GLQ,3
+mid,Full Bath,2
+mid,Exterior 1st_BrkComm,2
+mid,Bedroom AbvGr,2
+mid,Exterior 2nd_ImStucc,1
+mid,Exterior 1st_AsphShn,1
+mid,Exterior 2nd_AsphShn,1
+mid,Mas Vnr Type_No aplica,1
+mid,Exterior 1st_PreCast,1
+mid,Exterior 2nd_PreCast,1
+mid,BsmtFin Type 2_GLQ,1
+high,Exterior 2nd_Plywood,212
+high,Exter Qual,164
+high,Exterior 1st_Plywood,141
+high,Mas Vnr Type_NoAplica,136
+high,BsmtFin Type 2_Unf,111
+high,Exterior 1st_BrkFace,90
+high,Exterior 1st_VinylSd,89
+high,Exterior 2nd_VinylSd,89
+high,BsmtFin Type 1_Unf,43
+high,BsmtFin SF 1,37
+high,Bsmt Unf SF,37
+high,Exterior 2nd_MetalSd,34
+high,Exterior 1st_MetalSd,33
+high,Exterior 1st_HdBoard,32
+high,Exterior 2nd_HdBoard,31
+high,1st Flr SF,31
+high,Gr Liv Area,31
+high,Exterior 1st_Wd Sdng,30
+high,BsmtFin SF 2,30
+high,Wood Deck SF,27
+high,Exterior 2nd_Wd Sdng,27
+high,BsmtFin Type 1_LwQ,26
+high,Full Bath,26
+high,Open Porch SF,21
+high,BsmtFin Type 1_Rec,21
+high,Garage Qual,15
+high,TotRms AbvGrd,15
+high,Garage Cond,13
+high,Garage Area,13
+high,Exterior 1st_CemntBd,11
+high,Kitchen AbvGr,11
+high,Fence_GdWo,10
+high,Fence_No aplica,10
+high,BsmtFin Type 2_BLQ,10
+high,Enclosed Porch,9
+high,Fireplace Qu,9
+high,Bedroom AbvGr,8
+high,BsmtFin Type 1_BLQ,7
+high,Exterior 2nd_Stucco,7
+high,Exterior 1st_Stucco,6
+high,BsmtFin Type 2_Rec,6
+high,Exter Cond,5
+high,Exterior 1st_AsbShng,4
+high,Mas Vnr Type_BrkFace,4
+high,Mas Vnr Type_Stone,4
+high,Exterior 2nd_AsbShng,3
+high,BsmtFin Type 2_LwQ,3
+high,BsmtFin Type 1_GLQ,3
+high,Screen Porch,2
+high,Half Bath,2
+high,Exterior 1st_BrkComm,2
+high,Exterior 2nd_ImStucc,1
+high,Exterior 1st_AsphShn,1
+high,Exterior 2nd_AsphShn,1
+high,Mas Vnr Type_No aplica,1
+high,Exterior 1st_PreCast,1
+high,Exterior 2nd_PreCast,1
+high,BsmtFin Type 2_GLQ,1

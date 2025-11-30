@@ -466,9 +466,10 @@ def main():
 
     topch_rows = []
     for t in tiers.keys():
-        top10 = tier_changes[t].most_common(10)
-        if not top10: continue
-        for name, cnt in top10:
+        # Guardar TODOS los cambios, no solo top 10
+        all_changes = tier_changes[t].most_common()  # Sin límite
+        if not all_changes: continue
+        for name, cnt in all_changes:
             topch_rows.append({"tier": t, "change": name, "count": cnt})
 
     if topch_rows:
