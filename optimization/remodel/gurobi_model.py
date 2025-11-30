@@ -345,24 +345,19 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
         if improv_terms and "Overall Qual" in X_input.columns:
             n_cols = len(improv_terms)
-            # Overall Qual debe ser INTEGER redondeado hacia ABAJO (floor)
-            overall_qual_cont = m.addVar(lb=1.0, ub=10.0, vtype=gp.GRB.CONTINUOUS, name="Overall_Qual_float")
+            # Overall Qual debe ser INTEGER
             overall_var = m.addVar(lb=1.0, ub=10.0, vtype=gp.GRB.INTEGER, name="Overall_Qual_calc")
             
             avg_delta = (1.0 / n_cols) * gp.quicksum(improv_terms)
             max_boost = 2.0  # si todas las calidades pasan de Po->Ex, suma hasta +2 en OverallQual
             
-            # Valor continuo antes de redondear
-            m.addConstr(
-                overall_qual_cont == float(base_overall) + max_boost * avg_delta,
-                name="OverallQual_from_upgrades_float",
-            )
+            # Overall Qual puede quedarse en base (si avg_delta ≈ 0) o mejorar (si hay mejoras)
+            # Permitimos valores entre base_overall y base_overall + max_boost
+            improved_val = float(base_overall) + max_boost * avg_delta
             
-            # Redondea hacia abajo (floor): overall_var >= overall_qual_cont - 1 AND overall_var <= floor(overall_qual_cont)
-            # En Gurobi, hacemos: overall_var >= overall_qual_cont - 1 (siempre se cumple si es floor)
-            #                     overall_var <= overall_qual_cont (fuerza a ser <= el valor continuo)
-            m.addConstr(overall_var <= overall_qual_cont, name="OverallQual_floor_ub")
-            m.addConstr(overall_var >= overall_qual_cont - 1.0, name="OverallQual_floor_lb")
+            # overall_var está acotado por sus límites [1, 10] y lógicamente por improved_val
+            m.addConstr(overall_var <= gp.min_(10.0, improved_val), name="OverallQual_cap_improved")
+            m.addConstr(overall_var >= float(base_overall), name="OverallQual_floor")
             
             X_input.loc[0, "Overall Qual"] = overall_var
             m._overall_qual_var = overall_var
@@ -1973,8 +1968,8 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
 
     # (2) No permitir empeorar el precio base (puedes dejarlo si querías esa política)
     m.addConstr(y_price >= float(base_price) - 1e-6, name="MIN_PRICE_BASE")
-    # Prohibir ROI negativo (opcional pero recomendado)
-    m.addConstr(y_price - cost_model >= float(base_price) - 1e-6, name="NO_NEGATIVE_ROI")
+    # Prohibir ROI negativo: COMENTADO para permitir soluciones sin cambios con presupuestos bajos
+    # m.addConstr(y_price - cost_model >= float(base_price) - 1e-6, name="NO_NEGATIVE_ROI")
 
 
     # (3) Objetivo

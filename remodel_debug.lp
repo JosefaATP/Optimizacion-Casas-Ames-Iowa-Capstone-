@@ -1,6 +1,6 @@
 \ Model remodel_embed
 \ LP format - for model browsing. Use MPS format to capture full model detail.
-\ Signature: 0xf12a8615d87834b3
+\ Signature: 0xf2be83371c2ba571
 Maximize
   0 x_delta_KitchenQual_TA + 0 x_delta_KitchenQual_EX + 0 x_u_util_ELO
    + 0 x_u_util_NoSeWa + 0 x_u_util_NoSewr + 0 x_u_util_AllPub
@@ -16,20 +16,13 @@ Maximize
    + 0 x_z20_PoolArea + 0 x_z30_PoolArea + 0 x_Heating_Floor
    + 0 x_Heating_GasA + 0 x_Heating_GasW + 0 x_Heating_Grav
    + 0 x_Heating_OthW + 0 x_Heating_Wall + 0 x_b1_is_No_aplica
-   + 0 x_b2_is_No_aplica + 0 B1_upg_flag + 0 B2_upg_flag + y_price
-   - cost_model - 188106.46875 Constant
+   + 0 x_b2_is_No_aplica + 0 Overall_Qual_calc + 0 B1_upg_flag
+   + 0 B2_upg_flag + y_price - cost_model - 155881.328125 Constant
 Subject To
- OverallQual_from_upgrades_float: - 0.0714285714285714 x_Kitchen_Qual
-   - 0.0714285714285714 x_Exter_Qual - 0.0714285714285714 x_Exter_Cond
-   - 0.0714285714285714 x_Heating_QC - 0.0714285714285714 x_Bsmt_Cond
-   - 0.0714285714285714 x_Garage_Qual - 0.0714285714285714 x_Garage_Cond
-   + Overall_Qual_float = 3.857142857142857
- OverallQual_floor_ub: - Overall_Qual_float + Overall_Qual_calc <= 0
- OverallQual_floor_lb: - Overall_Qual_float + Overall_Qual_calc >= -1
  Kitchen_Qual_upgrade_only: x_Kitchen_Qual >= 2
  Exter_Qual_upgrade_only: x_Exter_Qual >= 2
  Exter_Cond_upgrade_only: x_Exter_Cond >= 2
- Heating_QC_upgrade_only: x_Heating_QC >= 4
+ Heating_QC_upgrade_only: x_Heating_QC >= 3
  Bsmt_Cond_upgrade_only: x_Bsmt_Cond >= 2
  Garage_Qual_upgrade_only: x_Garage_Qual >= 2
  Garage_Cond_upgrade_only: x_Garage_Cond >= 2
@@ -119,24 +112,26 @@ Subject To
  AMPL_one_scale_PoolArea: x_z10_PoolArea + x_z20_PoolArea + x_z30_PoolArea
    <= 1
  AREA_libre_no_negativa: - 40 x_AddFull - 20 x_AddHalf - 75 x_AddKitch
-   - 70 x_AddBed - 24 x_z10_GarageArea - 48 x_z20_GarageArea
-   - 72 x_z30_GarageArea >= -10759
- AMPL_link_GarageArea: x_Garage_Area - 24 x_z10_GarageArea
-   - 48 x_z20_GarageArea - 72 x_z30_GarageArea = 240
- AMPL_link_WoodDeckSF: x_Wood_Deck_SF = 0
+   - 70 x_AddBed - 57.6 x_z10_GarageArea - 115.2 x_z20_GarageArea
+   - 172.8 x_z30_GarageArea - 21.6 x_z10_WoodDeckSF - 43.2 x_z20_WoodDeckSF
+   - 64.8 x_z30_WoodDeckSF >= -8844
+ AMPL_link_GarageArea: x_Garage_Area - 57.6 x_z10_GarageArea
+   - 115.2 x_z20_GarageArea - 172.8 x_z30_GarageArea = 576
+ AMPL_link_WoodDeckSF: x_Wood_Deck_SF - 21.6 x_z10_WoodDeckSF
+   - 43.2 x_z20_WoodDeckSF - 64.8 x_z30_WoodDeckSF = 216
  AMPL_link_OpenPorchSF: x_Open_Porch_SF = 0
  AMPL_link_EnclosedPorch: x_Enclosed_Porch = 0
  AMPL_link_3SsnPorch: x_3Ssn_Porch = 0
  AMPL_link_ScreenPorch: x_Screen_Porch = 0
  AMPL_link_PoolArea: x_Pool_Area = 0
  AMPL_link_1stflr: x_1st_Flr_SF - 40 x_AddFull - 20 x_AddHalf
-   - 75 x_AddKitch - 70 x_AddBed = 768
- AMPL_1stflr_upgrade: x_1st_Flr_SF - 40 x_Add1stFlr >= 768
+   - 75 x_AddKitch - 70 x_AddBed = 864
+ AMPL_1stflr_upgrade: x_1st_Flr_SF - 40 x_Add1stFlr >= 864
  COUNT_fullbath: x_Full_Bath - x_AddFull = 1
  COUNT_halfbath: - x_AddHalf + x_Half_Bath = 0
- COUNT_bedroom: x_Bedroom_AbvGr - x_AddBed = 3
+ COUNT_bedroom: x_Bedroom_AbvGr - x_AddBed = 2
  COUNT_kitchen: - x_AddKitch + x_Kitchen_AbvGr = 1
- COUNT_totrooms: x_TotRms_AbvGrd - x_AddKitch - x_AddBed = 6
+ COUNT_totrooms: x_TotRms_AbvGrd - x_AddKitch - x_AddBed = 4
  GQ_pick_one: x_garage_qual_is_Ex + x_garage_qual_is_Gd
    + x_garage_qual_is_TA + x_garage_qual_is_Fa + x_garage_qual_is_Po
    + x_garage_qual_is_No_aplica = 1
@@ -152,10 +147,10 @@ Subject To
  HEAT_pick_one_type: heat_is_Floor + heat_is_GasA + heat_is_GasW
    + heat_is_Grav + heat_is_OthW + heat_is_Wall = 1
  HEAT_qc_upgrade_only_if_eligible: x_heat_upg_qc <= 0
- HEAT_qc_upgrade_only: x_Heating_QC >= 4
- R79: - x_heat_upg_type + HEAT_any_rebuild >= 0
- R80: - x_heat_upg_qc + HEAT_any_rebuild >= 0
- R81: - x_heat_upg_type - x_heat_upg_qc + HEAT_any_rebuild <= 0
+ HEAT_qc_upgrade_only: x_Heating_QC >= 3
+ R76: - x_heat_upg_type + HEAT_any_rebuild >= 0
+ R77: - x_heat_upg_qc + HEAT_any_rebuild >= 0
+ R78: - x_heat_upg_type - x_heat_upg_qc + HEAT_any_rebuild <= 0
  HEAT_qc_min_if_any_rebuild: x_Heating_QC - 2 HEAT_any_rebuild >= 0
  HEAT_change_def: - heat_is_Floor - heat_is_GasW - heat_is_Grav
    - heat_is_OthW - heat_is_Wall + heat_change_type = 0
@@ -167,13 +162,13 @@ Subject To
    + fireplace_is_Gd + fireplace_is_Ex + fireplace_is_No_aplica = 1
  FQ_level_match: x_Fireplace_Qu - fireplace_is_Fa - 2 fireplace_is_TA
    - 3 fireplace_is_Gd - 4 fireplace_is_Ex + fireplace_is_No_aplica = 0
- BSMT_all_or_nothing: - 416 bsmt_finish_all + bsmt_to_fin1 + bsmt_to_fin2
+ BSMT_all_or_nothing: - 160 bsmt_finish_all + bsmt_to_fin1 + bsmt_to_fin2
    = 0
- BSMT_link_fin1: x_BsmtFin_SF_1 - bsmt_to_fin1 = 352
- BSMT_link_fin2: x_BsmtFin_SF_2 - bsmt_to_fin2 = 0
- BSMT_link_unf: x_Bsmt_Unf_SF + 416 bsmt_finish_all = 416
+ BSMT_link_fin1: x_BsmtFin_SF_1 - bsmt_to_fin1 = 524
+ BSMT_link_fin2: x_BsmtFin_SF_2 - bsmt_to_fin2 = 180
+ BSMT_link_unf: x_Bsmt_Unf_SF + 160 bsmt_finish_all = 160
  BSMT_conservation_sum: x_BsmtFin_SF_1 + x_BsmtFin_SF_2 + x_Bsmt_Unf_SF
-   = 768
+   = 864
  BSMTCOND_onehot: bsmtcond_is_Po + bsmtcond_is_Fa + bsmtcond_is_TA
    + bsmtcond_is_Gd + bsmtcond_is_Ex = 1
  BSMTCOND_link_int: x_Bsmt_Cond - bsmtcond_is_Fa - 2 bsmtcond_is_TA
@@ -181,12 +176,12 @@ Subject To
  UTIL_onehot: util_ELO + util_NoSeWa + util_NoSewr + util_AllPub = 1
  UTIL_link_int: x_Utilities - util_NoSeWa - 2 util_NoSewr - 3 util_AllPub
    = 0
- R2_grliv_le_lot: x_Gr_Liv_Area <= 11767
+ R2_grliv_le_lot: x_Gr_Liv_Area <= 10500
  R4_baths_le_bedrooms: - x_Bedroom_AbvGr + x_Full_Bath + x_Half_Bath <= 0
  R5_min_fullbath: x_Full_Bath >= 1
  R5_min_bedrooms: x_Bedroom_AbvGr >= 1
  R5_min_kitchen: x_Kitchen_AbvGr >= 1
- R7_gr_liv_equality: x_Gr_Liv_Area - x_1st_Flr_SF = 432
+ R7_gr_liv_equality: x_Gr_Liv_Area - x_1st_Flr_SF = 0
  R8_rooms_balance: - x_Bedroom_AbvGr + x_TotRms_AbvGrd - x_Kitchen_AbvGr
    - R8_other_rooms = 0
  TREE_0_ONEHOT: t0_leaf0 + t0_leaf1 + t0_leaf2 + t0_leaf3 + t0_leaf4
@@ -217,38 +212,38 @@ Subject To
  T0_R7_f20_ge: x_Gr_Liv_Area - 1661.000001 t0_leaf7 >= -1e-06
  TREE_1_ONEHOT: t1_leaf0 + t1_leaf1 + t1_leaf2 + t1_leaf3 + t1_leaf4
    + t1_leaf5 + t1_leaf6 + t1_leaf7 = 1
- T1_L0_f3_lt: Overall_Qual_calc + 3.000001 t1_leaf0 <= 10
- T1_L0_f3_lt: Overall_Qual_calc + 5.000001 t1_leaf0 <= 10
- T1_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t1_leaf0 <= 864
- T1_L1_f3_lt: Overall_Qual_calc + 3.000001 t1_leaf1 <= 10
- T1_L1_f3_lt: Overall_Qual_calc + 5.000001 t1_leaf1 <= 10
- T1_R1_f15_fixed_off: t1_leaf1 = 0
- T1_L2_f3_lt: Overall_Qual_calc + 3.000001 t1_leaf2 <= 10
- T1_R2_f3_ge: Overall_Qual_calc - 4.000001 t1_leaf2 >= 0.999999
- T1_L2_f32_lt: const_Garage_Cars + 1e-06 t1_leaf2 <= 2
- T1_L3_f3_lt: Overall_Qual_calc + 3.000001 t1_leaf3 <= 10
- T1_R3_f3_ge: Overall_Qual_calc - 4.000001 t1_leaf3 >= 0.999999
- T1_R3_f32_fixed_off: t1_leaf3 = 0
- T1_R4_f3_ge: Overall_Qual_calc - 6.000001 t1_leaf4 >= 0.999999
- T1_L4_f3_lt: Overall_Qual_calc + 2.000001 t1_leaf4 <= 10
- T1_L4_f15_lt: const_Total_Bsmt_SF + 1e-06 t1_leaf4 <= 845
- T1_R5_f3_ge: Overall_Qual_calc - 6.000001 t1_leaf5 >= 0.999999
- T1_L5_f3_lt: Overall_Qual_calc + 2.000001 t1_leaf5 <= 10
- T1_R5_f15_fixed_off: t1_leaf5 = 0
- T1_R6_f3_ge: Overall_Qual_calc - 6.000001 t1_leaf6 >= 0.999999
- T1_R6_f3_ge: Overall_Qual_calc - 7.000001 t1_leaf6 >= 0.999999
+ T1_L0_f3_lt: const_Overall_Qual + 1e-06 t1_leaf0 <= 7
+ T1_L0_f3_lt: const_Overall_Qual + 1e-06 t1_leaf0 <= 5
+ T1_L0_f15_fixed_off: t1_leaf0 = 0
+ T1_L1_f3_lt: const_Overall_Qual + 1e-06 t1_leaf1 <= 7
+ T1_L1_f3_lt: const_Overall_Qual + 1e-06 t1_leaf1 <= 5
+ T1_R1_f15_ge: const_Total_Bsmt_SF - 1e-06 t1_leaf1 >= 863.999999
+ T1_L2_f3_lt: const_Overall_Qual + 1e-06 t1_leaf2 <= 7
+ T1_R2_f3_fixed_off: t1_leaf2 = 0
+ T1_L2_f32_fixed_off: t1_leaf2 = 0
+ T1_L3_f3_lt: const_Overall_Qual + 1e-06 t1_leaf3 <= 7
+ T1_R3_f3_fixed_off: t1_leaf3 = 0
+ T1_R3_f32_ge: const_Garage_Cars - 1e-06 t1_leaf3 >= 1.999999
+ T1_R4_f3_fixed_off: t1_leaf4 = 0
+ T1_L4_f3_lt: const_Overall_Qual + 1e-06 t1_leaf4 <= 8
+ T1_L4_f15_fixed_off: t1_leaf4 = 0
+ T1_R5_f3_fixed_off: t1_leaf5 = 0
+ T1_L5_f3_lt: const_Overall_Qual + 1e-06 t1_leaf5 <= 8
+ T1_R5_f15_ge: const_Total_Bsmt_SF - 1e-06 t1_leaf5 >= 844.999999
+ T1_R6_f3_fixed_off: t1_leaf6 = 0
+ T1_R6_f3_fixed_off: t1_leaf6 = 0
  T1_L6_f20_lt: x_Gr_Liv_Area + 8134.000001 t1_leaf6 <= 10000
- T1_R7_f3_ge: Overall_Qual_calc - 6.000001 t1_leaf7 >= 0.999999
- T1_R7_f3_ge: Overall_Qual_calc - 7.000001 t1_leaf7 >= 0.999999
+ T1_R7_f3_fixed_off: t1_leaf7 = 0
+ T1_R7_f3_fixed_off: t1_leaf7 = 0
  T1_R7_f20_ge: x_Gr_Liv_Area - 1866.000001 t1_leaf7 >= -1e-06
  TREE_2_ONEHOT: t2_leaf0 + t2_leaf1 + t2_leaf2 + t2_leaf3 + t2_leaf4
    + t2_leaf5 + t2_leaf6 + t2_leaf7 = 1
  T2_L0_f8_lt: x_Exter_Qual + 1.000001 t2_leaf0 <= 4
  T2_L0_f20_lt: x_Gr_Liv_Area + 8692.000001 t2_leaf0 <= 10000
- T2_L0_f5_lt: const_Year_Built + 1e-06 t2_leaf0 <= 1953
+ T2_L0_f5_fixed_off: t2_leaf0 = 0
  T2_L1_f8_lt: x_Exter_Qual + 1.000001 t2_leaf1 <= 4
  T2_L1_f20_lt: x_Gr_Liv_Area + 8692.000001 t2_leaf1 <= 10000
- T2_R1_f5_fixed_off: t2_leaf1 = 0
+ T2_R1_f5_ge: const_Year_Built - 1e-06 t2_leaf1 >= 1952.999999
  T2_L2_f8_lt: x_Exter_Qual + 1.000001 t2_leaf2 <= 4
  T2_R2_f20_ge: x_Gr_Liv_Area - 1308.000001 t2_leaf2 >= -1e-06
  T2_L2_f12_lt: x_BsmtFin_SF_1 + 999610.000001 t2_leaf2 <= 1e+06
@@ -269,30 +264,30 @@ Subject To
  T2_R7_f17_ge: x_1st_Flr_SF - 1085.000001 t2_leaf7 >= -1e-06
  TREE_3_ONEHOT: t3_leaf0 + t3_leaf1 + t3_leaf2 + t3_leaf3 + t3_leaf4
    + t3_leaf5 + t3_leaf6 + t3_leaf7 = 1
- T3_L0_f3_lt: Overall_Qual_calc + 3.000001 t3_leaf0 <= 10
- T3_L0_f3_lt: Overall_Qual_calc + 5.000001 t3_leaf0 <= 10
- T3_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t3_leaf0 <= 800
- T3_L1_f3_lt: Overall_Qual_calc + 3.000001 t3_leaf1 <= 10
- T3_L1_f3_lt: Overall_Qual_calc + 5.000001 t3_leaf1 <= 10
- T3_R1_f15_fixed_off: t3_leaf1 = 0
- T3_L2_f3_lt: Overall_Qual_calc + 3.000001 t3_leaf2 <= 10
- T3_R2_f3_ge: Overall_Qual_calc - 4.000001 t3_leaf2 >= 0.999999
+ T3_L0_f3_lt: const_Overall_Qual + 1e-06 t3_leaf0 <= 7
+ T3_L0_f3_lt: const_Overall_Qual + 1e-06 t3_leaf0 <= 5
+ T3_L0_f15_fixed_off: t3_leaf0 = 0
+ T3_L1_f3_lt: const_Overall_Qual + 1e-06 t3_leaf1 <= 7
+ T3_L1_f3_lt: const_Overall_Qual + 1e-06 t3_leaf1 <= 5
+ T3_R1_f15_ge: const_Total_Bsmt_SF - 1e-06 t3_leaf1 >= 799.999999
+ T3_L2_f3_lt: const_Overall_Qual + 1e-06 t3_leaf2 <= 7
+ T3_R2_f3_fixed_off: t3_leaf2 = 0
  T3_L2_f20_lt: x_Gr_Liv_Area + 8638.000001 t3_leaf2 <= 10000
- T3_L3_f3_lt: Overall_Qual_calc + 3.000001 t3_leaf3 <= 10
- T3_R3_f3_ge: Overall_Qual_calc - 4.000001 t3_leaf3 >= 0.999999
+ T3_L3_f3_lt: const_Overall_Qual + 1e-06 t3_leaf3 <= 7
+ T3_R3_f3_fixed_off: t3_leaf3 = 0
  T3_R3_f20_ge: x_Gr_Liv_Area - 1362.000001 t3_leaf3 >= -1e-06
- T3_R4_f3_ge: Overall_Qual_calc - 6.000001 t3_leaf4 >= 0.999999
- T3_L4_f3_lt: Overall_Qual_calc + 2.000001 t3_leaf4 <= 10
+ T3_R4_f3_fixed_off: t3_leaf4 = 0
+ T3_L4_f3_lt: const_Overall_Qual + 1e-06 t3_leaf4 <= 8
  T3_L4_f20_lt: x_Gr_Liv_Area + 8522.000001 t3_leaf4 <= 10000
- T3_R5_f3_ge: Overall_Qual_calc - 6.000001 t3_leaf5 >= 0.999999
- T3_L5_f3_lt: Overall_Qual_calc + 2.000001 t3_leaf5 <= 10
+ T3_R5_f3_fixed_off: t3_leaf5 = 0
+ T3_L5_f3_lt: const_Overall_Qual + 1e-06 t3_leaf5 <= 8
  T3_R5_f20_ge: x_Gr_Liv_Area - 1478.000001 t3_leaf5 >= -1e-06
- T3_R6_f3_ge: Overall_Qual_calc - 6.000001 t3_leaf6 >= 0.999999
- T3_R6_f3_ge: Overall_Qual_calc - 7.000001 t3_leaf6 >= 0.999999
- T3_L6_f3_lt: Overall_Qual_calc + 1.000001 t3_leaf6 <= 10
- T3_R7_f3_ge: Overall_Qual_calc - 6.000001 t3_leaf7 >= 0.999999
- T3_R7_f3_ge: Overall_Qual_calc - 7.000001 t3_leaf7 >= 0.999999
- T3_R7_f3_ge: Overall_Qual_calc - 8.000000999999999 t3_leaf7 >= 0.999999
+ T3_R6_f3_fixed_off: t3_leaf6 = 0
+ T3_R6_f3_fixed_off: t3_leaf6 = 0
+ T3_L6_f3_lt: const_Overall_Qual + 1e-06 t3_leaf6 <= 9
+ T3_R7_f3_fixed_off: t3_leaf7 = 0
+ T3_R7_f3_fixed_off: t3_leaf7 = 0
+ T3_R7_f3_fixed_off: t3_leaf7 = 0
  TREE_4_ONEHOT: t4_leaf0 + t4_leaf1 + t4_leaf2 + t4_leaf3 + t4_leaf4
    + t4_leaf5 + t4_leaf6 + t4_leaf7 = 1
  T4_L0_f8_lt: x_Exter_Qual + 1.000001 t4_leaf0 <= 4
@@ -321,29 +316,29 @@ Subject To
  T4_R7_f20_ge: x_Gr_Liv_Area - 1716.000001 t4_leaf7 >= -1e-06
  TREE_5_ONEHOT: t5_leaf0 + t5_leaf1 + t5_leaf2 + t5_leaf3 + t5_leaf4
    + t5_leaf5 + t5_leaf6 + t5_leaf7 = 1
- T5_L0_f3_lt: Overall_Qual_calc + 3.000001 t5_leaf0 <= 10
- T5_L0_f3_lt: Overall_Qual_calc + 5.000001 t5_leaf0 <= 10
+ T5_L0_f3_lt: const_Overall_Qual + 1e-06 t5_leaf0 <= 7
+ T5_L0_f3_lt: const_Overall_Qual + 1e-06 t5_leaf0 <= 5
  T5_L0_f17_lt: x_1st_Flr_SF + 3845.000001 t5_leaf0 <= 5000
- T5_L1_f3_lt: Overall_Qual_calc + 3.000001 t5_leaf1 <= 10
- T5_L1_f3_lt: Overall_Qual_calc + 5.000001 t5_leaf1 <= 10
+ T5_L1_f3_lt: const_Overall_Qual + 1e-06 t5_leaf1 <= 7
+ T5_L1_f3_lt: const_Overall_Qual + 1e-06 t5_leaf1 <= 5
  T5_R1_f17_ge: x_1st_Flr_SF - 1155.000001 t5_leaf1 >= -1e-06
- T5_L2_f3_lt: Overall_Qual_calc + 3.000001 t5_leaf2 <= 10
- T5_R2_f3_ge: Overall_Qual_calc - 4.000001 t5_leaf2 >= 0.999999
- T5_L2_f32_lt: const_Garage_Cars + 1e-06 t5_leaf2 <= 2
- T5_L3_f3_lt: Overall_Qual_calc + 3.000001 t5_leaf3 <= 10
- T5_R3_f3_ge: Overall_Qual_calc - 4.000001 t5_leaf3 >= 0.999999
- T5_R3_f32_fixed_off: t5_leaf3 = 0
- T5_R4_f3_ge: Overall_Qual_calc - 6.000001 t5_leaf4 >= 0.999999
- T5_L4_f3_lt: Overall_Qual_calc + 2.000001 t5_leaf4 <= 10
+ T5_L2_f3_lt: const_Overall_Qual + 1e-06 t5_leaf2 <= 7
+ T5_R2_f3_fixed_off: t5_leaf2 = 0
+ T5_L2_f32_fixed_off: t5_leaf2 = 0
+ T5_L3_f3_lt: const_Overall_Qual + 1e-06 t5_leaf3 <= 7
+ T5_R3_f3_fixed_off: t5_leaf3 = 0
+ T5_R3_f32_ge: const_Garage_Cars - 1e-06 t5_leaf3 >= 1.999999
+ T5_R4_f3_fixed_off: t5_leaf4 = 0
+ T5_L4_f3_lt: const_Overall_Qual + 1e-06 t5_leaf4 <= 8
  T5_L4_f17_lt: x_1st_Flr_SF + 4068.000001 t5_leaf4 <= 5000
- T5_R5_f3_ge: Overall_Qual_calc - 6.000001 t5_leaf5 >= 0.999999
- T5_L5_f3_lt: Overall_Qual_calc + 2.000001 t5_leaf5 <= 10
+ T5_R5_f3_fixed_off: t5_leaf5 = 0
+ T5_L5_f3_lt: const_Overall_Qual + 1e-06 t5_leaf5 <= 8
  T5_R5_f17_ge: x_1st_Flr_SF - 932.000001 t5_leaf5 >= -1e-06
- T5_R6_f3_ge: Overall_Qual_calc - 6.000001 t5_leaf6 >= 0.999999
- T5_R6_f3_ge: Overall_Qual_calc - 7.000001 t5_leaf6 >= 0.999999
+ T5_R6_f3_fixed_off: t5_leaf6 = 0
+ T5_R6_f3_fixed_off: t5_leaf6 = 0
  T5_L6_f17_lt: x_1st_Flr_SF + 3234.000001 t5_leaf6 <= 5000
- T5_R7_f3_ge: Overall_Qual_calc - 6.000001 t5_leaf7 >= 0.999999
- T5_R7_f3_ge: Overall_Qual_calc - 7.000001 t5_leaf7 >= 0.999999
+ T5_R7_f3_fixed_off: t5_leaf7 = 0
+ T5_R7_f3_fixed_off: t5_leaf7 = 0
  T5_R7_f17_ge: x_1st_Flr_SF - 1766.000001 t5_leaf7 >= -1e-06
  TREE_6_ONEHOT: t6_leaf0 + t6_leaf1 + t6_leaf2 + t6_leaf3 + t6_leaf4
    + t6_leaf5 + t6_leaf6 + t6_leaf7 = 1
@@ -373,28 +368,28 @@ Subject To
  T6_R7_f27_ge: x_Kitchen_Qual - 4.000001 t6_leaf7 >= -1e-06
  TREE_7_ONEHOT: t7_leaf0 + t7_leaf1 + t7_leaf2 + t7_leaf3 + t7_leaf4
    + t7_leaf5 + t7_leaf6 + t7_leaf7 = 1
- T7_L0_f3_lt: Overall_Qual_calc + 3.000001 t7_leaf0 <= 10
- T7_L0_f3_lt: Overall_Qual_calc + 5.000001 t7_leaf0 <= 10
+ T7_L0_f3_lt: const_Overall_Qual + 1e-06 t7_leaf0 <= 7
+ T7_L0_f3_lt: const_Overall_Qual + 1e-06 t7_leaf0 <= 5
  T7_L0_f20_lt: x_Gr_Liv_Area + 9136.000001 t7_leaf0 <= 10000
- T7_L1_f3_lt: Overall_Qual_calc + 3.000001 t7_leaf1 <= 10
- T7_L1_f3_lt: Overall_Qual_calc + 5.000001 t7_leaf1 <= 10
+ T7_L1_f3_lt: const_Overall_Qual + 1e-06 t7_leaf1 <= 7
+ T7_L1_f3_lt: const_Overall_Qual + 1e-06 t7_leaf1 <= 5
  T7_R1_f20_ge: x_Gr_Liv_Area - 864.000001 t7_leaf1 >= -1e-06
- T7_L2_f3_lt: Overall_Qual_calc + 3.000001 t7_leaf2 <= 10
- T7_R2_f3_ge: Overall_Qual_calc - 4.000001 t7_leaf2 >= 0.999999
+ T7_L2_f3_lt: const_Overall_Qual + 1e-06 t7_leaf2 <= 7
+ T7_R2_f3_fixed_off: t7_leaf2 = 0
  T7_L2_f20_lt: x_Gr_Liv_Area + 8516.000001 t7_leaf2 <= 10000
- T7_L3_f3_lt: Overall_Qual_calc + 3.000001 t7_leaf3 <= 10
- T7_R3_f3_ge: Overall_Qual_calc - 4.000001 t7_leaf3 >= 0.999999
+ T7_L3_f3_lt: const_Overall_Qual + 1e-06 t7_leaf3 <= 7
+ T7_R3_f3_fixed_off: t7_leaf3 = 0
  T7_R3_f20_ge: x_Gr_Liv_Area - 1484.000001 t7_leaf3 >= -1e-06
- T7_R4_f3_ge: Overall_Qual_calc - 6.000001 t7_leaf4 >= 0.999999
+ T7_R4_f3_fixed_off: t7_leaf4 = 0
  T7_L4_f17_lt: x_1st_Flr_SF + 3492.000001 t7_leaf4 <= 5000
  T7_L4_f20_lt: x_Gr_Liv_Area + 8134.000001 t7_leaf4 <= 10000
- T7_R5_f3_ge: Overall_Qual_calc - 6.000001 t7_leaf5 >= 0.999999
+ T7_R5_f3_fixed_off: t7_leaf5 = 0
  T7_L5_f17_lt: x_1st_Flr_SF + 3492.000001 t7_leaf5 <= 5000
  T7_R5_f20_ge: x_Gr_Liv_Area - 1866.000001 t7_leaf5 >= -1e-06
- T7_R6_f3_ge: Overall_Qual_calc - 6.000001 t7_leaf6 >= 0.999999
+ T7_R6_f3_fixed_off: t7_leaf6 = 0
  T7_R6_f17_ge: x_1st_Flr_SF - 1508.000001 t7_leaf6 >= -1e-06
  T7_L6_f20_lt: x_Gr_Liv_Area + 8280.000001 t7_leaf6 <= 10000
- T7_R7_f3_ge: Overall_Qual_calc - 6.000001 t7_leaf7 >= 0.999999
+ T7_R7_f3_fixed_off: t7_leaf7 = 0
  T7_R7_f17_ge: x_1st_Flr_SF - 1508.000001 t7_leaf7 >= -1e-06
  T7_R7_f20_ge: x_Gr_Liv_Area - 1720.000001 t7_leaf7 >= -1e-06
  TREE_8_ONEHOT: t8_leaf0 + t8_leaf1 + t8_leaf2 + t8_leaf3 + t8_leaf4
@@ -452,16 +447,16 @@ Subject To
  TREE_10_ONEHOT: t10_leaf0 + t10_leaf1 + t10_leaf2 + t10_leaf3 + t10_leaf4
    + t10_leaf5 + t10_leaf6 + t10_leaf7 = 1
  T10_L0_f20_lt: x_Gr_Liv_Area + 8680.000001 t10_leaf0 <= 10000
- T10_L0_f31_lt: const_Garage_Yr_Blt + 1e-06 t10_leaf0 <= 1953
+ T10_L0_f31_fixed_off: t10_leaf0 = 0
  T10_L0_f20_lt: x_Gr_Liv_Area + 9167.000001 t10_leaf0 <= 10000
  T10_L1_f20_lt: x_Gr_Liv_Area + 8680.000001 t10_leaf1 <= 10000
- T10_L1_f31_lt: const_Garage_Yr_Blt + 1e-06 t10_leaf1 <= 1953
+ T10_L1_f31_fixed_off: t10_leaf1 = 0
  T10_R1_f20_ge: x_Gr_Liv_Area - 833.000001 t10_leaf1 >= -1e-06
  T10_L2_f20_lt: x_Gr_Liv_Area + 8680.000001 t10_leaf2 <= 10000
- T10_R2_f31_fixed_off: t10_leaf2 = 0
+ T10_R2_f31_ge: const_Garage_Yr_Blt - 1e-06 t10_leaf2 >= 1952.999999
  T10_L2_f20_lt: x_Gr_Liv_Area + 8876.000001 t10_leaf2 <= 10000
  T10_L3_f20_lt: x_Gr_Liv_Area + 8680.000001 t10_leaf3 <= 10000
- T10_R3_f31_fixed_off: t10_leaf3 = 0
+ T10_R3_f31_ge: const_Garage_Yr_Blt - 1e-06 t10_leaf3 >= 1952.999999
  T10_R3_f20_ge: x_Gr_Liv_Area - 1124.000001 t10_leaf3 >= -1e-06
  T10_R4_f20_ge: x_Gr_Liv_Area - 1320.000001 t10_leaf4 >= -1e-06
  T10_L4_f8_lt: x_Exter_Qual + 1.000001 t10_leaf4 <= 4
@@ -477,69 +472,69 @@ Subject To
  T10_R7_f10_fixed_off: t10_leaf7 = 0
  TREE_11_ONEHOT: t11_leaf0 + t11_leaf1 + t11_leaf2 + t11_leaf3 + t11_leaf4
    + t11_leaf5 + t11_leaf6 + t11_leaf7 = 1
- T11_L0_f3_lt: Overall_Qual_calc + 3.000001 t11_leaf0 <= 10
- T11_L0_f3_lt: Overall_Qual_calc + 5.000001 t11_leaf0 <= 10
+ T11_L0_f3_lt: const_Overall_Qual + 1e-06 t11_leaf0 <= 7
+ T11_L0_f3_lt: const_Overall_Qual + 1e-06 t11_leaf0 <= 5
  T11_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t11_leaf0 <= 912
- T11_L1_f3_lt: Overall_Qual_calc + 3.000001 t11_leaf1 <= 10
- T11_L1_f3_lt: Overall_Qual_calc + 5.000001 t11_leaf1 <= 10
+ T11_L1_f3_lt: const_Overall_Qual + 1e-06 t11_leaf1 <= 7
+ T11_L1_f3_lt: const_Overall_Qual + 1e-06 t11_leaf1 <= 5
  T11_R1_f15_fixed_off: t11_leaf1 = 0
- T11_L2_f3_lt: Overall_Qual_calc + 3.000001 t11_leaf2 <= 10
- T11_R2_f3_ge: Overall_Qual_calc - 4.000001 t11_leaf2 >= 0.999999
+ T11_L2_f3_lt: const_Overall_Qual + 1e-06 t11_leaf2 <= 7
+ T11_R2_f3_fixed_off: t11_leaf2 = 0
  T11_L2_f20_lt: x_Gr_Liv_Area + 8589.000001 t11_leaf2 <= 10000
- T11_L3_f3_lt: Overall_Qual_calc + 3.000001 t11_leaf3 <= 10
- T11_R3_f3_ge: Overall_Qual_calc - 4.000001 t11_leaf3 >= 0.999999
+ T11_L3_f3_lt: const_Overall_Qual + 1e-06 t11_leaf3 <= 7
+ T11_R3_f3_fixed_off: t11_leaf3 = 0
  T11_R3_f20_ge: x_Gr_Liv_Area - 1411.000001 t11_leaf3 >= -1e-06
- T11_R4_f3_ge: Overall_Qual_calc - 6.000001 t11_leaf4 >= 0.999999
- T11_L4_f3_lt: Overall_Qual_calc + 2.000001 t11_leaf4 <= 10
+ T11_R4_f3_fixed_off: t11_leaf4 = 0
+ T11_L4_f3_lt: const_Overall_Qual + 1e-06 t11_leaf4 <= 8
  T11_L4_f20_lt: x_Gr_Liv_Area + 8274.000001 t11_leaf4 <= 10000
- T11_R5_f3_ge: Overall_Qual_calc - 6.000001 t11_leaf5 >= 0.999999
- T11_L5_f3_lt: Overall_Qual_calc + 2.000001 t11_leaf5 <= 10
+ T11_R5_f3_fixed_off: t11_leaf5 = 0
+ T11_L5_f3_lt: const_Overall_Qual + 1e-06 t11_leaf5 <= 8
  T11_R5_f20_ge: x_Gr_Liv_Area - 1726.000001 t11_leaf5 >= -1e-06
- T11_R6_f3_ge: Overall_Qual_calc - 6.000001 t11_leaf6 >= 0.999999
- T11_R6_f3_ge: Overall_Qual_calc - 7.000001 t11_leaf6 >= 0.999999
+ T11_R6_f3_fixed_off: t11_leaf6 = 0
+ T11_R6_f3_fixed_off: t11_leaf6 = 0
  T11_L6_f20_lt: x_Gr_Liv_Area + 8330.000001 t11_leaf6 <= 10000
- T11_R7_f3_ge: Overall_Qual_calc - 6.000001 t11_leaf7 >= 0.999999
- T11_R7_f3_ge: Overall_Qual_calc - 7.000001 t11_leaf7 >= 0.999999
+ T11_R7_f3_fixed_off: t11_leaf7 = 0
+ T11_R7_f3_fixed_off: t11_leaf7 = 0
  T11_R7_f20_ge: x_Gr_Liv_Area - 1670.000001 t11_leaf7 >= -1e-06
  TREE_12_ONEHOT: t12_leaf0 + t12_leaf1 + t12_leaf2 + t12_leaf3 + t12_leaf4
    + t12_leaf5 + t12_leaf6 + t12_leaf7 = 1
- T12_L0_f3_lt: Overall_Qual_calc + 3.000001 t12_leaf0 <= 10
- T12_L0_f3_lt: Overall_Qual_calc + 5.000001 t12_leaf0 <= 10
+ T12_L0_f3_lt: const_Overall_Qual + 1e-06 t12_leaf0 <= 7
+ T12_L0_f3_lt: const_Overall_Qual + 1e-06 t12_leaf0 <= 5
  T12_L0_f20_lt: x_Gr_Liv_Area + 8845.000001 t12_leaf0 <= 10000
- T12_L1_f3_lt: Overall_Qual_calc + 3.000001 t12_leaf1 <= 10
- T12_L1_f3_lt: Overall_Qual_calc + 5.000001 t12_leaf1 <= 10
+ T12_L1_f3_lt: const_Overall_Qual + 1e-06 t12_leaf1 <= 7
+ T12_L1_f3_lt: const_Overall_Qual + 1e-06 t12_leaf1 <= 5
  T12_R1_f20_ge: x_Gr_Liv_Area - 1155.000001 t12_leaf1 >= -1e-06
- T12_L2_f3_lt: Overall_Qual_calc + 3.000001 t12_leaf2 <= 10
- T12_R2_f3_ge: Overall_Qual_calc - 4.000001 t12_leaf2 >= 0.999999
+ T12_L2_f3_lt: const_Overall_Qual + 1e-06 t12_leaf2 <= 7
+ T12_R2_f3_fixed_off: t12_leaf2 = 0
  T12_L2_f33_lt: x_Garage_Area + 99616.00000099999 t12_leaf2 <= 100000
- T12_L3_f3_lt: Overall_Qual_calc + 3.000001 t12_leaf3 <= 10
- T12_R3_f3_ge: Overall_Qual_calc - 4.000001 t12_leaf3 >= 0.999999
+ T12_L3_f3_lt: const_Overall_Qual + 1e-06 t12_leaf3 <= 7
+ T12_R3_f3_fixed_off: t12_leaf3 = 0
  T12_R3_f33_ge: x_Garage_Area - 384.000001 t12_leaf3 >= -1e-06
- T12_R4_f3_ge: Overall_Qual_calc - 6.000001 t12_leaf4 >= 0.999999
+ T12_R4_f3_fixed_off: t12_leaf4 = 0
  T12_L4_f10_lt: const_Bsmt_Qual + 1e-06 t12_leaf4 <= 4
  T12_L4_f20_lt: x_Gr_Liv_Area + 7866.000001 t12_leaf4 <= 10000
- T12_R5_f3_ge: Overall_Qual_calc - 6.000001 t12_leaf5 >= 0.999999
+ T12_R5_f3_fixed_off: t12_leaf5 = 0
  T12_L5_f10_lt: const_Bsmt_Qual + 1e-06 t12_leaf5 <= 4
  T12_R5_f20_ge: x_Gr_Liv_Area - 2134.000001 t12_leaf5 >= -1e-06
- T12_R6_f3_ge: Overall_Qual_calc - 6.000001 t12_leaf6 >= 0.999999
+ T12_R6_f3_fixed_off: t12_leaf6 = 0
  T12_R6_f10_fixed_off: t12_leaf6 = 0
- T12_L6_f3_lt: Overall_Qual_calc + 1.000001 t12_leaf6 <= 10
- T12_R7_f3_ge: Overall_Qual_calc - 6.000001 t12_leaf7 >= 0.999999
+ T12_L6_f3_lt: const_Overall_Qual + 1e-06 t12_leaf6 <= 9
+ T12_R7_f3_fixed_off: t12_leaf7 = 0
  T12_R7_f10_fixed_off: t12_leaf7 = 0
- T12_R7_f3_ge: Overall_Qual_calc - 8.000000999999999 t12_leaf7 >= 0.999999
+ T12_R7_f3_fixed_off: t12_leaf7 = 0
  TREE_13_ONEHOT: t13_leaf0 + t13_leaf1 + t13_leaf2 + t13_leaf3 + t13_leaf4
    + t13_leaf5 + t13_leaf6 + t13_leaf7 = 1
  T13_L0_f27_lt: x_Kitchen_Qual + 1.000001 t13_leaf0 <= 4
- T13_L0_f32_lt: const_Garage_Cars + 1e-06 t13_leaf0 <= 2
+ T13_L0_f32_fixed_off: t13_leaf0 = 0
  T13_L0_f4_fixed_off: t13_leaf0 = 0
  T13_L1_f27_lt: x_Kitchen_Qual + 1.000001 t13_leaf1 <= 4
- T13_L1_f32_lt: const_Garage_Cars + 1e-06 t13_leaf1 <= 2
+ T13_L1_f32_fixed_off: t13_leaf1 = 0
  T13_R1_f4_ge: const_Overall_Cond - 1e-06 t13_leaf1 >= 3.999999
  T13_L2_f27_lt: x_Kitchen_Qual + 1.000001 t13_leaf2 <= 4
- T13_R2_f32_fixed_off: t13_leaf2 = 0
+ T13_R2_f32_ge: const_Garage_Cars - 1e-06 t13_leaf2 >= 1.999999
  T13_L2_f20_lt: x_Gr_Liv_Area + 8221.000001 t13_leaf2 <= 10000
  T13_L3_f27_lt: x_Kitchen_Qual + 1.000001 t13_leaf3 <= 4
- T13_R3_f32_fixed_off: t13_leaf3 = 0
+ T13_R3_f32_ge: const_Garage_Cars - 1e-06 t13_leaf3 >= 1.999999
  T13_R3_f20_ge: x_Gr_Liv_Area - 1779.000001 t13_leaf3 >= -1e-06
  T13_R4_f27_ge: x_Kitchen_Qual - 3.000001 t13_leaf4 >= -1e-06
  T13_L4_f20_lt: x_Gr_Liv_Area + 8274.000001 t13_leaf4 <= 10000
@@ -607,51 +602,51 @@ Subject To
  T15_R7_f20_ge: x_Gr_Liv_Area - 1995.000001 t15_leaf7 >= -1e-06
  TREE_16_ONEHOT: t16_leaf0 + t16_leaf1 + t16_leaf2 + t16_leaf3 + t16_leaf4
    + t16_leaf5 + t16_leaf6 + t16_leaf7 = 1
- T16_L0_f3_lt: Overall_Qual_calc + 3.000001 t16_leaf0 <= 10
- T16_L0_f3_lt: Overall_Qual_calc + 5.000001 t16_leaf0 <= 10
- T16_L0_f3_lt: Overall_Qual_calc + 7.000001 t16_leaf0 <= 10
- T16_L1_f3_lt: Overall_Qual_calc + 3.000001 t16_leaf1 <= 10
- T16_L1_f3_lt: Overall_Qual_calc + 5.000001 t16_leaf1 <= 10
- T16_R1_f3_ge: Overall_Qual_calc - 2.000001 t16_leaf1 >= 0.999999
- T16_L2_f3_lt: Overall_Qual_calc + 3.000001 t16_leaf2 <= 10
- T16_R2_f3_ge: Overall_Qual_calc - 4.000001 t16_leaf2 >= 0.999999
- T16_L2_f1_fixed_off: t16_leaf2 = 0
- T16_L3_f3_lt: Overall_Qual_calc + 3.000001 t16_leaf3 <= 10
- T16_R3_f3_ge: Overall_Qual_calc - 4.000001 t16_leaf3 >= 0.999999
- T16_R3_f1_ge: const_Lot_Area - 1e-06 t16_leaf3 >= 10799.999999
- T16_R4_f3_ge: Overall_Qual_calc - 6.000001 t16_leaf4 >= 0.999999
+ T16_L0_f3_lt: const_Overall_Qual + 1e-06 t16_leaf0 <= 7
+ T16_L0_f3_lt: const_Overall_Qual + 1e-06 t16_leaf0 <= 5
+ T16_L0_f3_fixed_off: t16_leaf0 = 0
+ T16_L1_f3_lt: const_Overall_Qual + 1e-06 t16_leaf1 <= 7
+ T16_L1_f3_lt: const_Overall_Qual + 1e-06 t16_leaf1 <= 5
+ T16_R1_f3_ge: const_Overall_Qual - 1e-06 t16_leaf1 >= 2.999999
+ T16_L2_f3_lt: const_Overall_Qual + 1e-06 t16_leaf2 <= 7
+ T16_R2_f3_fixed_off: t16_leaf2 = 0
+ T16_L2_f1_lt: const_Lot_Area + 1e-06 t16_leaf2 <= 10800
+ T16_L3_f3_lt: const_Overall_Qual + 1e-06 t16_leaf3 <= 7
+ T16_R3_f3_fixed_off: t16_leaf3 = 0
+ T16_R3_f1_fixed_off: t16_leaf3 = 0
+ T16_R4_f3_fixed_off: t16_leaf4 = 0
  T16_L4_f10_lt: const_Bsmt_Qual + 1e-06 t16_leaf4 <= 4
  T16_L4_f20_lt: x_Gr_Liv_Area + 8205.000001 t16_leaf4 <= 10000
- T16_R5_f3_ge: Overall_Qual_calc - 6.000001 t16_leaf5 >= 0.999999
+ T16_R5_f3_fixed_off: t16_leaf5 = 0
  T16_L5_f10_lt: const_Bsmt_Qual + 1e-06 t16_leaf5 <= 4
  T16_R5_f20_ge: x_Gr_Liv_Area - 1795.000001 t16_leaf5 >= -1e-06
- T16_R6_f3_ge: Overall_Qual_calc - 6.000001 t16_leaf6 >= 0.999999
+ T16_R6_f3_fixed_off: t16_leaf6 = 0
  T16_R6_f10_fixed_off: t16_leaf6 = 0
  T16_L6_f20_lt: x_Gr_Liv_Area + 7802.000001 t16_leaf6 <= 10000
- T16_R7_f3_ge: Overall_Qual_calc - 6.000001 t16_leaf7 >= 0.999999
+ T16_R7_f3_fixed_off: t16_leaf7 = 0
  T16_R7_f10_fixed_off: t16_leaf7 = 0
  T16_R7_f20_ge: x_Gr_Liv_Area - 2198.000001 t16_leaf7 >= -1e-06
  TREE_17_ONEHOT: t17_leaf0 + t17_leaf1 + t17_leaf2 + t17_leaf3 + t17_leaf4
    + t17_leaf5 + t17_leaf6 = 1
- T17_L0_f3_lt: Overall_Qual_calc + 3.000001 t17_leaf0 <= 10
- T17_L0_f3_lt: Overall_Qual_calc + 5.000001 t17_leaf0 <= 10
- T17_L0_f3_lt: Overall_Qual_calc + 7.000001 t17_leaf0 <= 10
- T17_L1_f3_lt: Overall_Qual_calc + 3.000001 t17_leaf1 <= 10
- T17_L1_f3_lt: Overall_Qual_calc + 5.000001 t17_leaf1 <= 10
- T17_R1_f3_ge: Overall_Qual_calc - 2.000001 t17_leaf1 >= 0.999999
- T17_L2_f3_lt: Overall_Qual_calc + 3.000001 t17_leaf2 <= 10
- T17_R2_f3_ge: Overall_Qual_calc - 4.000001 t17_leaf2 >= 0.999999
+ T17_L0_f3_lt: const_Overall_Qual + 1e-06 t17_leaf0 <= 7
+ T17_L0_f3_lt: const_Overall_Qual + 1e-06 t17_leaf0 <= 5
+ T17_L0_f3_fixed_off: t17_leaf0 = 0
+ T17_L1_f3_lt: const_Overall_Qual + 1e-06 t17_leaf1 <= 7
+ T17_L1_f3_lt: const_Overall_Qual + 1e-06 t17_leaf1 <= 5
+ T17_R1_f3_ge: const_Overall_Qual - 1e-06 t17_leaf1 >= 2.999999
+ T17_L2_f3_lt: const_Overall_Qual + 1e-06 t17_leaf2 <= 7
+ T17_R2_f3_fixed_off: t17_leaf2 = 0
  T17_L2_f30_lt: x_Fireplace_Qu + 4.000001 t17_leaf2 <= 4
- T17_L3_f3_lt: Overall_Qual_calc + 3.000001 t17_leaf3 <= 10
- T17_R3_f3_ge: Overall_Qual_calc - 4.000001 t17_leaf3 >= 0.999999
+ T17_L3_f3_lt: const_Overall_Qual + 1e-06 t17_leaf3 <= 7
+ T17_R3_f3_fixed_off: t17_leaf3 = 0
  T17_R3_f30_ge: x_Fireplace_Qu - 1.000001 t17_leaf3 >= -1.000001
- T17_R4_f3_ge: Overall_Qual_calc - 6.000001 t17_leaf4 >= 0.999999
+ T17_R4_f3_fixed_off: t17_leaf4 = 0
  T17_L4_f27_lt: x_Kitchen_Qual + 1e-06 t17_leaf4 <= 4
  T17_L4_f17_lt: x_1st_Flr_SF + 3936.000001 t17_leaf4 <= 5000
- T17_R5_f3_ge: Overall_Qual_calc - 6.000001 t17_leaf5 >= 0.999999
+ T17_R5_f3_fixed_off: t17_leaf5 = 0
  T17_L5_f27_lt: x_Kitchen_Qual + 1e-06 t17_leaf5 <= 4
  T17_R5_f17_ge: x_1st_Flr_SF - 1064.000001 t17_leaf5 >= -1e-06
- T17_R6_f3_ge: Overall_Qual_calc - 6.000001 t17_leaf6 >= 0.999999
+ T17_R6_f3_fixed_off: t17_leaf6 = 0
  T17_R6_f27_ge: x_Kitchen_Qual - 4.000001 t17_leaf6 >= -1e-06
  TREE_18_ONEHOT: t18_leaf0 + t18_leaf1 + t18_leaf2 + t18_leaf3 + t18_leaf4
    + t18_leaf5 + t18_leaf6 + t18_leaf7 = 1
@@ -707,54 +702,54 @@ Subject To
  T19_R7_f15_fixed_off: t19_leaf7 = 0
  TREE_20_ONEHOT: t20_leaf0 + t20_leaf1 + t20_leaf2 + t20_leaf3 + t20_leaf4
    + t20_leaf5 + t20_leaf6 + t20_leaf7 = 1
- T20_L0_f3_lt: Overall_Qual_calc + 4.000001 t20_leaf0 <= 10
+ T20_L0_f3_lt: const_Overall_Qual + 1e-06 t20_leaf0 <= 6
  T20_L0_f66_fixed_off: t20_leaf0 = 0
  T20_L0_f28_lt: x_TotRms_AbvGrd + 10.000001 t20_leaf0 <= 15
- T20_L1_f3_lt: Overall_Qual_calc + 4.000001 t20_leaf1 <= 10
+ T20_L1_f3_lt: const_Overall_Qual + 1e-06 t20_leaf1 <= 6
  T20_L1_f66_fixed_off: t20_leaf1 = 0
  T20_R1_f28_ge: x_TotRms_AbvGrd - 5.000001 t20_leaf1 >= -1e-06
- T20_L2_f3_lt: Overall_Qual_calc + 4.000001 t20_leaf2 <= 10
+ T20_L2_f3_lt: const_Overall_Qual + 1e-06 t20_leaf2 <= 6
  T20_R2_f66_ge: const_MS_Zoning_RL - 1e-06 t20_leaf2 >= 0.999999
  T20_L2_f12_lt: x_BsmtFin_SF_1 + 999443.000001 t20_leaf2 <= 1e+06
- T20_L3_f3_lt: Overall_Qual_calc + 4.000001 t20_leaf3 <= 10
+ T20_L3_f3_lt: const_Overall_Qual + 1e-06 t20_leaf3 <= 6
  T20_R3_f66_ge: const_MS_Zoning_RL - 1e-06 t20_leaf3 >= 0.999999
  T20_R3_f12_ge: x_BsmtFin_SF_1 - 557.000001 t20_leaf3 >= -1e-06
- T20_R4_f3_ge: Overall_Qual_calc - 5.000001 t20_leaf4 >= 0.999999
- T20_L4_f3_lt: Overall_Qual_calc + 2.000001 t20_leaf4 <= 10
+ T20_R4_f3_fixed_off: t20_leaf4 = 0
+ T20_L4_f3_lt: const_Overall_Qual + 1e-06 t20_leaf4 <= 8
  T20_L4_f1_fixed_off: t20_leaf4 = 0
- T20_R5_f3_ge: Overall_Qual_calc - 5.000001 t20_leaf5 >= 0.999999
- T20_L5_f3_lt: Overall_Qual_calc + 2.000001 t20_leaf5 <= 10
+ T20_R5_f3_fixed_off: t20_leaf5 = 0
+ T20_L5_f3_lt: const_Overall_Qual + 1e-06 t20_leaf5 <= 8
  T20_R5_f1_ge: const_Lot_Area - 1e-06 t20_leaf5 >= 7499.999999
- T20_R6_f3_ge: Overall_Qual_calc - 5.000001 t20_leaf6 >= 0.999999
- T20_R6_f3_ge: Overall_Qual_calc - 7.000001 t20_leaf6 >= 0.999999
+ T20_R6_f3_fixed_off: t20_leaf6 = 0
+ T20_R6_f3_fixed_off: t20_leaf6 = 0
  T20_L6_f36_lt: x_Wood_Deck_SF + 99760.00000099999 t20_leaf6 <= 100000
- T20_R7_f3_ge: Overall_Qual_calc - 5.000001 t20_leaf7 >= 0.999999
- T20_R7_f3_ge: Overall_Qual_calc - 7.000001 t20_leaf7 >= 0.999999
+ T20_R7_f3_fixed_off: t20_leaf7 = 0
+ T20_R7_f3_fixed_off: t20_leaf7 = 0
  T20_R7_f36_ge: x_Wood_Deck_SF - 240.000001 t20_leaf7 >= -1e-06
  TREE_21_ONEHOT: t21_leaf0 + t21_leaf1 + t21_leaf2 + t21_leaf3 + t21_leaf4
    + t21_leaf5 + t21_leaf6 + t21_leaf7 = 1
- T21_L0_f3_lt: Overall_Qual_calc + 3.000001 t21_leaf0 <= 10
+ T21_L0_f3_lt: const_Overall_Qual + 1e-06 t21_leaf0 <= 7
  T21_L0_f66_fixed_off: t21_leaf0 = 0
  T21_L0_f4_fixed_off: t21_leaf0 = 0
- T21_L1_f3_lt: Overall_Qual_calc + 3.000001 t21_leaf1 <= 10
+ T21_L1_f3_lt: const_Overall_Qual + 1e-06 t21_leaf1 <= 7
  T21_L1_f66_fixed_off: t21_leaf1 = 0
  T21_R1_f4_ge: const_Overall_Cond - 1e-06 t21_leaf1 >= 4.999999
- T21_L2_f3_lt: Overall_Qual_calc + 3.000001 t21_leaf2 <= 10
+ T21_L2_f3_lt: const_Overall_Qual + 1e-06 t21_leaf2 <= 7
  T21_R2_f66_ge: const_MS_Zoning_RL - 1e-06 t21_leaf2 >= 0.999999
- T21_L2_f3_lt: Overall_Qual_calc + 4.000001 t21_leaf2 <= 10
- T21_L3_f3_lt: Overall_Qual_calc + 3.000001 t21_leaf3 <= 10
+ T21_L2_f3_lt: const_Overall_Qual + 1e-06 t21_leaf2 <= 6
+ T21_L3_f3_lt: const_Overall_Qual + 1e-06 t21_leaf3 <= 7
  T21_R3_f66_ge: const_MS_Zoning_RL - 1e-06 t21_leaf3 >= 0.999999
- T21_R3_f3_ge: Overall_Qual_calc - 5.000001 t21_leaf3 >= 0.999999
- T21_R4_f3_ge: Overall_Qual_calc - 6.000001 t21_leaf4 >= 0.999999
+ T21_R3_f3_fixed_off: t21_leaf3 = 0
+ T21_R4_f3_fixed_off: t21_leaf4 = 0
  T21_L4_f12_lt: x_BsmtFin_SF_1 + 998903.000001 t21_leaf4 <= 1e+06
  T21_L4_f33_lt: x_Garage_Area + 99454.00000099999 t21_leaf4 <= 100000
- T21_R5_f3_ge: Overall_Qual_calc - 6.000001 t21_leaf5 >= 0.999999
+ T21_R5_f3_fixed_off: t21_leaf5 = 0
  T21_L5_f12_lt: x_BsmtFin_SF_1 + 998903.000001 t21_leaf5 <= 1e+06
  T21_R5_f33_ge: x_Garage_Area - 546.000001 t21_leaf5 >= -1e-06
- T21_R6_f3_ge: Overall_Qual_calc - 6.000001 t21_leaf6 >= 0.999999
+ T21_R6_f3_fixed_off: t21_leaf6 = 0
  T21_R6_f12_ge: x_BsmtFin_SF_1 - 1097.000001 t21_leaf6 >= -1e-06
  T21_L6_f27_lt: x_Kitchen_Qual + 1e-06 t21_leaf6 <= 4
- T21_R7_f3_ge: Overall_Qual_calc - 6.000001 t21_leaf7 >= 0.999999
+ T21_R7_f3_fixed_off: t21_leaf7 = 0
  T21_R7_f12_ge: x_BsmtFin_SF_1 - 1097.000001 t21_leaf7 >= -1e-06
  T21_R7_f27_ge: x_Kitchen_Qual - 4.000001 t21_leaf7 >= -1e-06
  TREE_22_ONEHOT: t22_leaf0 + t22_leaf1 + t22_leaf2 + t22_leaf3 + t22_leaf4
@@ -767,73 +762,57 @@ Subject To
  T22_R1_f6_ge: const_Year_Remod_Add - 1e-06 t22_leaf1 >= 1950.999999
  T22_L2_f20_lt: x_Gr_Liv_Area + 8509.000001 t22_leaf2 <= 10000
  T22_R2_f17_ge: x_1st_Flr_SF - 1025.000001 t22_leaf2 >= -1e-06
- T22_L2_f31_lt: const_Garage_Yr_Blt + 1e-06 t22_leaf2 <= 1953
+ T22_L2_f31_fixed_off: t22_leaf2 = 0
  T22_L3_f20_lt: x_Gr_Liv_Area + 8509.000001 t22_leaf3 <= 10000
  T22_R3_f17_ge: x_1st_Flr_SF - 1025.000001 t22_leaf3 >= -1e-06
- T22_R3_f31_fixed_off: t22_leaf3 = 0
+ T22_R3_f31_ge: const_Garage_Yr_Blt - 1e-06 t22_leaf3 >= 1952.999999
  T22_R4_f20_ge: x_Gr_Liv_Area - 1491.000001 t22_leaf4 >= -1e-06
- T22_L4_f6_fixed_off: t22_leaf4 = 0
+ T22_L4_f6_lt: const_Year_Remod_Add + 1e-06 t22_leaf4 <= 1983
  T22_L4_f29_lt: const_Fireplaces + 1e-06 t22_leaf4 <= 2
  T22_R5_f20_ge: x_Gr_Liv_Area - 1491.000001 t22_leaf5 >= -1e-06
- T22_L5_f6_fixed_off: t22_leaf5 = 0
+ T22_L5_f6_lt: const_Year_Remod_Add + 1e-06 t22_leaf5 <= 1983
  T22_R5_f29_fixed_off: t22_leaf5 = 0
  T22_R6_f20_ge: x_Gr_Liv_Area - 1491.000001 t22_leaf6 >= -1e-06
- T22_R6_f6_ge: const_Year_Remod_Add - 1e-06 t22_leaf6 >= 1982.999999
+ T22_R6_f6_fixed_off: t22_leaf6 = 0
  T22_L6_f20_lt: x_Gr_Liv_Area + 8098.000001 t22_leaf6 <= 10000
  T22_R7_f20_ge: x_Gr_Liv_Area - 1491.000001 t22_leaf7 >= -1e-06
- T22_R7_f6_ge: const_Year_Remod_Add - 1e-06 t22_leaf7 >= 1982.999999
+ T22_R7_f6_fixed_off: t22_leaf7 = 0
  T22_R7_f20_ge: x_Gr_Liv_Area - 1902.000001 t22_leaf7 >= -1e-06
  TREE_23_ONEHOT: t23_leaf0 + t23_leaf1 + t23_leaf2 + t23_leaf3 + t23_leaf4
    + t23_leaf5 + t23_leaf6 + t23_leaf7 = 1
- T23_L0_f3_lt: Overall_Qual_calc + 4.000001 t23_leaf0 <= 10
- T23_L0_f3_lt: Overall_Qual_calc + 6.000001 t23_leaf0 <= 10
- T23_L0_f5_lt: const_Year_Built + 1e-06 t23_leaf0 <= 1950
- T23_L1_f3_lt: Overall_Qual_calc + 4.000001 t23_leaf1 <= 10
- T23_L1_f3_lt: Overall_Qual_calc + 6.000001 t23_leaf1 <= 10
- T23_R1_f5_fixed_off: t23_leaf1 = 0
- T23_L2_f3_lt: Overall_Qual_calc + 4.000001 t23_leaf2 <= 10
- T23_R2_f3_ge: Overall_Qual_calc - 3.000001 t23_leaf2 >= 0.999999
- T23_L2_f66_fixed_off: t23_leaf2 = 0
- T23_L3_f3_lt: Overall_Qual_calc + 4.000001 t23_leaf3 <= 10
- T23_R3_f3_ge: Overall_Qual_calc - 3.000001 t23_leaf3 >= 0.999999
- T23_R3_f66_ge: const_MS_Zoning_RL - 1e-06 t23_leaf3 >= 0.999999
- T23_R4_f3_ge: Overall_Qual_calc - 5.000001 t23_leaf4 >= 0.999999
- T23_L4_f32_lt: const_Garage_Cars + 1e-06 t23_leaf4 <= 3
- T23_L4_f1_lt: const_Lot_Area + 1e-06 t23_leaf4 <= 13262
- T23_R5_f3_ge: Overall_Qual_calc - 5.000001 t23_leaf5 >= 0.999999
- T23_L5_f32_lt: const_Garage_Cars + 1e-06 t23_leaf5 <= 3
- T23_R5_f1_fixed_off: t23_leaf5 = 0
- T23_R6_f3_ge: Overall_Qual_calc - 5.000001 t23_leaf6 >= 0.999999
- T23_R6_f32_fixed_off: t23_leaf6 = 0
- T23_L6_f3_lt: Overall_Qual_calc + 1.000001 t23_leaf6 <= 10
- T23_R7_f3_ge: Overall_Qual_calc - 5.000001 t23_leaf7 >= 0.999999
- T23_R7_f32_fixed_off: t23_leaf7 = 0
- T23_R7_f3_ge: Overall_Qual_calc - 8.000000999999999 t23_leaf7 >= 0.999999
+ TREE_23_FORCE_LEAF_3: t23_leaf3 = 1
+ TREE_23_EXCLUDE_LEAF_0: t23_leaf0 = 0
+ TREE_23_EXCLUDE_LEAF_1: t23_leaf1 = 0
+ TREE_23_EXCLUDE_LEAF_2: t23_leaf2 = 0
+ TREE_23_EXCLUDE_LEAF_4: t23_leaf4 = 0
+ TREE_23_EXCLUDE_LEAF_5: t23_leaf5 = 0
+ TREE_23_EXCLUDE_LEAF_6: t23_leaf6 = 0
+ TREE_23_EXCLUDE_LEAF_7: t23_leaf7 = 0
  TREE_24_ONEHOT: t24_leaf0 + t24_leaf1 + t24_leaf2 + t24_leaf3 + t24_leaf4
    + t24_leaf5 + t24_leaf6 + t24_leaf7 = 1
- T24_L0_f3_lt: Overall_Qual_calc + 3.000001 t24_leaf0 <= 10
- T24_L0_f32_lt: const_Garage_Cars + 1e-06 t24_leaf0 <= 2
+ T24_L0_f3_lt: const_Overall_Qual + 1e-06 t24_leaf0 <= 7
+ T24_L0_f32_fixed_off: t24_leaf0 = 0
  T24_L0_f17_lt: x_1st_Flr_SF + 4106.000001 t24_leaf0 <= 5000
- T24_L1_f3_lt: Overall_Qual_calc + 3.000001 t24_leaf1 <= 10
- T24_L1_f32_lt: const_Garage_Cars + 1e-06 t24_leaf1 <= 2
+ T24_L1_f3_lt: const_Overall_Qual + 1e-06 t24_leaf1 <= 7
+ T24_L1_f32_fixed_off: t24_leaf1 = 0
  T24_R1_f17_ge: x_1st_Flr_SF - 894.000001 t24_leaf1 >= -1e-06
- T24_L2_f3_lt: Overall_Qual_calc + 3.000001 t24_leaf2 <= 10
- T24_R2_f32_fixed_off: t24_leaf2 = 0
+ T24_L2_f3_lt: const_Overall_Qual + 1e-06 t24_leaf2 <= 7
+ T24_R2_f32_ge: const_Garage_Cars - 1e-06 t24_leaf2 >= 1.999999
  T24_L2_f10_fixed_off: t24_leaf2 = 0
- T24_L3_f3_lt: Overall_Qual_calc + 3.000001 t24_leaf3 <= 10
- T24_R3_f32_fixed_off: t24_leaf3 = 0
+ T24_L3_f3_lt: const_Overall_Qual + 1e-06 t24_leaf3 <= 7
+ T24_R3_f32_ge: const_Garage_Cars - 1e-06 t24_leaf3 >= 1.999999
  T24_R3_f10_ge: const_Bsmt_Qual - 1e-06 t24_leaf3 >= 1.999999
- T24_R4_f3_ge: Overall_Qual_calc - 6.000001 t24_leaf4 >= 0.999999
- T24_L4_f3_lt: Overall_Qual_calc + 2.000001 t24_leaf4 <= 10
+ T24_R4_f3_fixed_off: t24_leaf4 = 0
+ T24_L4_f3_lt: const_Overall_Qual + 1e-06 t24_leaf4 <= 8
  T24_L4_f1_fixed_off: t24_leaf4 = 0
- T24_R5_f3_ge: Overall_Qual_calc - 6.000001 t24_leaf5 >= 0.999999
- T24_L5_f3_lt: Overall_Qual_calc + 2.000001 t24_leaf5 <= 10
+ T24_R5_f3_fixed_off: t24_leaf5 = 0
+ T24_L5_f3_lt: const_Overall_Qual + 1e-06 t24_leaf5 <= 8
  T24_R5_f1_ge: const_Lot_Area - 1e-06 t24_leaf5 >= 7499.999999
- T24_R6_f3_ge: Overall_Qual_calc - 6.000001 t24_leaf6 >= 0.999999
- T24_R6_f3_ge: Overall_Qual_calc - 7.000001 t24_leaf6 >= 0.999999
+ T24_R6_f3_fixed_off: t24_leaf6 = 0
+ T24_R6_f3_fixed_off: t24_leaf6 = 0
  T24_L6_f1_lt: const_Lot_Area + 1e-06 t24_leaf6 <= 12144
- T24_R7_f3_ge: Overall_Qual_calc - 6.000001 t24_leaf7 >= 0.999999
- T24_R7_f3_ge: Overall_Qual_calc - 7.000001 t24_leaf7 >= 0.999999
+ T24_R7_f3_fixed_off: t24_leaf7 = 0
+ T24_R7_f3_fixed_off: t24_leaf7 = 0
  T24_R7_f1_fixed_off: t24_leaf7 = 0
  TREE_25_ONEHOT: t25_leaf0 + t25_leaf1 + t25_leaf2 + t25_leaf3 + t25_leaf4
    + t25_leaf5 + t25_leaf6 + t25_leaf7 = 1
@@ -863,29 +842,29 @@ Subject To
  T25_R7_f15_fixed_off: t25_leaf7 = 0
  TREE_26_ONEHOT: t26_leaf0 + t26_leaf1 + t26_leaf2 + t26_leaf3 + t26_leaf4
    + t26_leaf5 + t26_leaf6 + t26_leaf7 = 1
- T26_L0_f3_lt: Overall_Qual_calc + 4.000001 t26_leaf0 <= 10
+ T26_L0_f3_lt: const_Overall_Qual + 1e-06 t26_leaf0 <= 6
  T26_L0_f257_lt: x_paved_drive_is_N + 1e-06 t26_leaf0 <= 1
  T26_L0_f17_lt: x_1st_Flr_SF + 3950.000001 t26_leaf0 <= 5000
- T26_L1_f3_lt: Overall_Qual_calc + 4.000001 t26_leaf1 <= 10
+ T26_L1_f3_lt: const_Overall_Qual + 1e-06 t26_leaf1 <= 6
  T26_L1_f257_lt: x_paved_drive_is_N + 1e-06 t26_leaf1 <= 1
  T26_R1_f17_ge: x_1st_Flr_SF - 1050.000001 t26_leaf1 >= -1e-06
- T26_L2_f3_lt: Overall_Qual_calc + 4.000001 t26_leaf2 <= 10
+ T26_L2_f3_lt: const_Overall_Qual + 1e-06 t26_leaf2 <= 6
  T26_R2_f257_fixed_off: t26_leaf2 = 0
  T26_L2_f20_lt: x_Gr_Liv_Area + 9040.000001 t26_leaf2 <= 10000
- T26_L3_f3_lt: Overall_Qual_calc + 4.000001 t26_leaf3 <= 10
+ T26_L3_f3_lt: const_Overall_Qual + 1e-06 t26_leaf3 <= 6
  T26_R3_f257_fixed_off: t26_leaf3 = 0
  T26_R3_f20_ge: x_Gr_Liv_Area - 960.000001 t26_leaf3 >= -1e-06
- T26_R4_f3_ge: Overall_Qual_calc - 5.000001 t26_leaf4 >= 0.999999
- T26_L4_f3_lt: Overall_Qual_calc + 2.000001 t26_leaf4 <= 10
+ T26_R4_f3_fixed_off: t26_leaf4 = 0
+ T26_L4_f3_lt: const_Overall_Qual + 1e-06 t26_leaf4 <= 8
  T26_L4_f20_lt: x_Gr_Liv_Area + 8512.000001 t26_leaf4 <= 10000
- T26_R5_f3_ge: Overall_Qual_calc - 5.000001 t26_leaf5 >= 0.999999
- T26_L5_f3_lt: Overall_Qual_calc + 2.000001 t26_leaf5 <= 10
+ T26_R5_f3_fixed_off: t26_leaf5 = 0
+ T26_L5_f3_lt: const_Overall_Qual + 1e-06 t26_leaf5 <= 8
  T26_R5_f20_ge: x_Gr_Liv_Area - 1488.000001 t26_leaf5 >= -1e-06
- T26_R6_f3_ge: Overall_Qual_calc - 5.000001 t26_leaf6 >= 0.999999
- T26_R6_f3_ge: Overall_Qual_calc - 7.000001 t26_leaf6 >= 0.999999
+ T26_R6_f3_fixed_off: t26_leaf6 = 0
+ T26_R6_f3_fixed_off: t26_leaf6 = 0
  T26_L6_f20_lt: x_Gr_Liv_Area + 7776.000001 t26_leaf6 <= 10000
- T26_R7_f3_ge: Overall_Qual_calc - 5.000001 t26_leaf7 >= 0.999999
- T26_R7_f3_ge: Overall_Qual_calc - 7.000001 t26_leaf7 >= 0.999999
+ T26_R7_f3_fixed_off: t26_leaf7 = 0
+ T26_R7_f3_fixed_off: t26_leaf7 = 0
  T26_R7_f20_ge: x_Gr_Liv_Area - 2224.000001 t26_leaf7 >= -1e-06
  TREE_27_ONEHOT: t27_leaf0 + t27_leaf1 + t27_leaf2 + t27_leaf3 + t27_leaf4
    + t27_leaf5 + t27_leaf6 + t27_leaf7 = 1
@@ -916,16 +895,16 @@ Subject To
  TREE_28_ONEHOT: t28_leaf0 + t28_leaf1 + t28_leaf2 + t28_leaf3 + t28_leaf4
    + t28_leaf5 + t28_leaf6 + t28_leaf7 = 1
  T28_L0_f20_lt: x_Gr_Liv_Area + 8584.000001 t28_leaf0 <= 10000
- T28_L0_f5_lt: const_Year_Built + 1e-06 t28_leaf0 <= 1953
+ T28_L0_f5_fixed_off: t28_leaf0 = 0
  T28_L0_f20_lt: x_Gr_Liv_Area + 9167.000001 t28_leaf0 <= 10000
  T28_L1_f20_lt: x_Gr_Liv_Area + 8584.000001 t28_leaf1 <= 10000
- T28_L1_f5_lt: const_Year_Built + 1e-06 t28_leaf1 <= 1953
+ T28_L1_f5_fixed_off: t28_leaf1 = 0
  T28_R1_f20_ge: x_Gr_Liv_Area - 833.000001 t28_leaf1 >= -1e-06
  T28_L2_f20_lt: x_Gr_Liv_Area + 8584.000001 t28_leaf2 <= 10000
- T28_R2_f5_fixed_off: t28_leaf2 = 0
+ T28_R2_f5_ge: const_Year_Built - 1e-06 t28_leaf2 >= 1952.999999
  T28_L2_f17_lt: x_1st_Flr_SF + 4049.000001 t28_leaf2 <= 5000
  T28_L3_f20_lt: x_Gr_Liv_Area + 8584.000001 t28_leaf3 <= 10000
- T28_R3_f5_fixed_off: t28_leaf3 = 0
+ T28_R3_f5_ge: const_Year_Built - 1e-06 t28_leaf3 >= 1952.999999
  T28_R3_f17_ge: x_1st_Flr_SF - 951.000001 t28_leaf3 >= -1e-06
  T28_R4_f20_ge: x_Gr_Liv_Area - 1416.000001 t28_leaf4 >= -1e-06
  T28_L4_f20_lt: x_Gr_Liv_Area + 7776.000001 t28_leaf4 <= 10000
@@ -935,60 +914,61 @@ Subject To
  T28_R5_f21_fixed_off: t28_leaf5 = 0
  T28_R6_f20_ge: x_Gr_Liv_Area - 1416.000001 t28_leaf6 >= -1e-06
  T28_R6_f20_ge: x_Gr_Liv_Area - 2224.000001 t28_leaf6 >= -1e-06
- T28_L6_f1_fixed_off: t28_leaf6 = 0
+ T28_L6_f1_lt: const_Lot_Area + 1e-06 t28_leaf6 <= 11700
  T28_R7_f20_ge: x_Gr_Liv_Area - 1416.000001 t28_leaf7 >= -1e-06
  T28_R7_f20_ge: x_Gr_Liv_Area - 2224.000001 t28_leaf7 >= -1e-06
- T28_R7_f1_ge: const_Lot_Area - 1e-06 t28_leaf7 >= 11699.999999
+ T28_R7_f1_fixed_off: t28_leaf7 = 0
  TREE_29_ONEHOT: t29_leaf0 + t29_leaf1 + t29_leaf2 + t29_leaf3 + t29_leaf4
    + t29_leaf5 + t29_leaf6 + t29_leaf7 = 1
- T29_L0_f3_lt: Overall_Qual_calc + 3.000001 t29_leaf0 <= 10
- T29_L0_f3_lt: Overall_Qual_calc + 6.000001 t29_leaf0 <= 10
- T29_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t29_leaf0 <= 1
- T29_L1_f3_lt: Overall_Qual_calc + 3.000001 t29_leaf1 <= 10
- T29_L1_f3_lt: Overall_Qual_calc + 6.000001 t29_leaf1 <= 10
- T29_R1_f293_fixed_off: t29_leaf1 = 0
- T29_L2_f3_lt: Overall_Qual_calc + 3.000001 t29_leaf2 <= 10
- T29_R2_f3_ge: Overall_Qual_calc - 3.000001 t29_leaf2 >= 0.999999
+ T29_L0_f3_lt: const_Overall_Qual + 1e-06 t29_leaf0 <= 7
+ T29_L0_f3_fixed_off: t29_leaf0 = 0
+ T29_L0_f293_fixed_off: t29_leaf0 = 0
+ T29_L1_f3_lt: const_Overall_Qual + 1e-06 t29_leaf1 <= 7
+ T29_L1_f3_fixed_off: t29_leaf1 = 0
+ T29_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t29_leaf1
+   >= 0.999999
+ T29_L2_f3_lt: const_Overall_Qual + 1e-06 t29_leaf2 <= 7
+ T29_R2_f3_ge: const_Overall_Qual - 1e-06 t29_leaf2 >= 3.999999
  T29_L2_f12_lt: x_BsmtFin_SF_1 + 999649.000001 t29_leaf2 <= 1e+06
- T29_L3_f3_lt: Overall_Qual_calc + 3.000001 t29_leaf3 <= 10
- T29_R3_f3_ge: Overall_Qual_calc - 3.000001 t29_leaf3 >= 0.999999
+ T29_L3_f3_lt: const_Overall_Qual + 1e-06 t29_leaf3 <= 7
+ T29_R3_f3_ge: const_Overall_Qual - 1e-06 t29_leaf3 >= 3.999999
  T29_R3_f12_ge: x_BsmtFin_SF_1 - 351.000001 t29_leaf3 >= -1e-06
- T29_R4_f3_ge: Overall_Qual_calc - 6.000001 t29_leaf4 >= 0.999999
+ T29_R4_f3_fixed_off: t29_leaf4 = 0
  T29_L4_f15_lt: const_Total_Bsmt_SF + 1e-06 t29_leaf4 <= 1475
  T29_L4_f1_lt: const_Lot_Area + 1e-06 t29_leaf4 <= 11980
- T29_R5_f3_ge: Overall_Qual_calc - 6.000001 t29_leaf5 >= 0.999999
+ T29_R5_f3_fixed_off: t29_leaf5 = 0
  T29_L5_f15_lt: const_Total_Bsmt_SF + 1e-06 t29_leaf5 <= 1475
  T29_R5_f1_fixed_off: t29_leaf5 = 0
- T29_R6_f3_ge: Overall_Qual_calc - 6.000001 t29_leaf6 >= 0.999999
+ T29_R6_f3_fixed_off: t29_leaf6 = 0
  T29_R6_f15_fixed_off: t29_leaf6 = 0
  T29_L6_f30_lt: x_Fireplace_Qu + 2.000001 t29_leaf6 <= 4
- T29_R7_f3_ge: Overall_Qual_calc - 6.000001 t29_leaf7 >= 0.999999
+ T29_R7_f3_fixed_off: t29_leaf7 = 0
  T29_R7_f15_fixed_off: t29_leaf7 = 0
  T29_R7_f30_ge: x_Fireplace_Qu - 3.000001 t29_leaf7 >= -1.000001
  TREE_30_ONEHOT: t30_leaf0 + t30_leaf1 + t30_leaf2 + t30_leaf3 + t30_leaf4
    + t30_leaf5 + t30_leaf6 + t30_leaf7 = 1
- T30_L0_f3_lt: Overall_Qual_calc + 4.000001 t30_leaf0 <= 10
+ T30_L0_f3_lt: const_Overall_Qual + 1e-06 t30_leaf0 <= 6
  T30_L0_f11_lt: x_Bsmt_Cond + 2.000001 t30_leaf0 <= 4
  T30_L0_f33_lt: x_Garage_Area + 99382.00000099999 t30_leaf0 <= 100000
- T30_L1_f3_lt: Overall_Qual_calc + 4.000001 t30_leaf1 <= 10
+ T30_L1_f3_lt: const_Overall_Qual + 1e-06 t30_leaf1 <= 6
  T30_L1_f11_lt: x_Bsmt_Cond + 2.000001 t30_leaf1 <= 4
  T30_R1_f33_ge: x_Garage_Area - 618.000001 t30_leaf1 >= -1e-06
- T30_L2_f3_lt: Overall_Qual_calc + 4.000001 t30_leaf2 <= 10
+ T30_L2_f3_lt: const_Overall_Qual + 1e-06 t30_leaf2 <= 6
  T30_R2_f11_ge: x_Bsmt_Cond - 3.000001 t30_leaf2 >= -1.000001
  T30_L2_f66_fixed_off: t30_leaf2 = 0
- T30_L3_f3_lt: Overall_Qual_calc + 4.000001 t30_leaf3 <= 10
+ T30_L3_f3_lt: const_Overall_Qual + 1e-06 t30_leaf3 <= 6
  T30_R3_f11_ge: x_Bsmt_Cond - 3.000001 t30_leaf3 >= -1.000001
  T30_R3_f66_ge: const_MS_Zoning_RL - 1e-06 t30_leaf3 >= 0.999999
- T30_R4_f3_ge: Overall_Qual_calc - 5.000001 t30_leaf4 >= 0.999999
+ T30_R4_f3_fixed_off: t30_leaf4 = 0
  T30_L4_f32_lt: const_Garage_Cars + 1e-06 t30_leaf4 <= 3
  T30_L4_f1_fixed_off: t30_leaf4 = 0
- T30_R5_f3_ge: Overall_Qual_calc - 5.000001 t30_leaf5 >= 0.999999
+ T30_R5_f3_fixed_off: t30_leaf5 = 0
  T30_L5_f32_lt: const_Garage_Cars + 1e-06 t30_leaf5 <= 3
  T30_R5_f1_ge: const_Lot_Area - 1e-06 t30_leaf5 >= 6372.999999
- T30_R6_f3_ge: Overall_Qual_calc - 5.000001 t30_leaf6 >= 0.999999
+ T30_R6_f3_fixed_off: t30_leaf6 = 0
  T30_R6_f32_fixed_off: t30_leaf6 = 0
  T30_L6_f1_lt: const_Lot_Area + 1e-06 t30_leaf6 <= 13518
- T30_R7_f3_ge: Overall_Qual_calc - 5.000001 t30_leaf7 >= 0.999999
+ T30_R7_f3_fixed_off: t30_leaf7 = 0
  T30_R7_f32_fixed_off: t30_leaf7 = 0
  T30_R7_f1_fixed_off: t30_leaf7 = 0
  TREE_31_ONEHOT: t31_leaf0 + t31_leaf1 + t31_leaf2 + t31_leaf3 + t31_leaf4
@@ -1019,11 +999,11 @@ Subject To
  T31_R7_f20_ge: x_Gr_Liv_Area - 1873.000001 t31_leaf7 >= -1e-06
  TREE_32_ONEHOT: t32_leaf0 + t32_leaf1 + t32_leaf2 + t32_leaf3 + t32_leaf4
    + t32_leaf5 + t32_leaf6 + t32_leaf7 = 1
- TREE_32_FORCE_LEAF_2: t32_leaf2 = 1
+ TREE_32_FORCE_LEAF_4: t32_leaf4 = 1
  TREE_32_EXCLUDE_LEAF_0: t32_leaf0 = 0
  TREE_32_EXCLUDE_LEAF_1: t32_leaf1 = 0
+ TREE_32_EXCLUDE_LEAF_2: t32_leaf2 = 0
  TREE_32_EXCLUDE_LEAF_3: t32_leaf3 = 0
- TREE_32_EXCLUDE_LEAF_4: t32_leaf4 = 0
  TREE_32_EXCLUDE_LEAF_5: t32_leaf5 = 0
  TREE_32_EXCLUDE_LEAF_6: t32_leaf6 = 0
  TREE_32_EXCLUDE_LEAF_7: t32_leaf7 = 0
@@ -1031,10 +1011,10 @@ Subject To
    + t33_leaf5 + t33_leaf6 + t33_leaf7 = 1
  T33_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t33_leaf0 <= 1240
  T33_L0_f18_lt: const_2nd_Flr_SF + 1e-06 t33_leaf0 <= 604
- T33_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t33_leaf0 <= 774
+ T33_L0_f15_fixed_off: t33_leaf0 = 0
  T33_L1_f15_lt: const_Total_Bsmt_SF + 1e-06 t33_leaf1 <= 1240
  T33_L1_f18_lt: const_2nd_Flr_SF + 1e-06 t33_leaf1 <= 604
- T33_R1_f15_fixed_off: t33_leaf1 = 0
+ T33_R1_f15_ge: const_Total_Bsmt_SF - 1e-06 t33_leaf1 >= 773.999999
  T33_L2_f15_lt: const_Total_Bsmt_SF + 1e-06 t33_leaf2 <= 1240
  T33_R2_f18_fixed_off: t33_leaf2 = 0
  T33_L2_f67_lt: const_MS_Zoning_RM + 1e-06 t33_leaf2 <= 1
@@ -1042,16 +1022,16 @@ Subject To
  T33_R3_f18_fixed_off: t33_leaf3 = 0
  T33_R3_f67_fixed_off: t33_leaf3 = 0
  T33_R4_f15_fixed_off: t33_leaf4 = 0
- T33_L4_f3_lt: Overall_Qual_calc + 1.000001 t33_leaf4 <= 10
+ T33_L4_f3_lt: const_Overall_Qual + 1e-06 t33_leaf4 <= 9
  T33_L4_f14_lt: x_Bsmt_Unf_SF + 98786.00000099999 t33_leaf4 <= 100000
  T33_R5_f15_fixed_off: t33_leaf5 = 0
- T33_L5_f3_lt: Overall_Qual_calc + 1.000001 t33_leaf5 <= 10
+ T33_L5_f3_lt: const_Overall_Qual + 1e-06 t33_leaf5 <= 9
  T33_R5_f14_ge: x_Bsmt_Unf_SF - 1214.000001 t33_leaf5 >= -1e-06
  T33_R6_f15_fixed_off: t33_leaf6 = 0
- T33_R6_f3_ge: Overall_Qual_calc - 8.000000999999999 t33_leaf6 >= 0.999999
+ T33_R6_f3_fixed_off: t33_leaf6 = 0
  T33_L6_f0_lt: const_Lot_Frontage + 1e-06 t33_leaf6 <= 114
  T33_R7_f15_fixed_off: t33_leaf7 = 0
- T33_R7_f3_ge: Overall_Qual_calc - 8.000000999999999 t33_leaf7 >= 0.999999
+ T33_R7_f3_fixed_off: t33_leaf7 = 0
  T33_R7_f0_fixed_off: t33_leaf7 = 0
  TREE_34_ONEHOT: t34_leaf0 + t34_leaf1 + t34_leaf2 + t34_leaf3 + t34_leaf4
    + t34_leaf5 + t34_leaf6 + t34_leaf7 = 1
@@ -1083,10 +1063,10 @@ Subject To
    + t35_leaf5 + t35_leaf6 + t35_leaf7 = 1
  T35_L0_f27_lt: x_Kitchen_Qual + 1.000001 t35_leaf0 <= 4
  T35_L0_f66_fixed_off: t35_leaf0 = 0
- T35_L0_f6_fixed_off: t35_leaf0 = 0
+ T35_L0_f6_lt: const_Year_Remod_Add + 1e-06 t35_leaf0 <= 1993
  T35_L1_f27_lt: x_Kitchen_Qual + 1.000001 t35_leaf1 <= 4
  T35_L1_f66_fixed_off: t35_leaf1 = 0
- T35_R1_f6_ge: const_Year_Remod_Add - 1e-06 t35_leaf1 >= 1992.999999
+ T35_R1_f6_fixed_off: t35_leaf1 = 0
  T35_L2_f27_lt: x_Kitchen_Qual + 1.000001 t35_leaf2 <= 4
  T35_R2_f66_ge: const_MS_Zoning_RL - 1e-06 t35_leaf2 >= 0.999999
  T35_L2_f6_fixed_off: t35_leaf2 = 0
@@ -1094,30 +1074,30 @@ Subject To
  T35_R3_f66_ge: const_MS_Zoning_RL - 1e-06 t35_leaf3 >= 0.999999
  T35_R3_f6_ge: const_Year_Remod_Add - 1e-06 t35_leaf3 >= 1958.999999
  T35_R4_f27_ge: x_Kitchen_Qual - 3.000001 t35_leaf4 >= -1e-06
- T35_L4_f1_fixed_off: t35_leaf4 = 0
+ T35_L4_f1_lt: const_Lot_Area + 1e-06 t35_leaf4 <= 11765
  T35_L4_f7_lt: x_Mas_Vnr_Area + 1e-06 t35_leaf4 <= 174
  T35_R5_f27_ge: x_Kitchen_Qual - 3.000001 t35_leaf5 >= -1e-06
- T35_L5_f1_fixed_off: t35_leaf5 = 0
+ T35_L5_f1_lt: const_Lot_Area + 1e-06 t35_leaf5 <= 11765
  T35_R5_f7_fixed_off: t35_leaf5 = 0
  T35_R6_f27_ge: x_Kitchen_Qual - 3.000001 t35_leaf6 >= -1e-06
- T35_R6_f1_ge: const_Lot_Area - 1e-06 t35_leaf6 >= 11764.999999
+ T35_R6_f1_fixed_off: t35_leaf6 = 0
  T35_L6_f18_lt: const_2nd_Flr_SF + 1e-06 t35_leaf6 <= 1368
  T35_R7_f27_ge: x_Kitchen_Qual - 3.000001 t35_leaf7 >= -1e-06
- T35_R7_f1_ge: const_Lot_Area - 1e-06 t35_leaf7 >= 11764.999999
+ T35_R7_f1_fixed_off: t35_leaf7 = 0
  T35_R7_f18_fixed_off: t35_leaf7 = 0
  TREE_36_ONEHOT: t36_leaf0 + t36_leaf1 + t36_leaf2 + t36_leaf3 + t36_leaf4
    + t36_leaf5 + t36_leaf6 + t36_leaf7 = 1
  T36_L0_f20_lt: x_Gr_Liv_Area + 8718.000001 t36_leaf0 <= 10000
- T36_L0_f3_lt: Overall_Qual_calc + 6.000001 t36_leaf0 <= 10
+ T36_L0_f3_fixed_off: t36_leaf0 = 0
  T36_L0_f17_lt: x_1st_Flr_SF + 4132.000001 t36_leaf0 <= 5000
  T36_L1_f20_lt: x_Gr_Liv_Area + 8718.000001 t36_leaf1 <= 10000
- T36_L1_f3_lt: Overall_Qual_calc + 6.000001 t36_leaf1 <= 10
+ T36_L1_f3_fixed_off: t36_leaf1 = 0
  T36_R1_f17_ge: x_1st_Flr_SF - 868.000001 t36_leaf1 >= -1e-06
  T36_L2_f20_lt: x_Gr_Liv_Area + 8718.000001 t36_leaf2 <= 10000
- T36_R2_f3_ge: Overall_Qual_calc - 3.000001 t36_leaf2 >= 0.999999
+ T36_R2_f3_ge: const_Overall_Qual - 1e-06 t36_leaf2 >= 3.999999
  T36_L2_f12_lt: x_BsmtFin_SF_1 + 999443.000001 t36_leaf2 <= 1e+06
  T36_L3_f20_lt: x_Gr_Liv_Area + 8718.000001 t36_leaf3 <= 10000
- T36_R3_f3_ge: Overall_Qual_calc - 3.000001 t36_leaf3 >= 0.999999
+ T36_R3_f3_ge: const_Overall_Qual - 1e-06 t36_leaf3 >= 3.999999
  T36_R3_f12_ge: x_BsmtFin_SF_1 - 557.000001 t36_leaf3 >= -1e-06
  T36_R4_f20_ge: x_Gr_Liv_Area - 1282.000001 t36_leaf4 >= -1e-06
  T36_L4_f20_lt: x_Gr_Liv_Area + 7737.000001 t36_leaf4 <= 10000
@@ -1134,53 +1114,53 @@ Subject To
  TREE_37_ONEHOT: t37_leaf0 + t37_leaf1 + t37_leaf2 + t37_leaf3 + t37_leaf4
    + t37_leaf5 + t37_leaf6 + t37_leaf7 = 1
  T37_L0_f20_lt: x_Gr_Liv_Area + 8506.000001 t37_leaf0 <= 10000
- T37_L0_f3_lt: Overall_Qual_calc + 6.000001 t37_leaf0 <= 10
+ T37_L0_f3_fixed_off: t37_leaf0 = 0
  T37_L0_f17_lt: x_1st_Flr_SF + 4092.000001 t37_leaf0 <= 5000
  T37_L1_f20_lt: x_Gr_Liv_Area + 8506.000001 t37_leaf1 <= 10000
- T37_L1_f3_lt: Overall_Qual_calc + 6.000001 t37_leaf1 <= 10
+ T37_L1_f3_fixed_off: t37_leaf1 = 0
  T37_R1_f17_ge: x_1st_Flr_SF - 908.000001 t37_leaf1 >= -1e-06
  T37_L2_f20_lt: x_Gr_Liv_Area + 8506.000001 t37_leaf2 <= 10000
- T37_R2_f3_ge: Overall_Qual_calc - 3.000001 t37_leaf2 >= 0.999999
+ T37_R2_f3_ge: const_Overall_Qual - 1e-06 t37_leaf2 >= 3.999999
  T37_L2_f15_lt: const_Total_Bsmt_SF + 1e-06 t37_leaf2 <= 975
  T37_L3_f20_lt: x_Gr_Liv_Area + 8506.000001 t37_leaf3 <= 10000
- T37_R3_f3_ge: Overall_Qual_calc - 3.000001 t37_leaf3 >= 0.999999
+ T37_R3_f3_ge: const_Overall_Qual - 1e-06 t37_leaf3 >= 3.999999
  T37_R3_f15_fixed_off: t37_leaf3 = 0
  T37_R4_f20_ge: x_Gr_Liv_Area - 1494.000001 t37_leaf4 >= -1e-06
- T37_L4_f6_fixed_off: t37_leaf4 = 0
+ T37_L4_f6_lt: const_Year_Remod_Add + 1e-06 t37_leaf4 <= 1983
  T37_L4_f12_lt: x_BsmtFin_SF_1 + 999808.000001 t37_leaf4 <= 1e+06
  T37_R5_f20_ge: x_Gr_Liv_Area - 1494.000001 t37_leaf5 >= -1e-06
- T37_L5_f6_fixed_off: t37_leaf5 = 0
+ T37_L5_f6_lt: const_Year_Remod_Add + 1e-06 t37_leaf5 <= 1983
  T37_R5_f12_ge: x_BsmtFin_SF_1 - 192.000001 t37_leaf5 >= -1e-06
  T37_R6_f20_ge: x_Gr_Liv_Area - 1494.000001 t37_leaf6 >= -1e-06
- T37_R6_f6_ge: const_Year_Remod_Add - 1e-06 t37_leaf6 >= 1982.999999
+ T37_R6_f6_fixed_off: t37_leaf6 = 0
  T37_L6_f20_lt: x_Gr_Liv_Area + 8032.000001 t37_leaf6 <= 10000
  T37_R7_f20_ge: x_Gr_Liv_Area - 1494.000001 t37_leaf7 >= -1e-06
- T37_R7_f6_ge: const_Year_Remod_Add - 1e-06 t37_leaf7 >= 1982.999999
+ T37_R7_f6_fixed_off: t37_leaf7 = 0
  T37_R7_f20_ge: x_Gr_Liv_Area - 1968.000001 t37_leaf7 >= -1e-06
  TREE_38_ONEHOT: t38_leaf0 + t38_leaf1 + t38_leaf2 + t38_leaf3 + t38_leaf4
    + t38_leaf5 + t38_leaf6 + t38_leaf7 = 1
- T38_L0_f3_lt: Overall_Qual_calc + 4.000001 t38_leaf0 <= 10
+ T38_L0_f3_lt: const_Overall_Qual + 1e-06 t38_leaf0 <= 6
  T38_L0_f232_fixed_off: t38_leaf0 = 0
- T38_L0_f3_lt: Overall_Qual_calc + 7.000001 t38_leaf0 <= 10
- T38_L1_f3_lt: Overall_Qual_calc + 4.000001 t38_leaf1 <= 10
+ T38_L0_f3_fixed_off: t38_leaf0 = 0
+ T38_L1_f3_lt: const_Overall_Qual + 1e-06 t38_leaf1 <= 6
  T38_L1_f232_fixed_off: t38_leaf1 = 0
- T38_R1_f3_ge: Overall_Qual_calc - 2.000001 t38_leaf1 >= 0.999999
- T38_L2_f3_lt: Overall_Qual_calc + 4.000001 t38_leaf2 <= 10
+ T38_R1_f3_ge: const_Overall_Qual - 1e-06 t38_leaf1 >= 2.999999
+ T38_L2_f3_lt: const_Overall_Qual + 1e-06 t38_leaf2 <= 6
  T38_R2_f232_ge: central_air_yes - 1e-06 t38_leaf2 >= 0.999999
  T38_L2_f217_lt: x_b1_is_Unf + 1e-06 t38_leaf2 <= 1
- T38_L3_f3_lt: Overall_Qual_calc + 4.000001 t38_leaf3 <= 10
+ T38_L3_f3_lt: const_Overall_Qual + 1e-06 t38_leaf3 <= 6
  T38_R3_f232_ge: central_air_yes - 1e-06 t38_leaf3 >= 0.999999
  T38_R3_f217_ge: x_b1_is_Unf - 1.000001 t38_leaf3 >= -1e-06
- T38_R4_f3_ge: Overall_Qual_calc - 5.000001 t38_leaf4 >= 0.999999
+ T38_R4_f3_fixed_off: t38_leaf4 = 0
  T38_L4_f20_lt: x_Gr_Liv_Area + 8200.000001 t38_leaf4 <= 10000
  T38_L4_f20_lt: x_Gr_Liv_Area + 8856.000001 t38_leaf4 <= 10000
- T38_R5_f3_ge: Overall_Qual_calc - 5.000001 t38_leaf5 >= 0.999999
+ T38_R5_f3_fixed_off: t38_leaf5 = 0
  T38_L5_f20_lt: x_Gr_Liv_Area + 8200.000001 t38_leaf5 <= 10000
  T38_R5_f20_ge: x_Gr_Liv_Area - 1144.000001 t38_leaf5 >= -1e-06
- T38_R6_f3_ge: Overall_Qual_calc - 5.000001 t38_leaf6 >= 0.999999
+ T38_R6_f3_fixed_off: t38_leaf6 = 0
  T38_R6_f20_ge: x_Gr_Liv_Area - 1800.000001 t38_leaf6 >= -1e-06
  T38_L6_f20_lt: x_Gr_Liv_Area + 7673.000001 t38_leaf6 <= 10000
- T38_R7_f3_ge: Overall_Qual_calc - 5.000001 t38_leaf7 >= 0.999999
+ T38_R7_f3_fixed_off: t38_leaf7 = 0
  T38_R7_f20_ge: x_Gr_Liv_Area - 1800.000001 t38_leaf7 >= -1e-06
  T38_R7_f20_ge: x_Gr_Liv_Area - 2327.000001 t38_leaf7 >= -1e-06
  TREE_39_ONEHOT: t39_leaf0 + t39_leaf1 + t39_leaf2 + t39_leaf3 + t39_leaf4
@@ -1205,61 +1185,61 @@ Subject To
  T39_R5_f4_ge: const_Overall_Cond - 1e-06 t39_leaf5 >= 4.999999
  T39_R6_f20_ge: x_Gr_Liv_Area - 1308.000001 t39_leaf6 >= -1e-06
  T39_R6_f12_ge: x_BsmtFin_SF_1 - 856.000001 t39_leaf6 >= -1e-06
- T39_L6_f3_lt: Overall_Qual_calc + 1.000001 t39_leaf6 <= 10
+ T39_L6_f3_lt: const_Overall_Qual + 1e-06 t39_leaf6 <= 9
  T39_R7_f20_ge: x_Gr_Liv_Area - 1308.000001 t39_leaf7 >= -1e-06
  T39_R7_f12_ge: x_BsmtFin_SF_1 - 856.000001 t39_leaf7 >= -1e-06
- T39_R7_f3_ge: Overall_Qual_calc - 8.000000999999999 t39_leaf7 >= 0.999999
+ T39_R7_f3_fixed_off: t39_leaf7 = 0
  TREE_40_ONEHOT: t40_leaf0 + t40_leaf1 + t40_leaf2 + t40_leaf3 + t40_leaf4
    + t40_leaf5 + t40_leaf6 + t40_leaf7 = 1
- T40_L0_f6_fixed_off: t40_leaf0 = 0
+ T40_L0_f6_lt: const_Year_Remod_Add + 1e-06 t40_leaf0 <= 1985
  T40_L0_f35_lt: x_Garage_Cond + 2.000001 t40_leaf0 <= 4
- T40_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t40_leaf0 <= 858
- T40_L1_f6_fixed_off: t40_leaf1 = 0
+ T40_L0_f15_fixed_off: t40_leaf0 = 0
+ T40_L1_f6_lt: const_Year_Remod_Add + 1e-06 t40_leaf1 <= 1985
  T40_L1_f35_lt: x_Garage_Cond + 2.000001 t40_leaf1 <= 4
- T40_R1_f15_fixed_off: t40_leaf1 = 0
- T40_L2_f6_fixed_off: t40_leaf2 = 0
+ T40_R1_f15_ge: const_Total_Bsmt_SF - 1e-06 t40_leaf1 >= 857.999999
+ T40_L2_f6_lt: const_Year_Remod_Add + 1e-06 t40_leaf2 <= 1985
  T40_R2_f35_ge: x_Garage_Cond - 3.000001 t40_leaf2 >= -1.000001
  T40_L2_f0_fixed_off: t40_leaf2 = 0
- T40_L3_f6_fixed_off: t40_leaf3 = 0
+ T40_L3_f6_lt: const_Year_Remod_Add + 1e-06 t40_leaf3 <= 1985
  T40_R3_f35_ge: x_Garage_Cond - 3.000001 t40_leaf3 >= -1.000001
  T40_R3_f0_ge: const_Lot_Frontage - 1e-06 t40_leaf3 >= 65.999999
- T40_R4_f6_ge: const_Year_Remod_Add - 1e-06 t40_leaf4 >= 1984.999999
+ T40_R4_f6_fixed_off: t40_leaf4 = 0
  T40_L4_f20_lt: x_Gr_Liv_Area + 8362.000001 t40_leaf4 <= 10000
  T40_L4_f15_lt: const_Total_Bsmt_SF + 1e-06 t40_leaf4 <= 1055
- T40_R5_f6_ge: const_Year_Remod_Add - 1e-06 t40_leaf5 >= 1984.999999
+ T40_R5_f6_fixed_off: t40_leaf5 = 0
  T40_L5_f20_lt: x_Gr_Liv_Area + 8362.000001 t40_leaf5 <= 10000
  T40_R5_f15_fixed_off: t40_leaf5 = 0
- T40_R6_f6_ge: const_Year_Remod_Add - 1e-06 t40_leaf6 >= 1984.999999
+ T40_R6_f6_fixed_off: t40_leaf6 = 0
  T40_R6_f20_ge: x_Gr_Liv_Area - 1638.000001 t40_leaf6 >= -1e-06
  T40_L6_f18_lt: const_2nd_Flr_SF + 1e-06 t40_leaf6 <= 1368
- T40_R7_f6_ge: const_Year_Remod_Add - 1e-06 t40_leaf7 >= 1984.999999
+ T40_R7_f6_fixed_off: t40_leaf7 = 0
  T40_R7_f20_ge: x_Gr_Liv_Area - 1638.000001 t40_leaf7 >= -1e-06
  T40_R7_f18_fixed_off: t40_leaf7 = 0
  TREE_41_ONEHOT: t41_leaf0 + t41_leaf1 + t41_leaf2 + t41_leaf3 + t41_leaf4
    + t41_leaf5 + t41_leaf6 + t41_leaf7 = 1
- T41_L0_f3_lt: Overall_Qual_calc + 3.000001 t41_leaf0 <= 10
+ T41_L0_f3_lt: const_Overall_Qual + 1e-06 t41_leaf0 <= 7
  T41_L0_f46_lt: const_MS_SubClass_30 + 1e-06 t41_leaf0 <= 1
- T41_L0_f3_lt: Overall_Qual_calc + 5.000001 t41_leaf0 <= 10
- T41_L1_f3_lt: Overall_Qual_calc + 3.000001 t41_leaf1 <= 10
+ T41_L0_f3_lt: const_Overall_Qual + 1e-06 t41_leaf0 <= 5
+ T41_L1_f3_lt: const_Overall_Qual + 1e-06 t41_leaf1 <= 7
  T41_L1_f46_lt: const_MS_SubClass_30 + 1e-06 t41_leaf1 <= 1
- T41_R1_f3_ge: Overall_Qual_calc - 4.000001 t41_leaf1 >= 0.999999
- T41_L2_f3_lt: Overall_Qual_calc + 3.000001 t41_leaf2 <= 10
+ T41_R1_f3_fixed_off: t41_leaf1 = 0
+ T41_L2_f3_lt: const_Overall_Qual + 1e-06 t41_leaf2 <= 7
  T41_R2_f46_fixed_off: t41_leaf2 = 0
  T41_L2_f12_lt: x_BsmtFin_SF_1 + 999794.000001 t41_leaf2 <= 1e+06
- T41_L3_f3_lt: Overall_Qual_calc + 3.000001 t41_leaf3 <= 10
+ T41_L3_f3_lt: const_Overall_Qual + 1e-06 t41_leaf3 <= 7
  T41_R3_f46_fixed_off: t41_leaf3 = 0
  T41_R3_f12_ge: x_BsmtFin_SF_1 - 206.000001 t41_leaf3 >= -1e-06
- T41_R4_f3_ge: Overall_Qual_calc - 6.000001 t41_leaf4 >= 0.999999
- T41_L4_f3_lt: Overall_Qual_calc + 1.000001 t41_leaf4 <= 10
+ T41_R4_f3_fixed_off: t41_leaf4 = 0
+ T41_L4_f3_lt: const_Overall_Qual + 1e-06 t41_leaf4 <= 9
  T41_L4_f12_lt: x_BsmtFin_SF_1 + 998903.000001 t41_leaf4 <= 1e+06
- T41_R5_f3_ge: Overall_Qual_calc - 6.000001 t41_leaf5 >= 0.999999
- T41_L5_f3_lt: Overall_Qual_calc + 1.000001 t41_leaf5 <= 10
+ T41_R5_f3_fixed_off: t41_leaf5 = 0
+ T41_L5_f3_lt: const_Overall_Qual + 1e-06 t41_leaf5 <= 9
  T41_R5_f12_ge: x_BsmtFin_SF_1 - 1097.000001 t41_leaf5 >= -1e-06
- T41_R6_f3_ge: Overall_Qual_calc - 6.000001 t41_leaf6 >= 0.999999
- T41_R6_f3_ge: Overall_Qual_calc - 8.000000999999999 t41_leaf6 >= 0.999999
+ T41_R6_f3_fixed_off: t41_leaf6 = 0
+ T41_R6_f3_fixed_off: t41_leaf6 = 0
  T41_L6_f37_lt: x_Open_Porch_SF + 99764.00000099999 t41_leaf6 <= 100000
- T41_R7_f3_ge: Overall_Qual_calc - 6.000001 t41_leaf7 >= 0.999999
- T41_R7_f3_ge: Overall_Qual_calc - 8.000000999999999 t41_leaf7 >= 0.999999
+ T41_R7_f3_fixed_off: t41_leaf7 = 0
+ T41_R7_f3_fixed_off: t41_leaf7 = 0
  T41_R7_f37_ge: x_Open_Porch_SF - 236.000001 t41_leaf7 >= -1e-06
  TREE_42_ONEHOT: t42_leaf0 + t42_leaf1 + t42_leaf2 + t42_leaf3 + t42_leaf4
    + t42_leaf5 + t42_leaf6 + t42_leaf7 = 1
@@ -1289,29 +1269,29 @@ Subject To
  T42_R7_f37_ge: x_Open_Porch_SF - 230.000001 t42_leaf7 >= -1e-06
  TREE_43_ONEHOT: t43_leaf0 + t43_leaf1 + t43_leaf2 + t43_leaf3 + t43_leaf4
    + t43_leaf5 + t43_leaf6 + t43_leaf7 = 1
- T43_L0_f31_lt: const_Garage_Yr_Blt + 1e-06 t43_leaf0 <= 1982
+ T43_L0_f31_fixed_off: t43_leaf0 = 0
  T43_L0_f12_lt: x_BsmtFin_SF_1 + 999777.000001 t43_leaf0 <= 1e+06
  T43_L0_f4_fixed_off: t43_leaf0 = 0
- T43_L1_f31_lt: const_Garage_Yr_Blt + 1e-06 t43_leaf1 <= 1982
+ T43_L1_f31_fixed_off: t43_leaf1 = 0
  T43_L1_f12_lt: x_BsmtFin_SF_1 + 999777.000001 t43_leaf1 <= 1e+06
  T43_R1_f4_ge: const_Overall_Cond - 1e-06 t43_leaf1 >= 4.999999
- T43_L2_f31_lt: const_Garage_Yr_Blt + 1e-06 t43_leaf2 <= 1982
+ T43_L2_f31_fixed_off: t43_leaf2 = 0
  T43_R2_f12_ge: x_BsmtFin_SF_1 - 223.000001 t43_leaf2 >= -1e-06
  T43_L2_f4_fixed_off: t43_leaf2 = 0
- T43_L3_f31_lt: const_Garage_Yr_Blt + 1e-06 t43_leaf3 <= 1982
+ T43_L3_f31_fixed_off: t43_leaf3 = 0
  T43_R3_f12_ge: x_BsmtFin_SF_1 - 223.000001 t43_leaf3 >= -1e-06
  T43_R3_f4_ge: const_Overall_Cond - 1e-06 t43_leaf3 >= 5.999999
- T43_R4_f31_fixed_off: t43_leaf4 = 0
- T43_L4_f3_lt: Overall_Qual_calc + 2.000001 t43_leaf4 <= 10
+ T43_R4_f31_ge: const_Garage_Yr_Blt - 1e-06 t43_leaf4 >= 1981.999999
+ T43_L4_f3_lt: const_Overall_Qual + 1e-06 t43_leaf4 <= 8
  T43_L4_f37_lt: x_Open_Porch_SF + 99958.00000099999 t43_leaf4 <= 100000
- T43_R5_f31_fixed_off: t43_leaf5 = 0
- T43_L5_f3_lt: Overall_Qual_calc + 2.000001 t43_leaf5 <= 10
+ T43_R5_f31_ge: const_Garage_Yr_Blt - 1e-06 t43_leaf5 >= 1981.999999
+ T43_L5_f3_lt: const_Overall_Qual + 1e-06 t43_leaf5 <= 8
  T43_R5_f37_ge: x_Open_Porch_SF - 42.000001 t43_leaf5 >= -1e-06
- T43_R6_f31_fixed_off: t43_leaf6 = 0
- T43_R6_f3_ge: Overall_Qual_calc - 7.000001 t43_leaf6 >= 0.999999
+ T43_R6_f31_ge: const_Garage_Yr_Blt - 1e-06 t43_leaf6 >= 1981.999999
+ T43_R6_f3_fixed_off: t43_leaf6 = 0
  T43_L6_f37_lt: x_Open_Porch_SF + 99726.00000099999 t43_leaf6 <= 100000
- T43_R7_f31_fixed_off: t43_leaf7 = 0
- T43_R7_f3_ge: Overall_Qual_calc - 7.000001 t43_leaf7 >= 0.999999
+ T43_R7_f31_ge: const_Garage_Yr_Blt - 1e-06 t43_leaf7 >= 1981.999999
+ T43_R7_f3_fixed_off: t43_leaf7 = 0
  T43_R7_f37_ge: x_Open_Porch_SF - 274.000001 t43_leaf7 >= -1e-06
  TREE_44_ONEHOT: t44_leaf0 + t44_leaf1 + t44_leaf2 + t44_leaf3 + t44_leaf4
    + t44_leaf5 + t44_leaf6 + t44_leaf7 = 1
@@ -1341,30 +1321,31 @@ Subject To
  T44_R7_f20_ge: x_Gr_Liv_Area - 2028.000001 t44_leaf7 >= -1e-06
  TREE_45_ONEHOT: t45_leaf0 + t45_leaf1 + t45_leaf2 + t45_leaf3 + t45_leaf4
    + t45_leaf5 + t45_leaf6 + t45_leaf7 = 1
- T45_L0_f3_lt: Overall_Qual_calc + 4.000001 t45_leaf0 <= 10
+ T45_L0_f3_lt: const_Overall_Qual + 1e-06 t45_leaf0 <= 6
  T45_L0_f12_lt: x_BsmtFin_SF_1 + 999925.000001 t45_leaf0 <= 1e+06
- T45_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t45_leaf0 <= 1
- T45_L1_f3_lt: Overall_Qual_calc + 4.000001 t45_leaf1 <= 10
+ T45_L0_f293_fixed_off: t45_leaf0 = 0
+ T45_L1_f3_lt: const_Overall_Qual + 1e-06 t45_leaf1 <= 6
  T45_L1_f12_lt: x_BsmtFin_SF_1 + 999925.000001 t45_leaf1 <= 1e+06
- T45_R1_f293_fixed_off: t45_leaf1 = 0
- T45_L2_f3_lt: Overall_Qual_calc + 4.000001 t45_leaf2 <= 10
+ T45_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t45_leaf1
+   >= 0.999999
+ T45_L2_f3_lt: const_Overall_Qual + 1e-06 t45_leaf2 <= 6
  T45_R2_f12_ge: x_BsmtFin_SF_1 - 75.000001 t45_leaf2 >= -1e-06
  T45_L2_f15_lt: const_Total_Bsmt_SF + 1e-06 t45_leaf2 <= 1356
- T45_L3_f3_lt: Overall_Qual_calc + 4.000001 t45_leaf3 <= 10
+ T45_L3_f3_lt: const_Overall_Qual + 1e-06 t45_leaf3 <= 6
  T45_R3_f12_ge: x_BsmtFin_SF_1 - 75.000001 t45_leaf3 >= -1e-06
  T45_R3_f15_fixed_off: t45_leaf3 = 0
- T45_R4_f3_ge: Overall_Qual_calc - 5.000001 t45_leaf4 >= 0.999999
+ T45_R4_f3_fixed_off: t45_leaf4 = 0
  T45_L4_f12_lt: x_BsmtFin_SF_1 + 999273.000001 t45_leaf4 <= 1e+06
- T45_L4_f32_lt: const_Garage_Cars + 1e-06 t45_leaf4 <= 2
- T45_R5_f3_ge: Overall_Qual_calc - 5.000001 t45_leaf5 >= 0.999999
+ T45_L4_f32_fixed_off: t45_leaf4 = 0
+ T45_R5_f3_fixed_off: t45_leaf5 = 0
  T45_L5_f12_lt: x_BsmtFin_SF_1 + 999273.000001 t45_leaf5 <= 1e+06
- T45_R5_f32_fixed_off: t45_leaf5 = 0
- T45_R6_f3_ge: Overall_Qual_calc - 5.000001 t45_leaf6 >= 0.999999
+ T45_R5_f32_ge: const_Garage_Cars - 1e-06 t45_leaf5 >= 1.999999
+ T45_R6_f3_fixed_off: t45_leaf6 = 0
  T45_R6_f12_ge: x_BsmtFin_SF_1 - 727.000001 t45_leaf6 >= -1e-06
- T45_L6_f3_lt: Overall_Qual_calc + 2.000001 t45_leaf6 <= 10
- T45_R7_f3_ge: Overall_Qual_calc - 5.000001 t45_leaf7 >= 0.999999
+ T45_L6_f3_lt: const_Overall_Qual + 1e-06 t45_leaf6 <= 8
+ T45_R7_f3_fixed_off: t45_leaf7 = 0
  T45_R7_f12_ge: x_BsmtFin_SF_1 - 727.000001 t45_leaf7 >= -1e-06
- T45_R7_f3_ge: Overall_Qual_calc - 7.000001 t45_leaf7 >= 0.999999
+ T45_R7_f3_fixed_off: t45_leaf7 = 0
  TREE_46_ONEHOT: t46_leaf0 + t46_leaf1 + t46_leaf2 + t46_leaf3 + t46_leaf4
    + t46_leaf5 + t46_leaf6 + t46_leaf7 = 1
  T46_L0_f17_lt: x_1st_Flr_SF + 3845.000001 t46_leaf0 <= 5000
@@ -1381,10 +1362,10 @@ Subject To
  T46_R3_f18_fixed_off: t46_leaf3 = 0
  T46_R4_f17_ge: x_1st_Flr_SF - 1155.000001 t46_leaf4 >= -1e-06
  T46_L4_f18_lt: const_2nd_Flr_SF + 1e-06 t46_leaf4 <= 1168
- T46_L4_f6_fixed_off: t46_leaf4 = 0
+ T46_L4_f6_lt: const_Year_Remod_Add + 1e-06 t46_leaf4 <= 1993
  T46_R5_f17_ge: x_1st_Flr_SF - 1155.000001 t46_leaf5 >= -1e-06
  T46_L5_f18_lt: const_2nd_Flr_SF + 1e-06 t46_leaf5 <= 1168
- T46_R5_f6_ge: const_Year_Remod_Add - 1e-06 t46_leaf5 >= 1992.999999
+ T46_R5_f6_fixed_off: t46_leaf5 = 0
  T46_R6_f17_ge: x_1st_Flr_SF - 1155.000001 t46_leaf6 >= -1e-06
  T46_R6_f18_fixed_off: t46_leaf6 = 0
  T46_L6_f26_lt: x_Kitchen_AbvGr + 1.000001 t46_leaf6 <= 3
@@ -1393,30 +1374,30 @@ Subject To
  T46_R7_f26_ge: x_Kitchen_AbvGr - 2.000001 t46_leaf7 >= -1e-06
  TREE_47_ONEHOT: t47_leaf0 + t47_leaf1 + t47_leaf2 + t47_leaf3 + t47_leaf4
    + t47_leaf5 + t47_leaf6 + t47_leaf7 = 1
- T47_L0_f6_fixed_off: t47_leaf0 = 0
+ T47_L0_f6_lt: const_Year_Remod_Add + 1e-06 t47_leaf0 <= 1981
  T47_L0_f4_fixed_off: t47_leaf0 = 0
  T47_L0_f6_fixed_off: t47_leaf0 = 0
- T47_L1_f6_fixed_off: t47_leaf1 = 0
+ T47_L1_f6_lt: const_Year_Remod_Add + 1e-06 t47_leaf1 <= 1981
  T47_L1_f4_fixed_off: t47_leaf1 = 0
  T47_R1_f6_ge: const_Year_Remod_Add - 1e-06 t47_leaf1 >= 1958.999999
- T47_L2_f6_fixed_off: t47_leaf2 = 0
+ T47_L2_f6_lt: const_Year_Remod_Add + 1e-06 t47_leaf2 <= 1981
  T47_R2_f4_ge: const_Overall_Cond - 1e-06 t47_leaf2 >= 4.999999
  T47_L2_f0_fixed_off: t47_leaf2 = 0
- T47_L3_f6_fixed_off: t47_leaf3 = 0
+ T47_L3_f6_lt: const_Year_Remod_Add + 1e-06 t47_leaf3 <= 1981
  T47_R3_f4_ge: const_Overall_Cond - 1e-06 t47_leaf3 >= 4.999999
  T47_R3_f0_ge: const_Lot_Frontage - 1e-06 t47_leaf3 >= 68.999999
- T47_R4_f6_ge: const_Year_Remod_Add - 1e-06 t47_leaf4 >= 1980.999999
+ T47_R4_f6_fixed_off: t47_leaf4 = 0
  T47_L4_f30_lt: x_Fireplace_Qu + 2.000001 t47_leaf4 <= 4
  T47_L4_f0_fixed_off: t47_leaf4 = 0
- T47_R5_f6_ge: const_Year_Remod_Add - 1e-06 t47_leaf5 >= 1980.999999
+ T47_R5_f6_fixed_off: t47_leaf5 = 0
  T47_L5_f30_lt: x_Fireplace_Qu + 2.000001 t47_leaf5 <= 4
  T47_R5_f0_ge: const_Lot_Frontage - 1e-06 t47_leaf5 >= 60.999999
- T47_R6_f6_ge: const_Year_Remod_Add - 1e-06 t47_leaf6 >= 1980.999999
+ T47_R6_f6_fixed_off: t47_leaf6 = 0
  T47_R6_f30_ge: x_Fireplace_Qu - 3.000001 t47_leaf6 >= -1.000001
- T47_L6_f3_lt: Overall_Qual_calc + 1.000001 t47_leaf6 <= 10
- T47_R7_f6_ge: const_Year_Remod_Add - 1e-06 t47_leaf7 >= 1980.999999
+ T47_L6_f3_lt: const_Overall_Qual + 1e-06 t47_leaf6 <= 9
+ T47_R7_f6_fixed_off: t47_leaf7 = 0
  T47_R7_f30_ge: x_Fireplace_Qu - 3.000001 t47_leaf7 >= -1.000001
- T47_R7_f3_ge: Overall_Qual_calc - 8.000000999999999 t47_leaf7 >= 0.999999
+ T47_R7_f3_fixed_off: t47_leaf7 = 0
  TREE_48_ONEHOT: t48_leaf0 + t48_leaf1 + t48_leaf2 + t48_leaf3 + t48_leaf4
    + t48_leaf5 + t48_leaf6 + t48_leaf7 = 1
  T48_L0_f20_lt: x_Gr_Liv_Area + 8288.000001 t48_leaf0 <= 10000
@@ -1427,10 +1408,10 @@ Subject To
  T48_R1_f33_ge: x_Garage_Area - 384.000001 t48_leaf1 >= -1e-06
  T48_L2_f20_lt: x_Gr_Liv_Area + 8288.000001 t48_leaf2 <= 10000
  T48_R2_f257_fixed_off: t48_leaf2 = 0
- T48_L2_f297_fixed_off: t48_leaf2 = 0
+ T48_L2_f297_lt: const_Sale_Condition_Normal + 1e-06 t48_leaf2 <= 1
  T48_L3_f20_lt: x_Gr_Liv_Area + 8288.000001 t48_leaf3 <= 10000
  T48_R3_f257_fixed_off: t48_leaf3 = 0
- T48_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t48_leaf3 >= 0.999999
+ T48_R3_f297_fixed_off: t48_leaf3 = 0
  T48_R4_f20_ge: x_Gr_Liv_Area - 1712.000001 t48_leaf4 >= -1e-06
  T48_L4_f213_lt: x_b1_is_GLQ + 1e-06 t48_leaf4 <= 1
  T48_L4_f44_fixed_off: t48_leaf4 = 0
@@ -1447,10 +1428,11 @@ Subject To
    + t49_leaf5 + t49_leaf6 + t49_leaf7 = 1
  T49_L0_f20_lt: x_Gr_Liv_Area + 8506.000001 t49_leaf0 <= 10000
  T49_L0_f259_fixed_off: t49_leaf0 = 0
- T49_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t49_leaf0 <= 1
+ T49_L0_f293_fixed_off: t49_leaf0 = 0
  T49_L1_f20_lt: x_Gr_Liv_Area + 8506.000001 t49_leaf1 <= 10000
  T49_L1_f259_fixed_off: t49_leaf1 = 0
- T49_R1_f293_fixed_off: t49_leaf1 = 0
+ T49_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t49_leaf1
+   >= 0.999999
  T49_L2_f20_lt: x_Gr_Liv_Area + 8506.000001 t49_leaf2 <= 10000
  T49_R2_f259_ge: x_paved_drive_is_Y - 1e-06 t49_leaf2 >= 0.999999
  T49_L2_f17_lt: x_1st_Flr_SF + 3936.000001 t49_leaf2 <= 5000
@@ -1465,52 +1447,53 @@ Subject To
  T49_R5_f44_ge: const_Yr_Sold - 1e-06 t49_leaf5 >= 2007.999999
  T49_R6_f20_ge: x_Gr_Liv_Area - 1494.000001 t49_leaf6 >= -1e-06
  T49_R6_f109_fixed_off: t49_leaf6 = 0
- T49_L6_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t49_leaf6 <= 1
+ T49_L6_f293_fixed_off: t49_leaf6 = 0
  T49_R7_f20_ge: x_Gr_Liv_Area - 1494.000001 t49_leaf7 >= -1e-06
  T49_R7_f109_fixed_off: t49_leaf7 = 0
- T49_R7_f293_fixed_off: t49_leaf7 = 0
+ T49_R7_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t49_leaf7
+   >= 0.999999
  TREE_50_ONEHOT: t50_leaf0 + t50_leaf1 + t50_leaf2 + t50_leaf3 + t50_leaf4
    + t50_leaf5 + t50_leaf6 = 1
  T50_L0_f20_lt: x_Gr_Liv_Area + 8817.000001 t50_leaf0 <= 10000
- T50_L0_f3_lt: Overall_Qual_calc + 6.000001 t50_leaf0 <= 10
+ T50_L0_f3_fixed_off: t50_leaf0 = 0
  T50_L1_f20_lt: x_Gr_Liv_Area + 8817.000001 t50_leaf1 <= 10000
- T50_R1_f3_ge: Overall_Qual_calc - 3.000001 t50_leaf1 >= 0.999999
+ T50_R1_f3_ge: const_Overall_Qual - 1e-06 t50_leaf1 >= 3.999999
  T50_L1_f66_fixed_off: t50_leaf1 = 0
  T50_L2_f20_lt: x_Gr_Liv_Area + 8817.000001 t50_leaf2 <= 10000
- T50_R2_f3_ge: Overall_Qual_calc - 3.000001 t50_leaf2 >= 0.999999
+ T50_R2_f3_ge: const_Overall_Qual - 1e-06 t50_leaf2 >= 3.999999
  T50_R2_f66_ge: const_MS_Zoning_RL - 1e-06 t50_leaf2 >= 0.999999
  T50_R3_f20_ge: x_Gr_Liv_Area - 1183.000001 t50_leaf3 >= -1e-06
- T50_L3_f1_fixed_off: t50_leaf3 = 0
+ T50_L3_f1_lt: const_Lot_Area + 1e-06 t50_leaf3 <= 11428
  T50_L3_f5_lt: const_Year_Built + 1e-06 t50_leaf3 <= 1986
  T50_R4_f20_ge: x_Gr_Liv_Area - 1183.000001 t50_leaf4 >= -1e-06
- T50_L4_f1_fixed_off: t50_leaf4 = 0
+ T50_L4_f1_lt: const_Lot_Area + 1e-06 t50_leaf4 <= 11428
  T50_R4_f5_fixed_off: t50_leaf4 = 0
  T50_R5_f20_ge: x_Gr_Liv_Area - 1183.000001 t50_leaf5 >= -1e-06
- T50_R5_f1_ge: const_Lot_Area - 1e-06 t50_leaf5 >= 11427.999999
+ T50_R5_f1_fixed_off: t50_leaf5 = 0
  T50_L5_f20_lt: x_Gr_Liv_Area + 8266.000001 t50_leaf5 <= 10000
  T50_R6_f20_ge: x_Gr_Liv_Area - 1183.000001 t50_leaf6 >= -1e-06
- T50_R6_f1_ge: const_Lot_Area - 1e-06 t50_leaf6 >= 11427.999999
+ T50_R6_f1_fixed_off: t50_leaf6 = 0
  T50_R6_f20_ge: x_Gr_Liv_Area - 1734.000001 t50_leaf6 >= -1e-06
  TREE_51_ONEHOT: t51_leaf0 + t51_leaf1 + t51_leaf2 + t51_leaf3 + t51_leaf4
    + t51_leaf5 + t51_leaf6 = 1
- T51_L0_f3_lt: Overall_Qual_calc + 4.000001 t51_leaf0 <= 10
+ T51_L0_f3_lt: const_Overall_Qual + 1e-06 t51_leaf0 <= 6
  T51_L0_f20_lt: x_Gr_Liv_Area + 9232.000001 t51_leaf0 <= 10000
- T51_L1_f3_lt: Overall_Qual_calc + 4.000001 t51_leaf1 <= 10
+ T51_L1_f3_lt: const_Overall_Qual + 1e-06 t51_leaf1 <= 6
  T51_R1_f20_ge: x_Gr_Liv_Area - 768.000001 t51_leaf1 >= -1e-06
  T51_L1_f12_lt: x_BsmtFin_SF_1 + 999973.000001 t51_leaf1 <= 1e+06
- T51_L2_f3_lt: Overall_Qual_calc + 4.000001 t51_leaf2 <= 10
+ T51_L2_f3_lt: const_Overall_Qual + 1e-06 t51_leaf2 <= 6
  T51_R2_f20_ge: x_Gr_Liv_Area - 768.000001 t51_leaf2 >= -1e-06
  T51_R2_f12_ge: x_BsmtFin_SF_1 - 27.000001 t51_leaf2 >= -1e-06
- T51_R3_f3_ge: Overall_Qual_calc - 5.000001 t51_leaf3 >= 0.999999
+ T51_R3_f3_fixed_off: t51_leaf3 = 0
  T51_L3_f20_lt: x_Gr_Liv_Area + 7673.000001 t51_leaf3 <= 10000
  T51_L3_f12_lt: x_BsmtFin_SF_1 + 999295.000001 t51_leaf3 <= 1e+06
- T51_R4_f3_ge: Overall_Qual_calc - 5.000001 t51_leaf4 >= 0.999999
+ T51_R4_f3_fixed_off: t51_leaf4 = 0
  T51_L4_f20_lt: x_Gr_Liv_Area + 7673.000001 t51_leaf4 <= 10000
  T51_R4_f12_ge: x_BsmtFin_SF_1 - 705.000001 t51_leaf4 >= -1e-06
- T51_R5_f3_ge: Overall_Qual_calc - 5.000001 t51_leaf5 >= 0.999999
+ T51_R5_f3_fixed_off: t51_leaf5 = 0
  T51_R5_f20_ge: x_Gr_Liv_Area - 2327.000001 t51_leaf5 >= -1e-06
  T51_L5_f37_lt: x_Open_Porch_SF + 99726.00000099999 t51_leaf5 <= 100000
- T51_R6_f3_ge: Overall_Qual_calc - 5.000001 t51_leaf6 >= 0.999999
+ T51_R6_f3_fixed_off: t51_leaf6 = 0
  T51_R6_f20_ge: x_Gr_Liv_Area - 2327.000001 t51_leaf6 >= -1e-06
  T51_R6_f37_ge: x_Open_Porch_SF - 274.000001 t51_leaf6 >= -1e-06
  TREE_52_ONEHOT: t52_leaf0 + t52_leaf1 + t52_leaf2 + t52_leaf3 + t52_leaf4
@@ -1557,10 +1540,10 @@ Subject To
  T53_L4_f4_fixed_off: t53_leaf4 = 0
  T53_R5_f30_ge: x_Fireplace_Qu - 2.000001 t53_leaf5 >= -1.000001
  T53_R5_f4_ge: const_Overall_Cond - 1e-06 t53_leaf5 >= 3.999999
- T53_L5_f3_lt: Overall_Qual_calc + 1.000001 t53_leaf5 <= 10
+ T53_L5_f3_lt: const_Overall_Qual + 1e-06 t53_leaf5 <= 9
  T53_R6_f30_ge: x_Fireplace_Qu - 2.000001 t53_leaf6 >= -1.000001
  T53_R6_f4_ge: const_Overall_Cond - 1e-06 t53_leaf6 >= 3.999999
- T53_R6_f3_ge: Overall_Qual_calc - 8.000000999999999 t53_leaf6 >= 0.999999
+ T53_R6_f3_fixed_off: t53_leaf6 = 0
  TREE_54_ONEHOT: t54_leaf0 + t54_leaf1 + t54_leaf2 + t54_leaf3 + t54_leaf4
    + t54_leaf5 + t54_leaf6 = 1
  T54_L0_f4_fixed_off: t54_leaf0 = 0
@@ -1587,10 +1570,10 @@ Subject To
    + t55_leaf5 + t55_leaf6 + t55_leaf7 = 1
  T55_L0_f29_lt: const_Fireplaces + 1e-06 t55_leaf0 <= 1
  T55_L0_f9_lt: x_Exter_Cond + 2.000001 t55_leaf0 <= 4
- T55_L0_f297_fixed_off: t55_leaf0 = 0
+ T55_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t55_leaf0 <= 1
  T55_L1_f29_lt: const_Fireplaces + 1e-06 t55_leaf1 <= 1
  T55_L1_f9_lt: x_Exter_Cond + 2.000001 t55_leaf1 <= 4
- T55_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t55_leaf1 >= 0.999999
+ T55_R1_f297_fixed_off: t55_leaf1 = 0
  T55_L2_f29_lt: const_Fireplaces + 1e-06 t55_leaf2 <= 1
  T55_R2_f9_ge: x_Exter_Cond - 2.000001 t55_leaf2 >= -1e-06
  T55_L2_f33_lt: x_Garage_Area + 99730.00000099999 t55_leaf2 <= 100000
@@ -1691,10 +1674,10 @@ Subject To
    + t59_leaf5 + t59_leaf6 + t59_leaf7 = 1
  T59_L0_f31_fixed_off: t59_leaf0 = 0
  T59_L0_f14_lt: x_Bsmt_Unf_SF + 99197.00000099999 t59_leaf0 <= 100000
- T59_L0_f141_lt: const_House_Style_1Story + 1e-06 t59_leaf0 <= 1
+ T59_L0_f141_fixed_off: t59_leaf0 = 0
  T59_L1_f31_fixed_off: t59_leaf1 = 0
  T59_L1_f14_lt: x_Bsmt_Unf_SF + 99197.00000099999 t59_leaf1 <= 100000
- T59_R1_f141_fixed_off: t59_leaf1 = 0
+ T59_R1_f141_ge: const_House_Style_1Story - 1e-06 t59_leaf1 >= 0.999999
  T59_L2_f31_fixed_off: t59_leaf2 = 0
  T59_R2_f14_ge: x_Bsmt_Unf_SF - 803.000001 t59_leaf2 >= -1e-06
  T59_L2_f12_lt: x_BsmtFin_SF_1 + 999919.000001 t59_leaf2 <= 1e+06
@@ -1716,12 +1699,12 @@ Subject To
  TREE_60_ONEHOT: t60_leaf0 + t60_leaf1 + t60_leaf2 + t60_leaf3 + t60_leaf4
    + t60_leaf5 + t60_leaf6 = 1
  T60_L0_f30_lt: x_Fireplace_Qu + 3.000001 t60_leaf0 <= 4
- T60_L0_f3_lt: Overall_Qual_calc + 7.000001 t60_leaf0 <= 10
+ T60_L0_f3_fixed_off: t60_leaf0 = 0
  T60_L1_f30_lt: x_Fireplace_Qu + 3.000001 t60_leaf1 <= 4
- T60_R1_f3_ge: Overall_Qual_calc - 2.000001 t60_leaf1 >= 0.999999
+ T60_R1_f3_ge: const_Overall_Qual - 1e-06 t60_leaf1 >= 2.999999
  T60_L1_f44_fixed_off: t60_leaf1 = 0
  T60_L2_f30_lt: x_Fireplace_Qu + 3.000001 t60_leaf2 <= 4
- T60_R2_f3_ge: Overall_Qual_calc - 2.000001 t60_leaf2 >= 0.999999
+ T60_R2_f3_ge: const_Overall_Qual - 1e-06 t60_leaf2 >= 2.999999
  T60_R2_f44_ge: const_Yr_Sold - 1e-06 t60_leaf2 >= 2007.999999
  T60_R3_f30_ge: x_Fireplace_Qu - 2.000001 t60_leaf3 >= -1.000001
  T60_L3_f12_lt: x_BsmtFin_SF_1 + 998903.000001 t60_leaf3 <= 1e+06
@@ -1768,28 +1751,29 @@ Subject To
  T62_R6_f118_fixed_off: t62_leaf6 = 0
  TREE_63_ONEHOT: t63_leaf0 + t63_leaf1 + t63_leaf2 + t63_leaf3 + t63_leaf4
    + t63_leaf5 + t63_leaf6 + t63_leaf7 = 1
- T63_L0_f6_fixed_off: t63_leaf0 = 0
+ T63_L0_f6_lt: const_Year_Remod_Add + 1e-06 t63_leaf0 <= 1987
  T63_L0_f12_lt: x_BsmtFin_SF_1 + 999550.000001 t63_leaf0 <= 1e+06
- T63_L0_f3_lt: Overall_Qual_calc + 7.000001 t63_leaf0 <= 10
- T63_L1_f6_fixed_off: t63_leaf1 = 0
+ T63_L0_f3_fixed_off: t63_leaf0 = 0
+ T63_L1_f6_lt: const_Year_Remod_Add + 1e-06 t63_leaf1 <= 1987
  T63_L1_f12_lt: x_BsmtFin_SF_1 + 999550.000001 t63_leaf1 <= 1e+06
- T63_R1_f3_ge: Overall_Qual_calc - 2.000001 t63_leaf1 >= 0.999999
- T63_L2_f6_fixed_off: t63_leaf2 = 0
+ T63_R1_f3_ge: const_Overall_Qual - 1e-06 t63_leaf1 >= 2.999999
+ T63_L2_f6_lt: const_Year_Remod_Add + 1e-06 t63_leaf2 <= 1987
  T63_R2_f12_ge: x_BsmtFin_SF_1 - 450.000001 t63_leaf2 >= -1e-06
- T63_L2_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t63_leaf2 <= 1
- T63_L3_f6_fixed_off: t63_leaf3 = 0
+ T63_L2_f293_fixed_off: t63_leaf2 = 0
+ T63_L3_f6_lt: const_Year_Remod_Add + 1e-06 t63_leaf3 <= 1987
  T63_R3_f12_ge: x_BsmtFin_SF_1 - 450.000001 t63_leaf3 >= -1e-06
- T63_R3_f293_fixed_off: t63_leaf3 = 0
- T63_R4_f6_ge: const_Year_Remod_Add - 1e-06 t63_leaf4 >= 1986.999999
+ T63_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t63_leaf3
+   >= 0.999999
+ T63_R4_f6_fixed_off: t63_leaf4 = 0
  T63_L4_f18_lt: const_2nd_Flr_SF + 1e-06 t63_leaf4 <= 1368
- T63_L4_f96_fixed_off: t63_leaf4 = 0
- T63_R5_f6_ge: const_Year_Remod_Add - 1e-06 t63_leaf5 >= 1986.999999
+ T63_L4_f96_lt: const_Neighborhood_Edwards + 1e-06 t63_leaf4 <= 1
+ T63_R5_f6_fixed_off: t63_leaf5 = 0
  T63_L5_f18_lt: const_2nd_Flr_SF + 1e-06 t63_leaf5 <= 1368
- T63_R5_f96_ge: const_Neighborhood_Edwards - 1e-06 t63_leaf5 >= 0.999999
- T63_R6_f6_ge: const_Year_Remod_Add - 1e-06 t63_leaf6 >= 1986.999999
+ T63_R5_f96_fixed_off: t63_leaf5 = 0
+ T63_R6_f6_fixed_off: t63_leaf6 = 0
  T63_R6_f18_fixed_off: t63_leaf6 = 0
  T63_L6_f6_lt: const_Year_Remod_Add + 1e-06 t63_leaf6 <= 1999
- T63_R7_f6_ge: const_Year_Remod_Add - 1e-06 t63_leaf7 >= 1986.999999
+ T63_R7_f6_fixed_off: t63_leaf7 = 0
  T63_R7_f18_fixed_off: t63_leaf7 = 0
  T63_R7_f6_fixed_off: t63_leaf7 = 0
  TREE_64_ONEHOT: t64_leaf0 + t64_leaf1 + t64_leaf2 + t64_leaf3 + t64_leaf4
@@ -1802,10 +1786,10 @@ Subject To
  T64_R1_f14_ge: x_Bsmt_Unf_SF - 860.000001 t64_leaf1 >= -1e-06
  T64_L2_f20_lt: x_Gr_Liv_Area + 8836.000001 t64_leaf2 <= 10000
  T64_R2_f12_ge: x_BsmtFin_SF_1 - 56.000001 t64_leaf2 >= -1e-06
- T64_L2_f6_fixed_off: t64_leaf2 = 0
+ T64_L2_f6_lt: const_Year_Remod_Add + 1e-06 t64_leaf2 <= 1977
  T64_L3_f20_lt: x_Gr_Liv_Area + 8836.000001 t64_leaf3 <= 10000
  T64_R3_f12_ge: x_BsmtFin_SF_1 - 56.000001 t64_leaf3 >= -1e-06
- T64_R3_f6_ge: const_Year_Remod_Add - 1e-06 t64_leaf3 >= 1976.999999
+ T64_R3_f6_fixed_off: t64_leaf3 = 0
  T64_R4_f20_ge: x_Gr_Liv_Area - 1164.000001 t64_leaf4 >= -1e-06
  T64_L4_f20_lt: x_Gr_Liv_Area + 7456.000001 t64_leaf4 <= 10000
  T64_L4_f12_lt: x_BsmtFin_SF_1 + 999708.000001 t64_leaf4 <= 1e+06
@@ -1821,16 +1805,16 @@ Subject To
  TREE_65_ONEHOT: t65_leaf0 + t65_leaf1 + t65_leaf2 + t65_leaf3 + t65_leaf4
    + t65_leaf5 + t65_leaf6 + t65_leaf7 = 1
  T65_L0_f15_fixed_off: t65_leaf0 = 0
- T65_L0_f3_lt: Overall_Qual_calc + 6.000001 t65_leaf0 <= 10
+ T65_L0_f3_fixed_off: t65_leaf0 = 0
  T65_L0_f191_lt: x_ex2_is_VinylSd + 1e-06 t65_leaf0 <= 1
  T65_L1_f15_fixed_off: t65_leaf1 = 0
- T65_L1_f3_lt: Overall_Qual_calc + 6.000001 t65_leaf1 <= 10
+ T65_L1_f3_fixed_off: t65_leaf1 = 0
  T65_R1_f191_ge: x_ex2_is_VinylSd - 1.000001 t65_leaf1 >= -1e-06
  T65_L2_f15_fixed_off: t65_leaf2 = 0
- T65_R2_f3_ge: Overall_Qual_calc - 3.000001 t65_leaf2 >= 0.999999
+ T65_R2_f3_ge: const_Overall_Qual - 1e-06 t65_leaf2 >= 3.999999
  T65_L2_f1_fixed_off: t65_leaf2 = 0
  T65_L3_f15_fixed_off: t65_leaf3 = 0
- T65_R3_f3_ge: Overall_Qual_calc - 3.000001 t65_leaf3 >= 0.999999
+ T65_R3_f3_ge: const_Overall_Qual - 1e-06 t65_leaf3 >= 3.999999
  T65_R3_f1_ge: const_Lot_Area - 1e-06 t65_leaf3 >= 6761.999999
  T65_R4_f15_ge: const_Total_Bsmt_SF - 1e-06 t65_leaf4 >= 647.999999
  T65_L4_f17_lt: x_1st_Flr_SF + 3170.000001 t65_leaf4 <= 5000
@@ -1840,10 +1824,10 @@ Subject To
  T65_R5_f6_ge: const_Year_Remod_Add - 1e-06 t65_leaf5 >= 1962.999999
  T65_R6_f15_ge: const_Total_Bsmt_SF - 1e-06 t65_leaf6 >= 647.999999
  T65_R6_f17_ge: x_1st_Flr_SF - 1830.000001 t65_leaf6 >= -1e-06
- T65_L6_f1_fixed_off: t65_leaf6 = 0
+ T65_L6_f1_lt: const_Lot_Area + 1e-06 t65_leaf6 <= 11388
  T65_R7_f15_ge: const_Total_Bsmt_SF - 1e-06 t65_leaf7 >= 647.999999
  T65_R7_f17_ge: x_1st_Flr_SF - 1830.000001 t65_leaf7 >= -1e-06
- T65_R7_f1_ge: const_Lot_Area - 1e-06 t65_leaf7 >= 11387.999999
+ T65_R7_f1_fixed_off: t65_leaf7 = 0
  TREE_66_ONEHOT: t66_leaf0 + t66_leaf1 + t66_leaf2 + t66_leaf3 + t66_leaf4
    + t66_leaf5 + t66_leaf6 + t66_leaf7 = 1
  T66_L0_f257_lt: x_paved_drive_is_N + 1e-06 t66_leaf0 <= 1
@@ -1872,21 +1856,21 @@ Subject To
  T66_R7_f20_ge: x_Gr_Liv_Area - 1105.000001 t66_leaf7 >= -1e-06
  TREE_67_ONEHOT: t67_leaf0 + t67_leaf1 + t67_leaf2 + t67_leaf3 + t67_leaf4
    + t67_leaf5 = 1
- T67_L0_f3_lt: Overall_Qual_calc + 6.000001 t67_leaf0 <= 10
- T67_L0_f297_fixed_off: t67_leaf0 = 0
- T67_L1_f3_lt: Overall_Qual_calc + 6.000001 t67_leaf1 <= 10
- T67_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t67_leaf1 >= 0.999999
- T67_R2_f3_ge: Overall_Qual_calc - 3.000001 t67_leaf2 >= 0.999999
- T67_L2_f6_fixed_off: t67_leaf2 = 0
+ T67_L0_f3_fixed_off: t67_leaf0 = 0
+ T67_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t67_leaf0 <= 1
+ T67_L1_f3_fixed_off: t67_leaf1 = 0
+ T67_R1_f297_fixed_off: t67_leaf1 = 0
+ T67_R2_f3_ge: const_Overall_Qual - 1e-06 t67_leaf2 >= 3.999999
+ T67_L2_f6_lt: const_Year_Remod_Add + 1e-06 t67_leaf2 <= 1993
  T67_L2_f44_fixed_off: t67_leaf2 = 0
- T67_R3_f3_ge: Overall_Qual_calc - 3.000001 t67_leaf3 >= 0.999999
- T67_L3_f6_fixed_off: t67_leaf3 = 0
+ T67_R3_f3_ge: const_Overall_Qual - 1e-06 t67_leaf3 >= 3.999999
+ T67_L3_f6_lt: const_Year_Remod_Add + 1e-06 t67_leaf3 <= 1993
  T67_R3_f44_ge: const_Yr_Sold - 1e-06 t67_leaf3 >= 2007.999999
- T67_R4_f3_ge: Overall_Qual_calc - 3.000001 t67_leaf4 >= 0.999999
- T67_R4_f6_ge: const_Year_Remod_Add - 1e-06 t67_leaf4 >= 1992.999999
+ T67_R4_f3_ge: const_Overall_Qual - 1e-06 t67_leaf4 >= 3.999999
+ T67_R4_f6_fixed_off: t67_leaf4 = 0
  T67_L4_f27_lt: x_Kitchen_Qual + 1e-06 t67_leaf4 <= 4
- T67_R5_f3_ge: Overall_Qual_calc - 3.000001 t67_leaf5 >= 0.999999
- T67_R5_f6_ge: const_Year_Remod_Add - 1e-06 t67_leaf5 >= 1992.999999
+ T67_R5_f3_ge: const_Overall_Qual - 1e-06 t67_leaf5 >= 3.999999
+ T67_R5_f6_fixed_off: t67_leaf5 = 0
  T67_R5_f27_ge: x_Kitchen_Qual - 4.000001 t67_leaf5 >= -1e-06
  TREE_68_ONEHOT: t68_leaf0 + t68_leaf1 + t68_leaf2 + t68_leaf3 + t68_leaf4
    + t68_leaf5 + t68_leaf6 + t68_leaf7 = 1
@@ -1938,38 +1922,39 @@ Subject To
  T69_R6_f17_ge: x_1st_Flr_SF - 948.000001 t69_leaf6 >= -1e-06
  TREE_70_ONEHOT: t70_leaf0 + t70_leaf1 + t70_leaf2 + t70_leaf3 + t70_leaf4
    + t70_leaf5 + t70_leaf6 + t70_leaf7 = 1
- T70_L0_f6_fixed_off: t70_leaf0 = 0
+ T70_L0_f6_lt: const_Year_Remod_Add + 1e-06 t70_leaf0 <= 1984
  T70_L0_f66_fixed_off: t70_leaf0 = 0
  T70_L0_f44_fixed_off: t70_leaf0 = 0
- T70_L1_f6_fixed_off: t70_leaf1 = 0
+ T70_L1_f6_lt: const_Year_Remod_Add + 1e-06 t70_leaf1 <= 1984
  T70_L1_f66_fixed_off: t70_leaf1 = 0
  T70_R1_f44_ge: const_Yr_Sold - 1e-06 t70_leaf1 >= 2007.999999
- T70_L2_f6_fixed_off: t70_leaf2 = 0
+ T70_L2_f6_lt: const_Year_Remod_Add + 1e-06 t70_leaf2 <= 1984
  T70_R2_f66_ge: const_MS_Zoning_RL - 1e-06 t70_leaf2 >= 0.999999
  T70_L2_f14_lt: x_Bsmt_Unf_SF + 99480.00000099999 t70_leaf2 <= 100000
- T70_L3_f6_fixed_off: t70_leaf3 = 0
+ T70_L3_f6_lt: const_Year_Remod_Add + 1e-06 t70_leaf3 <= 1984
  T70_R3_f66_ge: const_MS_Zoning_RL - 1e-06 t70_leaf3 >= 0.999999
  T70_R3_f14_ge: x_Bsmt_Unf_SF - 520.000001 t70_leaf3 >= -1e-06
- T70_R4_f6_ge: const_Year_Remod_Add - 1e-06 t70_leaf4 >= 1983.999999
+ T70_R4_f6_fixed_off: t70_leaf4 = 0
  T70_L4_f109_lt: const_Neighborhood_OldTown + 1e-06 t70_leaf4 <= 1
  T70_L4_f18_lt: const_2nd_Flr_SF + 1e-06 t70_leaf4 <= 1296
- T70_R5_f6_ge: const_Year_Remod_Add - 1e-06 t70_leaf5 >= 1983.999999
+ T70_R5_f6_fixed_off: t70_leaf5 = 0
  T70_L5_f109_lt: const_Neighborhood_OldTown + 1e-06 t70_leaf5 <= 1
  T70_R5_f18_fixed_off: t70_leaf5 = 0
- T70_R6_f6_ge: const_Year_Remod_Add - 1e-06 t70_leaf6 >= 1983.999999
+ T70_R6_f6_fixed_off: t70_leaf6 = 0
  T70_R6_f109_fixed_off: t70_leaf6 = 0
  T70_L6_f200_lt: const_Foundation_BrkTil + 1e-06 t70_leaf6 <= 1
- T70_R7_f6_ge: const_Year_Remod_Add - 1e-06 t70_leaf7 >= 1983.999999
+ T70_R7_f6_fixed_off: t70_leaf7 = 0
  T70_R7_f109_fixed_off: t70_leaf7 = 0
  T70_R7_f200_fixed_off: t70_leaf7 = 0
  TREE_71_ONEHOT: t71_leaf0 + t71_leaf1 + t71_leaf2 + t71_leaf3 + t71_leaf4
    + t71_leaf5 + t71_leaf6 + t71_leaf7 = 1
  T71_L0_f20_lt: x_Gr_Liv_Area + 8078.000001 t71_leaf0 <= 10000
  T71_L0_f10_fixed_off: t71_leaf0 = 0
- T71_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t71_leaf0 <= 1
+ T71_L0_f293_fixed_off: t71_leaf0 = 0
  T71_L1_f20_lt: x_Gr_Liv_Area + 8078.000001 t71_leaf1 <= 10000
  T71_L1_f10_fixed_off: t71_leaf1 = 0
- T71_R1_f293_fixed_off: t71_leaf1 = 0
+ T71_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t71_leaf1
+   >= 0.999999
  T71_L2_f20_lt: x_Gr_Liv_Area + 8078.000001 t71_leaf2 <= 10000
  T71_R2_f10_ge: const_Bsmt_Qual - 1e-06 t71_leaf2 >= 1.999999
  T71_L2_f12_lt: x_BsmtFin_SF_1 + 999708.000001 t71_leaf2 <= 1e+06
@@ -1998,21 +1983,21 @@ Subject To
  T72_R1_f58_fixed_off: t72_leaf1 = 0
  T72_L2_f44_fixed_off: t72_leaf2 = 0
  T72_R2_f17_ge: x_1st_Flr_SF - 1320.000001 t72_leaf2 >= -1e-06
- T72_L2_f6_fixed_off: t72_leaf2 = 0
+ T72_L2_f6_lt: const_Year_Remod_Add + 1e-06 t72_leaf2 <= 1991
  T72_L3_f44_fixed_off: t72_leaf3 = 0
  T72_R3_f17_ge: x_1st_Flr_SF - 1320.000001 t72_leaf3 >= -1e-06
- T72_R3_f6_ge: const_Year_Remod_Add - 1e-06 t72_leaf3 >= 1990.999999
+ T72_R3_f6_fixed_off: t72_leaf3 = 0
  T72_R4_f44_ge: const_Yr_Sold - 1e-06 t72_leaf4 >= 2007.999999
- T72_L4_f6_fixed_off: t72_leaf4 = 0
- T72_L4_f297_fixed_off: t72_leaf4 = 0
+ T72_L4_f6_lt: const_Year_Remod_Add + 1e-06 t72_leaf4 <= 1984
+ T72_L4_f297_lt: const_Sale_Condition_Normal + 1e-06 t72_leaf4 <= 1
  T72_R5_f44_ge: const_Yr_Sold - 1e-06 t72_leaf5 >= 2007.999999
- T72_L5_f6_fixed_off: t72_leaf5 = 0
- T72_R5_f297_ge: const_Sale_Condition_Normal - 1e-06 t72_leaf5 >= 0.999999
+ T72_L5_f6_lt: const_Year_Remod_Add + 1e-06 t72_leaf5 <= 1984
+ T72_R5_f297_fixed_off: t72_leaf5 = 0
  T72_R6_f44_ge: const_Yr_Sold - 1e-06 t72_leaf6 >= 2007.999999
- T72_R6_f6_ge: const_Year_Remod_Add - 1e-06 t72_leaf6 >= 1983.999999
+ T72_R6_f6_fixed_off: t72_leaf6 = 0
  T72_L6_f20_lt: x_Gr_Liv_Area + 7655.000001 t72_leaf6 <= 10000
  T72_R7_f44_ge: const_Yr_Sold - 1e-06 t72_leaf7 >= 2007.999999
- T72_R7_f6_ge: const_Year_Remod_Add - 1e-06 t72_leaf7 >= 1983.999999
+ T72_R7_f6_fixed_off: t72_leaf7 = 0
  T72_R7_f20_ge: x_Gr_Liv_Area - 2345.000001 t72_leaf7 >= -1e-06
  TREE_73_ONEHOT: t73_leaf0 + t73_leaf1 + t73_leaf2 + t73_leaf3 + t73_leaf4
    + t73_leaf5 + t73_leaf6 = 1
@@ -2038,34 +2023,34 @@ Subject To
  T73_R6_f14_ge: x_Bsmt_Unf_SF - 426.000001 t73_leaf6 >= -1e-06
  TREE_74_ONEHOT: t74_leaf0 + t74_leaf1 + t74_leaf2 + t74_leaf3 + t74_leaf4
    + t74_leaf5 + t74_leaf6 = 1
- T74_L0_f3_lt: Overall_Qual_calc + 2.000001 t74_leaf0 <= 10
+ T74_L0_f3_lt: const_Overall_Qual + 1e-06 t74_leaf0 <= 8
  T74_L0_f46_lt: const_MS_SubClass_30 + 1e-06 t74_leaf0 <= 1
  T74_L0_f44_fixed_off: t74_leaf0 = 0
- T74_L1_f3_lt: Overall_Qual_calc + 2.000001 t74_leaf1 <= 10
+ T74_L1_f3_lt: const_Overall_Qual + 1e-06 t74_leaf1 <= 8
  T74_L1_f46_lt: const_MS_SubClass_30 + 1e-06 t74_leaf1 <= 1
  T74_R1_f44_ge: const_Yr_Sold - 1e-06 t74_leaf1 >= 2007.999999
- T74_L2_f3_lt: Overall_Qual_calc + 2.000001 t74_leaf2 <= 10
+ T74_L2_f3_lt: const_Overall_Qual + 1e-06 t74_leaf2 <= 8
  T74_R2_f46_fixed_off: t74_leaf2 = 0
  T74_L2_f17_lt: x_1st_Flr_SF + 4030.000001 t74_leaf2 <= 5000
- T74_L3_f3_lt: Overall_Qual_calc + 2.000001 t74_leaf3 <= 10
+ T74_L3_f3_lt: const_Overall_Qual + 1e-06 t74_leaf3 <= 8
  T74_R3_f46_fixed_off: t74_leaf3 = 0
  T74_R3_f17_ge: x_1st_Flr_SF - 970.000001 t74_leaf3 >= -1e-06
- T74_R4_f3_ge: Overall_Qual_calc - 7.000001 t74_leaf4 >= 0.999999
+ T74_R4_f3_fixed_off: t74_leaf4 = 0
  T74_L4_f18_lt: const_2nd_Flr_SF + 1e-06 t74_leaf4 <= 1368
  T74_L4_f17_lt: x_1st_Flr_SF + 3536.000001 t74_leaf4 <= 5000
- T74_R5_f3_ge: Overall_Qual_calc - 7.000001 t74_leaf5 >= 0.999999
+ T74_R5_f3_fixed_off: t74_leaf5 = 0
  T74_L5_f18_lt: const_2nd_Flr_SF + 1e-06 t74_leaf5 <= 1368
  T74_R5_f17_ge: x_1st_Flr_SF - 1464.000001 t74_leaf5 >= -1e-06
- T74_R6_f3_ge: Overall_Qual_calc - 7.000001 t74_leaf6 >= 0.999999
+ T74_R6_f3_fixed_off: t74_leaf6 = 0
  T74_R6_f18_fixed_off: t74_leaf6 = 0
  TREE_75_ONEHOT: t75_leaf0 + t75_leaf1 + t75_leaf2 + t75_leaf3 + t75_leaf4
    + t75_leaf5 + t75_leaf6 = 1
  T75_L0_f4_fixed_off: t75_leaf0 = 0
  T75_L0_f36_lt: x_Wood_Deck_SF + 99978.00000099999 t75_leaf0 <= 100000
- T75_L0_f297_fixed_off: t75_leaf0 = 0
+ T75_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t75_leaf0 <= 1
  T75_L1_f4_fixed_off: t75_leaf1 = 0
  T75_L1_f36_lt: x_Wood_Deck_SF + 99978.00000099999 t75_leaf1 <= 100000
- T75_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t75_leaf1 >= 0.999999
+ T75_R1_f297_fixed_off: t75_leaf1 = 0
  T75_L2_f4_fixed_off: t75_leaf2 = 0
  T75_R2_f36_ge: x_Wood_Deck_SF - 22.000001 t75_leaf2 >= -1e-06
  T75_R3_f4_ge: const_Overall_Cond - 1e-06 t75_leaf3 >= 3.999999
@@ -2082,28 +2067,28 @@ Subject To
  T75_R6_f12_ge: x_BsmtFin_SF_1 - 188.000001 t75_leaf6 >= -1e-06
  TREE_76_ONEHOT: t76_leaf0 + t76_leaf1 + t76_leaf2 + t76_leaf3 + t76_leaf4
    + t76_leaf5 + t76_leaf6 + t76_leaf7 = 1
- T76_L0_f6_fixed_off: t76_leaf0 = 0
- T76_L0_f297_fixed_off: t76_leaf0 = 0
+ T76_L0_f6_lt: const_Year_Remod_Add + 1e-06 t76_leaf0 <= 1984
+ T76_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t76_leaf0 <= 1
  T76_L0_f44_fixed_off: t76_leaf0 = 0
- T76_L1_f6_fixed_off: t76_leaf1 = 0
- T76_L1_f297_fixed_off: t76_leaf1 = 0
+ T76_L1_f6_lt: const_Year_Remod_Add + 1e-06 t76_leaf1 <= 1984
+ T76_L1_f297_lt: const_Sale_Condition_Normal + 1e-06 t76_leaf1 <= 1
  T76_R1_f44_ge: const_Yr_Sold - 1e-06 t76_leaf1 >= 2007.999999
- T76_L2_f6_fixed_off: t76_leaf2 = 0
- T76_R2_f297_ge: const_Sale_Condition_Normal - 1e-06 t76_leaf2 >= 0.999999
+ T76_L2_f6_lt: const_Year_Remod_Add + 1e-06 t76_leaf2 <= 1984
+ T76_R2_f297_fixed_off: t76_leaf2 = 0
  T76_L2_f0_lt: const_Lot_Frontage + 1e-06 t76_leaf2 <= 72
- T76_L3_f6_fixed_off: t76_leaf3 = 0
- T76_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t76_leaf3 >= 0.999999
+ T76_L3_f6_lt: const_Year_Remod_Add + 1e-06 t76_leaf3 <= 1984
+ T76_R3_f297_fixed_off: t76_leaf3 = 0
  T76_R3_f0_fixed_off: t76_leaf3 = 0
- T76_R4_f6_ge: const_Year_Remod_Add - 1e-06 t76_leaf4 >= 1983.999999
+ T76_R4_f6_fixed_off: t76_leaf4 = 0
  T76_L4_f44_fixed_off: t76_leaf4 = 0
  T76_L4_f36_lt: x_Wood_Deck_SF + 99807.00000099999 t76_leaf4 <= 100000
- T76_R5_f6_ge: const_Year_Remod_Add - 1e-06 t76_leaf5 >= 1983.999999
+ T76_R5_f6_fixed_off: t76_leaf5 = 0
  T76_L5_f44_fixed_off: t76_leaf5 = 0
  T76_R5_f36_ge: x_Wood_Deck_SF - 193.000001 t76_leaf5 >= -1e-06
- T76_R6_f6_ge: const_Year_Remod_Add - 1e-06 t76_leaf6 >= 1983.999999
+ T76_R6_f6_fixed_off: t76_leaf6 = 0
  T76_R6_f44_ge: const_Yr_Sold - 1e-06 t76_leaf6 >= 2006.999999
  T76_L6_f28_lt: x_TotRms_AbvGrd + 3.000001 t76_leaf6 <= 15
- T76_R7_f6_ge: const_Year_Remod_Add - 1e-06 t76_leaf7 >= 1983.999999
+ T76_R7_f6_fixed_off: t76_leaf7 = 0
  T76_R7_f44_ge: const_Yr_Sold - 1e-06 t76_leaf7 >= 2006.999999
  T76_R7_f28_ge: x_TotRms_AbvGrd - 12.000001 t76_leaf7 >= -1e-06
  TREE_77_ONEHOT: t77_leaf0 + t77_leaf1 + t77_leaf2 + t77_leaf3 + t77_leaf4
@@ -2143,17 +2128,19 @@ Subject To
  T78_R3_f20_ge: x_Gr_Liv_Area - 1734.000001 t78_leaf3 >= -1e-06
  T78_R3_f5_ge: const_Year_Built - 1e-06 t78_leaf3 >= 1900.999999
  T78_R4_f44_ge: const_Yr_Sold - 1e-06 t78_leaf4 >= 2007.999999
- T78_L4_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t78_leaf4 <= 1
+ T78_L4_f293_fixed_off: t78_leaf4 = 0
  T78_L4_f20_lt: x_Gr_Liv_Area + 8882.000001 t78_leaf4 <= 10000
  T78_R5_f44_ge: const_Yr_Sold - 1e-06 t78_leaf5 >= 2007.999999
- T78_L5_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t78_leaf5 <= 1
+ T78_L5_f293_fixed_off: t78_leaf5 = 0
  T78_R5_f20_ge: x_Gr_Liv_Area - 1118.000001 t78_leaf5 >= -1e-06
  T78_R6_f44_ge: const_Yr_Sold - 1e-06 t78_leaf6 >= 2007.999999
- T78_R6_f293_fixed_off: t78_leaf6 = 0
- T78_L6_f3_lt: Overall_Qual_calc + 5.000001 t78_leaf6 <= 10
+ T78_R6_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t78_leaf6
+   >= 0.999999
+ T78_L6_f3_lt: const_Overall_Qual + 1e-06 t78_leaf6 <= 5
  T78_R7_f44_ge: const_Yr_Sold - 1e-06 t78_leaf7 >= 2007.999999
- T78_R7_f293_fixed_off: t78_leaf7 = 0
- T78_R7_f3_ge: Overall_Qual_calc - 4.000001 t78_leaf7 >= 0.999999
+ T78_R7_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t78_leaf7
+   >= 0.999999
+ T78_R7_f3_fixed_off: t78_leaf7 = 0
  TREE_79_ONEHOT: t79_leaf0 + t79_leaf1 + t79_leaf2 + t79_leaf3 + t79_leaf4
    + t79_leaf5 + t79_leaf6 = 1
  T79_L0_f4_fixed_off: t79_leaf0 = 0
@@ -2180,10 +2167,11 @@ Subject To
    + t80_leaf5 + t80_leaf6 = 1
  T80_L0_f4_fixed_off: t80_leaf0 = 0
  T80_L0_f40_lt: x_Screen_Porch + 99896.00000099999 t80_leaf0 <= 100000
- T80_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t80_leaf0 <= 1
+ T80_L0_f293_fixed_off: t80_leaf0 = 0
  T80_L1_f4_fixed_off: t80_leaf1 = 0
  T80_L1_f40_lt: x_Screen_Porch + 99896.00000099999 t80_leaf1 <= 100000
- T80_R1_f293_fixed_off: t80_leaf1 = 0
+ T80_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t80_leaf1
+   >= 0.999999
  T80_L2_f4_fixed_off: t80_leaf2 = 0
  T80_R2_f40_ge: x_Screen_Porch - 104.000001 t80_leaf2 >= -1e-06
  T80_R3_f4_ge: const_Overall_Cond - 1e-06 t80_leaf3 >= 4.999999
@@ -2237,19 +2225,11 @@ Subject To
  T82_R6_f40_ge: x_Screen_Porch - 40.000001 t82_leaf6 >= -1e-06
  TREE_83_ONEHOT: t83_leaf0 + t83_leaf1 + t83_leaf2 + t83_leaf3 + t83_leaf4
    = 1
- T83_L0_f3_lt: Overall_Qual_calc + 7.000001 t83_leaf0 <= 10
- T83_R1_f3_ge: Overall_Qual_calc - 2.000001 t83_leaf1 >= 0.999999
- T83_L1_f15_lt: const_Total_Bsmt_SF + 1e-06 t83_leaf1 <= 1053
- T83_L1_f1_fixed_off: t83_leaf1 = 0
- T83_R2_f3_ge: Overall_Qual_calc - 2.000001 t83_leaf2 >= 0.999999
- T83_L2_f15_lt: const_Total_Bsmt_SF + 1e-06 t83_leaf2 <= 1053
- T83_R2_f1_ge: const_Lot_Area - 1e-06 t83_leaf2 >= 5975.999999
- T83_R3_f3_ge: Overall_Qual_calc - 2.000001 t83_leaf3 >= 0.999999
- T83_R3_f15_fixed_off: t83_leaf3 = 0
- T83_L3_f7_lt: x_Mas_Vnr_Area + 1e-06 t83_leaf3 <= 456
- T83_R4_f3_ge: Overall_Qual_calc - 2.000001 t83_leaf4 >= 0.999999
- T83_R4_f15_fixed_off: t83_leaf4 = 0
- T83_R4_f7_fixed_off: t83_leaf4 = 0
+ TREE_83_FORCE_LEAF_2: t83_leaf2 = 1
+ TREE_83_EXCLUDE_LEAF_0: t83_leaf0 = 0
+ TREE_83_EXCLUDE_LEAF_1: t83_leaf1 = 0
+ TREE_83_EXCLUDE_LEAF_3: t83_leaf3 = 0
+ TREE_83_EXCLUDE_LEAF_4: t83_leaf4 = 0
  TREE_84_ONEHOT: t84_leaf0 + t84_leaf1 + t84_leaf2 + t84_leaf3 + t84_leaf4
    + t84_leaf5 + t84_leaf6 = 1
  T84_L0_f4_fixed_off: t84_leaf0 = 0
@@ -2275,17 +2255,19 @@ Subject To
  TREE_85_ONEHOT: t85_leaf0 + t85_leaf1 + t85_leaf2 + t85_leaf3 + t85_leaf4
    + t85_leaf5 + t85_leaf6 = 1
  T85_L0_f207_lt: const_Bsmt_Exposure_Gd + 1e-06 t85_leaf0 <= 1
- T85_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t85_leaf0 <= 1
+ T85_L0_f293_fixed_off: t85_leaf0 = 0
  T85_L0_f15_fixed_off: t85_leaf0 = 0
  T85_L1_f207_lt: const_Bsmt_Exposure_Gd + 1e-06 t85_leaf1 <= 1
- T85_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t85_leaf1 <= 1
+ T85_L1_f293_fixed_off: t85_leaf1 = 0
  T85_R1_f15_ge: const_Total_Bsmt_SF - 1e-06 t85_leaf1 >= 662.999999
  T85_L2_f207_lt: const_Bsmt_Exposure_Gd + 1e-06 t85_leaf2 <= 1
- T85_R2_f293_fixed_off: t85_leaf2 = 0
- T85_L2_f3_lt: Overall_Qual_calc + 5.000001 t85_leaf2 <= 10
+ T85_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t85_leaf2
+   >= 0.999999
+ T85_L2_f3_lt: const_Overall_Qual + 1e-06 t85_leaf2 <= 5
  T85_L3_f207_lt: const_Bsmt_Exposure_Gd + 1e-06 t85_leaf3 <= 1
- T85_R3_f293_fixed_off: t85_leaf3 = 0
- T85_R3_f3_ge: Overall_Qual_calc - 4.000001 t85_leaf3 >= 0.999999
+ T85_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t85_leaf3
+   >= 0.999999
+ T85_R3_f3_fixed_off: t85_leaf3 = 0
  T85_R4_f207_fixed_off: t85_leaf4 = 0
  T85_L4_f15_lt: const_Total_Bsmt_SF + 1e-06 t85_leaf4 <= 1438
  T85_R5_f207_fixed_off: t85_leaf5 = 0
@@ -2329,10 +2311,10 @@ Subject To
    + t88_leaf5 + t88_leaf6 = 1
  T88_L0_f4_fixed_off: t88_leaf0 = 0
  T88_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t88_leaf0 <= 1400
- T88_L0_f297_fixed_off: t88_leaf0 = 0
+ T88_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t88_leaf0 <= 1
  T88_L1_f4_fixed_off: t88_leaf1 = 0
  T88_L1_f15_lt: const_Total_Bsmt_SF + 1e-06 t88_leaf1 <= 1400
- T88_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t88_leaf1 >= 0.999999
+ T88_R1_f297_fixed_off: t88_leaf1 = 0
  T88_L2_f4_fixed_off: t88_leaf2 = 0
  T88_R2_f15_fixed_off: t88_leaf2 = 0
  T88_R3_f4_ge: const_Overall_Cond - 1e-06 t88_leaf3 >= 3.999999
@@ -2350,16 +2332,18 @@ Subject To
  TREE_89_ONEHOT: t89_leaf0 + t89_leaf1 + t89_leaf2 + t89_leaf3 + t89_leaf4
    + t89_leaf5 + t89_leaf6 + t89_leaf7 = 1
  T89_L0_f11_lt: x_Bsmt_Cond + 2.000001 t89_leaf0 <= 4
- T89_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t89_leaf0 <= 1
+ T89_L0_f293_fixed_off: t89_leaf0 = 0
  T89_L0_f38_lt: x_Enclosed_Porch + 99808.00000099999 t89_leaf0 <= 100000
  T89_L1_f11_lt: x_Bsmt_Cond + 2.000001 t89_leaf1 <= 4
- T89_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t89_leaf1 <= 1
+ T89_L1_f293_fixed_off: t89_leaf1 = 0
  T89_R1_f38_ge: x_Enclosed_Porch - 192.000001 t89_leaf1 >= -1e-06
  T89_L2_f11_lt: x_Bsmt_Cond + 2.000001 t89_leaf2 <= 4
- T89_R2_f293_fixed_off: t89_leaf2 = 0
+ T89_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t89_leaf2
+   >= 0.999999
  T89_L2_f28_lt: x_TotRms_AbvGrd + 9.000000999999999 t89_leaf2 <= 15
  T89_L3_f11_lt: x_Bsmt_Cond + 2.000001 t89_leaf3 <= 4
- T89_R3_f293_fixed_off: t89_leaf3 = 0
+ T89_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t89_leaf3
+   >= 0.999999
  T89_R3_f28_ge: x_TotRms_AbvGrd - 6.000001 t89_leaf3 >= -1e-06
  T89_R4_f11_ge: x_Bsmt_Cond - 3.000001 t89_leaf4 >= -1.000001
  T89_L4_f20_lt: x_Gr_Liv_Area + 8251.000001 t89_leaf4 <= 10000
@@ -2388,17 +2372,19 @@ Subject To
  T90_R3_f134_ge: const_Bldg_Type_1Fam - 1e-06 t90_leaf3 >= 0.999999
  T90_R3_f15_fixed_off: t90_leaf3 = 0
  T90_R4_f44_ge: const_Yr_Sold - 1e-06 t90_leaf4 >= 2007.999999
- T90_L4_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t90_leaf4 <= 1
+ T90_L4_f293_fixed_off: t90_leaf4 = 0
  T90_L4_f37_lt: x_Open_Porch_SF + 99969.00000099999 t90_leaf4 <= 100000
  T90_R5_f44_ge: const_Yr_Sold - 1e-06 t90_leaf5 >= 2007.999999
- T90_L5_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t90_leaf5 <= 1
+ T90_L5_f293_fixed_off: t90_leaf5 = 0
  T90_R5_f37_ge: x_Open_Porch_SF - 31.000001 t90_leaf5 >= -1e-06
  T90_R6_f44_ge: const_Yr_Sold - 1e-06 t90_leaf6 >= 2007.999999
- T90_R6_f293_fixed_off: t90_leaf6 = 0
- T90_L6_f85_fixed_off: t90_leaf6 = 0
+ T90_R6_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t90_leaf6
+   >= 0.999999
+ T90_L6_f85_lt: const_Lot_Config_Inside + 1e-06 t90_leaf6 <= 1
  T90_R7_f44_ge: const_Yr_Sold - 1e-06 t90_leaf7 >= 2007.999999
- T90_R7_f293_fixed_off: t90_leaf7 = 0
- T90_R7_f85_ge: const_Lot_Config_Inside - 1e-06 t90_leaf7 >= 0.999999
+ T90_R7_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t90_leaf7
+   >= 0.999999
+ T90_R7_f85_fixed_off: t90_leaf7 = 0
  TREE_91_ONEHOT: t91_leaf0 + t91_leaf1 + t91_leaf2 + t91_leaf3 + t91_leaf4
    + t91_leaf5 + t91_leaf6 + t91_leaf7 = 1
  T91_L0_f12_lt: x_BsmtFin_SF_1 + 999708.000001 t91_leaf0 <= 1e+06
@@ -2428,13 +2414,14 @@ Subject To
  TREE_92_ONEHOT: t92_leaf0 + t92_leaf1 + t92_leaf2 + t92_leaf3 + t92_leaf4
    + t92_leaf5 + t92_leaf6 = 1
  T92_L0_f4_fixed_off: t92_leaf0 = 0
- T92_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t92_leaf0 <= 1
+ T92_L0_f293_fixed_off: t92_leaf0 = 0
  T92_L0_f231_lt: central_air_no + 1e-06 t92_leaf0 <= 1
  T92_L1_f4_fixed_off: t92_leaf1 = 0
- T92_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t92_leaf1 <= 1
+ T92_L1_f293_fixed_off: t92_leaf1 = 0
  T92_R1_f231_ge: central_air_no - 1.000001 t92_leaf1 >= -1e-06
  T92_L2_f4_fixed_off: t92_leaf2 = 0
- T92_R2_f293_fixed_off: t92_leaf2 = 0
+ T92_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t92_leaf2
+   >= 0.999999
  T92_R3_f4_ge: const_Overall_Cond - 1e-06 t92_leaf3 >= 3.999999
  T92_L3_f23_lt: x_Full_Bath + 1.000001 t92_leaf3 <= 4
  T92_L3_f44_fixed_off: t92_leaf3 = 0
@@ -2478,10 +2465,10 @@ Subject To
    + t94_leaf5 + t94_leaf6 = 1
  T94_L0_f29_lt: const_Fireplaces + 1e-06 t94_leaf0 <= 2
  T94_L0_f298_lt: const_Sale_Condition_Partial + 1e-06 t94_leaf0 <= 1
- T94_L0_f297_fixed_off: t94_leaf0 = 0
+ T94_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t94_leaf0 <= 1
  T94_L1_f29_lt: const_Fireplaces + 1e-06 t94_leaf1 <= 2
  T94_L1_f298_lt: const_Sale_Condition_Partial + 1e-06 t94_leaf1 <= 1
- T94_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t94_leaf1 >= 0.999999
+ T94_R1_f297_fixed_off: t94_leaf1 = 0
  T94_L2_f29_lt: const_Fireplaces + 1e-06 t94_leaf2 <= 2
  T94_R2_f298_fixed_off: t94_leaf2 = 0
  T94_L2_f14_lt: x_Bsmt_Unf_SF + 99362.00000099999 t94_leaf2 <= 100000
@@ -2511,27 +2498,28 @@ Subject To
  T95_R3_f20_ge: x_Gr_Liv_Area - 1200.000001 t95_leaf3 >= -1e-06
  T95_R3_f5_ge: const_Year_Built - 1e-06 t95_leaf3 >= 1910.999999
  T95_R4_f31_ge: const_Garage_Yr_Blt - 1e-06 t95_leaf4 >= 1928.999999
- T95_L4_f6_fixed_off: t95_leaf4 = 0
+ T95_L4_f6_lt: const_Year_Remod_Add + 1e-06 t95_leaf4 <= 1995
  T95_L4_f13_lt: x_BsmtFin_SF_2 + 99468.00000099999 t95_leaf4 <= 100000
  T95_R5_f31_ge: const_Garage_Yr_Blt - 1e-06 t95_leaf5 >= 1928.999999
- T95_L5_f6_fixed_off: t95_leaf5 = 0
+ T95_L5_f6_lt: const_Year_Remod_Add + 1e-06 t95_leaf5 <= 1995
  T95_R5_f13_ge: x_BsmtFin_SF_2 - 532.000001 t95_leaf5 >= -1e-06
  T95_R6_f31_ge: const_Garage_Yr_Blt - 1e-06 t95_leaf6 >= 1928.999999
- T95_R6_f6_ge: const_Year_Remod_Add - 1e-06 t95_leaf6 >= 1994.999999
+ T95_R6_f6_fixed_off: t95_leaf6 = 0
  T95_L6_f20_lt: x_Gr_Liv_Area + 8032.000001 t95_leaf6 <= 10000
  T95_R7_f31_ge: const_Garage_Yr_Blt - 1e-06 t95_leaf7 >= 1928.999999
- T95_R7_f6_ge: const_Year_Remod_Add - 1e-06 t95_leaf7 >= 1994.999999
+ T95_R7_f6_fixed_off: t95_leaf7 = 0
  T95_R7_f20_ge: x_Gr_Liv_Area - 1968.000001 t95_leaf7 >= -1e-06
  TREE_96_ONEHOT: t96_leaf0 + t96_leaf1 + t96_leaf2 + t96_leaf3 + t96_leaf4
    + t96_leaf5 + t96_leaf6 = 1
  T96_L0_f9_lt: x_Exter_Cond + 2.000001 t96_leaf0 <= 4
- T96_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t96_leaf0 <= 1
+ T96_L0_f293_fixed_off: t96_leaf0 = 0
  T96_L0_f31_fixed_off: t96_leaf0 = 0
  T96_L1_f9_lt: x_Exter_Cond + 2.000001 t96_leaf1 <= 4
- T96_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t96_leaf1 <= 1
+ T96_L1_f293_fixed_off: t96_leaf1 = 0
  T96_R1_f31_ge: const_Garage_Yr_Blt - 1e-06 t96_leaf1 >= 1920.999999
  T96_L2_f9_lt: x_Exter_Cond + 2.000001 t96_leaf2 <= 4
- T96_R2_f293_fixed_off: t96_leaf2 = 0
+ T96_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t96_leaf2
+   >= 0.999999
  T96_R3_f9_ge: x_Exter_Cond - 2.000001 t96_leaf3 >= -1e-06
  T96_L3_f20_lt: x_Gr_Liv_Area + 9012.000001 t96_leaf3 <= 10000
  T96_L3_f4_lt: const_Overall_Cond + 1e-06 t96_leaf3 <= 7
@@ -2596,16 +2584,16 @@ Subject To
    + t99_leaf5 + t99_leaf6 = 1
  T99_L0_f95_lt: const_Neighborhood_Crawfor + 1e-06 t99_leaf0 <= 1
  T99_L0_f12_lt: x_BsmtFin_SF_1 + 999708.000001 t99_leaf0 <= 1e+06
- T99_L0_f6_fixed_off: t99_leaf0 = 0
+ T99_L0_f6_lt: const_Year_Remod_Add + 1e-06 t99_leaf0 <= 1984
  T99_L1_f95_lt: const_Neighborhood_Crawfor + 1e-06 t99_leaf1 <= 1
  T99_L1_f12_lt: x_BsmtFin_SF_1 + 999708.000001 t99_leaf1 <= 1e+06
- T99_R1_f6_ge: const_Year_Remod_Add - 1e-06 t99_leaf1 >= 1983.999999
+ T99_R1_f6_fixed_off: t99_leaf1 = 0
  T99_L2_f95_lt: const_Neighborhood_Crawfor + 1e-06 t99_leaf2 <= 1
  T99_R2_f12_ge: x_BsmtFin_SF_1 - 292.000001 t99_leaf2 >= -1e-06
- T99_L2_f6_fixed_off: t99_leaf2 = 0
+ T99_L2_f6_lt: const_Year_Remod_Add + 1e-06 t99_leaf2 <= 1994
  T99_L3_f95_lt: const_Neighborhood_Crawfor + 1e-06 t99_leaf3 <= 1
  T99_R3_f12_ge: x_BsmtFin_SF_1 - 292.000001 t99_leaf3 >= -1e-06
- T99_R3_f6_ge: const_Year_Remod_Add - 1e-06 t99_leaf3 >= 1993.999999
+ T99_R3_f6_fixed_off: t99_leaf3 = 0
  T99_R4_f95_fixed_off: t99_leaf4 = 0
  T99_L4_f14_lt: x_Bsmt_Unf_SF + 99590.00000099999 t99_leaf4 <= 100000
  T99_R5_f95_fixed_off: t99_leaf5 = 0
@@ -2647,10 +2635,10 @@ Subject To
  T101_L0_f14_lt: x_Bsmt_Unf_SF + 99630.00000099999 t101_leaf0 <= 100000
  T101_L1_f4_fixed_off: t101_leaf1 = 0
  T101_R1_f14_ge: x_Bsmt_Unf_SF - 370.000001 t101_leaf1 >= -1e-06
- T101_L1_f275_fixed_off: t101_leaf1 = 0
+ T101_L1_f275_lt: const_Mo_Sold_5 + 1e-06 t101_leaf1 <= 1
  T101_L2_f4_fixed_off: t101_leaf2 = 0
  T101_R2_f14_ge: x_Bsmt_Unf_SF - 370.000001 t101_leaf2 >= -1e-06
- T101_R2_f275_ge: const_Mo_Sold_5 - 1e-06 t101_leaf2 >= 0.999999
+ T101_R2_f275_fixed_off: t101_leaf2 = 0
  T101_R3_f4_ge: const_Overall_Cond - 1e-06 t101_leaf3 >= 3.999999
  T101_L3_f95_lt: const_Neighborhood_Crawfor + 1e-06 t101_leaf3 <= 1
  T101_L3_f33_lt: x_Garage_Area + 98846.00000099999 t101_leaf3 <= 100000
@@ -2665,28 +2653,28 @@ Subject To
  T101_R6_f20_ge: x_Gr_Liv_Area - 1504.000001 t101_leaf6 >= -1e-06
  TREE_102_ONEHOT: t102_leaf0 + t102_leaf1 + t102_leaf2 + t102_leaf3
    + t102_leaf4 + t102_leaf5 + t102_leaf6 + t102_leaf7 = 1
- T102_L0_f3_lt: Overall_Qual_calc + 5.000001 t102_leaf0 <= 10
+ T102_L0_f3_lt: const_Overall_Qual + 1e-06 t102_leaf0 <= 5
  T102_L0_f100_lt: const_Neighborhood_IDOTRR + 1e-06 t102_leaf0 <= 1
  T102_L0_f37_lt: x_Open_Porch_SF + 99961.00000099999 t102_leaf0 <= 100000
- T102_L1_f3_lt: Overall_Qual_calc + 5.000001 t102_leaf1 <= 10
+ T102_L1_f3_lt: const_Overall_Qual + 1e-06 t102_leaf1 <= 5
  T102_L1_f100_lt: const_Neighborhood_IDOTRR + 1e-06 t102_leaf1 <= 1
  T102_R1_f37_ge: x_Open_Porch_SF - 39.000001 t102_leaf1 >= -1e-06
- T102_L2_f3_lt: Overall_Qual_calc + 5.000001 t102_leaf2 <= 10
+ T102_L2_f3_lt: const_Overall_Qual + 1e-06 t102_leaf2 <= 5
  T102_R2_f100_fixed_off: t102_leaf2 = 0
  T102_L2_f44_fixed_off: t102_leaf2 = 0
- T102_L3_f3_lt: Overall_Qual_calc + 5.000001 t102_leaf3 <= 10
+ T102_L3_f3_lt: const_Overall_Qual + 1e-06 t102_leaf3 <= 5
  T102_R3_f100_fixed_off: t102_leaf3 = 0
  T102_R3_f44_ge: const_Yr_Sold - 1e-06 t102_leaf3 >= 2006.999999
- T102_R4_f3_ge: Overall_Qual_calc - 4.000001 t102_leaf4 >= 0.999999
+ T102_R4_f3_fixed_off: t102_leaf4 = 0
  T102_L4_f207_lt: const_Bsmt_Exposure_Gd + 1e-06 t102_leaf4 <= 1
  T102_L4_f23_lt: x_Full_Bath + 1.000001 t102_leaf4 <= 4
- T102_R5_f3_ge: Overall_Qual_calc - 4.000001 t102_leaf5 >= 0.999999
+ T102_R5_f3_fixed_off: t102_leaf5 = 0
  T102_L5_f207_lt: const_Bsmt_Exposure_Gd + 1e-06 t102_leaf5 <= 1
  T102_R5_f23_ge: x_Full_Bath - 3.000001 t102_leaf5 >= -1e-06
- T102_R6_f3_ge: Overall_Qual_calc - 4.000001 t102_leaf6 >= 0.999999
+ T102_R6_f3_fixed_off: t102_leaf6 = 0
  T102_R6_f207_fixed_off: t102_leaf6 = 0
  T102_L6_f6_lt: const_Year_Remod_Add + 1e-06 t102_leaf6 <= 2009
- T102_R7_f3_ge: Overall_Qual_calc - 4.000001 t102_leaf7 >= 0.999999
+ T102_R7_f3_fixed_off: t102_leaf7 = 0
  T102_R7_f207_fixed_off: t102_leaf7 = 0
  T102_R7_f6_fixed_off: t102_leaf7 = 0
  TREE_103_ONEHOT: t103_leaf0 + t103_leaf1 + t103_leaf2 + t103_leaf3
@@ -2709,35 +2697,37 @@ Subject To
  T103_R5_f36_ge: x_Wood_Deck_SF - 116.000001 t103_leaf5 >= -1e-06
  TREE_104_ONEHOT: t104_leaf0 + t104_leaf1 + t104_leaf2 + t104_leaf3
    + t104_leaf4 + t104_leaf5 = 1
- T104_L0_f3_lt: Overall_Qual_calc + 7.000001 t104_leaf0 <= 10
+ T104_L0_f3_fixed_off: t104_leaf0 = 0
  T104_L0_f33_lt: x_Garage_Area + 99714.00000099999 t104_leaf0 <= 100000
- T104_L1_f3_lt: Overall_Qual_calc + 7.000001 t104_leaf1 <= 10
+ T104_L1_f3_fixed_off: t104_leaf1 = 0
  T104_R1_f33_ge: x_Garage_Area - 286.000001 t104_leaf1 >= -1e-06
- T104_R2_f3_ge: Overall_Qual_calc - 2.000001 t104_leaf2 >= 0.999999
+ T104_R2_f3_ge: const_Overall_Qual - 1e-06 t104_leaf2 >= 2.999999
  T104_L2_f1_lt: const_Lot_Area + 1e-06 t104_leaf2 <= 14680
  T104_L2_f31_fixed_off: t104_leaf2 = 0
- T104_R3_f3_ge: Overall_Qual_calc - 2.000001 t104_leaf3 >= 0.999999
+ T104_R3_f3_ge: const_Overall_Qual - 1e-06 t104_leaf3 >= 2.999999
  T104_L3_f1_lt: const_Lot_Area + 1e-06 t104_leaf3 <= 14680
  T104_R3_f31_ge: const_Garage_Yr_Blt - 1e-06 t104_leaf3 >= 1899.999999
- T104_R4_f3_ge: Overall_Qual_calc - 2.000001 t104_leaf4 >= 0.999999
+ T104_R4_f3_ge: const_Overall_Qual - 1e-06 t104_leaf4 >= 2.999999
  T104_R4_f1_fixed_off: t104_leaf4 = 0
  T104_L4_f18_lt: const_2nd_Flr_SF + 1e-06 t104_leaf4 <= 1276
- T104_R5_f3_ge: Overall_Qual_calc - 2.000001 t104_leaf5 >= 0.999999
+ T104_R5_f3_ge: const_Overall_Qual - 1e-06 t104_leaf5 >= 2.999999
  T104_R5_f1_fixed_off: t104_leaf5 = 0
  T104_R5_f18_fixed_off: t104_leaf5 = 0
  TREE_105_ONEHOT: t105_leaf0 + t105_leaf1 + t105_leaf2 + t105_leaf3
    + t105_leaf4 + t105_leaf5 + t105_leaf6 + t105_leaf7 = 1
  T105_L0_f11_lt: x_Bsmt_Cond + 2.000001 t105_leaf0 <= 4
- T105_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t105_leaf0 <= 1
+ T105_L0_f293_fixed_off: t105_leaf0 = 0
  T105_L0_f17_lt: x_1st_Flr_SF + 4020.000001 t105_leaf0 <= 5000
  T105_L1_f11_lt: x_Bsmt_Cond + 2.000001 t105_leaf1 <= 4
- T105_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t105_leaf1 <= 1
+ T105_L1_f293_fixed_off: t105_leaf1 = 0
  T105_R1_f17_ge: x_1st_Flr_SF - 980.000001 t105_leaf1 >= -1e-06
  T105_L2_f11_lt: x_Bsmt_Cond + 2.000001 t105_leaf2 <= 4
- T105_R2_f293_fixed_off: t105_leaf2 = 0
+ T105_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t105_leaf2
+   >= 0.999999
  T105_L2_f16_lt: x_Heating_QC + 1.000001 t105_leaf2 <= 4
  T105_L3_f11_lt: x_Bsmt_Cond + 2.000001 t105_leaf3 <= 4
- T105_R3_f293_fixed_off: t105_leaf3 = 0
+ T105_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t105_leaf3
+   >= 0.999999
  T105_R3_f16_ge: x_Heating_QC - 3.000001 t105_leaf3 >= -1e-06
  T105_R4_f11_ge: x_Bsmt_Cond - 3.000001 t105_leaf4 >= -1.000001
  T105_L4_f4_lt: const_Overall_Cond + 1e-06 t105_leaf4 <= 7
@@ -2755,11 +2745,10 @@ Subject To
    + t106_leaf4 + t106_leaf5 + t106_leaf6 = 1
  T106_L0_f21_lt: const_Bsmt_Full_Bath + 1e-06 t106_leaf0 <= 1
  T106_L0_f20_lt: x_Gr_Liv_Area + 8854.000001 t106_leaf0 <= 10000
- T106_L0_f297_fixed_off: t106_leaf0 = 0
+ T106_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t106_leaf0 <= 1
  T106_L1_f21_lt: const_Bsmt_Full_Bath + 1e-06 t106_leaf1 <= 1
  T106_L1_f20_lt: x_Gr_Liv_Area + 8854.000001 t106_leaf1 <= 10000
- T106_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t106_leaf1
-   >= 0.999999
+ T106_R1_f297_fixed_off: t106_leaf1 = 0
  T106_L2_f21_lt: const_Bsmt_Full_Bath + 1e-06 t106_leaf2 <= 1
  T106_R2_f20_ge: x_Gr_Liv_Area - 1146.000001 t106_leaf2 >= -1e-06
  T106_L2_f4_lt: const_Overall_Cond + 1e-06 t106_leaf2 <= 7
@@ -2802,39 +2791,43 @@ Subject To
  T107_R7_f0_ge: const_Lot_Frontage - 1e-06 t107_leaf7 >= 62.999999
  TREE_108_ONEHOT: t108_leaf0 + t108_leaf1 + t108_leaf2 + t108_leaf3
    + t108_leaf4 + t108_leaf5 + t108_leaf6 + t108_leaf7 = 1
- T108_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t108_leaf0 <= 1
+ T108_L0_f293_fixed_off: t108_leaf0 = 0
  T108_L0_f76_fixed_off: t108_leaf0 = 0
  T108_L0_f164_lt: x_ex1_is_BrkFace + 1e-06 t108_leaf0 <= 1
- T108_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t108_leaf1 <= 1
+ T108_L1_f293_fixed_off: t108_leaf1 = 0
  T108_L1_f76_fixed_off: t108_leaf1 = 0
  T108_R1_f164_ge: x_ex1_is_BrkFace - 1.000001 t108_leaf1 >= -1e-06
- T108_L2_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t108_leaf2 <= 1
+ T108_L2_f293_fixed_off: t108_leaf2 = 0
  T108_R2_f76_ge: const_Lot_Shape_Reg - 1e-06 t108_leaf2 >= 0.999999
  T108_L2_f1_fixed_off: t108_leaf2 = 0
- T108_L3_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t108_leaf3 <= 1
+ T108_L3_f293_fixed_off: t108_leaf3 = 0
  T108_R3_f76_ge: const_Lot_Shape_Reg - 1e-06 t108_leaf3 >= 0.999999
  T108_R3_f1_ge: const_Lot_Area - 1e-06 t108_leaf3 >= 2644.999999
- T108_R4_f293_fixed_off: t108_leaf4 = 0
- T108_L4_f3_lt: Overall_Qual_calc + 5.000001 t108_leaf4 <= 10
+ T108_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t108_leaf4
+   >= 0.999999
+ T108_L4_f3_lt: const_Overall_Qual + 1e-06 t108_leaf4 <= 5
  T108_L4_f169_lt: x_ex1_is_MetalSd + 1e-06 t108_leaf4 <= 1
- T108_R5_f293_fixed_off: t108_leaf5 = 0
- T108_L5_f3_lt: Overall_Qual_calc + 5.000001 t108_leaf5 <= 10
+ T108_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t108_leaf5
+   >= 0.999999
+ T108_L5_f3_lt: const_Overall_Qual + 1e-06 t108_leaf5 <= 5
  T108_R5_f169_ge: x_ex1_is_MetalSd - 1.000001 t108_leaf5 >= -1e-06
- T108_R6_f293_fixed_off: t108_leaf6 = 0
- T108_R6_f3_ge: Overall_Qual_calc - 4.000001 t108_leaf6 >= 0.999999
+ T108_R6_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t108_leaf6
+   >= 0.999999
+ T108_R6_f3_fixed_off: t108_leaf6 = 0
  T108_L6_f27_lt: x_Kitchen_Qual + 1e-06 t108_leaf6 <= 4
- T108_R7_f293_fixed_off: t108_leaf7 = 0
- T108_R7_f3_ge: Overall_Qual_calc - 4.000001 t108_leaf7 >= 0.999999
+ T108_R7_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t108_leaf7
+   >= 0.999999
+ T108_R7_f3_fixed_off: t108_leaf7 = 0
  T108_R7_f27_ge: x_Kitchen_Qual - 4.000001 t108_leaf7 >= -1e-06
  TREE_109_ONEHOT: t109_leaf0 + t109_leaf1 + t109_leaf2 + t109_leaf3
    + t109_leaf4 + t109_leaf5 + t109_leaf6 = 1
  T109_L0_f9_lt: x_Exter_Cond + 2.000001 t109_leaf0 <= 4
- T109_L0_f3_lt: Overall_Qual_calc + 7.000001 t109_leaf0 <= 10
+ T109_L0_f3_fixed_off: t109_leaf0 = 0
  T109_L1_f9_lt: x_Exter_Cond + 2.000001 t109_leaf1 <= 4
- T109_R1_f3_ge: Overall_Qual_calc - 2.000001 t109_leaf1 >= 0.999999
+ T109_R1_f3_ge: const_Overall_Qual - 1e-06 t109_leaf1 >= 2.999999
  T109_L1_f33_lt: x_Garage_Area + 99649.00000099999 t109_leaf1 <= 100000
  T109_L2_f9_lt: x_Exter_Cond + 2.000001 t109_leaf2 <= 4
- T109_R2_f3_ge: Overall_Qual_calc - 2.000001 t109_leaf2 >= 0.999999
+ T109_R2_f3_ge: const_Overall_Qual - 1e-06 t109_leaf2 >= 2.999999
  T109_R2_f33_ge: x_Garage_Area - 351.000001 t109_leaf2 >= -1e-06
  T109_R3_f9_ge: x_Exter_Cond - 2.000001 t109_leaf3 >= -1e-06
  T109_L3_f20_lt: x_Gr_Liv_Area + 7737.000001 t109_leaf3 <= 10000
@@ -2852,10 +2845,11 @@ Subject To
    + t110_leaf4 + t110_leaf5 = 1
  T110_L0_f40_lt: x_Screen_Porch + 99896.00000099999 t110_leaf0 <= 100000
  T110_L0_f12_lt: x_BsmtFin_SF_1 + 999777.000001 t110_leaf0 <= 1e+06
- T110_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t110_leaf0 <= 1
+ T110_L0_f293_fixed_off: t110_leaf0 = 0
  T110_L1_f40_lt: x_Screen_Porch + 99896.00000099999 t110_leaf1 <= 100000
  T110_L1_f12_lt: x_BsmtFin_SF_1 + 999777.000001 t110_leaf1 <= 1e+06
- T110_R1_f293_fixed_off: t110_leaf1 = 0
+ T110_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t110_leaf1
+   >= 0.999999
  T110_L2_f40_lt: x_Screen_Porch + 99896.00000099999 t110_leaf2 <= 100000
  T110_R2_f12_ge: x_BsmtFin_SF_1 - 223.000001 t110_leaf2 >= -1e-06
  T110_L2_f18_lt: const_2nd_Flr_SF + 1e-06 t110_leaf2 <= 1629
@@ -2921,13 +2915,14 @@ Subject To
  TREE_113_ONEHOT: t113_leaf0 + t113_leaf1 + t113_leaf2 + t113_leaf3
    + t113_leaf4 + t113_leaf5 + t113_leaf6 = 1
  T113_L0_f20_lt: x_Gr_Liv_Area + 9167.000001 t113_leaf0 <= 10000
- T113_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t113_leaf0 <= 1
+ T113_L0_f293_fixed_off: t113_leaf0 = 0
  T113_L0_f38_lt: x_Enclosed_Porch + 99965.00000099999 t113_leaf0 <= 100000
  T113_L1_f20_lt: x_Gr_Liv_Area + 9167.000001 t113_leaf1 <= 10000
- T113_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t113_leaf1 <= 1
+ T113_L1_f293_fixed_off: t113_leaf1 = 0
  T113_R1_f38_ge: x_Enclosed_Porch - 35.000001 t113_leaf1 >= -1e-06
  T113_L2_f20_lt: x_Gr_Liv_Area + 9167.000001 t113_leaf2 <= 10000
- T113_R2_f293_fixed_off: t113_leaf2 = 0
+ T113_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t113_leaf2
+   >= 0.999999
  T113_R3_f20_ge: x_Gr_Liv_Area - 833.000001 t113_leaf3 >= -1e-06
  T113_L3_f15_lt: const_Total_Bsmt_SF + 1e-06 t113_leaf3 <= 1438
  T113_L3_f95_lt: const_Neighborhood_Crawfor + 1e-06 t113_leaf3 <= 1
@@ -2944,10 +2939,10 @@ Subject To
    + t114_leaf4 + t114_leaf5 + t114_leaf6 + t114_leaf7 = 1
  T114_L0_f1_fixed_off: t114_leaf0 = 0
  T114_L0_f12_lt: x_BsmtFin_SF_1 + 999230.000001 t114_leaf0 <= 1e+06
- T114_L0_f3_lt: Overall_Qual_calc + 5.000001 t114_leaf0 <= 10
+ T114_L0_f3_lt: const_Overall_Qual + 1e-06 t114_leaf0 <= 5
  T114_L1_f1_fixed_off: t114_leaf1 = 0
  T114_L1_f12_lt: x_BsmtFin_SF_1 + 999230.000001 t114_leaf1 <= 1e+06
- T114_R1_f3_ge: Overall_Qual_calc - 4.000001 t114_leaf1 >= 0.999999
+ T114_R1_f3_fixed_off: t114_leaf1 = 0
  T114_L2_f1_fixed_off: t114_leaf2 = 0
  T114_R2_f12_ge: x_BsmtFin_SF_1 - 770.000001 t114_leaf2 >= -1e-06
  T114_L2_f5_fixed_off: t114_leaf2 = 0
@@ -2995,16 +2990,18 @@ Subject To
  T116_L2_f44_fixed_off: t116_leaf2 = 0
  T116_R2_f20_ge: x_Gr_Liv_Area - 3086.000001 t116_leaf2 >= -1e-06
  T116_R3_f44_ge: const_Yr_Sold - 1e-06 t116_leaf3 >= 2007.999999
- T116_L3_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t116_leaf3 <= 1
+ T116_L3_f293_fixed_off: t116_leaf3 = 0
  T116_L3_f4_lt: const_Overall_Cond + 1e-06 t116_leaf3 <= 7
  T116_R4_f44_ge: const_Yr_Sold - 1e-06 t116_leaf4 >= 2007.999999
- T116_L4_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t116_leaf4 <= 1
+ T116_L4_f293_fixed_off: t116_leaf4 = 0
  T116_R4_f4_fixed_off: t116_leaf4 = 0
  T116_R5_f44_ge: const_Yr_Sold - 1e-06 t116_leaf5 >= 2007.999999
- T116_R5_f293_fixed_off: t116_leaf5 = 0
+ T116_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t116_leaf5
+   >= 0.999999
  T116_L5_f20_lt: x_Gr_Liv_Area + 9024.000001 t116_leaf5 <= 10000
  T116_R6_f44_ge: const_Yr_Sold - 1e-06 t116_leaf6 >= 2007.999999
- T116_R6_f293_fixed_off: t116_leaf6 = 0
+ T116_R6_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t116_leaf6
+   >= 0.999999
  T116_R6_f20_ge: x_Gr_Liv_Area - 976.000001 t116_leaf6 >= -1e-06
  TREE_117_ONEHOT: t117_leaf0 + t117_leaf1 + t117_leaf2 + t117_leaf3
    + t117_leaf4 = 1
@@ -3051,37 +3048,35 @@ Subject To
  T119_R3_f18_fixed_off: t119_leaf3 = 0
  TREE_120_ONEHOT: t120_leaf0 + t120_leaf1 + t120_leaf2 + t120_leaf3
    + t120_leaf4 + t120_leaf5 = 1
- T120_L0_f3_lt: Overall_Qual_calc + 7.000001 t120_leaf0 <= 10
+ T120_L0_f3_fixed_off: t120_leaf0 = 0
  T120_L0_f6_fixed_off: t120_leaf0 = 0
- T120_L1_f3_lt: Overall_Qual_calc + 7.000001 t120_leaf1 <= 10
+ T120_L1_f3_fixed_off: t120_leaf1 = 0
  T120_R1_f6_ge: const_Year_Remod_Add - 1e-06 t120_leaf1 >= 1950.999999
- T120_R2_f3_ge: Overall_Qual_calc - 2.000001 t120_leaf2 >= 0.999999
+ T120_R2_f3_ge: const_Overall_Qual - 1e-06 t120_leaf2 >= 2.999999
  T120_L2_f95_lt: const_Neighborhood_Crawfor + 1e-06 t120_leaf2 <= 1
  T120_L2_f33_lt: x_Garage_Area + 98846.00000099999 t120_leaf2 <= 100000
- T120_R3_f3_ge: Overall_Qual_calc - 2.000001 t120_leaf3 >= 0.999999
+ T120_R3_f3_ge: const_Overall_Qual - 1e-06 t120_leaf3 >= 2.999999
  T120_L3_f95_lt: const_Neighborhood_Crawfor + 1e-06 t120_leaf3 <= 1
  T120_R3_f33_ge: x_Garage_Area - 1154.000001 t120_leaf3 >= -1e-06
- T120_R4_f3_ge: Overall_Qual_calc - 2.000001 t120_leaf4 >= 0.999999
+ T120_R4_f3_ge: const_Overall_Qual - 1e-06 t120_leaf4 >= 2.999999
  T120_R4_f95_fixed_off: t120_leaf4 = 0
  T120_L4_f1_fixed_off: t120_leaf4 = 0
- T120_R5_f3_ge: Overall_Qual_calc - 2.000001 t120_leaf5 >= 0.999999
+ T120_R5_f3_ge: const_Overall_Qual - 1e-06 t120_leaf5 >= 2.999999
  T120_R5_f95_fixed_off: t120_leaf5 = 0
  T120_R5_f1_ge: const_Lot_Area - 1e-06 t120_leaf5 >= 4425.999999
  TREE_121_ONEHOT: t121_leaf0 + t121_leaf1 + t121_leaf2 + t121_leaf3
    + t121_leaf4 + t121_leaf5 + t121_leaf6 = 1
  T121_L0_f20_lt: x_Gr_Liv_Area + 8845.000001 t121_leaf0 <= 10000
- T121_L0_f297_fixed_off: t121_leaf0 = 0
+ T121_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t121_leaf0 <= 1
  T121_L0_f259_fixed_off: t121_leaf0 = 0
  T121_L1_f20_lt: x_Gr_Liv_Area + 8845.000001 t121_leaf1 <= 10000
- T121_L1_f297_fixed_off: t121_leaf1 = 0
+ T121_L1_f297_lt: const_Sale_Condition_Normal + 1e-06 t121_leaf1 <= 1
  T121_R1_f259_ge: x_paved_drive_is_Y - 1e-06 t121_leaf1 >= 0.999999
  T121_L2_f20_lt: x_Gr_Liv_Area + 8845.000001 t121_leaf2 <= 10000
- T121_R2_f297_ge: const_Sale_Condition_Normal - 1e-06 t121_leaf2
-   >= 0.999999
+ T121_R2_f297_fixed_off: t121_leaf2 = 0
  T121_L2_f31_fixed_off: t121_leaf2 = 0
  T121_L3_f20_lt: x_Gr_Liv_Area + 8845.000001 t121_leaf3 <= 10000
- T121_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t121_leaf3
-   >= 0.999999
+ T121_R3_f297_fixed_off: t121_leaf3 = 0
  T121_R3_f31_ge: const_Garage_Yr_Blt - 1e-06 t121_leaf3 >= 1930.999999
  T121_R4_f20_ge: x_Gr_Liv_Area - 1155.000001 t121_leaf4 >= -1e-06
  T121_L4_f7_lt: x_Mas_Vnr_Area + 1e-06 t121_leaf4 <= 504
@@ -3128,10 +3123,10 @@ Subject To
    + t124_leaf4 + t124_leaf5 = 1
  T124_L0_f36_lt: x_Wood_Deck_SF + 99784.00000099999 t124_leaf0 <= 100000
  T124_L0_f95_lt: const_Neighborhood_Crawfor + 1e-06 t124_leaf0 <= 1
- T124_L0_f6_fixed_off: t124_leaf0 = 0
+ T124_L0_f6_lt: const_Year_Remod_Add + 1e-06 t124_leaf0 <= 1993
  T124_L1_f36_lt: x_Wood_Deck_SF + 99784.00000099999 t124_leaf1 <= 100000
  T124_L1_f95_lt: const_Neighborhood_Crawfor + 1e-06 t124_leaf1 <= 1
- T124_R1_f6_ge: const_Year_Remod_Add - 1e-06 t124_leaf1 >= 1992.999999
+ T124_R1_f6_fixed_off: t124_leaf1 = 0
  T124_L2_f36_lt: x_Wood_Deck_SF + 99784.00000099999 t124_leaf2 <= 100000
  T124_R2_f95_fixed_off: t124_leaf2 = 0
  T124_L2_f33_lt: x_Garage_Area + 99503.00000099999 t124_leaf2 <= 100000
@@ -3177,65 +3172,64 @@ Subject To
  T126_R4_f6_ge: const_Year_Remod_Add - 1e-06 t126_leaf4 >= 1961.999999
  TREE_127_ONEHOT: t127_leaf0 + t127_leaf1 + t127_leaf2 + t127_leaf3
    + t127_leaf4 + t127_leaf5 = 1
- T127_L0_f3_lt: Overall_Qual_calc + 7.000001 t127_leaf0 <= 10
- T127_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t127_leaf0 <= 1
- T127_L1_f3_lt: Overall_Qual_calc + 7.000001 t127_leaf1 <= 10
- T127_R1_f293_fixed_off: t127_leaf1 = 0
- T127_R2_f3_ge: Overall_Qual_calc - 2.000001 t127_leaf2 >= 0.999999
+ T127_L0_f3_fixed_off: t127_leaf0 = 0
+ T127_L0_f293_fixed_off: t127_leaf0 = 0
+ T127_L1_f3_fixed_off: t127_leaf1 = 0
+ T127_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t127_leaf1
+   >= 0.999999
+ T127_R2_f3_ge: const_Overall_Qual - 1e-06 t127_leaf2 >= 2.999999
  T127_L2_f5_fixed_off: t127_leaf2 = 0
  T127_L2_f16_lt: x_Heating_QC + 1.000001 t127_leaf2 <= 4
- T127_R3_f3_ge: Overall_Qual_calc - 2.000001 t127_leaf3 >= 0.999999
+ T127_R3_f3_ge: const_Overall_Qual - 1e-06 t127_leaf3 >= 2.999999
  T127_L3_f5_fixed_off: t127_leaf3 = 0
  T127_R3_f16_ge: x_Heating_QC - 3.000001 t127_leaf3 >= -1e-06
- T127_R4_f3_ge: Overall_Qual_calc - 2.000001 t127_leaf4 >= 0.999999
+ T127_R4_f3_ge: const_Overall_Qual - 1e-06 t127_leaf4 >= 2.999999
  T127_R4_f5_ge: const_Year_Built - 1e-06 t127_leaf4 >= 1912.999999
  T127_L4_f1_fixed_off: t127_leaf4 = 0
- T127_R5_f3_ge: Overall_Qual_calc - 2.000001 t127_leaf5 >= 0.999999
+ T127_R5_f3_ge: const_Overall_Qual - 1e-06 t127_leaf5 >= 2.999999
  T127_R5_f5_ge: const_Year_Built - 1e-06 t127_leaf5 >= 1912.999999
  T127_R5_f1_ge: const_Lot_Area - 1e-06 t127_leaf5 >= 3674.999999
  TREE_128_ONEHOT: t128_leaf0 + t128_leaf1 + t128_leaf2 + t128_leaf3
    + t128_leaf4 = 1
- T128_L0_f3_lt: Overall_Qual_calc + 7.000001 t128_leaf0 <= 10
- T128_R1_f3_ge: Overall_Qual_calc - 2.000001 t128_leaf1 >= 0.999999
+ T128_L0_f3_fixed_off: t128_leaf0 = 0
+ T128_R1_f3_ge: const_Overall_Qual - 1e-06 t128_leaf1 >= 2.999999
  T128_L1_f4_lt: const_Overall_Cond + 1e-06 t128_leaf1 <= 7
  T128_L1_f31_lt: const_Garage_Yr_Blt + 1e-06 t128_leaf1 <= 2005
- T128_R2_f3_ge: Overall_Qual_calc - 2.000001 t128_leaf2 >= 0.999999
+ T128_R2_f3_ge: const_Overall_Qual - 1e-06 t128_leaf2 >= 2.999999
  T128_L2_f4_lt: const_Overall_Cond + 1e-06 t128_leaf2 <= 7
  T128_R2_f31_fixed_off: t128_leaf2 = 0
- T128_R3_f3_ge: Overall_Qual_calc - 2.000001 t128_leaf3 >= 0.999999
+ T128_R3_f3_ge: const_Overall_Qual - 1e-06 t128_leaf3 >= 2.999999
  T128_R3_f4_fixed_off: t128_leaf3 = 0
  T128_L3_f17_lt: x_1st_Flr_SF + 3680.000001 t128_leaf3 <= 5000
- T128_R4_f3_ge: Overall_Qual_calc - 2.000001 t128_leaf4 >= 0.999999
+ T128_R4_f3_ge: const_Overall_Qual - 1e-06 t128_leaf4 >= 2.999999
  T128_R4_f4_fixed_off: t128_leaf4 = 0
  T128_R4_f17_ge: x_1st_Flr_SF - 1320.000001 t128_leaf4 >= -1e-06
  TREE_129_ONEHOT: t129_leaf0 + t129_leaf1 + t129_leaf2 + t129_leaf3
    + t129_leaf4 + t129_leaf5 = 1
  T129_L0_f8_lt: x_Exter_Qual + 2.000001 t129_leaf0 <= 4
- T129_L0_f297_fixed_off: t129_leaf0 = 0
+ T129_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t129_leaf0 <= 1
  T129_L1_f8_lt: x_Exter_Qual + 2.000001 t129_leaf1 <= 4
- T129_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t129_leaf1
-   >= 0.999999
+ T129_R1_f297_fixed_off: t129_leaf1 = 0
  T129_R2_f8_ge: x_Exter_Qual - 2.000001 t129_leaf2 >= -1e-06
- T129_L2_f96_fixed_off: t129_leaf2 = 0
- T129_L2_f3_lt: Overall_Qual_calc + 1e-06 t129_leaf2 <= 10
+ T129_L2_f96_lt: const_Neighborhood_Edwards + 1e-06 t129_leaf2 <= 1
+ T129_L2_f3_lt: const_Overall_Qual + 1e-06 t129_leaf2 <= 10
  T129_R3_f8_ge: x_Exter_Qual - 2.000001 t129_leaf3 >= -1e-06
- T129_L3_f96_fixed_off: t129_leaf3 = 0
- T129_R3_f3_ge: Overall_Qual_calc - 9.000000999999999 t129_leaf3
-   >= 0.999999
+ T129_L3_f96_lt: const_Neighborhood_Edwards + 1e-06 t129_leaf3 <= 1
+ T129_R3_f3_fixed_off: t129_leaf3 = 0
  T129_R4_f8_ge: x_Exter_Qual - 2.000001 t129_leaf4 >= -1e-06
- T129_R4_f96_ge: const_Neighborhood_Edwards - 1e-06 t129_leaf4 >= 0.999999
+ T129_R4_f96_fixed_off: t129_leaf4 = 0
  T129_L4_f0_fixed_off: t129_leaf4 = 0
  T129_R5_f8_ge: x_Exter_Qual - 2.000001 t129_leaf5 >= -1e-06
- T129_R5_f96_ge: const_Neighborhood_Edwards - 1e-06 t129_leaf5 >= 0.999999
+ T129_R5_f96_fixed_off: t129_leaf5 = 0
  T129_R5_f0_ge: const_Lot_Frontage - 1e-06 t129_leaf5 >= 65.999999
  TREE_130_ONEHOT: t130_leaf0 + t130_leaf1 + t130_leaf2 + t130_leaf3
    + t130_leaf4 + t130_leaf5 + t130_leaf6 + t130_leaf7 = 1
  T130_L0_f36_lt: x_Wood_Deck_SF + 99805.00000099999 t130_leaf0 <= 100000
  T130_L0_f95_lt: const_Neighborhood_Crawfor + 1e-06 t130_leaf0 <= 1
- T130_L0_f6_fixed_off: t130_leaf0 = 0
+ T130_L0_f6_lt: const_Year_Remod_Add + 1e-06 t130_leaf0 <= 1995
  T130_L1_f36_lt: x_Wood_Deck_SF + 99805.00000099999 t130_leaf1 <= 100000
  T130_L1_f95_lt: const_Neighborhood_Crawfor + 1e-06 t130_leaf1 <= 1
- T130_R1_f6_ge: const_Year_Remod_Add - 1e-06 t130_leaf1 >= 1994.999999
+ T130_R1_f6_fixed_off: t130_leaf1 = 0
  T130_L2_f36_lt: x_Wood_Deck_SF + 99805.00000099999 t130_leaf2 <= 100000
  T130_R2_f95_fixed_off: t130_leaf2 = 0
  T130_L2_f0_fixed_off: t130_leaf2 = 0
@@ -3257,18 +3251,16 @@ Subject To
  TREE_131_ONEHOT: t131_leaf0 + t131_leaf1 + t131_leaf2 + t131_leaf3
    + t131_leaf4 + t131_leaf5 + t131_leaf6 + t131_leaf7 = 1
  T131_L0_f9_lt: x_Exter_Cond + 2.000001 t131_leaf0 <= 4
- T131_L0_f297_fixed_off: t131_leaf0 = 0
+ T131_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t131_leaf0 <= 1
  T131_L0_f28_lt: x_TotRms_AbvGrd + 9.000000999999999 t131_leaf0 <= 15
  T131_L1_f9_lt: x_Exter_Cond + 2.000001 t131_leaf1 <= 4
- T131_L1_f297_fixed_off: t131_leaf1 = 0
+ T131_L1_f297_lt: const_Sale_Condition_Normal + 1e-06 t131_leaf1 <= 1
  T131_R1_f28_ge: x_TotRms_AbvGrd - 6.000001 t131_leaf1 >= -1e-06
  T131_L2_f9_lt: x_Exter_Cond + 2.000001 t131_leaf2 <= 4
- T131_R2_f297_ge: const_Sale_Condition_Normal - 1e-06 t131_leaf2
-   >= 0.999999
+ T131_R2_f297_fixed_off: t131_leaf2 = 0
  T131_L2_f17_lt: x_1st_Flr_SF + 4049.000001 t131_leaf2 <= 5000
  T131_L3_f9_lt: x_Exter_Cond + 2.000001 t131_leaf3 <= 4
- T131_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t131_leaf3
-   >= 0.999999
+ T131_R3_f297_fixed_off: t131_leaf3 = 0
  T131_R3_f17_ge: x_1st_Flr_SF - 951.000001 t131_leaf3 >= -1e-06
  T131_R4_f9_ge: x_Exter_Cond - 2.000001 t131_leaf4 >= -1e-06
  T131_L4_f40_lt: x_Screen_Porch + 99858.00000099999 t131_leaf4 <= 100000
@@ -3323,10 +3315,10 @@ Subject To
  T134_R1_f4_ge: const_Overall_Cond - 1e-06 t134_leaf1 >= 5.999999
  T134_L2_f15_lt: const_Total_Bsmt_SF + 1e-06 t134_leaf2 <= 2136
  T134_R2_f16_ge: x_Heating_QC - 3.000001 t134_leaf2 >= -1e-06
- T134_L2_f44_lt: const_Yr_Sold + 1e-06 t134_leaf2 <= 2009
+ T134_L2_f44_fixed_off: t134_leaf2 = 0
  T134_L3_f15_lt: const_Total_Bsmt_SF + 1e-06 t134_leaf3 <= 2136
  T134_R3_f16_ge: x_Heating_QC - 3.000001 t134_leaf3 >= -1e-06
- T134_R3_f44_fixed_off: t134_leaf3 = 0
+ T134_R3_f44_ge: const_Yr_Sold - 1e-06 t134_leaf3 >= 2008.999999
  T134_R4_f15_fixed_off: t134_leaf4 = 0
  TREE_135_ONEHOT: t135_leaf0 + t135_leaf1 + t135_leaf2 + t135_leaf3
    + t135_leaf4 + t135_leaf5 + t135_leaf6 = 1
@@ -3367,16 +3359,16 @@ Subject To
  TREE_137_ONEHOT: t137_leaf0 + t137_leaf1 + t137_leaf2 + t137_leaf3
    + t137_leaf4 + t137_leaf5 + t137_leaf6 + t137_leaf7 = 1
  T137_L0_f1_fixed_off: t137_leaf0 = 0
- T137_L0_f3_lt: Overall_Qual_calc + 2.000001 t137_leaf0 <= 10
+ T137_L0_f3_lt: const_Overall_Qual + 1e-06 t137_leaf0 <= 8
  T137_L0_f33_lt: x_Garage_Area + 99816.00000099999 t137_leaf0 <= 100000
  T137_L1_f1_fixed_off: t137_leaf1 = 0
- T137_L1_f3_lt: Overall_Qual_calc + 2.000001 t137_leaf1 <= 10
+ T137_L1_f3_lt: const_Overall_Qual + 1e-06 t137_leaf1 <= 8
  T137_R1_f33_ge: x_Garage_Area - 184.000001 t137_leaf1 >= -1e-06
  T137_L2_f1_fixed_off: t137_leaf2 = 0
- T137_R2_f3_ge: Overall_Qual_calc - 7.000001 t137_leaf2 >= 0.999999
+ T137_R2_f3_fixed_off: t137_leaf2 = 0
  T137_L2_f12_lt: x_BsmtFin_SF_1 + 999676.000001 t137_leaf2 <= 1e+06
  T137_L3_f1_fixed_off: t137_leaf3 = 0
- T137_R3_f3_ge: Overall_Qual_calc - 7.000001 t137_leaf3 >= 0.999999
+ T137_R3_f3_fixed_off: t137_leaf3 = 0
  T137_R3_f12_ge: x_BsmtFin_SF_1 - 324.000001 t137_leaf3 >= -1e-06
  T137_R4_f1_ge: const_Lot_Area - 1e-06 t137_leaf4 >= 5999.999999
  T137_L4_f18_lt: const_2nd_Flr_SF + 1e-06 t137_leaf4 <= 1427
@@ -3393,12 +3385,12 @@ Subject To
  TREE_138_ONEHOT: t138_leaf0 + t138_leaf1 + t138_leaf2 + t138_leaf3
    + t138_leaf4 + t138_leaf5 + t138_leaf6 = 1
  T138_L0_f9_lt: x_Exter_Cond + 2.000001 t138_leaf0 <= 4
- T138_L0_f3_lt: Overall_Qual_calc + 7.000001 t138_leaf0 <= 10
+ T138_L0_f3_fixed_off: t138_leaf0 = 0
  T138_L1_f9_lt: x_Exter_Cond + 2.000001 t138_leaf1 <= 4
- T138_R1_f3_ge: Overall_Qual_calc - 2.000001 t138_leaf1 >= 0.999999
+ T138_R1_f3_ge: const_Overall_Qual - 1e-06 t138_leaf1 >= 2.999999
  T138_L1_f14_lt: x_Bsmt_Unf_SF + 99280.00000099999 t138_leaf1 <= 100000
  T138_L2_f9_lt: x_Exter_Cond + 2.000001 t138_leaf2 <= 4
- T138_R2_f3_ge: Overall_Qual_calc - 2.000001 t138_leaf2 >= 0.999999
+ T138_R2_f3_ge: const_Overall_Qual - 1e-06 t138_leaf2 >= 2.999999
  T138_R2_f14_ge: x_Bsmt_Unf_SF - 720.000001 t138_leaf2 >= -1e-06
  T138_R3_f9_ge: x_Exter_Cond - 2.000001 t138_leaf3 >= -1e-06
  T138_L3_f1_fixed_off: t138_leaf3 = 0
@@ -3532,11 +3524,10 @@ Subject To
  T144_R1_f23_ge: x_Full_Bath - 3.000001 t144_leaf1 >= -1e-06
  T144_L2_f95_lt: const_Neighborhood_Crawfor + 1e-06 t144_leaf2 <= 1
  T144_R2_f44_ge: const_Yr_Sold - 1e-06 t144_leaf2 >= 2007.999999
- T144_L2_f297_fixed_off: t144_leaf2 = 0
+ T144_L2_f297_lt: const_Sale_Condition_Normal + 1e-06 t144_leaf2 <= 1
  T144_L3_f95_lt: const_Neighborhood_Crawfor + 1e-06 t144_leaf3 <= 1
  T144_R3_f44_ge: const_Yr_Sold - 1e-06 t144_leaf3 >= 2007.999999
- T144_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t144_leaf3
-   >= 0.999999
+ T144_R3_f297_fixed_off: t144_leaf3 = 0
  T144_R4_f95_fixed_off: t144_leaf4 = 0
  T144_L4_f1_fixed_off: t144_leaf4 = 0
  T144_R5_f95_fixed_off: t144_leaf5 = 0
@@ -3605,21 +3596,24 @@ Subject To
  T147_R5_f271_fixed_off: t147_leaf5 = 0
  TREE_148_ONEHOT: t148_leaf0 + t148_leaf1 + t148_leaf2 + t148_leaf3
    + t148_leaf4 + t148_leaf5 = 1
- T148_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t148_leaf0 <= 1
+ T148_L0_f293_fixed_off: t148_leaf0 = 0
  T148_L0_f164_lt: x_ex1_is_BrkFace + 1e-06 t148_leaf0 <= 1
  T148_L0_f15_fixed_off: t148_leaf0 = 0
- T148_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t148_leaf1 <= 1
+ T148_L1_f293_fixed_off: t148_leaf1 = 0
  T148_L1_f164_lt: x_ex1_is_BrkFace + 1e-06 t148_leaf1 <= 1
  T148_R1_f15_ge: const_Total_Bsmt_SF - 1e-06 t148_leaf1 >= 584.999999
- T148_L2_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t148_leaf2 <= 1
+ T148_L2_f293_fixed_off: t148_leaf2 = 0
  T148_R2_f164_ge: x_ex1_is_BrkFace - 1.000001 t148_leaf2 >= -1e-06
- T148_R3_f293_fixed_off: t148_leaf3 = 0
- T148_L3_f3_lt: Overall_Qual_calc + 6.000001 t148_leaf3 <= 10
- T148_R4_f293_fixed_off: t148_leaf4 = 0
- T148_R4_f3_ge: Overall_Qual_calc - 3.000001 t148_leaf4 >= 0.999999
+ T148_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t148_leaf3
+   >= 0.999999
+ T148_L3_f3_fixed_off: t148_leaf3 = 0
+ T148_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t148_leaf4
+   >= 0.999999
+ T148_R4_f3_ge: const_Overall_Qual - 1e-06 t148_leaf4 >= 3.999999
  T148_L4_f29_lt: const_Fireplaces + 1e-06 t148_leaf4 <= 1
- T148_R5_f293_fixed_off: t148_leaf5 = 0
- T148_R5_f3_ge: Overall_Qual_calc - 3.000001 t148_leaf5 >= 0.999999
+ T148_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t148_leaf5
+   >= 0.999999
+ T148_R5_f3_ge: const_Overall_Qual - 1e-06 t148_leaf5 >= 3.999999
  T148_R5_f29_fixed_off: t148_leaf5 = 0
  TREE_149_ONEHOT: t149_leaf0 + t149_leaf1 + t149_leaf2 + t149_leaf3
    + t149_leaf4 + t149_leaf5 + t149_leaf6 = 1
@@ -3642,21 +3636,22 @@ Subject To
  T149_R5_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t149_leaf5
    >= 0.999999
  T149_R5_f164_ge: x_ex1_is_BrkFace - 1.000001 t149_leaf5 >= -1e-06
- T149_L5_f106_lt: const_Neighborhood_No_aplicames + 1e-06 t149_leaf5 <= 1
+ T149_L5_f106_fixed_off: t149_leaf5 = 0
  T149_R6_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t149_leaf6
    >= 0.999999
  T149_R6_f164_ge: x_ex1_is_BrkFace - 1.000001 t149_leaf6 >= -1e-06
- T149_R6_f106_fixed_off: t149_leaf6 = 0
+ T149_R6_f106_ge: const_Neighborhood_No_aplicames - 1e-06 t149_leaf6
+   >= 0.999999
  TREE_150_ONEHOT: t150_leaf0 + t150_leaf1 + t150_leaf2 + t150_leaf3
    + t150_leaf4 + t150_leaf5 + t150_leaf6 = 1
  T150_L0_f9_lt: x_Exter_Cond + 2.000001 t150_leaf0 <= 4
  T150_L0_f33_lt: x_Garage_Area + 99703.00000099999 t150_leaf0 <= 100000
  T150_L1_f9_lt: x_Exter_Cond + 2.000001 t150_leaf1 <= 4
  T150_R1_f33_ge: x_Garage_Area - 297.000001 t150_leaf1 >= -1e-06
- T150_L1_f15_lt: const_Total_Bsmt_SF + 1e-06 t150_leaf1 <= 817
+ T150_L1_f15_fixed_off: t150_leaf1 = 0
  T150_L2_f9_lt: x_Exter_Cond + 2.000001 t150_leaf2 <= 4
  T150_R2_f33_ge: x_Garage_Area - 297.000001 t150_leaf2 >= -1e-06
- T150_R2_f15_fixed_off: t150_leaf2 = 0
+ T150_R2_f15_ge: const_Total_Bsmt_SF - 1e-06 t150_leaf2 >= 816.999999
  T150_R3_f9_ge: x_Exter_Cond - 2.000001 t150_leaf3 >= -1e-06
  T150_L3_f1_fixed_off: t150_leaf3 = 0
  T150_L3_f20_lt: x_Gr_Liv_Area + 9004.000001 t150_leaf3 <= 10000
@@ -3709,11 +3704,10 @@ Subject To
  T153_L0_f31_fixed_off: t153_leaf0 = 0
  T153_L1_f1_fixed_off: t153_leaf1 = 0
  T153_R1_f31_ge: const_Garage_Yr_Blt - 1e-06 t153_leaf1 >= 1894.999999
- T153_L1_f297_fixed_off: t153_leaf1 = 0
+ T153_L1_f297_lt: const_Sale_Condition_Normal + 1e-06 t153_leaf1 <= 1
  T153_L2_f1_fixed_off: t153_leaf2 = 0
  T153_R2_f31_ge: const_Garage_Yr_Blt - 1e-06 t153_leaf2 >= 1894.999999
- T153_R2_f297_ge: const_Sale_Condition_Normal - 1e-06 t153_leaf2
-   >= 0.999999
+ T153_R2_f297_fixed_off: t153_leaf2 = 0
  T153_R3_f1_ge: const_Lot_Area - 1e-06 t153_leaf3 >= 5999.999999
  T153_L3_f40_lt: x_Screen_Porch + 99858.00000099999 t153_leaf3 <= 100000
  T153_L3_f5_fixed_off: t153_leaf3 = 0
@@ -3729,25 +3723,23 @@ Subject To
  TREE_154_ONEHOT: t154_leaf0 + t154_leaf1 + t154_leaf2 + t154_leaf3
    + t154_leaf4 + t154_leaf5 + t154_leaf6 + t154_leaf7 = 1
  T154_L0_f16_lt: x_Heating_QC + 1.000001 t154_leaf0 <= 4
- T154_L0_f297_fixed_off: t154_leaf0 = 0
+ T154_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t154_leaf0 <= 1
  T154_L0_f20_lt: x_Gr_Liv_Area + 9024.000001 t154_leaf0 <= 10000
  T154_L1_f16_lt: x_Heating_QC + 1.000001 t154_leaf1 <= 4
- T154_L1_f297_fixed_off: t154_leaf1 = 0
+ T154_L1_f297_lt: const_Sale_Condition_Normal + 1e-06 t154_leaf1 <= 1
  T154_R1_f20_ge: x_Gr_Liv_Area - 976.000001 t154_leaf1 >= -1e-06
  T154_L2_f16_lt: x_Heating_QC + 1.000001 t154_leaf2 <= 4
- T154_R2_f297_ge: const_Sale_Condition_Normal - 1e-06 t154_leaf2
-   >= 0.999999
- T154_L2_f1_fixed_off: t154_leaf2 = 0
+ T154_R2_f297_fixed_off: t154_leaf2 = 0
+ T154_L2_f1_lt: const_Lot_Area + 1e-06 t154_leaf2 <= 10896
  T154_L3_f16_lt: x_Heating_QC + 1.000001 t154_leaf3 <= 4
- T154_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t154_leaf3
-   >= 0.999999
- T154_R3_f1_ge: const_Lot_Area - 1e-06 t154_leaf3 >= 10895.999999
+ T154_R3_f297_fixed_off: t154_leaf3 = 0
+ T154_R3_f1_fixed_off: t154_leaf3 = 0
  T154_R4_f16_ge: x_Heating_QC - 3.000001 t154_leaf4 >= -1e-06
  T154_L4_f245_fixed_off: t154_leaf4 = 0
- T154_L4_f139_fixed_off: t154_leaf4 = 0
+ T154_L4_f139_lt: const_House_Style_1.5Fin + 1e-06 t154_leaf4 <= 1
  T154_R5_f16_ge: x_Heating_QC - 3.000001 t154_leaf5 >= -1e-06
  T154_L5_f245_fixed_off: t154_leaf5 = 0
- T154_R5_f139_ge: const_House_Style_1.5Fin - 1e-06 t154_leaf5 >= 0.999999
+ T154_R5_f139_fixed_off: t154_leaf5 = 0
  T154_R6_f16_ge: x_Heating_QC - 3.000001 t154_leaf6 >= -1e-06
  T154_R6_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t154_leaf6
    >= 0.999999
@@ -3835,41 +3827,43 @@ Subject To
  T158_R6_f20_ge: x_Gr_Liv_Area - 1155.000001 t158_leaf6 >= -1e-06
  TREE_159_ONEHOT: t159_leaf0 + t159_leaf1 + t159_leaf2 + t159_leaf3
    + t159_leaf4 = 1
- T159_L0_f3_lt: Overall_Qual_calc + 1.000001 t159_leaf0 <= 10
+ T159_L0_f3_lt: const_Overall_Qual + 1e-06 t159_leaf0 <= 9
  T159_L0_f20_lt: x_Gr_Liv_Area + 9253.000001 t159_leaf0 <= 10000
  T159_L0_f16_lt: x_Heating_QC + 1.000001 t159_leaf0 <= 4
- T159_L1_f3_lt: Overall_Qual_calc + 1.000001 t159_leaf1 <= 10
+ T159_L1_f3_lt: const_Overall_Qual + 1e-06 t159_leaf1 <= 9
  T159_L1_f20_lt: x_Gr_Liv_Area + 9253.000001 t159_leaf1 <= 10000
  T159_R1_f16_ge: x_Heating_QC - 3.000001 t159_leaf1 >= -1e-06
- T159_L2_f3_lt: Overall_Qual_calc + 1.000001 t159_leaf2 <= 10
+ T159_L2_f3_lt: const_Overall_Qual + 1e-06 t159_leaf2 <= 9
  T159_R2_f20_ge: x_Gr_Liv_Area - 747.000001 t159_leaf2 >= -1e-06
  T159_L2_f4_fixed_off: t159_leaf2 = 0
- T159_L3_f3_lt: Overall_Qual_calc + 1.000001 t159_leaf3 <= 10
+ T159_L3_f3_lt: const_Overall_Qual + 1e-06 t159_leaf3 <= 9
  T159_R3_f20_ge: x_Gr_Liv_Area - 747.000001 t159_leaf3 >= -1e-06
  T159_R3_f4_ge: const_Overall_Cond - 1e-06 t159_leaf3 >= 5.999999
- T159_R4_f3_ge: Overall_Qual_calc - 8.000000999999999 t159_leaf4
-   >= 0.999999
+ T159_R4_f3_fixed_off: t159_leaf4 = 0
  TREE_160_ONEHOT: t160_leaf0 + t160_leaf1 + t160_leaf2 + t160_leaf3
    + t160_leaf4 + t160_leaf5 + t160_leaf6 = 1
- T160_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t160_leaf0 <= 1
+ T160_L0_f293_fixed_off: t160_leaf0 = 0
  T160_L0_f44_fixed_off: t160_leaf0 = 0
  T160_L0_f1_lt: const_Lot_Area + 1e-06 t160_leaf0 <= 16779
- T160_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t160_leaf1 <= 1
+ T160_L1_f293_fixed_off: t160_leaf1 = 0
  T160_L1_f44_fixed_off: t160_leaf1 = 0
  T160_R1_f1_fixed_off: t160_leaf1 = 0
- T160_L2_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t160_leaf2 <= 1
+ T160_L2_f293_fixed_off: t160_leaf2 = 0
  T160_R2_f44_ge: const_Yr_Sold - 1e-06 t160_leaf2 >= 2006.999999
  T160_L2_f40_lt: x_Screen_Porch + 99858.00000099999 t160_leaf2 <= 100000
- T160_L3_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t160_leaf3 <= 1
+ T160_L3_f293_fixed_off: t160_leaf3 = 0
  T160_R3_f44_ge: const_Yr_Sold - 1e-06 t160_leaf3 >= 2006.999999
  T160_R3_f40_ge: x_Screen_Porch - 142.000001 t160_leaf3 >= -1e-06
- T160_R4_f293_fixed_off: t160_leaf4 = 0
- T160_L4_f3_lt: Overall_Qual_calc + 6.000001 t160_leaf4 <= 10
- T160_R5_f293_fixed_off: t160_leaf5 = 0
- T160_R5_f3_ge: Overall_Qual_calc - 3.000001 t160_leaf5 >= 0.999999
+ T160_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t160_leaf4
+   >= 0.999999
+ T160_L4_f3_fixed_off: t160_leaf4 = 0
+ T160_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t160_leaf5
+   >= 0.999999
+ T160_R5_f3_ge: const_Overall_Qual - 1e-06 t160_leaf5 >= 3.999999
  T160_L5_f16_lt: x_Heating_QC + 1.000001 t160_leaf5 <= 4
- T160_R6_f293_fixed_off: t160_leaf6 = 0
- T160_R6_f3_ge: Overall_Qual_calc - 3.000001 t160_leaf6 >= 0.999999
+ T160_R6_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t160_leaf6
+   >= 0.999999
+ T160_R6_f3_ge: const_Overall_Qual - 1e-06 t160_leaf6 >= 3.999999
  T160_R6_f16_ge: x_Heating_QC - 3.000001 t160_leaf6 >= -1e-06
  TREE_161_ONEHOT: t161_leaf0 + t161_leaf1 + t161_leaf2 + t161_leaf3
    + t161_leaf4 + t161_leaf5 + t161_leaf6 = 1
@@ -3896,13 +3890,14 @@ Subject To
  TREE_162_ONEHOT: t162_leaf0 + t162_leaf1 + t162_leaf2 + t162_leaf3
    + t162_leaf4 + t162_leaf5 + t162_leaf6 = 1
  T162_L0_f9_lt: x_Exter_Cond + 2.000001 t162_leaf0 <= 4
- T162_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t162_leaf0 <= 1
+ T162_L0_f293_fixed_off: t162_leaf0 = 0
  T162_L0_f33_lt: x_Garage_Area + 99655.00000099999 t162_leaf0 <= 100000
  T162_L1_f9_lt: x_Exter_Cond + 2.000001 t162_leaf1 <= 4
- T162_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t162_leaf1 <= 1
+ T162_L1_f293_fixed_off: t162_leaf1 = 0
  T162_R1_f33_ge: x_Garage_Area - 345.000001 t162_leaf1 >= -1e-06
  T162_L2_f9_lt: x_Exter_Cond + 2.000001 t162_leaf2 <= 4
- T162_R2_f293_fixed_off: t162_leaf2 = 0
+ T162_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t162_leaf2
+   >= 0.999999
  T162_R3_f9_ge: x_Exter_Cond - 2.000001 t162_leaf3 >= -1e-06
  T162_L3_f164_lt: x_ex1_is_BrkFace + 1e-06 t162_leaf3 <= 1
  T162_L3_f40_lt: x_Screen_Porch + 99850.00000099999 t162_leaf3 <= 100000
@@ -3952,10 +3947,11 @@ Subject To
    + t165_leaf4 = 1
  T165_L0_f17_lt: x_1st_Flr_SF + 2485.000001 t165_leaf0 <= 5000
  T165_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t165_leaf0 <= 1824
- T165_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t165_leaf0 <= 1
+ T165_L0_f293_fixed_off: t165_leaf0 = 0
  T165_L1_f17_lt: x_1st_Flr_SF + 2485.000001 t165_leaf1 <= 5000
  T165_L1_f15_lt: const_Total_Bsmt_SF + 1e-06 t165_leaf1 <= 1824
- T165_R1_f293_fixed_off: t165_leaf1 = 0
+ T165_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t165_leaf1
+   >= 0.999999
  T165_L2_f17_lt: x_1st_Flr_SF + 2485.000001 t165_leaf2 <= 5000
  T165_R2_f15_fixed_off: t165_leaf2 = 0
  T165_L2_f108_lt: const_Neighborhood_NridgHt + 1e-06 t165_leaf2 <= 1
@@ -3970,19 +3966,11 @@ Subject To
  TREE_166_EXCLUDE_LEAF_3: t166_leaf3 = 0
  TREE_167_ONEHOT: t167_leaf0 + t167_leaf1 + t167_leaf2 + t167_leaf3
    + t167_leaf4 = 1
- T167_L0_f3_lt: Overall_Qual_calc + 7.000001 t167_leaf0 <= 10
- T167_R1_f3_ge: Overall_Qual_calc - 2.000001 t167_leaf1 >= 0.999999
- T167_L1_f4_lt: const_Overall_Cond + 1e-06 t167_leaf1 <= 7
- T167_L1_f5_fixed_off: t167_leaf1 = 0
- T167_R2_f3_ge: Overall_Qual_calc - 2.000001 t167_leaf2 >= 0.999999
- T167_L2_f4_lt: const_Overall_Cond + 1e-06 t167_leaf2 <= 7
- T167_R2_f5_ge: const_Year_Built - 1e-06 t167_leaf2 >= 1910.999999
- T167_R3_f3_ge: Overall_Qual_calc - 2.000001 t167_leaf3 >= 0.999999
- T167_R3_f4_fixed_off: t167_leaf3 = 0
- T167_L3_f44_lt: const_Yr_Sold + 1e-06 t167_leaf3 <= 2009
- T167_R4_f3_ge: Overall_Qual_calc - 2.000001 t167_leaf4 >= 0.999999
- T167_R4_f4_fixed_off: t167_leaf4 = 0
- T167_R4_f44_fixed_off: t167_leaf4 = 0
+ TREE_167_FORCE_LEAF_2: t167_leaf2 = 1
+ TREE_167_EXCLUDE_LEAF_0: t167_leaf0 = 0
+ TREE_167_EXCLUDE_LEAF_1: t167_leaf1 = 0
+ TREE_167_EXCLUDE_LEAF_3: t167_leaf3 = 0
+ TREE_167_EXCLUDE_LEAF_4: t167_leaf4 = 0
  TREE_168_ONEHOT: t168_leaf0 + t168_leaf1 + t168_leaf2 + t168_leaf3
    + t168_leaf4 = 1
  T168_L0_f117_lt: const_Condition_1_Artery + 1e-06 t168_leaf0 <= 1
@@ -4022,31 +4010,33 @@ Subject To
  TREE_170_ONEHOT: t170_leaf0 + t170_leaf1 + t170_leaf2 + t170_leaf3
    + t170_leaf4 = 1
  T170_L0_f27_lt: x_Kitchen_Qual + 1e-06 t170_leaf0 <= 4
- T170_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t170_leaf0 <= 1
+ T170_L0_f293_fixed_off: t170_leaf0 = 0
  T170_L0_f1_lt: const_Lot_Area + 1e-06 t170_leaf0 <= 17227
  T170_L1_f27_lt: x_Kitchen_Qual + 1e-06 t170_leaf1 <= 4
- T170_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t170_leaf1 <= 1
+ T170_L1_f293_fixed_off: t170_leaf1 = 0
  T170_R1_f1_fixed_off: t170_leaf1 = 0
  T170_L2_f27_lt: x_Kitchen_Qual + 1e-06 t170_leaf2 <= 4
- T170_R2_f293_fixed_off: t170_leaf2 = 0
+ T170_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t170_leaf2
+   >= 0.999999
  T170_L2_f1_fixed_off: t170_leaf2 = 0
  T170_L3_f27_lt: x_Kitchen_Qual + 1e-06 t170_leaf3 <= 4
- T170_R3_f293_fixed_off: t170_leaf3 = 0
+ T170_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t170_leaf3
+   >= 0.999999
  T170_R3_f1_ge: const_Lot_Area - 1e-06 t170_leaf3 >= 9899.999999
  T170_R4_f27_ge: x_Kitchen_Qual - 4.000001 t170_leaf4 >= -1e-06
  TREE_171_ONEHOT: t171_leaf0 + t171_leaf1 + t171_leaf2 + t171_leaf3
    + t171_leaf4 = 1
  T171_L0_f11_lt: x_Bsmt_Cond + 1.000001 t171_leaf0 <= 4
- T171_L0_f96_fixed_off: t171_leaf0 = 0
+ T171_L0_f96_lt: const_Neighborhood_Edwards + 1e-06 t171_leaf0 <= 1
  T171_L0_f40_lt: x_Screen_Porch + 99790.00000099999 t171_leaf0 <= 100000
  T171_L1_f11_lt: x_Bsmt_Cond + 1.000001 t171_leaf1 <= 4
- T171_L1_f96_fixed_off: t171_leaf1 = 0
+ T171_L1_f96_lt: const_Neighborhood_Edwards + 1e-06 t171_leaf1 <= 1
  T171_R1_f40_ge: x_Screen_Porch - 210.000001 t171_leaf1 >= -1e-06
  T171_L2_f11_lt: x_Bsmt_Cond + 1.000001 t171_leaf2 <= 4
- T171_R2_f96_ge: const_Neighborhood_Edwards - 1e-06 t171_leaf2 >= 0.999999
+ T171_R2_f96_fixed_off: t171_leaf2 = 0
  T171_L2_f81_lt: const_Lot_Config_Corner + 1e-06 t171_leaf2 <= 1
  T171_L3_f11_lt: x_Bsmt_Cond + 1.000001 t171_leaf3 <= 4
- T171_R3_f96_ge: const_Neighborhood_Edwards - 1e-06 t171_leaf3 >= 0.999999
+ T171_R3_f96_fixed_off: t171_leaf3 = 0
  T171_R3_f81_fixed_off: t171_leaf3 = 0
  T171_R4_f11_ge: x_Bsmt_Cond - 4.000001 t171_leaf4 >= -1.000001
  TREE_172_ONEHOT: t172_leaf0 + t172_leaf1 + t172_leaf2 + t172_leaf3
@@ -4068,29 +4058,27 @@ Subject To
  T172_R5_f211_ge: x_b1_is_ALQ - 1.000001 t172_leaf5 >= -1e-06
  T172_R5_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t172_leaf5
    >= 0.999999
- T172_L5_f31_lt: const_Garage_Yr_Blt + 1e-06 t172_leaf5 <= 1977
+ T172_L5_f31_fixed_off: t172_leaf5 = 0
  T172_R6_f211_ge: x_b1_is_ALQ - 1.000001 t172_leaf6 >= -1e-06
  T172_R6_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t172_leaf6
    >= 0.999999
- T172_R6_f31_fixed_off: t172_leaf6 = 0
+ T172_R6_f31_ge: const_Garage_Yr_Blt - 1e-06 t172_leaf6 >= 1976.999999
  TREE_173_ONEHOT: t173_leaf0 + t173_leaf1 + t173_leaf2 + t173_leaf3
    + t173_leaf4 + t173_leaf5 + t173_leaf6 = 1
  T173_L0_f9_lt: x_Exter_Cond + 2.000001 t173_leaf0 <= 4
- T173_L0_f297_fixed_off: t173_leaf0 = 0
+ T173_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t173_leaf0 <= 1
  T173_L1_f9_lt: x_Exter_Cond + 2.000001 t173_leaf1 <= 4
- T173_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t173_leaf1
-   >= 0.999999
+ T173_R1_f297_fixed_off: t173_leaf1 = 0
  T173_L1_f28_lt: x_TotRms_AbvGrd + 10.000001 t173_leaf1 <= 15
  T173_L2_f9_lt: x_Exter_Cond + 2.000001 t173_leaf2 <= 4
- T173_R2_f297_ge: const_Sale_Condition_Normal - 1e-06 t173_leaf2
-   >= 0.999999
+ T173_R2_f297_fixed_off: t173_leaf2 = 0
  T173_R2_f28_ge: x_TotRms_AbvGrd - 5.000001 t173_leaf2 >= -1e-06
  T173_R3_f9_ge: x_Exter_Cond - 2.000001 t173_leaf3 >= -1e-06
  T173_L3_f4_lt: const_Overall_Cond + 1e-06 t173_leaf3 <= 7
- T173_L3_f5_lt: const_Year_Built + 1e-06 t173_leaf3 <= 1954
+ T173_L3_f5_fixed_off: t173_leaf3 = 0
  T173_R4_f9_ge: x_Exter_Cond - 2.000001 t173_leaf4 >= -1e-06
  T173_L4_f4_lt: const_Overall_Cond + 1e-06 t173_leaf4 <= 7
- T173_R4_f5_fixed_off: t173_leaf4 = 0
+ T173_R4_f5_ge: const_Year_Built - 1e-06 t173_leaf4 >= 1953.999999
  T173_R5_f9_ge: x_Exter_Cond - 2.000001 t173_leaf5 >= -1e-06
  T173_R5_f4_fixed_off: t173_leaf5 = 0
  T173_L5_f31_lt: const_Garage_Yr_Blt + 1e-06 t173_leaf5 <= 1995
@@ -4155,16 +4143,16 @@ Subject To
  T177_R1_f33_ge: x_Garage_Area - 784.000001 t177_leaf1 >= -1e-06
  T177_L2_f16_lt: x_Heating_QC + 1.000001 t177_leaf2 <= 4
  T177_R2_f36_ge: x_Wood_Deck_SF - 159.000001 t177_leaf2 >= -1e-06
- T177_L2_f31_lt: const_Garage_Yr_Blt + 1e-06 t177_leaf2 <= 1978
+ T177_L2_f31_fixed_off: t177_leaf2 = 0
  T177_L3_f16_lt: x_Heating_QC + 1.000001 t177_leaf3 <= 4
  T177_R3_f36_ge: x_Wood_Deck_SF - 159.000001 t177_leaf3 >= -1e-06
- T177_R3_f31_fixed_off: t177_leaf3 = 0
+ T177_R3_f31_ge: const_Garage_Yr_Blt - 1e-06 t177_leaf3 >= 1977.999999
  T177_R4_f16_ge: x_Heating_QC - 3.000001 t177_leaf4 >= -1e-06
  T177_L4_f37_lt: x_Open_Porch_SF + 99866.00000099999 t177_leaf4 <= 100000
- T177_L4_f3_lt: Overall_Qual_calc + 3.000001 t177_leaf4 <= 10
+ T177_L4_f3_lt: const_Overall_Qual + 1e-06 t177_leaf4 <= 7
  T177_R5_f16_ge: x_Heating_QC - 3.000001 t177_leaf5 >= -1e-06
  T177_L5_f37_lt: x_Open_Porch_SF + 99866.00000099999 t177_leaf5 <= 100000
- T177_R5_f3_ge: Overall_Qual_calc - 6.000001 t177_leaf5 >= 0.999999
+ T177_R5_f3_fixed_off: t177_leaf5 = 0
  T177_R6_f16_ge: x_Heating_QC - 3.000001 t177_leaf6 >= -1e-06
  T177_R6_f37_ge: x_Open_Porch_SF - 134.000001 t177_leaf6 >= -1e-06
  TREE_178_ONEHOT: t178_leaf0 + t178_leaf1 + t178_leaf2 + t178_leaf3
@@ -4194,17 +4182,17 @@ Subject To
  T179_R5_f37_ge: x_Open_Porch_SF - 183.000001 t179_leaf5 >= -1e-06
  TREE_180_ONEHOT: t180_leaf0 + t180_leaf1 + t180_leaf2 + t180_leaf3
    + t180_leaf4 = 1
- T180_L0_f3_lt: Overall_Qual_calc + 7.000001 t180_leaf0 <= 10
- T180_R1_f3_ge: Overall_Qual_calc - 2.000001 t180_leaf1 >= 0.999999
+ T180_L0_f3_fixed_off: t180_leaf0 = 0
+ T180_R1_f3_ge: const_Overall_Qual - 1e-06 t180_leaf1 >= 2.999999
  T180_L1_f95_lt: const_Neighborhood_Crawfor + 1e-06 t180_leaf1 <= 1
  T180_L1_f16_lt: x_Heating_QC + 1.000001 t180_leaf1 <= 4
- T180_R2_f3_ge: Overall_Qual_calc - 2.000001 t180_leaf2 >= 0.999999
+ T180_R2_f3_ge: const_Overall_Qual - 1e-06 t180_leaf2 >= 2.999999
  T180_L2_f95_lt: const_Neighborhood_Crawfor + 1e-06 t180_leaf2 <= 1
  T180_R2_f16_ge: x_Heating_QC - 3.000001 t180_leaf2 >= -1e-06
- T180_R3_f3_ge: Overall_Qual_calc - 2.000001 t180_leaf3 >= 0.999999
+ T180_R3_f3_ge: const_Overall_Qual - 1e-06 t180_leaf3 >= 2.999999
  T180_R3_f95_fixed_off: t180_leaf3 = 0
  T180_L3_f81_lt: const_Lot_Config_Corner + 1e-06 t180_leaf3 <= 1
- T180_R4_f3_ge: Overall_Qual_calc - 2.000001 t180_leaf4 >= 0.999999
+ T180_R4_f3_ge: const_Overall_Qual - 1e-06 t180_leaf4 >= 2.999999
  T180_R4_f95_fixed_off: t180_leaf4 = 0
  T180_R4_f81_fixed_off: t180_leaf4 = 0
  TREE_181_ONEHOT: t181_leaf0 + t181_leaf1 + t181_leaf2 + t181_leaf3
@@ -4231,29 +4219,33 @@ Subject To
  T181_R6_f18_fixed_off: t181_leaf6 = 0
  TREE_182_ONEHOT: t182_leaf0 + t182_leaf1 + t182_leaf2 + t182_leaf3
    + t182_leaf4 + t182_leaf5 + t182_leaf6 + t182_leaf7 = 1
- T182_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t182_leaf0 <= 1
+ T182_L0_f293_fixed_off: t182_leaf0 = 0
  T182_L0_f1_lt: const_Lot_Area + 1e-06 t182_leaf0 <= 14680
  T182_L0_f17_lt: x_1st_Flr_SF + 4424.000001 t182_leaf0 <= 5000
- T182_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t182_leaf1 <= 1
+ T182_L1_f293_fixed_off: t182_leaf1 = 0
  T182_L1_f1_lt: const_Lot_Area + 1e-06 t182_leaf1 <= 14680
  T182_R1_f17_ge: x_1st_Flr_SF - 576.000001 t182_leaf1 >= -1e-06
- T182_L2_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t182_leaf2 <= 1
+ T182_L2_f293_fixed_off: t182_leaf2 = 0
  T182_R2_f1_fixed_off: t182_leaf2 = 0
  T182_L2_f37_lt: x_Open_Porch_SF + 99726.00000099999 t182_leaf2 <= 100000
- T182_L3_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t182_leaf3 <= 1
+ T182_L3_f293_fixed_off: t182_leaf3 = 0
  T182_R3_f1_fixed_off: t182_leaf3 = 0
  T182_R3_f37_ge: x_Open_Porch_SF - 274.000001 t182_leaf3 >= -1e-06
- T182_R4_f293_fixed_off: t182_leaf4 = 0
- T182_L4_f3_lt: Overall_Qual_calc + 5.000001 t182_leaf4 <= 10
+ T182_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t182_leaf4
+   >= 0.999999
+ T182_L4_f3_lt: const_Overall_Qual + 1e-06 t182_leaf4 <= 5
  T182_L4_f4_fixed_off: t182_leaf4 = 0
- T182_R5_f293_fixed_off: t182_leaf5 = 0
- T182_L5_f3_lt: Overall_Qual_calc + 5.000001 t182_leaf5 <= 10
+ T182_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t182_leaf5
+   >= 0.999999
+ T182_L5_f3_lt: const_Overall_Qual + 1e-06 t182_leaf5 <= 5
  T182_R5_f4_ge: const_Overall_Cond - 1e-06 t182_leaf5 >= 5.999999
- T182_R6_f293_fixed_off: t182_leaf6 = 0
- T182_R6_f3_ge: Overall_Qual_calc - 4.000001 t182_leaf6 >= 0.999999
+ T182_R6_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t182_leaf6
+   >= 0.999999
+ T182_R6_f3_fixed_off: t182_leaf6 = 0
  T182_L6_f237_fixed_off: t182_leaf6 = 0
- T182_R7_f293_fixed_off: t182_leaf7 = 0
- T182_R7_f3_ge: Overall_Qual_calc - 4.000001 t182_leaf7 >= 0.999999
+ T182_R7_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t182_leaf7
+   >= 0.999999
+ T182_R7_f3_fixed_off: t182_leaf7 = 0
  T182_R7_f237_ge: x_elect_is_SBrkr - 1e-06 t182_leaf7 >= 0.999999
  TREE_183_ONEHOT: t183_leaf0 + t183_leaf1 + t183_leaf2 + t183_leaf3
    + t183_leaf4 + t183_leaf5 = 1
@@ -4284,13 +4276,13 @@ Subject To
  T184_L2_f20_lt: x_Gr_Liv_Area + 8039.000001 t184_leaf2 <= 10000
  T184_R2_f113_fixed_off: t184_leaf2 = 0
  T184_R3_f20_ge: x_Gr_Liv_Area - 1961.000001 t184_leaf3 >= -1e-06
- T184_L3_f96_fixed_off: t184_leaf3 = 0
+ T184_L3_f96_lt: const_Neighborhood_Edwards + 1e-06 t184_leaf3 <= 1
  T184_L3_f15_lt: const_Total_Bsmt_SF + 1e-06 t184_leaf3 <= 2136
  T184_R4_f20_ge: x_Gr_Liv_Area - 1961.000001 t184_leaf4 >= -1e-06
- T184_L4_f96_fixed_off: t184_leaf4 = 0
+ T184_L4_f96_lt: const_Neighborhood_Edwards + 1e-06 t184_leaf4 <= 1
  T184_R4_f15_fixed_off: t184_leaf4 = 0
  T184_R5_f20_ge: x_Gr_Liv_Area - 1961.000001 t184_leaf5 >= -1e-06
- T184_R5_f96_ge: const_Neighborhood_Edwards - 1e-06 t184_leaf5 >= 0.999999
+ T184_R5_f96_fixed_off: t184_leaf5 = 0
  TREE_185_ONEHOT: t185_leaf0 + t185_leaf1 + t185_leaf2 + t185_leaf3
    + t185_leaf4 + t185_leaf5 = 1
  T185_L0_f12_lt: x_BsmtFin_SF_1 + 998268.000001 t185_leaf0 <= 1e+06
@@ -4311,46 +4303,52 @@ Subject To
  T185_R5_f76_ge: const_Lot_Shape_Reg - 1e-06 t185_leaf5 >= 0.999999
  TREE_186_ONEHOT: t186_leaf0 + t186_leaf1 + t186_leaf2 + t186_leaf3
    + t186_leaf4 + t186_leaf5 + t186_leaf6 = 1
- T186_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t186_leaf0 <= 1
+ T186_L0_f293_fixed_off: t186_leaf0 = 0
  T186_L0_f5_lt: const_Year_Built + 1e-06 t186_leaf0 <= 2005
- T186_L0_f141_lt: const_House_Style_1Story + 1e-06 t186_leaf0 <= 1
- T186_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t186_leaf1 <= 1
+ T186_L0_f141_fixed_off: t186_leaf0 = 0
+ T186_L1_f293_fixed_off: t186_leaf1 = 0
  T186_L1_f5_lt: const_Year_Built + 1e-06 t186_leaf1 <= 2005
- T186_R1_f141_fixed_off: t186_leaf1 = 0
- T186_L2_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t186_leaf2 <= 1
+ T186_R1_f141_ge: const_House_Style_1Story - 1e-06 t186_leaf1 >= 0.999999
+ T186_L2_f293_fixed_off: t186_leaf2 = 0
  T186_R2_f5_fixed_off: t186_leaf2 = 0
  T186_L2_f66_fixed_off: t186_leaf2 = 0
- T186_L3_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t186_leaf3 <= 1
+ T186_L3_f293_fixed_off: t186_leaf3 = 0
  T186_R3_f5_fixed_off: t186_leaf3 = 0
  T186_R3_f66_ge: const_MS_Zoning_RL - 1e-06 t186_leaf3 >= 0.999999
- T186_R4_f293_fixed_off: t186_leaf4 = 0
- T186_L4_f3_lt: Overall_Qual_calc + 5.000001 t186_leaf4 <= 10
- T186_R5_f293_fixed_off: t186_leaf5 = 0
- T186_R5_f3_ge: Overall_Qual_calc - 4.000001 t186_leaf5 >= 0.999999
+ T186_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t186_leaf4
+   >= 0.999999
+ T186_L4_f3_lt: const_Overall_Qual + 1e-06 t186_leaf4 <= 5
+ T186_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t186_leaf5
+   >= 0.999999
+ T186_R5_f3_fixed_off: t186_leaf5 = 0
  T186_L5_f38_lt: x_Enclosed_Porch + 99968.00000099999 t186_leaf5 <= 100000
- T186_R6_f293_fixed_off: t186_leaf6 = 0
- T186_R6_f3_ge: Overall_Qual_calc - 4.000001 t186_leaf6 >= 0.999999
+ T186_R6_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t186_leaf6
+   >= 0.999999
+ T186_R6_f3_fixed_off: t186_leaf6 = 0
  T186_R6_f38_ge: x_Enclosed_Porch - 32.000001 t186_leaf6 >= -1e-06
  TREE_187_ONEHOT: t187_leaf0 + t187_leaf1 + t187_leaf2 + t187_leaf3
    + t187_leaf4 + t187_leaf5 + t187_leaf6 = 1
- T187_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t187_leaf0 <= 1
+ T187_L0_f293_fixed_off: t187_leaf0 = 0
  T187_L0_f117_lt: const_Condition_1_Artery + 1e-06 t187_leaf0 <= 1
  T187_L0_f4_fixed_off: t187_leaf0 = 0
- T187_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t187_leaf1 <= 1
+ T187_L1_f293_fixed_off: t187_leaf1 = 0
  T187_L1_f117_lt: const_Condition_1_Artery + 1e-06 t187_leaf1 <= 1
  T187_R1_f4_ge: const_Overall_Cond - 1e-06 t187_leaf1 >= 5.999999
- T187_L2_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t187_leaf2 <= 1
+ T187_L2_f293_fixed_off: t187_leaf2 = 0
  T187_R2_f117_fixed_off: t187_leaf2 = 0
  T187_L2_f16_lt: x_Heating_QC + 1.000001 t187_leaf2 <= 4
- T187_L3_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t187_leaf3 <= 1
+ T187_L3_f293_fixed_off: t187_leaf3 = 0
  T187_R3_f117_fixed_off: t187_leaf3 = 0
  T187_R3_f16_ge: x_Heating_QC - 3.000001 t187_leaf3 >= -1e-06
- T187_R4_f293_fixed_off: t187_leaf4 = 0
+ T187_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t187_leaf4
+   >= 0.999999
  T187_L4_f4_fixed_off: t187_leaf4 = 0
- T187_R5_f293_fixed_off: t187_leaf5 = 0
+ T187_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t187_leaf5
+   >= 0.999999
  T187_R5_f4_ge: const_Overall_Cond - 1e-06 t187_leaf5 >= 3.999999
  T187_L5_f206_lt: const_Bsmt_Exposure_Av + 1e-06 t187_leaf5 <= 1
- T187_R6_f293_fixed_off: t187_leaf6 = 0
+ T187_R6_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t187_leaf6
+   >= 0.999999
  T187_R6_f4_ge: const_Overall_Cond - 1e-06 t187_leaf6 >= 3.999999
  T187_R6_f206_fixed_off: t187_leaf6 = 0
  TREE_188_ONEHOT: t188_leaf0 + t188_leaf1 + t188_leaf2 + t188_leaf3
@@ -4427,14 +4425,12 @@ Subject To
  T191_R3_f20_ge: x_Gr_Liv_Area - 747.000001 t191_leaf3 >= -1e-06
  T191_R3_f20_ge: x_Gr_Liv_Area - 3086.000001 t191_leaf3 >= -1e-06
  T191_R4_f1_fixed_off: t191_leaf4 = 0
- T191_L4_f297_fixed_off: t191_leaf4 = 0
+ T191_L4_f297_lt: const_Sale_Condition_Normal + 1e-06 t191_leaf4 <= 1
  T191_R5_f1_fixed_off: t191_leaf5 = 0
- T191_R5_f297_ge: const_Sale_Condition_Normal - 1e-06 t191_leaf5
-   >= 0.999999
+ T191_R5_f297_fixed_off: t191_leaf5 = 0
  T191_L5_f36_lt: x_Wood_Deck_SF + 99978.00000099999 t191_leaf5 <= 100000
  T191_R6_f1_fixed_off: t191_leaf6 = 0
- T191_R6_f297_ge: const_Sale_Condition_Normal - 1e-06 t191_leaf6
-   >= 0.999999
+ T191_R6_f297_fixed_off: t191_leaf6 = 0
  T191_R6_f36_ge: x_Wood_Deck_SF - 22.000001 t191_leaf6 >= -1e-06
  TREE_192_ONEHOT: t192_leaf0 + t192_leaf1 + t192_leaf2 + t192_leaf3
    + t192_leaf4 = 1
@@ -4447,22 +4443,24 @@ Subject To
  T192_L2_f211_lt: x_b1_is_ALQ + 1e-06 t192_leaf2 <= 1
  T192_R2_f82_fixed_off: t192_leaf2 = 0
  T192_R3_f211_ge: x_b1_is_ALQ - 1.000001 t192_leaf3 >= -1e-06
- T192_L3_f44_lt: const_Yr_Sold + 1e-06 t192_leaf3 <= 2009
+ T192_L3_f44_fixed_off: t192_leaf3 = 0
  T192_R4_f211_ge: x_b1_is_ALQ - 1.000001 t192_leaf4 >= -1e-06
- T192_R4_f44_fixed_off: t192_leaf4 = 0
+ T192_R4_f44_ge: const_Yr_Sold - 1e-06 t192_leaf4 >= 2008.999999
  TREE_193_ONEHOT: t193_leaf0 + t193_leaf1 + t193_leaf2 + t193_leaf3
    + t193_leaf4 + t193_leaf5 + t193_leaf6 + t193_leaf7 = 1
  T193_L0_f12_lt: x_BsmtFin_SF_1 + 999935.000001 t193_leaf0 <= 1e+06
- T193_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t193_leaf0 <= 1
+ T193_L0_f293_fixed_off: t193_leaf0 = 0
  T193_L0_f33_lt: x_Garage_Area + 99164.00000099999 t193_leaf0 <= 100000
  T193_L1_f12_lt: x_BsmtFin_SF_1 + 999935.000001 t193_leaf1 <= 1e+06
- T193_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t193_leaf1 <= 1
+ T193_L1_f293_fixed_off: t193_leaf1 = 0
  T193_R1_f33_ge: x_Garage_Area - 836.000001 t193_leaf1 >= -1e-06
  T193_L2_f12_lt: x_BsmtFin_SF_1 + 999935.000001 t193_leaf2 <= 1e+06
- T193_R2_f293_fixed_off: t193_leaf2 = 0
+ T193_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t193_leaf2
+   >= 0.999999
  T193_L2_f33_lt: x_Garage_Area + 99549.00000099999 t193_leaf2 <= 100000
  T193_L3_f12_lt: x_BsmtFin_SF_1 + 999935.000001 t193_leaf3 <= 1e+06
- T193_R3_f293_fixed_off: t193_leaf3 = 0
+ T193_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t193_leaf3
+   >= 0.999999
  T193_R3_f33_ge: x_Garage_Area - 451.000001 t193_leaf3 >= -1e-06
  T193_R4_f12_ge: x_BsmtFin_SF_1 - 65.000001 t193_leaf4 >= -1e-06
  T193_L4_f214_lt: x_b1_is_LwQ + 1e-06 t193_leaf4 <= 1
@@ -4491,10 +4489,10 @@ Subject To
  T195_L0_f0_fixed_off: t195_leaf0 = 0
  T195_L1_f20_lt: x_Gr_Liv_Area + 6914.000001 t195_leaf1 <= 10000
  T195_R1_f0_ge: const_Lot_Frontage - 1e-06 t195_leaf1 >= 27.999999
- T195_L1_f3_lt: Overall_Qual_calc + 3.000001 t195_leaf1 <= 10
+ T195_L1_f3_lt: const_Overall_Qual + 1e-06 t195_leaf1 <= 7
  T195_L2_f20_lt: x_Gr_Liv_Area + 6914.000001 t195_leaf2 <= 10000
  T195_R2_f0_ge: const_Lot_Frontage - 1e-06 t195_leaf2 >= 27.999999
- T195_R2_f3_ge: Overall_Qual_calc - 6.000001 t195_leaf2 >= 0.999999
+ T195_R2_f3_fixed_off: t195_leaf2 = 0
  T195_R3_f20_ge: x_Gr_Liv_Area - 3086.000001 t195_leaf3 >= -1e-06
  TREE_196_ONEHOT: t196_leaf0 + t196_leaf1 + t196_leaf2 + t196_leaf3
    + t196_leaf4 + t196_leaf5 = 1
@@ -4506,10 +4504,11 @@ Subject To
  T196_R1_f27_ge: x_Kitchen_Qual - 4.000001 t196_leaf1 >= -1e-06
  T196_L2_f118_lt: const_Condition_1_Feedr + 1e-06 t196_leaf2 <= 1
  T196_R2_f164_ge: x_ex1_is_BrkFace - 1.000001 t196_leaf2 >= -1e-06
- T196_L2_f106_lt: const_Neighborhood_No_aplicames + 1e-06 t196_leaf2 <= 1
+ T196_L2_f106_fixed_off: t196_leaf2 = 0
  T196_L3_f118_lt: const_Condition_1_Feedr + 1e-06 t196_leaf3 <= 1
  T196_R3_f164_ge: x_ex1_is_BrkFace - 1.000001 t196_leaf3 >= -1e-06
- T196_R3_f106_fixed_off: t196_leaf3 = 0
+ T196_R3_f106_ge: const_Neighborhood_No_aplicames - 1e-06 t196_leaf3
+   >= 0.999999
  T196_R4_f118_fixed_off: t196_leaf4 = 0
  T196_L4_f44_fixed_off: t196_leaf4 = 0
  T196_R5_f118_fixed_off: t196_leaf5 = 0
@@ -4518,11 +4517,10 @@ Subject To
    + t197_leaf4 + t197_leaf5 = 1
  T197_L0_f37_lt: x_Open_Porch_SF + 99718.00000099999 t197_leaf0 <= 100000
  T197_L0_f1_lt: const_Lot_Area + 1e-06 t197_leaf0 <= 17227
- T197_L0_f3_lt: Overall_Qual_calc + 1.000001 t197_leaf0 <= 10
+ T197_L0_f3_lt: const_Overall_Qual + 1e-06 t197_leaf0 <= 9
  T197_L1_f37_lt: x_Open_Porch_SF + 99718.00000099999 t197_leaf1 <= 100000
  T197_L1_f1_lt: const_Lot_Area + 1e-06 t197_leaf1 <= 17227
- T197_R1_f3_ge: Overall_Qual_calc - 8.000000999999999 t197_leaf1
-   >= 0.999999
+ T197_R1_f3_fixed_off: t197_leaf1 = 0
  T197_L2_f37_lt: x_Open_Porch_SF + 99718.00000099999 t197_leaf2 <= 100000
  T197_R2_f1_fixed_off: t197_leaf2 = 0
  T197_L2_f283_lt: const_Sale_Type_COD + 1e-06 t197_leaf2 <= 1
@@ -4530,26 +4528,25 @@ Subject To
  T197_R3_f1_fixed_off: t197_leaf3 = 0
  T197_R3_f283_fixed_off: t197_leaf3 = 0
  T197_R4_f37_ge: x_Open_Porch_SF - 282.000001 t197_leaf4 >= -1e-06
- T197_L4_f297_fixed_off: t197_leaf4 = 0
+ T197_L4_f297_lt: const_Sale_Condition_Normal + 1e-06 t197_leaf4 <= 1
  T197_R5_f37_ge: x_Open_Porch_SF - 282.000001 t197_leaf5 >= -1e-06
- T197_R5_f297_ge: const_Sale_Condition_Normal - 1e-06 t197_leaf5
-   >= 0.999999
+ T197_R5_f297_fixed_off: t197_leaf5 = 0
  TREE_198_ONEHOT: t198_leaf0 + t198_leaf1 + t198_leaf2 + t198_leaf3
    + t198_leaf4 + t198_leaf5 = 1
- T198_L0_f3_lt: Overall_Qual_calc + 7.000001 t198_leaf0 <= 10
+ T198_L0_f3_fixed_off: t198_leaf0 = 0
  T198_L0_f31_fixed_off: t198_leaf0 = 0
- T198_L1_f3_lt: Overall_Qual_calc + 7.000001 t198_leaf1 <= 10
+ T198_L1_f3_fixed_off: t198_leaf1 = 0
  T198_R1_f31_ge: const_Garage_Yr_Blt - 1e-06 t198_leaf1 >= 1920.999999
- T198_R2_f3_ge: Overall_Qual_calc - 2.000001 t198_leaf2 >= 0.999999
+ T198_R2_f3_ge: const_Overall_Qual - 1e-06 t198_leaf2 >= 2.999999
  T198_L2_f298_lt: const_Sale_Condition_Partial + 1e-06 t198_leaf2 <= 1
- T198_L2_f3_lt: Overall_Qual_calc + 3.000001 t198_leaf2 <= 10
- T198_R3_f3_ge: Overall_Qual_calc - 2.000001 t198_leaf3 >= 0.999999
+ T198_L2_f3_lt: const_Overall_Qual + 1e-06 t198_leaf2 <= 7
+ T198_R3_f3_ge: const_Overall_Qual - 1e-06 t198_leaf3 >= 2.999999
  T198_L3_f298_lt: const_Sale_Condition_Partial + 1e-06 t198_leaf3 <= 1
- T198_R3_f3_ge: Overall_Qual_calc - 6.000001 t198_leaf3 >= 0.999999
- T198_R4_f3_ge: Overall_Qual_calc - 2.000001 t198_leaf4 >= 0.999999
+ T198_R3_f3_fixed_off: t198_leaf3 = 0
+ T198_R4_f3_ge: const_Overall_Qual - 1e-06 t198_leaf4 >= 2.999999
  T198_R4_f298_fixed_off: t198_leaf4 = 0
  T198_L4_f37_lt: x_Open_Porch_SF + 99756.00000099999 t198_leaf4 <= 100000
- T198_R5_f3_ge: Overall_Qual_calc - 2.000001 t198_leaf5 >= 0.999999
+ T198_R5_f3_ge: const_Overall_Qual - 1e-06 t198_leaf5 >= 2.999999
  T198_R5_f298_fixed_off: t198_leaf5 = 0
  T198_R5_f37_ge: x_Open_Porch_SF - 244.000001 t198_leaf5 >= -1e-06
  TREE_199_ONEHOT: t199_leaf0 + t199_leaf1 + t199_leaf2 + t199_leaf3
@@ -4600,27 +4597,27 @@ Subject To
  T202_L2_f119_fixed_off: t202_leaf2 = 0
  T202_R2_f14_ge: x_Bsmt_Unf_SF - 996.000001 t202_leaf2 >= -1e-06
  T202_R3_f119_ge: const_Condition_1_Norm - 1e-06 t202_leaf3 >= 0.999999
- T202_L3_f44_lt: const_Yr_Sold + 1e-06 t202_leaf3 <= 2009
+ T202_L3_f44_fixed_off: t202_leaf3 = 0
  T202_L3_f4_lt: const_Overall_Cond + 1e-06 t202_leaf3 <= 7
  T202_R4_f119_ge: const_Condition_1_Norm - 1e-06 t202_leaf4 >= 0.999999
- T202_L4_f44_lt: const_Yr_Sold + 1e-06 t202_leaf4 <= 2009
+ T202_L4_f44_fixed_off: t202_leaf4 = 0
  T202_R4_f4_fixed_off: t202_leaf4 = 0
  T202_R5_f119_ge: const_Condition_1_Norm - 1e-06 t202_leaf5 >= 0.999999
- T202_R5_f44_fixed_off: t202_leaf5 = 0
+ T202_R5_f44_ge: const_Yr_Sold - 1e-06 t202_leaf5 >= 2008.999999
  T202_L5_f231_lt: central_air_no + 1e-06 t202_leaf5 <= 1
  T202_R6_f119_ge: const_Condition_1_Norm - 1e-06 t202_leaf6 >= 0.999999
- T202_R6_f44_fixed_off: t202_leaf6 = 0
+ T202_R6_f44_ge: const_Yr_Sold - 1e-06 t202_leaf6 >= 2008.999999
  T202_R6_f231_ge: central_air_no - 1.000001 t202_leaf6 >= -1e-06
  TREE_203_ONEHOT: t203_leaf0 + t203_leaf1 + t203_leaf2 + t203_leaf3
    + t203_leaf4 + t203_leaf5 + t203_leaf6 + t203_leaf7 = 1
- TREE_203_FORCE_LEAF_0: t203_leaf0 = 1
+ TREE_203_FORCE_LEAF_7: t203_leaf7 = 1
+ TREE_203_EXCLUDE_LEAF_0: t203_leaf0 = 0
  TREE_203_EXCLUDE_LEAF_1: t203_leaf1 = 0
  TREE_203_EXCLUDE_LEAF_2: t203_leaf2 = 0
  TREE_203_EXCLUDE_LEAF_3: t203_leaf3 = 0
  TREE_203_EXCLUDE_LEAF_4: t203_leaf4 = 0
  TREE_203_EXCLUDE_LEAF_5: t203_leaf5 = 0
  TREE_203_EXCLUDE_LEAF_6: t203_leaf6 = 0
- TREE_203_EXCLUDE_LEAF_7: t203_leaf7 = 0
  TREE_204_ONEHOT: t204_leaf0 + t204_leaf1 + t204_leaf2 + t204_leaf3
    + t204_leaf4 = 1
  T204_L0_f18_lt: const_2nd_Flr_SF + 1e-06 t204_leaf0 <= 1296
@@ -4658,21 +4655,24 @@ Subject To
  T206_R3_f20_ge: x_Gr_Liv_Area - 3086.000001 t206_leaf3 >= -1e-06
  TREE_207_ONEHOT: t207_leaf0 + t207_leaf1 + t207_leaf2 + t207_leaf3
    + t207_leaf4 + t207_leaf5 = 1
- T207_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t207_leaf0 <= 1
+ T207_L0_f293_fixed_off: t207_leaf0 = 0
  T207_L0_f164_lt: x_ex1_is_BrkFace + 1e-06 t207_leaf0 <= 1
  T207_L0_f77_lt: const_Land_Contour_Bnk + 1e-06 t207_leaf0 <= 1
- T207_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t207_leaf1 <= 1
+ T207_L1_f293_fixed_off: t207_leaf1 = 0
  T207_L1_f164_lt: x_ex1_is_BrkFace + 1e-06 t207_leaf1 <= 1
  T207_R1_f77_fixed_off: t207_leaf1 = 0
- T207_L2_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t207_leaf2 <= 1
+ T207_L2_f293_fixed_off: t207_leaf2 = 0
  T207_R2_f164_ge: x_ex1_is_BrkFace - 1.000001 t207_leaf2 >= -1e-06
- T207_R3_f293_fixed_off: t207_leaf3 = 0
- T207_L3_f3_lt: Overall_Qual_calc + 6.000001 t207_leaf3 <= 10
- T207_R4_f293_fixed_off: t207_leaf4 = 0
- T207_R4_f3_ge: Overall_Qual_calc - 3.000001 t207_leaf4 >= 0.999999
+ T207_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t207_leaf3
+   >= 0.999999
+ T207_L3_f3_fixed_off: t207_leaf3 = 0
+ T207_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t207_leaf4
+   >= 0.999999
+ T207_R4_f3_ge: const_Overall_Qual - 1e-06 t207_leaf4 >= 3.999999
  T207_L4_f14_lt: x_Bsmt_Unf_SF + 99328.00000099999 t207_leaf4 <= 100000
- T207_R5_f293_fixed_off: t207_leaf5 = 0
- T207_R5_f3_ge: Overall_Qual_calc - 3.000001 t207_leaf5 >= 0.999999
+ T207_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t207_leaf5
+   >= 0.999999
+ T207_R5_f3_ge: const_Overall_Qual - 1e-06 t207_leaf5 >= 3.999999
  T207_R5_f14_ge: x_Bsmt_Unf_SF - 672.000001 t207_leaf5 >= -1e-06
  TREE_208_ONEHOT: t208_leaf0 + t208_leaf1 + t208_leaf2 + t208_leaf3
    + t208_leaf4 = 1
@@ -4707,9 +4707,9 @@ Subject To
  T210_L2_f117_lt: const_Condition_1_Artery + 1e-06 t210_leaf2 <= 1
  T210_R2_f37_ge: x_Open_Porch_SF - 418.000001 t210_leaf2 >= -1e-06
  T210_R3_f117_fixed_off: t210_leaf3 = 0
- T210_L3_f3_lt: Overall_Qual_calc + 6.000001 t210_leaf3 <= 10
+ T210_L3_f3_fixed_off: t210_leaf3 = 0
  T210_R4_f117_fixed_off: t210_leaf4 = 0
- T210_R4_f3_ge: Overall_Qual_calc - 3.000001 t210_leaf4 >= 0.999999
+ T210_R4_f3_ge: const_Overall_Qual - 1e-06 t210_leaf4 >= 3.999999
  TREE_211_ONEHOT: t211_leaf0 + t211_leaf1 + t211_leaf2 + t211_leaf3
    + t211_leaf4 + t211_leaf5 + t211_leaf6 = 1
  T211_L0_f44_fixed_off: t211_leaf0 = 0
@@ -4772,22 +4772,12 @@ Subject To
  TREE_214_EXCLUDE_LEAF_6: t214_leaf6 = 0
  TREE_215_ONEHOT: t215_leaf0 + t215_leaf1 + t215_leaf2 + t215_leaf3
    + t215_leaf4 + t215_leaf5 = 1
- T215_L0_f3_lt: Overall_Qual_calc + 7.000001 t215_leaf0 <= 10
- T215_L0_f31_fixed_off: t215_leaf0 = 0
- T215_L1_f3_lt: Overall_Qual_calc + 7.000001 t215_leaf1 <= 10
- T215_R1_f31_ge: const_Garage_Yr_Blt - 1e-06 t215_leaf1 >= 1922.999999
- T215_R2_f3_ge: Overall_Qual_calc - 2.000001 t215_leaf2 >= 0.999999
- T215_L2_f119_fixed_off: t215_leaf2 = 0
- T215_L2_f0_lt: const_Lot_Frontage + 1e-06 t215_leaf2 <= 121
- T215_R3_f3_ge: Overall_Qual_calc - 2.000001 t215_leaf3 >= 0.999999
- T215_L3_f119_fixed_off: t215_leaf3 = 0
- T215_R3_f0_fixed_off: t215_leaf3 = 0
- T215_R4_f3_ge: Overall_Qual_calc - 2.000001 t215_leaf4 >= 0.999999
- T215_R4_f119_ge: const_Condition_1_Norm - 1e-06 t215_leaf4 >= 0.999999
- T215_L4_f4_fixed_off: t215_leaf4 = 0
- T215_R5_f3_ge: Overall_Qual_calc - 2.000001 t215_leaf5 >= 0.999999
- T215_R5_f119_ge: const_Condition_1_Norm - 1e-06 t215_leaf5 >= 0.999999
- T215_R5_f4_ge: const_Overall_Cond - 1e-06 t215_leaf5 >= 5.999999
+ TREE_215_FORCE_LEAF_5: t215_leaf5 = 1
+ TREE_215_EXCLUDE_LEAF_0: t215_leaf0 = 0
+ TREE_215_EXCLUDE_LEAF_1: t215_leaf1 = 0
+ TREE_215_EXCLUDE_LEAF_2: t215_leaf2 = 0
+ TREE_215_EXCLUDE_LEAF_3: t215_leaf3 = 0
+ TREE_215_EXCLUDE_LEAF_4: t215_leaf4 = 0
  TREE_216_ONEHOT: t216_leaf0 + t216_leaf1 + t216_leaf2 + t216_leaf3
    + t216_leaf4 = 1
  TREE_216_FORCE_LEAF_3: t216_leaf3 = 1
@@ -4811,16 +4801,15 @@ Subject To
  T217_R3_f6_ge: const_Year_Remod_Add - 1e-06 t217_leaf3 >= 1964.999999
  T217_R4_f33_ge: x_Garage_Area - 1154.000001 t217_leaf4 >= -1e-06
  TREE_218_ONEHOT: t218_leaf0 + t218_leaf1 + t218_leaf2 + t218_leaf3 = 1
- T218_L0_f3_lt: Overall_Qual_calc + 1e-06 t218_leaf0 <= 10
+ T218_L0_f3_lt: const_Overall_Qual + 1e-06 t218_leaf0 <= 10
  T218_L0_f37_lt: x_Open_Porch_SF + 99806.00000099999 t218_leaf0 <= 100000
  T218_L0_f289_lt: const_Sale_Type_New + 1e-06 t218_leaf0 <= 1
- T218_L1_f3_lt: Overall_Qual_calc + 1e-06 t218_leaf1 <= 10
+ T218_L1_f3_lt: const_Overall_Qual + 1e-06 t218_leaf1 <= 10
  T218_L1_f37_lt: x_Open_Porch_SF + 99806.00000099999 t218_leaf1 <= 100000
  T218_R1_f289_fixed_off: t218_leaf1 = 0
- T218_L2_f3_lt: Overall_Qual_calc + 1e-06 t218_leaf2 <= 10
+ T218_L2_f3_lt: const_Overall_Qual + 1e-06 t218_leaf2 <= 10
  T218_R2_f37_ge: x_Open_Porch_SF - 194.000001 t218_leaf2 >= -1e-06
- T218_R3_f3_ge: Overall_Qual_calc - 9.000000999999999 t218_leaf3
-   >= 0.999999
+ T218_R3_f3_fixed_off: t218_leaf3 = 0
  TREE_219_ONEHOT: t219_leaf0 + t219_leaf1 + t219_leaf2 + t219_leaf3
    + t219_leaf4 + t219_leaf5 + t219_leaf6 = 1
  T219_L0_f245_fixed_off: t219_leaf0 = 0
@@ -4849,13 +4838,13 @@ Subject To
  T219_R6_f12_ge: x_BsmtFin_SF_1 - 1319.000001 t219_leaf6 >= -1e-06
  TREE_220_ONEHOT: t220_leaf0 + t220_leaf1 + t220_leaf2 + t220_leaf3
    + t220_leaf4 + t220_leaf5 + t220_leaf6 = 1
- TREE_220_FORCE_LEAF_0: t220_leaf0 = 1
+ TREE_220_FORCE_LEAF_6: t220_leaf6 = 1
+ TREE_220_EXCLUDE_LEAF_0: t220_leaf0 = 0
  TREE_220_EXCLUDE_LEAF_1: t220_leaf1 = 0
  TREE_220_EXCLUDE_LEAF_2: t220_leaf2 = 0
  TREE_220_EXCLUDE_LEAF_3: t220_leaf3 = 0
  TREE_220_EXCLUDE_LEAF_4: t220_leaf4 = 0
  TREE_220_EXCLUDE_LEAF_5: t220_leaf5 = 0
- TREE_220_EXCLUDE_LEAF_6: t220_leaf6 = 0
  TREE_221_ONEHOT: t221_leaf0 + t221_leaf1 + t221_leaf2 + t221_leaf3
    + t221_leaf4 + t221_leaf5 = 1
  T221_L0_f44_fixed_off: t221_leaf0 = 0
@@ -4904,10 +4893,10 @@ Subject To
    + t225_leaf4 = 1
  T225_L0_f21_lt: const_Bsmt_Full_Bath + 1e-06 t225_leaf0 <= 2
  T225_L0_f36_lt: x_Wood_Deck_SF + 99788.00000099999 t225_leaf0 <= 100000
- T225_L0_f96_fixed_off: t225_leaf0 = 0
+ T225_L0_f96_lt: const_Neighborhood_Edwards + 1e-06 t225_leaf0 <= 1
  T225_L1_f21_lt: const_Bsmt_Full_Bath + 1e-06 t225_leaf1 <= 2
  T225_L1_f36_lt: x_Wood_Deck_SF + 99788.00000099999 t225_leaf1 <= 100000
- T225_R1_f96_ge: const_Neighborhood_Edwards - 1e-06 t225_leaf1 >= 0.999999
+ T225_R1_f96_fixed_off: t225_leaf1 = 0
  T225_L2_f21_lt: const_Bsmt_Full_Bath + 1e-06 t225_leaf2 <= 2
  T225_R2_f36_ge: x_Wood_Deck_SF - 212.000001 t225_leaf2 >= -1e-06
  T225_L2_f0_lt: const_Lot_Frontage + 1e-06 t225_leaf2 <= 115
@@ -4918,16 +4907,18 @@ Subject To
  TREE_226_ONEHOT: t226_leaf0 + t226_leaf1 + t226_leaf2 + t226_leaf3
    + t226_leaf4 + t226_leaf5 + t226_leaf6 + t226_leaf7 = 1
  T226_L0_f20_lt: x_Gr_Liv_Area + 9012.000001 t226_leaf0 <= 10000
- T226_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t226_leaf0 <= 1
+ T226_L0_f293_fixed_off: t226_leaf0 = 0
  T226_L0_f231_lt: central_air_no + 1e-06 t226_leaf0 <= 1
  T226_L1_f20_lt: x_Gr_Liv_Area + 9012.000001 t226_leaf1 <= 10000
- T226_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t226_leaf1 <= 1
+ T226_L1_f293_fixed_off: t226_leaf1 = 0
  T226_R1_f231_ge: central_air_no - 1.000001 t226_leaf1 >= -1e-06
  T226_L2_f20_lt: x_Gr_Liv_Area + 9012.000001 t226_leaf2 <= 10000
- T226_R2_f293_fixed_off: t226_leaf2 = 0
+ T226_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t226_leaf2
+   >= 0.999999
  T226_L2_f44_fixed_off: t226_leaf2 = 0
  T226_L3_f20_lt: x_Gr_Liv_Area + 9012.000001 t226_leaf3 <= 10000
- T226_R3_f293_fixed_off: t226_leaf3 = 0
+ T226_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t226_leaf3
+   >= 0.999999
  T226_R3_f44_ge: const_Yr_Sold - 1e-06 t226_leaf3 >= 2007.999999
  T226_R4_f20_ge: x_Gr_Liv_Area - 988.000001 t226_leaf4 >= -1e-06
  T226_L4_f4_fixed_off: t226_leaf4 = 0
@@ -4990,17 +4981,16 @@ Subject To
    + t230_leaf4 + t230_leaf5 + t230_leaf6 = 1
  T230_L0_f4_fixed_off: t230_leaf0 = 0
  T230_L0_f33_lt: x_Garage_Area + 99747.00000099999 t230_leaf0 <= 100000
- T230_L0_f297_fixed_off: t230_leaf0 = 0
+ T230_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t230_leaf0 <= 1
  T230_L1_f4_fixed_off: t230_leaf1 = 0
  T230_L1_f33_lt: x_Garage_Area + 99747.00000099999 t230_leaf1 <= 100000
- T230_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t230_leaf1
-   >= 0.999999
+ T230_R1_f297_fixed_off: t230_leaf1 = 0
  T230_L2_f4_fixed_off: t230_leaf2 = 0
  T230_R2_f33_ge: x_Garage_Area - 253.000001 t230_leaf2 >= -1e-06
- T230_L2_f3_lt: Overall_Qual_calc + 7.000001 t230_leaf2 <= 10
+ T230_L2_f3_fixed_off: t230_leaf2 = 0
  T230_L3_f4_fixed_off: t230_leaf3 = 0
  T230_R3_f33_ge: x_Garage_Area - 253.000001 t230_leaf3 >= -1e-06
- T230_R3_f3_ge: Overall_Qual_calc - 2.000001 t230_leaf3 >= 0.999999
+ T230_R3_f3_ge: const_Overall_Qual - 1e-06 t230_leaf3 >= 2.999999
  T230_R4_f4_ge: const_Overall_Cond - 1e-06 t230_leaf4 >= 5.999999
  T230_L4_f78_lt: const_Land_Contour_HLS + 1e-06 t230_leaf4 <= 1
  T230_L4_f9_lt: x_Exter_Cond + 1.000001 t230_leaf4 <= 4
@@ -5013,10 +5003,11 @@ Subject To
    + t231_leaf4 + t231_leaf5 + t231_leaf6 + t231_leaf7 = 1
  T231_L0_f1_lt: const_Lot_Area + 1e-06 t231_leaf0 <= 19522
  T231_L0_f4_fixed_off: t231_leaf0 = 0
- T231_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t231_leaf0 <= 1
+ T231_L0_f293_fixed_off: t231_leaf0 = 0
  T231_L1_f1_lt: const_Lot_Area + 1e-06 t231_leaf1 <= 19522
  T231_L1_f4_fixed_off: t231_leaf1 = 0
- T231_R1_f293_fixed_off: t231_leaf1 = 0
+ T231_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t231_leaf1
+   >= 0.999999
  T231_L2_f1_lt: const_Lot_Area + 1e-06 t231_leaf2 <= 19522
  T231_R2_f4_ge: const_Overall_Cond - 1e-06 t231_leaf2 >= 5.999999
  T231_L2_f1_fixed_off: t231_leaf2 = 0
@@ -5073,20 +5064,20 @@ Subject To
  T233_R6_f13_ge: x_BsmtFin_SF_2 - 491.000001 t233_leaf6 >= -1e-06
  TREE_234_ONEHOT: t234_leaf0 + t234_leaf1 + t234_leaf2 + t234_leaf3
    + t234_leaf4 + t234_leaf5 = 1
- T234_L0_f3_lt: Overall_Qual_calc + 6.000001 t234_leaf0 <= 10
+ T234_L0_f3_fixed_off: t234_leaf0 = 0
  T234_L0_f15_fixed_off: t234_leaf0 = 0
- T234_L1_f3_lt: Overall_Qual_calc + 6.000001 t234_leaf1 <= 10
+ T234_L1_f3_fixed_off: t234_leaf1 = 0
  T234_R1_f15_ge: const_Total_Bsmt_SF - 1e-06 t234_leaf1 >= 715.999999
- T234_R2_f3_ge: Overall_Qual_calc - 3.000001 t234_leaf2 >= 0.999999
+ T234_R2_f3_ge: const_Overall_Qual - 1e-06 t234_leaf2 >= 3.999999
  T234_L2_f12_lt: x_BsmtFin_SF_1 + 998268.000001 t234_leaf2 <= 1e+06
  T234_L2_f112_lt: const_Neighborhood_SawyerW + 1e-06 t234_leaf2 <= 1
- T234_R3_f3_ge: Overall_Qual_calc - 3.000001 t234_leaf3 >= 0.999999
+ T234_R3_f3_ge: const_Overall_Qual - 1e-06 t234_leaf3 >= 3.999999
  T234_L3_f12_lt: x_BsmtFin_SF_1 + 998268.000001 t234_leaf3 <= 1e+06
  T234_R3_f112_fixed_off: t234_leaf3 = 0
- T234_R4_f3_ge: Overall_Qual_calc - 3.000001 t234_leaf4 >= 0.999999
+ T234_R4_f3_ge: const_Overall_Qual - 1e-06 t234_leaf4 >= 3.999999
  T234_R4_f12_ge: x_BsmtFin_SF_1 - 1732.000001 t234_leaf4 >= -1e-06
  T234_L4_f36_lt: x_Wood_Deck_SF + 99828.00000099999 t234_leaf4 <= 100000
- T234_R5_f3_ge: Overall_Qual_calc - 3.000001 t234_leaf5 >= 0.999999
+ T234_R5_f3_ge: const_Overall_Qual - 1e-06 t234_leaf5 >= 3.999999
  T234_R5_f12_ge: x_BsmtFin_SF_1 - 1732.000001 t234_leaf5 >= -1e-06
  T234_R5_f36_ge: x_Wood_Deck_SF - 172.000001 t234_leaf5 >= -1e-06
  TREE_235_ONEHOT: t235_leaf0 + t235_leaf1 + t235_leaf2 + t235_leaf3
@@ -5114,14 +5105,13 @@ Subject To
  TREE_236_EXCLUDE_LEAF_5: t236_leaf5 = 0
  TREE_237_ONEHOT: t237_leaf0 + t237_leaf1 + t237_leaf2 + t237_leaf3 = 1
  T237_L0_f40_lt: x_Screen_Porch + 99896.00000099999 t237_leaf0 <= 100000
- T237_L0_f3_lt: Overall_Qual_calc + 1e-06 t237_leaf0 <= 10
- T237_L0_f3_lt: Overall_Qual_calc + 6.000001 t237_leaf0 <= 10
+ T237_L0_f3_lt: const_Overall_Qual + 1e-06 t237_leaf0 <= 10
+ T237_L0_f3_fixed_off: t237_leaf0 = 0
  T237_L1_f40_lt: x_Screen_Porch + 99896.00000099999 t237_leaf1 <= 100000
- T237_L1_f3_lt: Overall_Qual_calc + 1e-06 t237_leaf1 <= 10
- T237_R1_f3_ge: Overall_Qual_calc - 3.000001 t237_leaf1 >= 0.999999
+ T237_L1_f3_lt: const_Overall_Qual + 1e-06 t237_leaf1 <= 10
+ T237_R1_f3_ge: const_Overall_Qual - 1e-06 t237_leaf1 >= 3.999999
  T237_L2_f40_lt: x_Screen_Porch + 99896.00000099999 t237_leaf2 <= 100000
- T237_R2_f3_ge: Overall_Qual_calc - 9.000000999999999 t237_leaf2
-   >= 0.999999
+ T237_R2_f3_fixed_off: t237_leaf2 = 0
  T237_R3_f40_ge: x_Screen_Porch - 104.000001 t237_leaf3 >= -1e-06
  TREE_238_ONEHOT: t238_leaf0 + t238_leaf1 + t238_leaf2 + t238_leaf3
    + t238_leaf4 + t238_leaf5 = 1
@@ -5145,10 +5135,11 @@ Subject To
    + t239_leaf4 + t239_leaf5 + t239_leaf6 = 1
  T239_L0_f207_lt: const_Bsmt_Exposure_Gd + 1e-06 t239_leaf0 <= 1
  T239_L0_f4_fixed_off: t239_leaf0 = 0
- T239_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t239_leaf0 <= 1
+ T239_L0_f293_fixed_off: t239_leaf0 = 0
  T239_L1_f207_lt: const_Bsmt_Exposure_Gd + 1e-06 t239_leaf1 <= 1
  T239_L1_f4_fixed_off: t239_leaf1 = 0
- T239_R1_f293_fixed_off: t239_leaf1 = 0
+ T239_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t239_leaf1
+   >= 0.999999
  T239_L2_f207_lt: const_Bsmt_Exposure_Gd + 1e-06 t239_leaf2 <= 1
  T239_R2_f4_ge: const_Overall_Cond - 1e-06 t239_leaf2 >= 5.999999
  T239_L2_f119_fixed_off: t239_leaf2 = 0
@@ -5183,27 +5174,19 @@ Subject To
  T240_R5_f197_ge: x_mvt_is_No_aplica - 1.000001 t240_leaf5 >= -1e-06
  TREE_241_ONEHOT: t241_leaf0 + t241_leaf1 + t241_leaf2 + t241_leaf3
    + t241_leaf4 = 1
- T241_L0_f3_lt: Overall_Qual_calc + 7.000001 t241_leaf0 <= 10
- T241_R1_f3_ge: Overall_Qual_calc - 2.000001 t241_leaf1 >= 0.999999
- T241_L1_f119_fixed_off: t241_leaf1 = 0
- T241_L1_f271_lt: const_Mo_Sold_1 + 1e-06 t241_leaf1 <= 1
- T241_R2_f3_ge: Overall_Qual_calc - 2.000001 t241_leaf2 >= 0.999999
- T241_L2_f119_fixed_off: t241_leaf2 = 0
- T241_R2_f271_fixed_off: t241_leaf2 = 0
- T241_R3_f3_ge: Overall_Qual_calc - 2.000001 t241_leaf3 >= 0.999999
- T241_R3_f119_ge: const_Condition_1_Norm - 1e-06 t241_leaf3 >= 0.999999
- T241_L3_f21_lt: const_Bsmt_Full_Bath + 1e-06 t241_leaf3 <= 2
- T241_R4_f3_ge: Overall_Qual_calc - 2.000001 t241_leaf4 >= 0.999999
- T241_R4_f119_ge: const_Condition_1_Norm - 1e-06 t241_leaf4 >= 0.999999
- T241_R4_f21_fixed_off: t241_leaf4 = 0
+ TREE_241_FORCE_LEAF_3: t241_leaf3 = 1
+ TREE_241_EXCLUDE_LEAF_0: t241_leaf0 = 0
+ TREE_241_EXCLUDE_LEAF_1: t241_leaf1 = 0
+ TREE_241_EXCLUDE_LEAF_2: t241_leaf2 = 0
+ TREE_241_EXCLUDE_LEAF_4: t241_leaf4 = 0
  TREE_242_ONEHOT: t242_leaf0 + t242_leaf1 + t242_leaf2 + t242_leaf3
    + t242_leaf4 = 1
  T242_L0_f37_lt: x_Open_Porch_SF + 99805.00000099999 t242_leaf0 <= 100000
  T242_L0_f44_fixed_off: t242_leaf0 = 0
- T242_L0_f5_lt: const_Year_Built + 1e-06 t242_leaf0 <= 1950
+ T242_L0_f5_fixed_off: t242_leaf0 = 0
  T242_L1_f37_lt: x_Open_Porch_SF + 99805.00000099999 t242_leaf1 <= 100000
  T242_L1_f44_fixed_off: t242_leaf1 = 0
- T242_R1_f5_fixed_off: t242_leaf1 = 0
+ T242_R1_f5_ge: const_Year_Built - 1e-06 t242_leaf1 >= 1949.999999
  T242_L2_f37_lt: x_Open_Porch_SF + 99805.00000099999 t242_leaf2 <= 100000
  T242_R2_f44_ge: const_Yr_Sold - 1e-06 t242_leaf2 >= 2006.999999
  T242_L2_f1_fixed_off: t242_leaf2 = 0
@@ -5289,30 +5272,31 @@ Subject To
  TREE_248_ONEHOT: t248_leaf0 + t248_leaf1 + t248_leaf2 + t248_leaf3
    + t248_leaf4 + t248_leaf5 + t248_leaf6 + t248_leaf7 = 1
  T248_L0_f20_lt: x_Gr_Liv_Area + 9012.000001 t248_leaf0 <= 10000
- T248_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t248_leaf0 <= 1
+ T248_L0_f293_fixed_off: t248_leaf0 = 0
  T248_L0_f38_lt: x_Enclosed_Porch + 99879.00000099999 t248_leaf0 <= 100000
  T248_L1_f20_lt: x_Gr_Liv_Area + 9012.000001 t248_leaf1 <= 10000
- T248_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t248_leaf1 <= 1
+ T248_L1_f293_fixed_off: t248_leaf1 = 0
  T248_R1_f38_ge: x_Enclosed_Porch - 121.000001 t248_leaf1 >= -1e-06
  T248_L2_f20_lt: x_Gr_Liv_Area + 9012.000001 t248_leaf2 <= 10000
- T248_R2_f293_fixed_off: t248_leaf2 = 0
+ T248_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t248_leaf2
+   >= 0.999999
  T248_L2_f35_lt: x_Garage_Cond + 2.000001 t248_leaf2 <= 4
  T248_L3_f20_lt: x_Gr_Liv_Area + 9012.000001 t248_leaf3 <= 10000
- T248_R3_f293_fixed_off: t248_leaf3 = 0
+ T248_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t248_leaf3
+   >= 0.999999
  T248_R3_f35_ge: x_Garage_Cond - 3.000001 t248_leaf3 >= -1.000001
  T248_R4_f20_ge: x_Gr_Liv_Area - 988.000001 t248_leaf4 >= -1e-06
- T248_L4_f3_lt: Overall_Qual_calc + 3.000001 t248_leaf4 <= 10
+ T248_L4_f3_lt: const_Overall_Qual + 1e-06 t248_leaf4 <= 7
  T248_L4_f18_lt: const_2nd_Flr_SF + 1e-06 t248_leaf4 <= 672
  T248_R5_f20_ge: x_Gr_Liv_Area - 988.000001 t248_leaf5 >= -1e-06
- T248_L5_f3_lt: Overall_Qual_calc + 3.000001 t248_leaf5 <= 10
+ T248_L5_f3_lt: const_Overall_Qual + 1e-06 t248_leaf5 <= 7
  T248_R5_f18_fixed_off: t248_leaf5 = 0
  T248_R6_f20_ge: x_Gr_Liv_Area - 988.000001 t248_leaf6 >= -1e-06
- T248_R6_f3_ge: Overall_Qual_calc - 6.000001 t248_leaf6 >= 0.999999
- T248_L6_f3_lt: Overall_Qual_calc + 1.000001 t248_leaf6 <= 10
+ T248_R6_f3_fixed_off: t248_leaf6 = 0
+ T248_L6_f3_lt: const_Overall_Qual + 1e-06 t248_leaf6 <= 9
  T248_R7_f20_ge: x_Gr_Liv_Area - 988.000001 t248_leaf7 >= -1e-06
- T248_R7_f3_ge: Overall_Qual_calc - 6.000001 t248_leaf7 >= 0.999999
- T248_R7_f3_ge: Overall_Qual_calc - 8.000000999999999 t248_leaf7
-   >= 0.999999
+ T248_R7_f3_fixed_off: t248_leaf7 = 0
+ T248_R7_f3_fixed_off: t248_leaf7 = 0
  TREE_249_ONEHOT: t249_leaf0 + t249_leaf1 + t249_leaf2 + t249_leaf3
    + t249_leaf4 = 1
  T249_L0_f7_lt: x_Mas_Vnr_Area + 1e-06 t249_leaf0 <= 922
@@ -5323,10 +5307,11 @@ Subject To
  T249_R1_f20_ge: x_Gr_Liv_Area - 2794.000001 t249_leaf1 >= -1e-06
  T249_L2_f7_lt: x_Mas_Vnr_Area + 1e-06 t249_leaf2 <= 922
  T249_R2_f44_ge: const_Yr_Sold - 1e-06 t249_leaf2 >= 2007.999999
- T249_L2_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t249_leaf2 <= 1
+ T249_L2_f293_fixed_off: t249_leaf2 = 0
  T249_L3_f7_lt: x_Mas_Vnr_Area + 1e-06 t249_leaf3 <= 922
  T249_R3_f44_ge: const_Yr_Sold - 1e-06 t249_leaf3 >= 2007.999999
- T249_R3_f293_fixed_off: t249_leaf3 = 0
+ T249_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t249_leaf3
+   >= 0.999999
  T249_R4_f7_fixed_off: t249_leaf4 = 0
  TREE_250_ONEHOT: t250_leaf0 + t250_leaf1 + t250_leaf2 + t250_leaf3 = 1
  T250_L0_f14_lt: x_Bsmt_Unf_SF + 99298.00000099999 t250_leaf0 <= 100000
@@ -5340,19 +5325,11 @@ Subject To
  T250_R3_f14_ge: x_Bsmt_Unf_SF - 702.000001 t250_leaf3 >= -1e-06
  TREE_251_ONEHOT: t251_leaf0 + t251_leaf1 + t251_leaf2 + t251_leaf3
    + t251_leaf4 = 1
- T251_L0_f62_lt: const_MS_Zoning_C_(all) + 1e-06 t251_leaf0 <= 1
- T251_L0_f51_lt: const_MS_SubClass_70 + 1e-06 t251_leaf0 <= 1
- T251_L0_f3_lt: Overall_Qual_calc + 5.000001 t251_leaf0 <= 10
- T251_L1_f62_lt: const_MS_Zoning_C_(all) + 1e-06 t251_leaf1 <= 1
- T251_L1_f51_lt: const_MS_SubClass_70 + 1e-06 t251_leaf1 <= 1
- T251_R1_f3_ge: Overall_Qual_calc - 4.000001 t251_leaf1 >= 0.999999
- T251_L2_f62_lt: const_MS_Zoning_C_(all) + 1e-06 t251_leaf2 <= 1
- T251_R2_f51_fixed_off: t251_leaf2 = 0
- T251_L2_f5_fixed_off: t251_leaf2 = 0
- T251_L3_f62_lt: const_MS_Zoning_C_(all) + 1e-06 t251_leaf3 <= 1
- T251_R3_f51_fixed_off: t251_leaf3 = 0
- T251_R3_f5_ge: const_Year_Built - 1e-06 t251_leaf3 >= 1891.999999
- T251_R4_f62_fixed_off: t251_leaf4 = 0
+ TREE_251_FORCE_LEAF_0: t251_leaf0 = 1
+ TREE_251_EXCLUDE_LEAF_1: t251_leaf1 = 0
+ TREE_251_EXCLUDE_LEAF_2: t251_leaf2 = 0
+ TREE_251_EXCLUDE_LEAF_3: t251_leaf3 = 0
+ TREE_251_EXCLUDE_LEAF_4: t251_leaf4 = 0
  TREE_252_ONEHOT: t252_leaf0 + t252_leaf1 + t252_leaf2 + t252_leaf3
    + t252_leaf4 + t252_leaf5 + t252_leaf6 + t252_leaf7 = 1
  T252_L0_f245_fixed_off: t252_leaf0 = 0
@@ -5402,14 +5379,14 @@ Subject To
  T253_R5_f1_fixed_off: t253_leaf5 = 0
  T253_R5_f20_ge: x_Gr_Liv_Area - 2544.000001 t253_leaf5 >= -1e-06
  TREE_254_ONEHOT: t254_leaf0 + t254_leaf1 + t254_leaf2 + t254_leaf3 = 1
- T254_L0_f3_lt: Overall_Qual_calc + 7.000001 t254_leaf0 <= 10
- T254_R1_f3_ge: Overall_Qual_calc - 2.000001 t254_leaf1 >= 0.999999
+ T254_L0_f3_fixed_off: t254_leaf0 = 0
+ T254_R1_f3_ge: const_Overall_Qual - 1e-06 t254_leaf1 >= 2.999999
  T254_L1_f63_lt: const_MS_Zoning_FV + 1e-06 t254_leaf1 <= 1
  T254_L1_f37_lt: x_Open_Porch_SF + 99709.00000099999 t254_leaf1 <= 100000
- T254_R2_f3_ge: Overall_Qual_calc - 2.000001 t254_leaf2 >= 0.999999
+ T254_R2_f3_ge: const_Overall_Qual - 1e-06 t254_leaf2 >= 2.999999
  T254_L2_f63_lt: const_MS_Zoning_FV + 1e-06 t254_leaf2 <= 1
  T254_R2_f37_ge: x_Open_Porch_SF - 291.000001 t254_leaf2 >= -1e-06
- T254_R3_f3_ge: Overall_Qual_calc - 2.000001 t254_leaf3 >= 0.999999
+ T254_R3_f3_ge: const_Overall_Qual - 1e-06 t254_leaf3 >= 2.999999
  T254_R3_f63_fixed_off: t254_leaf3 = 0
  TREE_255_ONEHOT: t255_leaf0 + t255_leaf1 + t255_leaf2 + t255_leaf3
    + t255_leaf4 + t255_leaf5 + t255_leaf6 = 1
@@ -5502,19 +5479,20 @@ Subject To
  T259_R1_f16_ge: x_Heating_QC - 3.000001 t259_leaf1 >= -1e-06
  T259_L2_f18_lt: const_2nd_Flr_SF + 1e-06 t259_leaf2 <= 1296
  T259_R2_f4_ge: const_Overall_Cond - 1e-06 t259_leaf2 >= 5.999999
- T259_L2_f18_fixed_off: t259_leaf2 = 0
+ T259_L2_f18_lt: const_2nd_Flr_SF + 1e-06 t259_leaf2 <= 167
  T259_L3_f18_lt: const_2nd_Flr_SF + 1e-06 t259_leaf3 <= 1296
  T259_R3_f4_ge: const_Overall_Cond - 1e-06 t259_leaf3 >= 5.999999
- T259_R3_f18_ge: const_2nd_Flr_SF - 1e-06 t259_leaf3 >= 166.999999
+ T259_R3_f18_fixed_off: t259_leaf3 = 0
  T259_R4_f18_fixed_off: t259_leaf4 = 0
  TREE_260_ONEHOT: t260_leaf0 + t260_leaf1 + t260_leaf2 + t260_leaf3
    + t260_leaf4 + t260_leaf5 = 1
  T260_L0_f0_lt: const_Lot_Frontage + 1e-06 t260_leaf0 <= 121
  T260_L0_f20_lt: x_Gr_Liv_Area + 9106.000001 t260_leaf0 <= 10000
- T260_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t260_leaf0 <= 1
+ T260_L0_f293_fixed_off: t260_leaf0 = 0
  T260_L1_f0_lt: const_Lot_Frontage + 1e-06 t260_leaf1 <= 121
  T260_L1_f20_lt: x_Gr_Liv_Area + 9106.000001 t260_leaf1 <= 10000
- T260_R1_f293_fixed_off: t260_leaf1 = 0
+ T260_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t260_leaf1
+   >= 0.999999
  T260_L2_f0_lt: const_Lot_Frontage + 1e-06 t260_leaf2 <= 121
  T260_R2_f20_ge: x_Gr_Liv_Area - 894.000001 t260_leaf2 >= -1e-06
  T260_L2_f194_lt: x_mvt_is_BrkCmn + 1e-06 t260_leaf2 <= 1
@@ -5537,17 +5515,17 @@ Subject To
  T261_R3_f17_ge: x_1st_Flr_SF - 2515.000001 t261_leaf3 >= -1e-06
  TREE_262_ONEHOT: t262_leaf0 + t262_leaf1 + t262_leaf2 + t262_leaf3
    + t262_leaf4 = 1
- T262_L0_f3_lt: Overall_Qual_calc + 7.000001 t262_leaf0 <= 10
- T262_R1_f3_ge: Overall_Qual_calc - 2.000001 t262_leaf1 >= 0.999999
+ T262_L0_f3_fixed_off: t262_leaf0 = 0
+ T262_R1_f3_ge: const_Overall_Qual - 1e-06 t262_leaf1 >= 2.999999
  T262_L1_f26_lt: x_Kitchen_AbvGr + 1.000001 t262_leaf1 <= 3
  T262_L1_f20_lt: x_Gr_Liv_Area + 7351.000001 t262_leaf1 <= 10000
- T262_R2_f3_ge: Overall_Qual_calc - 2.000001 t262_leaf2 >= 0.999999
+ T262_R2_f3_ge: const_Overall_Qual - 1e-06 t262_leaf2 >= 2.999999
  T262_L2_f26_lt: x_Kitchen_AbvGr + 1.000001 t262_leaf2 <= 3
  T262_R2_f20_ge: x_Gr_Liv_Area - 2649.000001 t262_leaf2 >= -1e-06
- T262_R3_f3_ge: Overall_Qual_calc - 2.000001 t262_leaf3 >= 0.999999
+ T262_R3_f3_ge: const_Overall_Qual - 1e-06 t262_leaf3 >= 2.999999
  T262_R3_f26_ge: x_Kitchen_AbvGr - 2.000001 t262_leaf3 >= -1e-06
  T262_L3_f35_lt: x_Garage_Cond + 3.000001 t262_leaf3 <= 4
- T262_R4_f3_ge: Overall_Qual_calc - 2.000001 t262_leaf4 >= 0.999999
+ T262_R4_f3_ge: const_Overall_Qual - 1e-06 t262_leaf4 >= 2.999999
  T262_R4_f26_ge: x_Kitchen_AbvGr - 2.000001 t262_leaf4 >= -1e-06
  T262_R4_f35_ge: x_Garage_Cond - 2.000001 t262_leaf4 >= -1.000001
  TREE_263_ONEHOT: t263_leaf0 + t263_leaf1 + t263_leaf2 + t263_leaf3
@@ -5564,41 +5542,40 @@ Subject To
  T263_L3_f1_fixed_off: t263_leaf3 = 0
  T263_R4_f272_fixed_off: t263_leaf4 = 0
  T263_R4_f1_ge: const_Lot_Area - 1e-06 t263_leaf4 >= 9964.999999
- T263_L4_f297_fixed_off: t263_leaf4 = 0
+ T263_L4_f297_lt: const_Sale_Condition_Normal + 1e-06 t263_leaf4 <= 1
  T263_R5_f272_fixed_off: t263_leaf5 = 0
  T263_R5_f1_ge: const_Lot_Area - 1e-06 t263_leaf5 >= 9964.999999
- T263_R5_f297_ge: const_Sale_Condition_Normal - 1e-06 t263_leaf5
-   >= 0.999999
+ T263_R5_f297_fixed_off: t263_leaf5 = 0
  TREE_264_ONEHOT: t264_leaf0 + t264_leaf1 + t264_leaf2 + t264_leaf3
    + t264_leaf4 = 1
- T264_L0_f3_lt: Overall_Qual_calc + 7.000001 t264_leaf0 <= 10
- T264_R1_f3_ge: Overall_Qual_calc - 2.000001 t264_leaf1 >= 0.999999
+ T264_L0_f3_fixed_off: t264_leaf0 = 0
+ T264_R1_f3_ge: const_Overall_Qual - 1e-06 t264_leaf1 >= 2.999999
  T264_L1_f245_fixed_off: t264_leaf1 = 0
  T264_L1_f37_lt: x_Open_Porch_SF + 99818.00000099999 t264_leaf1 <= 100000
- T264_R2_f3_ge: Overall_Qual_calc - 2.000001 t264_leaf2 >= 0.999999
+ T264_R2_f3_ge: const_Overall_Qual - 1e-06 t264_leaf2 >= 2.999999
  T264_L2_f245_fixed_off: t264_leaf2 = 0
  T264_R2_f37_ge: x_Open_Porch_SF - 182.000001 t264_leaf2 >= -1e-06
- T264_R3_f3_ge: Overall_Qual_calc - 2.000001 t264_leaf3 >= 0.999999
+ T264_R3_f3_ge: const_Overall_Qual - 1e-06 t264_leaf3 >= 2.999999
  T264_R3_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t264_leaf3
    >= 0.999999
  T264_L3_f296_lt: const_Sale_Condition_Family + 1e-06 t264_leaf3 <= 1
- T264_R4_f3_ge: Overall_Qual_calc - 2.000001 t264_leaf4 >= 0.999999
+ T264_R4_f3_ge: const_Overall_Qual - 1e-06 t264_leaf4 >= 2.999999
  T264_R4_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t264_leaf4
    >= 0.999999
  T264_R4_f296_fixed_off: t264_leaf4 = 0
  TREE_265_ONEHOT: t265_leaf0 + t265_leaf1 + t265_leaf2 + t265_leaf3
    + t265_leaf4 = 1
  T265_L0_f0_lt: const_Lot_Frontage + 1e-06 t265_leaf0 <= 152
- T265_L0_f3_lt: Overall_Qual_calc + 5.000001 t265_leaf0 <= 10
+ T265_L0_f3_lt: const_Overall_Qual + 1e-06 t265_leaf0 <= 5
  T265_L0_f161_lt: x_ex1_is_AsbShng + 1e-06 t265_leaf0 <= 1
  T265_L1_f0_lt: const_Lot_Frontage + 1e-06 t265_leaf1 <= 152
- T265_L1_f3_lt: Overall_Qual_calc + 5.000001 t265_leaf1 <= 10
+ T265_L1_f3_lt: const_Overall_Qual + 1e-06 t265_leaf1 <= 5
  T265_R1_f161_ge: x_ex1_is_AsbShng - 1.000001 t265_leaf1 >= -1e-06
  T265_L2_f0_lt: const_Lot_Frontage + 1e-06 t265_leaf2 <= 152
- T265_R2_f3_ge: Overall_Qual_calc - 4.000001 t265_leaf2 >= 0.999999
+ T265_R2_f3_fixed_off: t265_leaf2 = 0
  T265_L2_f5_fixed_off: t265_leaf2 = 0
  T265_L3_f0_lt: const_Lot_Frontage + 1e-06 t265_leaf3 <= 152
- T265_R3_f3_ge: Overall_Qual_calc - 4.000001 t265_leaf3 >= 0.999999
+ T265_R3_f3_fixed_off: t265_leaf3 = 0
  T265_R3_f5_ge: const_Year_Built - 1e-06 t265_leaf3 >= 1912.999999
  T265_R4_f0_fixed_off: t265_leaf4 = 0
  TREE_266_ONEHOT: t266_leaf0 + t266_leaf1 + t266_leaf2 + t266_leaf3
@@ -5625,21 +5602,21 @@ Subject To
  T266_R6_f36_ge: x_Wood_Deck_SF - 511.000001 t266_leaf6 >= -1e-06
  TREE_267_ONEHOT: t267_leaf0 + t267_leaf1 + t267_leaf2 + t267_leaf3
    + t267_leaf4 + t267_leaf5 = 1
- T267_L0_f3_lt: Overall_Qual_calc + 3.000001 t267_leaf0 <= 10
+ T267_L0_f3_lt: const_Overall_Qual + 1e-06 t267_leaf0 <= 7
  T267_L0_f18_lt: const_2nd_Flr_SF + 1e-06 t267_leaf0 <= 1276
  T267_L0_f37_lt: x_Open_Porch_SF + 99979.00000099999 t267_leaf0 <= 100000
- T267_L1_f3_lt: Overall_Qual_calc + 3.000001 t267_leaf1 <= 10
+ T267_L1_f3_lt: const_Overall_Qual + 1e-06 t267_leaf1 <= 7
  T267_L1_f18_lt: const_2nd_Flr_SF + 1e-06 t267_leaf1 <= 1276
  T267_R1_f37_ge: x_Open_Porch_SF - 21.000001 t267_leaf1 >= -1e-06
- T267_L2_f3_lt: Overall_Qual_calc + 3.000001 t267_leaf2 <= 10
+ T267_L2_f3_lt: const_Overall_Qual + 1e-06 t267_leaf2 <= 7
  T267_R2_f18_fixed_off: t267_leaf2 = 0
- T267_R3_f3_ge: Overall_Qual_calc - 6.000001 t267_leaf3 >= 0.999999
+ T267_R3_f3_fixed_off: t267_leaf3 = 0
  T267_L3_f296_lt: const_Sale_Condition_Family + 1e-06 t267_leaf3 <= 1
  T267_L3_f0_lt: const_Lot_Frontage + 1e-06 t267_leaf3 <= 114
- T267_R4_f3_ge: Overall_Qual_calc - 6.000001 t267_leaf4 >= 0.999999
+ T267_R4_f3_fixed_off: t267_leaf4 = 0
  T267_L4_f296_lt: const_Sale_Condition_Family + 1e-06 t267_leaf4 <= 1
  T267_R4_f0_fixed_off: t267_leaf4 = 0
- T267_R5_f3_ge: Overall_Qual_calc - 6.000001 t267_leaf5 >= 0.999999
+ T267_R5_f3_fixed_off: t267_leaf5 = 0
  T267_R5_f296_fixed_off: t267_leaf5 = 0
  TREE_268_ONEHOT: t268_leaf0 + t268_leaf1 + t268_leaf2 + t268_leaf3
    + t268_leaf4 + t268_leaf5 = 1
@@ -5687,16 +5664,16 @@ Subject To
  TREE_271_ONEHOT: t271_leaf0 + t271_leaf1 + t271_leaf2 + t271_leaf3
    + t271_leaf4 + t271_leaf5 = 1
  T271_L0_f7_lt: x_Mas_Vnr_Area + 1e-06 t271_leaf0 <= 788
- T271_L0_f3_lt: Overall_Qual_calc + 6.000001 t271_leaf0 <= 10
+ T271_L0_f3_fixed_off: t271_leaf0 = 0
  T271_L0_f14_lt: x_Bsmt_Unf_SF + 99734.00000099999 t271_leaf0 <= 100000
  T271_L1_f7_lt: x_Mas_Vnr_Area + 1e-06 t271_leaf1 <= 788
- T271_L1_f3_lt: Overall_Qual_calc + 6.000001 t271_leaf1 <= 10
+ T271_L1_f3_fixed_off: t271_leaf1 = 0
  T271_R1_f14_ge: x_Bsmt_Unf_SF - 266.000001 t271_leaf1 >= -1e-06
  T271_L2_f7_lt: x_Mas_Vnr_Area + 1e-06 t271_leaf2 <= 788
- T271_R2_f3_ge: Overall_Qual_calc - 3.000001 t271_leaf2 >= 0.999999
+ T271_R2_f3_ge: const_Overall_Qual - 1e-06 t271_leaf2 >= 3.999999
  T271_L2_f298_lt: const_Sale_Condition_Partial + 1e-06 t271_leaf2 <= 1
  T271_L3_f7_lt: x_Mas_Vnr_Area + 1e-06 t271_leaf3 <= 788
- T271_R3_f3_ge: Overall_Qual_calc - 3.000001 t271_leaf3 >= 0.999999
+ T271_R3_f3_ge: const_Overall_Qual - 1e-06 t271_leaf3 >= 3.999999
  T271_R3_f298_fixed_off: t271_leaf3 = 0
  T271_R4_f7_fixed_off: t271_leaf4 = 0
  T271_L4_f20_lt: x_Gr_Liv_Area + 7310.000001 t271_leaf4 <= 10000
@@ -5704,58 +5681,60 @@ Subject To
  T271_R5_f20_ge: x_Gr_Liv_Area - 2690.000001 t271_leaf5 >= -1e-06
  TREE_272_ONEHOT: t272_leaf0 + t272_leaf1 + t272_leaf2 + t272_leaf3
    + t272_leaf4 + t272_leaf5 + t272_leaf6 + t272_leaf7 = 1
- T272_L0_f96_fixed_off: t272_leaf0 = 0
- T272_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t272_leaf0 <= 1
- T272_L0_f3_lt: Overall_Qual_calc + 7.000001 t272_leaf0 <= 10
- T272_L1_f96_fixed_off: t272_leaf1 = 0
- T272_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t272_leaf1 <= 1
- T272_R1_f3_ge: Overall_Qual_calc - 2.000001 t272_leaf1 >= 0.999999
- T272_L2_f96_fixed_off: t272_leaf2 = 0
- T272_R2_f293_fixed_off: t272_leaf2 = 0
+ T272_L0_f96_lt: const_Neighborhood_Edwards + 1e-06 t272_leaf0 <= 1
+ T272_L0_f293_fixed_off: t272_leaf0 = 0
+ T272_L0_f3_fixed_off: t272_leaf0 = 0
+ T272_L1_f96_lt: const_Neighborhood_Edwards + 1e-06 t272_leaf1 <= 1
+ T272_L1_f293_fixed_off: t272_leaf1 = 0
+ T272_R1_f3_ge: const_Overall_Qual - 1e-06 t272_leaf1 >= 2.999999
+ T272_L2_f96_lt: const_Neighborhood_Edwards + 1e-06 t272_leaf2 <= 1
+ T272_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t272_leaf2
+   >= 0.999999
  T272_L2_f14_lt: x_Bsmt_Unf_SF + 99298.00000099999 t272_leaf2 <= 100000
- T272_L3_f96_fixed_off: t272_leaf3 = 0
- T272_R3_f293_fixed_off: t272_leaf3 = 0
+ T272_L3_f96_lt: const_Neighborhood_Edwards + 1e-06 t272_leaf3 <= 1
+ T272_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t272_leaf3
+   >= 0.999999
  T272_R3_f14_ge: x_Bsmt_Unf_SF - 702.000001 t272_leaf3 >= -1e-06
- T272_R4_f96_ge: const_Neighborhood_Edwards - 1e-06 t272_leaf4 >= 0.999999
+ T272_R4_f96_fixed_off: t272_leaf4 = 0
  T272_L4_f7_lt: x_Mas_Vnr_Area + 1e-06 t272_leaf4 <= 3
  T272_L4_f1_lt: const_Lot_Area + 1e-06 t272_leaf4 <= 16285
- T272_R5_f96_ge: const_Neighborhood_Edwards - 1e-06 t272_leaf5 >= 0.999999
+ T272_R5_f96_fixed_off: t272_leaf5 = 0
  T272_L5_f7_lt: x_Mas_Vnr_Area + 1e-06 t272_leaf5 <= 3
  T272_R5_f1_fixed_off: t272_leaf5 = 0
- T272_R6_f96_ge: const_Neighborhood_Edwards - 1e-06 t272_leaf6 >= 0.999999
+ T272_R6_f96_fixed_off: t272_leaf6 = 0
  T272_R6_f7_fixed_off: t272_leaf6 = 0
  T272_L6_f202_lt: const_Foundation_PConc + 1e-06 t272_leaf6 <= 1
- T272_R7_f96_ge: const_Neighborhood_Edwards - 1e-06 t272_leaf7 >= 0.999999
+ T272_R7_f96_fixed_off: t272_leaf7 = 0
  T272_R7_f7_fixed_off: t272_leaf7 = 0
  T272_R7_f202_fixed_off: t272_leaf7 = 0
  TREE_273_ONEHOT: t273_leaf0 + t273_leaf1 + t273_leaf2 + t273_leaf3
    + t273_leaf4 = 1
  T273_L0_f33_lt: x_Garage_Area + 98846.00000099999 t273_leaf0 <= 100000
- T273_L0_f44_lt: const_Yr_Sold + 1e-06 t273_leaf0 <= 2009
+ T273_L0_f44_fixed_off: t273_leaf0 = 0
  T273_L0_f24_lt: x_Half_Bath + 3.000001 t273_leaf0 <= 5
  T273_L1_f33_lt: x_Garage_Area + 98846.00000099999 t273_leaf1 <= 100000
- T273_L1_f44_lt: const_Yr_Sold + 1e-06 t273_leaf1 <= 2009
+ T273_L1_f44_fixed_off: t273_leaf1 = 0
  T273_R1_f24_ge: x_Half_Bath - 2.000001 t273_leaf1 >= -1e-06
  T273_L2_f33_lt: x_Garage_Area + 98846.00000099999 t273_leaf2 <= 100000
- T273_R2_f44_fixed_off: t273_leaf2 = 0
+ T273_R2_f44_ge: const_Yr_Sold - 1e-06 t273_leaf2 >= 2008.999999
  T273_L2_f20_lt: x_Gr_Liv_Area + 9184.000001 t273_leaf2 <= 10000
  T273_L3_f33_lt: x_Garage_Area + 98846.00000099999 t273_leaf3 <= 100000
- T273_R3_f44_fixed_off: t273_leaf3 = 0
+ T273_R3_f44_ge: const_Yr_Sold - 1e-06 t273_leaf3 >= 2008.999999
  T273_R3_f20_ge: x_Gr_Liv_Area - 816.000001 t273_leaf3 >= -1e-06
  T273_R4_f33_ge: x_Garage_Area - 1154.000001 t273_leaf4 >= -1e-06
  TREE_274_ONEHOT: t274_leaf0 + t274_leaf1 + t274_leaf2 + t274_leaf3
    + t274_leaf4 = 1
  T274_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t274_leaf0 <= 2136
- T274_L0_f31_lt: const_Garage_Yr_Blt + 1e-06 t274_leaf0 <= 1953
+ T274_L0_f31_fixed_off: t274_leaf0 = 0
  T274_L0_f17_lt: x_1st_Flr_SF + 3608.000001 t274_leaf0 <= 5000
  T274_L1_f15_lt: const_Total_Bsmt_SF + 1e-06 t274_leaf1 <= 2136
- T274_L1_f31_lt: const_Garage_Yr_Blt + 1e-06 t274_leaf1 <= 1953
+ T274_L1_f31_fixed_off: t274_leaf1 = 0
  T274_R1_f17_ge: x_1st_Flr_SF - 1392.000001 t274_leaf1 >= -1e-06
  T274_L2_f15_lt: const_Total_Bsmt_SF + 1e-06 t274_leaf2 <= 2136
- T274_R2_f31_fixed_off: t274_leaf2 = 0
+ T274_R2_f31_ge: const_Garage_Yr_Blt - 1e-06 t274_leaf2 >= 1952.999999
  T274_L2_f14_lt: x_Bsmt_Unf_SF + 99524.00000099999 t274_leaf2 <= 100000
  T274_L3_f15_lt: const_Total_Bsmt_SF + 1e-06 t274_leaf3 <= 2136
- T274_R3_f31_fixed_off: t274_leaf3 = 0
+ T274_R3_f31_ge: const_Garage_Yr_Blt - 1e-06 t274_leaf3 >= 1952.999999
  T274_R3_f14_ge: x_Bsmt_Unf_SF - 476.000001 t274_leaf3 >= -1e-06
  T274_R4_f15_fixed_off: t274_leaf4 = 0
  TREE_275_ONEHOT: t275_leaf0 + t275_leaf1 + t275_leaf2 + t275_leaf3
@@ -5794,18 +5773,16 @@ Subject To
  TREE_277_ONEHOT: t277_leaf0 + t277_leaf1 + t277_leaf2 + t277_leaf3
    + t277_leaf4 + t277_leaf5 + t277_leaf6 = 1
  T277_L0_f4_fixed_off: t277_leaf0 = 0
- T277_L0_f297_fixed_off: t277_leaf0 = 0
+ T277_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t277_leaf0 <= 1
  T277_L0_f209_fixed_off: t277_leaf0 = 0
  T277_L1_f4_fixed_off: t277_leaf1 = 0
- T277_L1_f297_fixed_off: t277_leaf1 = 0
+ T277_L1_f297_lt: const_Sale_Condition_Normal + 1e-06 t277_leaf1 <= 1
  T277_R1_f209_ge: const_Bsmt_Exposure_No - 1e-06 t277_leaf1 >= 0.999999
  T277_L2_f4_fixed_off: t277_leaf2 = 0
- T277_R2_f297_ge: const_Sale_Condition_Normal - 1e-06 t277_leaf2
-   >= 0.999999
+ T277_R2_f297_fixed_off: t277_leaf2 = 0
  T277_L2_f245_fixed_off: t277_leaf2 = 0
  T277_L3_f4_fixed_off: t277_leaf3 = 0
- T277_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t277_leaf3
-   >= 0.999999
+ T277_R3_f297_fixed_off: t277_leaf3 = 0
  T277_R3_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t277_leaf3
    >= 0.999999
  T277_R4_f4_ge: const_Overall_Cond - 1e-06 t277_leaf4 >= 4.999999
@@ -5818,32 +5795,22 @@ Subject To
  T277_R6_f0_fixed_off: t277_leaf6 = 0
  TREE_278_ONEHOT: t278_leaf0 + t278_leaf1 + t278_leaf2 + t278_leaf3 = 1
  T278_L0_f164_lt: x_ex1_is_BrkFace + 1e-06 t278_leaf0 <= 1
- T278_L0_f3_lt: Overall_Qual_calc + 7.000001 t278_leaf0 <= 10
+ T278_L0_f3_fixed_off: t278_leaf0 = 0
  T278_L1_f164_lt: x_ex1_is_BrkFace + 1e-06 t278_leaf1 <= 1
- T278_R1_f3_ge: Overall_Qual_calc - 2.000001 t278_leaf1 >= 0.999999
+ T278_R1_f3_ge: const_Overall_Qual - 1e-06 t278_leaf1 >= 2.999999
  T278_L1_f277_lt: const_Mo_Sold_7 + 1e-06 t278_leaf1 <= 1
  T278_L2_f164_lt: x_ex1_is_BrkFace + 1e-06 t278_leaf2 <= 1
- T278_R2_f3_ge: Overall_Qual_calc - 2.000001 t278_leaf2 >= 0.999999
+ T278_R2_f3_ge: const_Overall_Qual - 1e-06 t278_leaf2 >= 2.999999
  T278_R2_f277_fixed_off: t278_leaf2 = 0
  T278_R3_f164_ge: x_ex1_is_BrkFace - 1.000001 t278_leaf3 >= -1e-06
  TREE_279_ONEHOT: t279_leaf0 + t279_leaf1 + t279_leaf2 + t279_leaf3
    + t279_leaf4 + t279_leaf5 = 1
- T279_L0_f3_lt: Overall_Qual_calc + 6.000001 t279_leaf0 <= 10
- T279_L0_f259_fixed_off: t279_leaf0 = 0
- T279_L1_f3_lt: Overall_Qual_calc + 6.000001 t279_leaf1 <= 10
- T279_R1_f259_ge: x_paved_drive_is_Y - 1e-06 t279_leaf1 >= 0.999999
- T279_R2_f3_ge: Overall_Qual_calc - 3.000001 t279_leaf2 >= 0.999999
- T279_L2_f6_lt: const_Year_Remod_Add + 1e-06 t279_leaf2 <= 2007
- T279_L2_f45_lt: const_MS_SubClass_20 + 1e-06 t279_leaf2 <= 1
- T279_R3_f3_ge: Overall_Qual_calc - 3.000001 t279_leaf3 >= 0.999999
- T279_L3_f6_lt: const_Year_Remod_Add + 1e-06 t279_leaf3 <= 2007
- T279_R3_f45_fixed_off: t279_leaf3 = 0
- T279_R4_f3_ge: Overall_Qual_calc - 3.000001 t279_leaf4 >= 0.999999
- T279_R4_f6_fixed_off: t279_leaf4 = 0
- T279_L4_f0_lt: const_Lot_Frontage + 1e-06 t279_leaf4 <= 95
- T279_R5_f3_ge: Overall_Qual_calc - 3.000001 t279_leaf5 >= 0.999999
- T279_R5_f6_fixed_off: t279_leaf5 = 0
- T279_R5_f0_fixed_off: t279_leaf5 = 0
+ TREE_279_FORCE_LEAF_3: t279_leaf3 = 1
+ TREE_279_EXCLUDE_LEAF_0: t279_leaf0 = 0
+ TREE_279_EXCLUDE_LEAF_1: t279_leaf1 = 0
+ TREE_279_EXCLUDE_LEAF_2: t279_leaf2 = 0
+ TREE_279_EXCLUDE_LEAF_4: t279_leaf4 = 0
+ TREE_279_EXCLUDE_LEAF_5: t279_leaf5 = 0
  TREE_280_ONEHOT: t280_leaf0 + t280_leaf1 + t280_leaf2 + t280_leaf3
    + t280_leaf4 + t280_leaf5 + t280_leaf6 = 1
  T280_L0_f4_fixed_off: t280_leaf0 = 0
@@ -5868,19 +5835,11 @@ Subject To
  T280_R6_f33_ge: x_Garage_Area - 804.000001 t280_leaf6 >= -1e-06
  TREE_281_ONEHOT: t281_leaf0 + t281_leaf1 + t281_leaf2 + t281_leaf3
    + t281_leaf4 = 1
- T281_L0_f3_lt: Overall_Qual_calc + 7.000001 t281_leaf0 <= 10
- T281_R1_f3_ge: Overall_Qual_calc - 2.000001 t281_leaf1 >= 0.999999
- T281_L1_f3_lt: Overall_Qual_calc + 3.000001 t281_leaf1 <= 10
- T281_L1_f1_fixed_off: t281_leaf1 = 0
- T281_R2_f3_ge: Overall_Qual_calc - 2.000001 t281_leaf2 >= 0.999999
- T281_L2_f3_lt: Overall_Qual_calc + 3.000001 t281_leaf2 <= 10
- T281_R2_f1_ge: const_Lot_Area - 1e-06 t281_leaf2 >= 7999.999999
- T281_R3_f3_ge: Overall_Qual_calc - 2.000001 t281_leaf3 >= 0.999999
- T281_R3_f3_ge: Overall_Qual_calc - 6.000001 t281_leaf3 >= 0.999999
- T281_L3_f77_lt: const_Land_Contour_Bnk + 1e-06 t281_leaf3 <= 1
- T281_R4_f3_ge: Overall_Qual_calc - 2.000001 t281_leaf4 >= 0.999999
- T281_R4_f3_ge: Overall_Qual_calc - 6.000001 t281_leaf4 >= 0.999999
- T281_R4_f77_fixed_off: t281_leaf4 = 0
+ TREE_281_FORCE_LEAF_2: t281_leaf2 = 1
+ TREE_281_EXCLUDE_LEAF_0: t281_leaf0 = 0
+ TREE_281_EXCLUDE_LEAF_1: t281_leaf1 = 0
+ TREE_281_EXCLUDE_LEAF_3: t281_leaf3 = 0
+ TREE_281_EXCLUDE_LEAF_4: t281_leaf4 = 0
  TREE_282_ONEHOT: t282_leaf0 + t282_leaf1 + t282_leaf2 + t282_leaf3 = 1
  T282_L0_f37_lt: x_Open_Porch_SF + 99582.00000099999 t282_leaf0 <= 100000
  T282_L0_f7_lt: x_Mas_Vnr_Area + 1e-06 t282_leaf0 <= 705
@@ -5918,11 +5877,10 @@ Subject To
    + t285_leaf4 + t285_leaf5 = 1
  T285_L0_f28_lt: x_TotRms_AbvGrd + 3.000001 t285_leaf0 <= 15
  T285_L0_f16_lt: x_Heating_QC + 1.000001 t285_leaf0 <= 4
- T285_L0_f297_fixed_off: t285_leaf0 = 0
+ T285_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t285_leaf0 <= 1
  T285_L1_f28_lt: x_TotRms_AbvGrd + 3.000001 t285_leaf1 <= 15
  T285_L1_f16_lt: x_Heating_QC + 1.000001 t285_leaf1 <= 4
- T285_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t285_leaf1
-   >= 0.999999
+ T285_R1_f297_fixed_off: t285_leaf1 = 0
  T285_L2_f28_lt: x_TotRms_AbvGrd + 3.000001 t285_leaf2 <= 15
  T285_R2_f16_ge: x_Heating_QC - 3.000001 t285_leaf2 >= -1e-06
  T285_L2_f117_lt: const_Condition_1_Artery + 1e-06 t285_leaf2 <= 1
@@ -5935,38 +5893,38 @@ Subject To
  T285_R5_f18_fixed_off: t285_leaf5 = 0
  TREE_286_ONEHOT: t286_leaf0 + t286_leaf1 + t286_leaf2 + t286_leaf3
    + t286_leaf4 + t286_leaf5 = 1
- T286_L0_f3_lt: Overall_Qual_calc + 7.000001 t286_leaf0 <= 10
+ T286_L0_f3_fixed_off: t286_leaf0 = 0
  T286_L0_f33_lt: x_Garage_Area + 99714.00000099999 t286_leaf0 <= 100000
- T286_L1_f3_lt: Overall_Qual_calc + 7.000001 t286_leaf1 <= 10
+ T286_L1_f3_fixed_off: t286_leaf1 = 0
  T286_R1_f33_ge: x_Garage_Area - 286.000001 t286_leaf1 >= -1e-06
- T286_R2_f3_ge: Overall_Qual_calc - 2.000001 t286_leaf2 >= 0.999999
+ T286_R2_f3_ge: const_Overall_Qual - 1e-06 t286_leaf2 >= 2.999999
  T286_L2_f1_lt: const_Lot_Area + 1e-06 t286_leaf2 <= 20431
  T286_L2_f1_lt: const_Lot_Area + 1e-06 t286_leaf2 <= 17541
- T286_R3_f3_ge: Overall_Qual_calc - 2.000001 t286_leaf3 >= 0.999999
+ T286_R3_f3_ge: const_Overall_Qual - 1e-06 t286_leaf3 >= 2.999999
  T286_L3_f1_lt: const_Lot_Area + 1e-06 t286_leaf3 <= 20431
  T286_R3_f1_fixed_off: t286_leaf3 = 0
- T286_R4_f3_ge: Overall_Qual_calc - 2.000001 t286_leaf4 >= 0.999999
+ T286_R4_f3_ge: const_Overall_Qual - 1e-06 t286_leaf4 >= 2.999999
  T286_R4_f1_fixed_off: t286_leaf4 = 0
  T286_L4_f25_lt: x_Bedroom_AbvGr + 2.000001 t286_leaf4 <= 6
- T286_R5_f3_ge: Overall_Qual_calc - 2.000001 t286_leaf5 >= 0.999999
+ T286_R5_f3_ge: const_Overall_Qual - 1e-06 t286_leaf5 >= 2.999999
  T286_R5_f1_fixed_off: t286_leaf5 = 0
  T286_R5_f25_ge: x_Bedroom_AbvGr - 4.000001 t286_leaf5 >= -1e-06
  TREE_287_ONEHOT: t287_leaf0 + t287_leaf1 + t287_leaf2 + t287_leaf3
    + t287_leaf4 + t287_leaf5 = 1
- T287_L0_f3_lt: Overall_Qual_calc + 7.000001 t287_leaf0 <= 10
+ T287_L0_f3_fixed_off: t287_leaf0 = 0
  T287_L0_f35_lt: x_Garage_Cond + 2.000001 t287_leaf0 <= 4
- T287_L1_f3_lt: Overall_Qual_calc + 7.000001 t287_leaf1 <= 10
+ T287_L1_f3_fixed_off: t287_leaf1 = 0
  T287_R1_f35_ge: x_Garage_Cond - 3.000001 t287_leaf1 >= -1.000001
- T287_R2_f3_ge: Overall_Qual_calc - 2.000001 t287_leaf2 >= 0.999999
+ T287_R2_f3_ge: const_Overall_Qual - 1e-06 t287_leaf2 >= 2.999999
  T287_L2_f21_lt: const_Bsmt_Full_Bath + 1e-06 t287_leaf2 <= 2
- T287_L2_f3_lt: Overall_Qual_calc + 3.000001 t287_leaf2 <= 10
- T287_R3_f3_ge: Overall_Qual_calc - 2.000001 t287_leaf3 >= 0.999999
+ T287_L2_f3_lt: const_Overall_Qual + 1e-06 t287_leaf2 <= 7
+ T287_R3_f3_ge: const_Overall_Qual - 1e-06 t287_leaf3 >= 2.999999
  T287_L3_f21_lt: const_Bsmt_Full_Bath + 1e-06 t287_leaf3 <= 2
- T287_R3_f3_ge: Overall_Qual_calc - 6.000001 t287_leaf3 >= 0.999999
- T287_R4_f3_ge: Overall_Qual_calc - 2.000001 t287_leaf4 >= 0.999999
+ T287_R3_f3_fixed_off: t287_leaf3 = 0
+ T287_R4_f3_ge: const_Overall_Qual - 1e-06 t287_leaf4 >= 2.999999
  T287_R4_f21_fixed_off: t287_leaf4 = 0
  T287_L4_f18_lt: const_2nd_Flr_SF + 1e-06 t287_leaf4 <= 505
- T287_R5_f3_ge: Overall_Qual_calc - 2.000001 t287_leaf5 >= 0.999999
+ T287_R5_f3_ge: const_Overall_Qual - 1e-06 t287_leaf5 >= 2.999999
  T287_R5_f21_fixed_off: t287_leaf5 = 0
  T287_R5_f18_fixed_off: t287_leaf5 = 0
  TREE_288_ONEHOT: t288_leaf0 + t288_leaf1 + t288_leaf2 + t288_leaf3
@@ -6093,21 +6051,21 @@ Subject To
  T295_R5_f4_ge: const_Overall_Cond - 1e-06 t295_leaf5 >= 5.999999
  TREE_296_ONEHOT: t296_leaf0 + t296_leaf1 + t296_leaf2 + t296_leaf3
    + t296_leaf4 + t296_leaf5 = 1
- T296_L0_f96_fixed_off: t296_leaf0 = 0
+ T296_L0_f96_lt: const_Neighborhood_Edwards + 1e-06 t296_leaf0 <= 1
  T296_L0_f17_lt: x_1st_Flr_SF + 2800.000001 t296_leaf0 <= 5000
  T296_L0_f117_lt: const_Condition_1_Artery + 1e-06 t296_leaf0 <= 1
- T296_L1_f96_fixed_off: t296_leaf1 = 0
+ T296_L1_f96_lt: const_Neighborhood_Edwards + 1e-06 t296_leaf1 <= 1
  T296_L1_f17_lt: x_1st_Flr_SF + 2800.000001 t296_leaf1 <= 5000
  T296_R1_f117_fixed_off: t296_leaf1 = 0
- T296_L2_f96_fixed_off: t296_leaf2 = 0
+ T296_L2_f96_lt: const_Neighborhood_Edwards + 1e-06 t296_leaf2 <= 1
  T296_R2_f17_ge: x_1st_Flr_SF - 2200.000001 t296_leaf2 >= -1e-06
- T296_R3_f96_ge: const_Neighborhood_Edwards - 1e-06 t296_leaf3 >= 0.999999
+ T296_R3_f96_fixed_off: t296_leaf3 = 0
  T296_L3_f37_lt: x_Open_Porch_SF + 99762.00000099999 t296_leaf3 <= 100000
- T296_L3_f85_fixed_off: t296_leaf3 = 0
- T296_R4_f96_ge: const_Neighborhood_Edwards - 1e-06 t296_leaf4 >= 0.999999
+ T296_L3_f85_lt: const_Lot_Config_Inside + 1e-06 t296_leaf3 <= 1
+ T296_R4_f96_fixed_off: t296_leaf4 = 0
  T296_L4_f37_lt: x_Open_Porch_SF + 99762.00000099999 t296_leaf4 <= 100000
- T296_R4_f85_ge: const_Lot_Config_Inside - 1e-06 t296_leaf4 >= 0.999999
- T296_R5_f96_ge: const_Neighborhood_Edwards - 1e-06 t296_leaf5 >= 0.999999
+ T296_R4_f85_fixed_off: t296_leaf4 = 0
+ T296_R5_f96_fixed_off: t296_leaf5 = 0
  T296_R5_f37_ge: x_Open_Porch_SF - 238.000001 t296_leaf5 >= -1e-06
  TREE_297_ONEHOT: t297_leaf0 + t297_leaf1 + t297_leaf2 + t297_leaf3 = 1
  TREE_297_FORCE_LEAF_0: t297_leaf0 = 1
@@ -6117,33 +6075,32 @@ Subject To
  TREE_298_ONEHOT: t298_leaf0 + t298_leaf1 + t298_leaf2 + t298_leaf3
    + t298_leaf4 = 1
  T298_L0_f7_lt: x_Mas_Vnr_Area + 1e-06 t298_leaf0 <= 922
- T298_L0_f45_lt: const_MS_SubClass_20 + 1e-06 t298_leaf0 <= 1
+ T298_L0_f45_fixed_off: t298_leaf0 = 0
  T298_L0_f119_fixed_off: t298_leaf0 = 0
  T298_L1_f7_lt: x_Mas_Vnr_Area + 1e-06 t298_leaf1 <= 922
- T298_L1_f45_lt: const_MS_SubClass_20 + 1e-06 t298_leaf1 <= 1
+ T298_L1_f45_fixed_off: t298_leaf1 = 0
  T298_R1_f119_ge: const_Condition_1_Norm - 1e-06 t298_leaf1 >= 0.999999
  T298_L2_f7_lt: x_Mas_Vnr_Area + 1e-06 t298_leaf2 <= 922
- T298_R2_f45_fixed_off: t298_leaf2 = 0
+ T298_R2_f45_ge: const_MS_SubClass_20 - 1e-06 t298_leaf2 >= 0.999999
  T298_L2_f37_lt: x_Open_Porch_SF + 99909.00000099999 t298_leaf2 <= 100000
  T298_L3_f7_lt: x_Mas_Vnr_Area + 1e-06 t298_leaf3 <= 922
- T298_R3_f45_fixed_off: t298_leaf3 = 0
+ T298_R3_f45_ge: const_MS_SubClass_20 - 1e-06 t298_leaf3 >= 0.999999
  T298_R3_f37_ge: x_Open_Porch_SF - 91.000001 t298_leaf3 >= -1e-06
  T298_R4_f7_fixed_off: t298_leaf4 = 0
  TREE_299_ONEHOT: t299_leaf0 + t299_leaf1 + t299_leaf2 + t299_leaf3
    + t299_leaf4 + t299_leaf5 + t299_leaf6 = 1
  T299_L0_f0_lt: const_Lot_Frontage + 1e-06 t299_leaf0 <= 115
- T299_L0_f44_lt: const_Yr_Sold + 1e-06 t299_leaf0 <= 2009
+ T299_L0_f44_fixed_off: t299_leaf0 = 0
  T299_L0_f4_fixed_off: t299_leaf0 = 0
  T299_L1_f0_lt: const_Lot_Frontage + 1e-06 t299_leaf1 <= 115
- T299_L1_f44_lt: const_Yr_Sold + 1e-06 t299_leaf1 <= 2009
+ T299_L1_f44_fixed_off: t299_leaf1 = 0
  T299_R1_f4_ge: const_Overall_Cond - 1e-06 t299_leaf1 >= 3.999999
  T299_L2_f0_lt: const_Lot_Frontage + 1e-06 t299_leaf2 <= 115
- T299_R2_f44_fixed_off: t299_leaf2 = 0
- T299_L2_f297_fixed_off: t299_leaf2 = 0
+ T299_R2_f44_ge: const_Yr_Sold - 1e-06 t299_leaf2 >= 2008.999999
+ T299_L2_f297_lt: const_Sale_Condition_Normal + 1e-06 t299_leaf2 <= 1
  T299_L3_f0_lt: const_Lot_Frontage + 1e-06 t299_leaf3 <= 115
- T299_R3_f44_fixed_off: t299_leaf3 = 0
- T299_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t299_leaf3
-   >= 0.999999
+ T299_R3_f44_ge: const_Yr_Sold - 1e-06 t299_leaf3 >= 2008.999999
+ T299_R3_f297_fixed_off: t299_leaf3 = 0
  T299_R4_f0_fixed_off: t299_leaf4 = 0
  T299_L4_f77_lt: const_Land_Contour_Bnk + 1e-06 t299_leaf4 <= 1
  T299_L4_f17_lt: x_1st_Flr_SF + 3770.000001 t299_leaf4 <= 5000
@@ -6198,14 +6155,13 @@ Subject To
  TREE_303_ONEHOT: t303_leaf0 + t303_leaf1 + t303_leaf2 + t303_leaf3
    + t303_leaf4 = 1
  T303_L0_f7_lt: x_Mas_Vnr_Area + 1e-06 t303_leaf0 <= 788
- T303_L0_f3_lt: Overall_Qual_calc + 1e-06 t303_leaf0 <= 10
+ T303_L0_f3_lt: const_Overall_Qual + 1e-06 t303_leaf0 <= 10
  T303_L0_f40_lt: x_Screen_Porch + 99890.00000099999 t303_leaf0 <= 100000
  T303_L1_f7_lt: x_Mas_Vnr_Area + 1e-06 t303_leaf1 <= 788
- T303_L1_f3_lt: Overall_Qual_calc + 1e-06 t303_leaf1 <= 10
+ T303_L1_f3_lt: const_Overall_Qual + 1e-06 t303_leaf1 <= 10
  T303_R1_f40_ge: x_Screen_Porch - 110.000001 t303_leaf1 >= -1e-06
  T303_L2_f7_lt: x_Mas_Vnr_Area + 1e-06 t303_leaf2 <= 788
- T303_R2_f3_ge: Overall_Qual_calc - 9.000000999999999 t303_leaf2
-   >= 0.999999
+ T303_R2_f3_fixed_off: t303_leaf2 = 0
  T303_R3_f7_fixed_off: t303_leaf3 = 0
  T303_L3_f20_lt: x_Gr_Liv_Area + 7272.000001 t303_leaf3 <= 10000
  T303_R4_f7_fixed_off: t303_leaf4 = 0
@@ -6213,16 +6169,16 @@ Subject To
  TREE_304_ONEHOT: t304_leaf0 + t304_leaf1 + t304_leaf2 + t304_leaf3
    + t304_leaf4 = 1
  T304_L0_f164_lt: x_ex1_is_BrkFace + 1e-06 t304_leaf0 <= 1
- T304_L0_f96_fixed_off: t304_leaf0 = 0
+ T304_L0_f96_lt: const_Neighborhood_Edwards + 1e-06 t304_leaf0 <= 1
  T304_L0_f71_fixed_off: t304_leaf0 = 0
  T304_L1_f164_lt: x_ex1_is_BrkFace + 1e-06 t304_leaf1 <= 1
- T304_L1_f96_fixed_off: t304_leaf1 = 0
+ T304_L1_f96_lt: const_Neighborhood_Edwards + 1e-06 t304_leaf1 <= 1
  T304_R1_f71_ge: const_Alley_No_aplica - 1e-06 t304_leaf1 >= 0.999999
  T304_L2_f164_lt: x_ex1_is_BrkFace + 1e-06 t304_leaf2 <= 1
- T304_R2_f96_ge: const_Neighborhood_Edwards - 1e-06 t304_leaf2 >= 0.999999
+ T304_R2_f96_fixed_off: t304_leaf2 = 0
  T304_L2_f14_lt: x_Bsmt_Unf_SF + 99048.00000099999 t304_leaf2 <= 100000
  T304_L3_f164_lt: x_ex1_is_BrkFace + 1e-06 t304_leaf3 <= 1
- T304_R3_f96_ge: const_Neighborhood_Edwards - 1e-06 t304_leaf3 >= 0.999999
+ T304_R3_f96_fixed_off: t304_leaf3 = 0
  T304_R3_f14_ge: x_Bsmt_Unf_SF - 952.000001 t304_leaf3 >= -1e-06
  T304_R4_f164_ge: x_ex1_is_BrkFace - 1.000001 t304_leaf4 >= -1e-06
  TREE_305_ONEHOT: t305_leaf0 + t305_leaf1 + t305_leaf2 + t305_leaf3
@@ -6242,53 +6198,43 @@ Subject To
  T305_R4_f17_ge: x_1st_Flr_SF - 2515.000001 t305_leaf4 >= -1e-06
  TREE_306_ONEHOT: t306_leaf0 + t306_leaf1 + t306_leaf2 + t306_leaf3
    + t306_leaf4 + t306_leaf5 = 1
- T306_L0_f3_lt: Overall_Qual_calc + 7.000001 t306_leaf0 <= 10
+ T306_L0_f3_fixed_off: t306_leaf0 = 0
  T306_L0_f6_fixed_off: t306_leaf0 = 0
- T306_L1_f3_lt: Overall_Qual_calc + 7.000001 t306_leaf1 <= 10
+ T306_L1_f3_fixed_off: t306_leaf1 = 0
  T306_R1_f6_ge: const_Year_Remod_Add - 1e-06 t306_leaf1 >= 1950.999999
- T306_R2_f3_ge: Overall_Qual_calc - 2.000001 t306_leaf2 >= 0.999999
+ T306_R2_f3_ge: const_Overall_Qual - 1e-06 t306_leaf2 >= 2.999999
  T306_L2_f5_fixed_off: t306_leaf2 = 0
  T306_L2_f17_lt: x_1st_Flr_SF + 4187.000001 t306_leaf2 <= 5000
- T306_R3_f3_ge: Overall_Qual_calc - 2.000001 t306_leaf3 >= 0.999999
+ T306_R3_f3_ge: const_Overall_Qual - 1e-06 t306_leaf3 >= 2.999999
  T306_L3_f5_fixed_off: t306_leaf3 = 0
  T306_R3_f17_ge: x_1st_Flr_SF - 813.000001 t306_leaf3 >= -1e-06
- T306_R4_f3_ge: Overall_Qual_calc - 2.000001 t306_leaf4 >= 0.999999
+ T306_R4_f3_ge: const_Overall_Qual - 1e-06 t306_leaf4 >= 2.999999
  T306_R4_f5_ge: const_Year_Built - 1e-06 t306_leaf4 >= 1913.999999
  T306_L4_f232_fixed_off: t306_leaf4 = 0
- T306_R5_f3_ge: Overall_Qual_calc - 2.000001 t306_leaf5 >= 0.999999
+ T306_R5_f3_ge: const_Overall_Qual - 1e-06 t306_leaf5 >= 2.999999
  T306_R5_f5_ge: const_Year_Built - 1e-06 t306_leaf5 >= 1913.999999
  T306_R5_f232_ge: central_air_yes - 1e-06 t306_leaf5 >= 0.999999
  TREE_307_ONEHOT: t307_leaf0 + t307_leaf1 + t307_leaf2 + t307_leaf3
    + t307_leaf4 + t307_leaf5 = 1
- T307_L0_f3_lt: Overall_Qual_calc + 6.000001 t307_leaf0 <= 10
- T307_L0_f0_fixed_off: t307_leaf0 = 0
- T307_L1_f3_lt: Overall_Qual_calc + 6.000001 t307_leaf1 <= 10
- T307_R1_f0_ge: const_Lot_Frontage - 1e-06 t307_leaf1 >= 55.999999
- T307_R2_f3_ge: Overall_Qual_calc - 3.000001 t307_leaf2 >= 0.999999
- T307_L2_f206_lt: const_Bsmt_Exposure_Av + 1e-06 t307_leaf2 <= 1
- T307_L2_f5_fixed_off: t307_leaf2 = 0
- T307_R3_f3_ge: Overall_Qual_calc - 3.000001 t307_leaf3 >= 0.999999
- T307_L3_f206_lt: const_Bsmt_Exposure_Av + 1e-06 t307_leaf3 <= 1
- T307_R3_f5_ge: const_Year_Built - 1e-06 t307_leaf3 >= 1914.999999
- T307_R4_f3_ge: Overall_Qual_calc - 3.000001 t307_leaf4 >= 0.999999
- T307_R4_f206_fixed_off: t307_leaf4 = 0
- T307_L4_f114_lt: const_Neighborhood_StoneBr + 1e-06 t307_leaf4 <= 1
- T307_R5_f3_ge: Overall_Qual_calc - 3.000001 t307_leaf5 >= 0.999999
- T307_R5_f206_fixed_off: t307_leaf5 = 0
- T307_R5_f114_fixed_off: t307_leaf5 = 0
+ TREE_307_FORCE_LEAF_3: t307_leaf3 = 1
+ TREE_307_EXCLUDE_LEAF_0: t307_leaf0 = 0
+ TREE_307_EXCLUDE_LEAF_1: t307_leaf1 = 0
+ TREE_307_EXCLUDE_LEAF_2: t307_leaf2 = 0
+ TREE_307_EXCLUDE_LEAF_4: t307_leaf4 = 0
+ TREE_307_EXCLUDE_LEAF_5: t307_leaf5 = 0
  TREE_308_ONEHOT: t308_leaf0 + t308_leaf1 + t308_leaf2 + t308_leaf3
    + t308_leaf4 = 1
  T308_L0_f63_lt: const_MS_Zoning_FV + 1e-06 t308_leaf0 <= 1
- T308_L0_f3_lt: Overall_Qual_calc + 3.000001 t308_leaf0 <= 10
+ T308_L0_f3_lt: const_Overall_Qual + 1e-06 t308_leaf0 <= 7
  T308_L0_f23_lt: x_Full_Bath + 2.000001 t308_leaf0 <= 4
  T308_L1_f63_lt: const_MS_Zoning_FV + 1e-06 t308_leaf1 <= 1
- T308_L1_f3_lt: Overall_Qual_calc + 3.000001 t308_leaf1 <= 10
+ T308_L1_f3_lt: const_Overall_Qual + 1e-06 t308_leaf1 <= 7
  T308_R1_f23_ge: x_Full_Bath - 2.000001 t308_leaf1 >= -1e-06
  T308_L2_f63_lt: const_MS_Zoning_FV + 1e-06 t308_leaf2 <= 1
- T308_R2_f3_ge: Overall_Qual_calc - 6.000001 t308_leaf2 >= 0.999999
+ T308_R2_f3_fixed_off: t308_leaf2 = 0
  T308_L2_f86_fixed_off: t308_leaf2 = 0
  T308_L3_f63_lt: const_MS_Zoning_FV + 1e-06 t308_leaf3 <= 1
- T308_R3_f3_ge: Overall_Qual_calc - 6.000001 t308_leaf3 >= 0.999999
+ T308_R3_f3_fixed_off: t308_leaf3 = 0
  T308_R3_f86_ge: const_Land_Slope_Gtl - 1e-06 t308_leaf3 >= 0.999999
  T308_R4_f63_fixed_off: t308_leaf4 = 0
  TREE_309_ONEHOT: t309_leaf0 + t309_leaf1 + t309_leaf2 + t309_leaf3
@@ -6373,27 +6319,13 @@ Subject To
  T313_R6_f1_fixed_off: t313_leaf6 = 0
  TREE_314_ONEHOT: t314_leaf0 + t314_leaf1 + t314_leaf2 + t314_leaf3
    + t314_leaf4 + t314_leaf5 + t314_leaf6 = 1
- T314_L0_f32_lt: const_Garage_Cars + 1e-06 t314_leaf0 <= 3
- T314_L0_f119_fixed_off: t314_leaf0 = 0
- T314_L0_f5_fixed_off: t314_leaf0 = 0
- T314_L1_f32_lt: const_Garage_Cars + 1e-06 t314_leaf1 <= 3
- T314_L1_f119_fixed_off: t314_leaf1 = 0
- T314_R1_f5_ge: const_Year_Built - 1e-06 t314_leaf1 >= 1941.999999
- T314_L2_f32_lt: const_Garage_Cars + 1e-06 t314_leaf2 <= 3
- T314_R2_f119_ge: const_Condition_1_Norm - 1e-06 t314_leaf2 >= 0.999999
- T314_L2_f45_lt: const_MS_SubClass_20 + 1e-06 t314_leaf2 <= 1
- T314_L3_f32_lt: const_Garage_Cars + 1e-06 t314_leaf3 <= 3
- T314_R3_f119_ge: const_Condition_1_Norm - 1e-06 t314_leaf3 >= 0.999999
- T314_R3_f45_fixed_off: t314_leaf3 = 0
- T314_R4_f32_fixed_off: t314_leaf4 = 0
- T314_L4_f3_lt: Overall_Qual_calc + 1e-06 t314_leaf4 <= 10
- T314_L4_f272_lt: const_Mo_Sold_2 + 1e-06 t314_leaf4 <= 1
- T314_R5_f32_fixed_off: t314_leaf5 = 0
- T314_L5_f3_lt: Overall_Qual_calc + 1e-06 t314_leaf5 <= 10
- T314_R5_f272_fixed_off: t314_leaf5 = 0
- T314_R6_f32_fixed_off: t314_leaf6 = 0
- T314_R6_f3_ge: Overall_Qual_calc - 9.000000999999999 t314_leaf6
-   >= 0.999999
+ TREE_314_FORCE_LEAF_3: t314_leaf3 = 1
+ TREE_314_EXCLUDE_LEAF_0: t314_leaf0 = 0
+ TREE_314_EXCLUDE_LEAF_1: t314_leaf1 = 0
+ TREE_314_EXCLUDE_LEAF_2: t314_leaf2 = 0
+ TREE_314_EXCLUDE_LEAF_4: t314_leaf4 = 0
+ TREE_314_EXCLUDE_LEAF_5: t314_leaf5 = 0
+ TREE_314_EXCLUDE_LEAF_6: t314_leaf6 = 0
  TREE_315_ONEHOT: t315_leaf0 + t315_leaf1 + t315_leaf2 + t315_leaf3
    + t315_leaf4 = 1
  T315_L0_f86_fixed_off: t315_leaf0 = 0
@@ -6441,17 +6373,17 @@ Subject To
  T318_R3_f36_ge: x_Wood_Deck_SF - 511.000001 t318_leaf3 >= -1e-06
  TREE_319_ONEHOT: t319_leaf0 + t319_leaf1 + t319_leaf2 + t319_leaf3
    + t319_leaf4 = 1
- T319_L0_f44_lt: const_Yr_Sold + 1e-06 t319_leaf0 <= 2009
+ T319_L0_f44_fixed_off: t319_leaf0 = 0
  T319_L0_f36_lt: x_Wood_Deck_SF + 99533.00000099999 t319_leaf0 <= 100000
- T319_L1_f44_lt: const_Yr_Sold + 1e-06 t319_leaf1 <= 2009
+ T319_L1_f44_fixed_off: t319_leaf1 = 0
  T319_R1_f36_ge: x_Wood_Deck_SF - 467.000001 t319_leaf1 >= -1e-06
- T319_R2_f44_fixed_off: t319_leaf2 = 0
+ T319_R2_f44_ge: const_Yr_Sold - 1e-06 t319_leaf2 >= 2008.999999
  T319_L2_f0_lt: const_Lot_Frontage + 1e-06 t319_leaf2 <= 85
  T319_L2_f261_lt: x_fence_is_GdWo + 1e-06 t319_leaf2 <= 1
- T319_R3_f44_fixed_off: t319_leaf3 = 0
+ T319_R3_f44_ge: const_Yr_Sold - 1e-06 t319_leaf3 >= 2008.999999
  T319_L3_f0_lt: const_Lot_Frontage + 1e-06 t319_leaf3 <= 85
  T319_R3_f261_ge: x_fence_is_GdWo - 1.000001 t319_leaf3 >= -1e-06
- T319_R4_f44_fixed_off: t319_leaf4 = 0
+ T319_R4_f44_ge: const_Yr_Sold - 1e-06 t319_leaf4 >= 2008.999999
  T319_R4_f0_fixed_off: t319_leaf4 = 0
  TREE_320_ONEHOT: t320_leaf0 + t320_leaf1 + t320_leaf2 + t320_leaf3
    + t320_leaf4 + t320_leaf5 + t320_leaf6 = 1
@@ -6573,10 +6505,10 @@ Subject To
    + t327_leaf4 = 1
  T327_L0_f113_lt: const_Neighborhood_Somerst + 1e-06 t327_leaf0 <= 1
  T327_L0_f4_fixed_off: t327_leaf0 = 0
- T327_L0_f31_lt: const_Garage_Yr_Blt + 1e-06 t327_leaf0 <= 1966
+ T327_L0_f31_fixed_off: t327_leaf0 = 0
  T327_L1_f113_lt: const_Neighborhood_Somerst + 1e-06 t327_leaf1 <= 1
  T327_L1_f4_fixed_off: t327_leaf1 = 0
- T327_R1_f31_fixed_off: t327_leaf1 = 0
+ T327_R1_f31_ge: const_Garage_Yr_Blt - 1e-06 t327_leaf1 >= 1965.999999
  T327_L2_f113_lt: const_Neighborhood_Somerst + 1e-06 t327_leaf2 <= 1
  T327_R2_f4_ge: const_Overall_Cond - 1e-06 t327_leaf2 >= 5.999999
  T327_L2_f17_lt: x_1st_Flr_SF + 3586.000001 t327_leaf2 <= 5000
@@ -6604,25 +6536,25 @@ Subject To
  T328_R5_f193_fixed_off: t328_leaf5 = 0
  TREE_329_ONEHOT: t329_leaf0 + t329_leaf1 + t329_leaf2 + t329_leaf3
    + t329_leaf4 + t329_leaf5 + t329_leaf6 = 1
- T329_L0_f3_lt: Overall_Qual_calc + 3.000001 t329_leaf0 <= 10
+ T329_L0_f3_lt: const_Overall_Qual + 1e-06 t329_leaf0 <= 7
  T329_L0_f23_lt: x_Full_Bath + 2.000001 t329_leaf0 <= 4
  T329_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t329_leaf0 <= 1389
- T329_L1_f3_lt: Overall_Qual_calc + 3.000001 t329_leaf1 <= 10
+ T329_L1_f3_lt: const_Overall_Qual + 1e-06 t329_leaf1 <= 7
  T329_L1_f23_lt: x_Full_Bath + 2.000001 t329_leaf1 <= 4
  T329_R1_f15_fixed_off: t329_leaf1 = 0
- T329_L2_f3_lt: Overall_Qual_calc + 3.000001 t329_leaf2 <= 10
+ T329_L2_f3_lt: const_Overall_Qual + 1e-06 t329_leaf2 <= 7
  T329_R2_f23_ge: x_Full_Bath - 2.000001 t329_leaf2 >= -1e-06
  T329_L2_f20_lt: x_Gr_Liv_Area + 8983.000001 t329_leaf2 <= 10000
- T329_L3_f3_lt: Overall_Qual_calc + 3.000001 t329_leaf3 <= 10
+ T329_L3_f3_lt: const_Overall_Qual + 1e-06 t329_leaf3 <= 7
  T329_R3_f23_ge: x_Full_Bath - 2.000001 t329_leaf3 >= -1e-06
  T329_R3_f20_ge: x_Gr_Liv_Area - 1017.000001 t329_leaf3 >= -1e-06
- T329_R4_f3_ge: Overall_Qual_calc - 6.000001 t329_leaf4 >= 0.999999
+ T329_R4_f3_fixed_off: t329_leaf4 = 0
  T329_L4_f56_lt: const_MS_SubClass_120 + 1e-06 t329_leaf4 <= 1
  T329_L4_f0_lt: const_Lot_Frontage + 1e-06 t329_leaf4 <= 111
- T329_R5_f3_ge: Overall_Qual_calc - 6.000001 t329_leaf5 >= 0.999999
+ T329_R5_f3_fixed_off: t329_leaf5 = 0
  T329_L5_f56_lt: const_MS_SubClass_120 + 1e-06 t329_leaf5 <= 1
  T329_R5_f0_fixed_off: t329_leaf5 = 0
- T329_R6_f3_ge: Overall_Qual_calc - 6.000001 t329_leaf6 >= 0.999999
+ T329_R6_f3_fixed_off: t329_leaf6 = 0
  T329_R6_f56_fixed_off: t329_leaf6 = 0
  TREE_330_ONEHOT: t330_leaf0 + t330_leaf1 + t330_leaf2 + t330_leaf3
    + t330_leaf4 + t330_leaf5 = 1
@@ -6682,10 +6614,10 @@ Subject To
  T334_R1_f77_fixed_off: t334_leaf1 = 0
  T334_L2_f161_lt: x_ex1_is_AsbShng + 1e-06 t334_leaf2 <= 1
  T334_R2_f4_ge: const_Overall_Cond - 1e-06 t334_leaf2 >= 5.999999
- T334_L2_f18_fixed_off: t334_leaf2 = 0
+ T334_L2_f18_lt: const_2nd_Flr_SF + 1e-06 t334_leaf2 <= 376
  T334_L3_f161_lt: x_ex1_is_AsbShng + 1e-06 t334_leaf3 <= 1
  T334_R3_f4_ge: const_Overall_Cond - 1e-06 t334_leaf3 >= 5.999999
- T334_R3_f18_ge: const_2nd_Flr_SF - 1e-06 t334_leaf3 >= 375.999999
+ T334_R3_f18_fixed_off: t334_leaf3 = 0
  T334_R4_f161_ge: x_ex1_is_AsbShng - 1.000001 t334_leaf4 >= -1e-06
  T334_L4_f31_fixed_off: t334_leaf4 = 0
  T334_R5_f161_ge: x_ex1_is_AsbShng - 1.000001 t334_leaf5 >= -1e-06
@@ -6704,14 +6636,14 @@ Subject To
  T335_R1_f11_ge: x_Bsmt_Cond - 4.000001 t335_leaf1 >= -1.000001
  T335_L2_f277_lt: const_Mo_Sold_7 + 1e-06 t335_leaf2 <= 1
  T335_R2_f24_ge: x_Half_Bath - 1.000001 t335_leaf2 >= -1e-06
- T335_L2_f3_lt: Overall_Qual_calc + 3.000001 t335_leaf2 <= 10
+ T335_L2_f3_lt: const_Overall_Qual + 1e-06 t335_leaf2 <= 7
  T335_L3_f277_lt: const_Mo_Sold_7 + 1e-06 t335_leaf3 <= 1
  T335_R3_f24_ge: x_Half_Bath - 1.000001 t335_leaf3 >= -1e-06
- T335_R3_f3_ge: Overall_Qual_calc - 6.000001 t335_leaf3 >= 0.999999
+ T335_R3_f3_fixed_off: t335_leaf3 = 0
  T335_R4_f277_fixed_off: t335_leaf4 = 0
- T335_L4_f1_fixed_off: t335_leaf4 = 0
+ T335_L4_f1_lt: const_Lot_Area + 1e-06 t335_leaf4 <= 11428
  T335_R5_f277_fixed_off: t335_leaf5 = 0
- T335_R5_f1_ge: const_Lot_Area - 1e-06 t335_leaf5 >= 11427.999999
+ T335_R5_f1_fixed_off: t335_leaf5 = 0
  TREE_336_ONEHOT: t336_leaf0 + t336_leaf1 + t336_leaf2 + t336_leaf3
    + t336_leaf4 + t336_leaf5 + t336_leaf6 + t336_leaf7 = 1
  T336_L0_f0_lt: const_Lot_Frontage + 1e-06 t336_leaf0 <= 85
@@ -6753,9 +6685,9 @@ Subject To
  T337_R3_f5_fixed_off: t337_leaf3 = 0
  T337_R3_f8_ge: x_Exter_Qual - 3.000001 t337_leaf3 >= -1e-06
  T337_R4_f211_ge: x_b1_is_ALQ - 1.000001 t337_leaf4 >= -1e-06
- T337_L4_f85_fixed_off: t337_leaf4 = 0
+ T337_L4_f85_lt: const_Lot_Config_Inside + 1e-06 t337_leaf4 <= 1
  T337_R5_f211_ge: x_b1_is_ALQ - 1.000001 t337_leaf5 >= -1e-06
- T337_R5_f85_ge: const_Lot_Config_Inside - 1e-06 t337_leaf5 >= 0.999999
+ T337_R5_f85_fixed_off: t337_leaf5 = 0
  TREE_338_ONEHOT: t338_leaf0 + t338_leaf1 + t338_leaf2 + t338_leaf3
    + t338_leaf4 + t338_leaf5 + t338_leaf6 = 1
  T338_L0_f30_lt: x_Fireplace_Qu + 2.000001 t338_leaf0 <= 4
@@ -6788,12 +6720,12 @@ Subject To
  TREE_339_EXCLUDE_LEAF_5: t339_leaf5 = 0
  TREE_340_ONEHOT: t340_leaf0 + t340_leaf1 + t340_leaf2 + t340_leaf3
    + t340_leaf4 + t340_leaf5 + t340_leaf6 = 1
- TREE_340_FORCE_LEAF_2: t340_leaf2 = 1
+ TREE_340_FORCE_LEAF_5: t340_leaf5 = 1
  TREE_340_EXCLUDE_LEAF_0: t340_leaf0 = 0
  TREE_340_EXCLUDE_LEAF_1: t340_leaf1 = 0
+ TREE_340_EXCLUDE_LEAF_2: t340_leaf2 = 0
  TREE_340_EXCLUDE_LEAF_3: t340_leaf3 = 0
  TREE_340_EXCLUDE_LEAF_4: t340_leaf4 = 0
- TREE_340_EXCLUDE_LEAF_5: t340_leaf5 = 0
  TREE_340_EXCLUDE_LEAF_6: t340_leaf6 = 0
  TREE_341_ONEHOT: t341_leaf0 + t341_leaf1 + t341_leaf2 = 1
  T341_L0_f296_lt: const_Sale_Condition_Family + 1e-06 t341_leaf0 <= 1
@@ -6812,10 +6744,10 @@ Subject To
  T342_R2_f161_ge: x_ex1_is_AsbShng - 1.000001 t342_leaf2 >= -1e-06
  T342_R3_f71_ge: const_Alley_No_aplica - 1e-06 t342_leaf3 >= 0.999999
  T342_R3_f14_ge: x_Bsmt_Unf_SF - 429.000001 t342_leaf3 >= -1e-06
- T342_L3_f96_fixed_off: t342_leaf3 = 0
+ T342_L3_f96_lt: const_Neighborhood_Edwards + 1e-06 t342_leaf3 <= 1
  T342_R4_f71_ge: const_Alley_No_aplica - 1e-06 t342_leaf4 >= 0.999999
  T342_R4_f14_ge: x_Bsmt_Unf_SF - 429.000001 t342_leaf4 >= -1e-06
- T342_R4_f96_ge: const_Neighborhood_Edwards - 1e-06 t342_leaf4 >= 0.999999
+ T342_R4_f96_fixed_off: t342_leaf4 = 0
  TREE_343_ONEHOT: t343_leaf0 + t343_leaf1 + t343_leaf2 + t343_leaf3
    + t343_leaf4 = 1
  T343_L0_f203_lt: const_Foundation_Slab + 1e-06 t343_leaf0 <= 1
@@ -6832,50 +6764,48 @@ Subject To
  T343_R4_f0_ge: const_Lot_Frontage - 1e-06 t343_leaf4 >= 65.999999
  TREE_344_ONEHOT: t344_leaf0 + t344_leaf1 + t344_leaf2 + t344_leaf3
    + t344_leaf4 + t344_leaf5 + t344_leaf6 = 1
- T344_L0_f3_lt: Overall_Qual_calc + 5.000001 t344_leaf0 <= 10
+ T344_L0_f3_lt: const_Overall_Qual + 1e-06 t344_leaf0 <= 5
  T344_L0_f272_lt: const_Mo_Sold_2 + 1e-06 t344_leaf0 <= 1
  T344_L0_f1_fixed_off: t344_leaf0 = 0
- T344_L1_f3_lt: Overall_Qual_calc + 5.000001 t344_leaf1 <= 10
+ T344_L1_f3_lt: const_Overall_Qual + 1e-06 t344_leaf1 <= 5
  T344_L1_f272_lt: const_Mo_Sold_2 + 1e-06 t344_leaf1 <= 1
  T344_R1_f1_ge: const_Lot_Area - 1e-06 t344_leaf1 >= 5975.999999
- T344_L2_f3_lt: Overall_Qual_calc + 5.000001 t344_leaf2 <= 10
+ T344_L2_f3_lt: const_Overall_Qual + 1e-06 t344_leaf2 <= 5
  T344_R2_f272_fixed_off: t344_leaf2 = 0
- T344_R3_f3_ge: Overall_Qual_calc - 4.000001 t344_leaf3 >= 0.999999
+ T344_R3_f3_fixed_off: t344_leaf3 = 0
  T344_L3_f12_lt: x_BsmtFin_SF_1 + 999064.000001 t344_leaf3 <= 1e+06
  T344_L3_f1_fixed_off: t344_leaf3 = 0
- T344_R4_f3_ge: Overall_Qual_calc - 4.000001 t344_leaf4 >= 0.999999
+ T344_R4_f3_fixed_off: t344_leaf4 = 0
  T344_L4_f12_lt: x_BsmtFin_SF_1 + 999064.000001 t344_leaf4 <= 1e+06
  T344_R4_f1_ge: const_Lot_Area - 1e-06 t344_leaf4 >= 8399.999999
- T344_R5_f3_ge: Overall_Qual_calc - 4.000001 t344_leaf5 >= 0.999999
+ T344_R5_f3_fixed_off: t344_leaf5 = 0
  T344_R5_f12_ge: x_BsmtFin_SF_1 - 936.000001 t344_leaf5 >= -1e-06
  T344_L5_f1_lt: const_Lot_Area + 1e-06 t344_leaf5 <= 21370
- T344_R6_f3_ge: Overall_Qual_calc - 4.000001 t344_leaf6 >= 0.999999
+ T344_R6_f3_fixed_off: t344_leaf6 = 0
  T344_R6_f12_ge: x_BsmtFin_SF_1 - 936.000001 t344_leaf6 >= -1e-06
  T344_R6_f1_fixed_off: t344_leaf6 = 0
  TREE_345_ONEHOT: t345_leaf0 + t345_leaf1 + t345_leaf2 + t345_leaf3
    + t345_leaf4 + t345_leaf5 + t345_leaf6 = 1
  T345_L0_f16_lt: x_Heating_QC + 1.000001 t345_leaf0 <= 4
- T345_L0_f297_fixed_off: t345_leaf0 = 0
+ T345_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t345_leaf0 <= 1
  T345_L0_f209_fixed_off: t345_leaf0 = 0
  T345_L1_f16_lt: x_Heating_QC + 1.000001 t345_leaf1 <= 4
- T345_L1_f297_fixed_off: t345_leaf1 = 0
+ T345_L1_f297_lt: const_Sale_Condition_Normal + 1e-06 t345_leaf1 <= 1
  T345_R1_f209_ge: const_Bsmt_Exposure_No - 1e-06 t345_leaf1 >= 0.999999
  T345_L2_f16_lt: x_Heating_QC + 1.000001 t345_leaf2 <= 4
- T345_R2_f297_ge: const_Sale_Condition_Normal - 1e-06 t345_leaf2
-   >= 0.999999
- T345_L2_f3_lt: Overall_Qual_calc + 6.000001 t345_leaf2 <= 10
+ T345_R2_f297_fixed_off: t345_leaf2 = 0
+ T345_L2_f3_fixed_off: t345_leaf2 = 0
  T345_L3_f16_lt: x_Heating_QC + 1.000001 t345_leaf3 <= 4
- T345_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t345_leaf3
-   >= 0.999999
- T345_R3_f3_ge: Overall_Qual_calc - 3.000001 t345_leaf3 >= 0.999999
+ T345_R3_f297_fixed_off: t345_leaf3 = 0
+ T345_R3_f3_ge: const_Overall_Qual - 1e-06 t345_leaf3 >= 3.999999
  T345_R4_f16_ge: x_Heating_QC - 3.000001 t345_leaf4 >= -1e-06
- T345_L4_f3_lt: Overall_Qual_calc + 4.000001 t345_leaf4 <= 10
+ T345_L4_f3_lt: const_Overall_Qual + 1e-06 t345_leaf4 <= 6
  T345_R5_f16_ge: x_Heating_QC - 3.000001 t345_leaf5 >= -1e-06
- T345_R5_f3_ge: Overall_Qual_calc - 5.000001 t345_leaf5 >= 0.999999
- T345_L5_f96_fixed_off: t345_leaf5 = 0
+ T345_R5_f3_fixed_off: t345_leaf5 = 0
+ T345_L5_f96_lt: const_Neighborhood_Edwards + 1e-06 t345_leaf5 <= 1
  T345_R6_f16_ge: x_Heating_QC - 3.000001 t345_leaf6 >= -1e-06
- T345_R6_f3_ge: Overall_Qual_calc - 5.000001 t345_leaf6 >= 0.999999
- T345_R6_f96_ge: const_Neighborhood_Edwards - 1e-06 t345_leaf6 >= 0.999999
+ T345_R6_f3_fixed_off: t345_leaf6 = 0
+ T345_R6_f96_fixed_off: t345_leaf6 = 0
  TREE_346_ONEHOT: t346_leaf0 + t346_leaf1 + t346_leaf2 + t346_leaf3
    + t346_leaf4 = 1
  T346_L0_f7_lt: x_Mas_Vnr_Area + 1e-06 t346_leaf0 <= 252
@@ -6935,10 +6865,10 @@ Subject To
  T350_L0_f0_fixed_off: t350_leaf0 = 0
  T350_L1_f9_lt: x_Exter_Cond + 2.000001 t350_leaf1 <= 4
  T350_R1_f0_ge: const_Lot_Frontage - 1e-06 t350_leaf1 >= 65.999999
- T350_L1_f18_fixed_off: t350_leaf1 = 0
+ T350_L1_f18_lt: const_2nd_Flr_SF + 1e-06 t350_leaf1 <= 167
  T350_L2_f9_lt: x_Exter_Cond + 2.000001 t350_leaf2 <= 4
  T350_R2_f0_ge: const_Lot_Frontage - 1e-06 t350_leaf2 >= 65.999999
- T350_R2_f18_ge: const_2nd_Flr_SF - 1e-06 t350_leaf2 >= 166.999999
+ T350_R2_f18_fixed_off: t350_leaf2 = 0
  T350_R3_f9_ge: x_Exter_Cond - 2.000001 t350_leaf3 >= -1e-06
  T350_L3_f31_fixed_off: t350_leaf3 = 0
  T350_L3_f14_lt: x_Bsmt_Unf_SF + 99617.00000099999 t350_leaf3 <= 100000
@@ -6953,22 +6883,12 @@ Subject To
  T350_R6_f14_ge: x_Bsmt_Unf_SF - 476.000001 t350_leaf6 >= -1e-06
  TREE_351_ONEHOT: t351_leaf0 + t351_leaf1 + t351_leaf2 + t351_leaf3
    + t351_leaf4 + t351_leaf5 = 1
- T351_L0_f44_lt: const_Yr_Sold + 1e-06 t351_leaf0 <= 2010
- T351_L0_f3_lt: Overall_Qual_calc + 5.000001 t351_leaf0 <= 10
- T351_L1_f44_lt: const_Yr_Sold + 1e-06 t351_leaf1 <= 2010
- T351_R1_f3_ge: Overall_Qual_calc - 4.000001 t351_leaf1 >= 0.999999
- T351_L1_f60_lt: const_MS_SubClass_190 + 1e-06 t351_leaf1 <= 1
- T351_L2_f44_lt: const_Yr_Sold + 1e-06 t351_leaf2 <= 2010
- T351_R2_f3_ge: Overall_Qual_calc - 4.000001 t351_leaf2 >= 0.999999
- T351_R2_f60_fixed_off: t351_leaf2 = 0
- T351_R3_f44_fixed_off: t351_leaf3 = 0
- T351_L3_f7_lt: x_Mas_Vnr_Area + 1e-06 t351_leaf3 <= 324
- T351_L3_f15_fixed_off: t351_leaf3 = 0
- T351_R4_f44_fixed_off: t351_leaf4 = 0
- T351_L4_f7_lt: x_Mas_Vnr_Area + 1e-06 t351_leaf4 <= 324
- T351_R4_f15_ge: const_Total_Bsmt_SF - 1e-06 t351_leaf4 >= 529.999999
- T351_R5_f44_fixed_off: t351_leaf5 = 0
- T351_R5_f7_fixed_off: t351_leaf5 = 0
+ TREE_351_FORCE_LEAF_0: t351_leaf0 = 1
+ TREE_351_EXCLUDE_LEAF_1: t351_leaf1 = 0
+ TREE_351_EXCLUDE_LEAF_2: t351_leaf2 = 0
+ TREE_351_EXCLUDE_LEAF_3: t351_leaf3 = 0
+ TREE_351_EXCLUDE_LEAF_4: t351_leaf4 = 0
+ TREE_351_EXCLUDE_LEAF_5: t351_leaf5 = 0
  TREE_352_ONEHOT: t352_leaf0 + t352_leaf1 = 1
  T352_L0_f37_lt: x_Open_Porch_SF + 99811.00000099999 t352_leaf0 <= 100000
  T352_R1_f37_ge: x_Open_Porch_SF - 189.000001 t352_leaf1 >= -1e-06
@@ -6994,13 +6914,13 @@ Subject To
  T354_R2_f5_ge: const_Year_Built - 1e-06 t354_leaf2 >= 1910.999999
  TREE_355_ONEHOT: t355_leaf0 + t355_leaf1 + t355_leaf2 + t355_leaf3
    + t355_leaf4 + t355_leaf5 + t355_leaf6 = 1
- TREE_355_FORCE_LEAF_6: t355_leaf6 = 1
+ TREE_355_FORCE_LEAF_4: t355_leaf4 = 1
  TREE_355_EXCLUDE_LEAF_0: t355_leaf0 = 0
  TREE_355_EXCLUDE_LEAF_1: t355_leaf1 = 0
  TREE_355_EXCLUDE_LEAF_2: t355_leaf2 = 0
  TREE_355_EXCLUDE_LEAF_3: t355_leaf3 = 0
- TREE_355_EXCLUDE_LEAF_4: t355_leaf4 = 0
  TREE_355_EXCLUDE_LEAF_5: t355_leaf5 = 0
+ TREE_355_EXCLUDE_LEAF_6: t355_leaf6 = 0
  TREE_356_ONEHOT: t356_leaf0 + t356_leaf1 + t356_leaf2 + t356_leaf3
    + t356_leaf4 + t356_leaf5 + t356_leaf6 = 1
  T356_L0_f4_fixed_off: t356_leaf0 = 0
@@ -7019,15 +6939,15 @@ Subject To
  T356_R4_f72_fixed_off: t356_leaf4 = 0
  T356_R5_f4_ge: const_Overall_Cond - 1e-06 t356_leaf5 >= 4.999999
  T356_R5_f18_fixed_off: t356_leaf5 = 0
- T356_L5_f3_lt: Overall_Qual_calc + 3.000001 t356_leaf5 <= 10
+ T356_L5_f3_lt: const_Overall_Qual + 1e-06 t356_leaf5 <= 7
  T356_R6_f4_ge: const_Overall_Cond - 1e-06 t356_leaf6 >= 4.999999
  T356_R6_f18_fixed_off: t356_leaf6 = 0
- T356_R6_f3_ge: Overall_Qual_calc - 6.000001 t356_leaf6 >= 0.999999
+ T356_R6_f3_fixed_off: t356_leaf6 = 0
  TREE_357_ONEHOT: t357_leaf0 + t357_leaf1 + t357_leaf2 + t357_leaf3 = 1
- TREE_357_FORCE_LEAF_0: t357_leaf0 = 1
+ TREE_357_FORCE_LEAF_3: t357_leaf3 = 1
+ TREE_357_EXCLUDE_LEAF_0: t357_leaf0 = 0
  TREE_357_EXCLUDE_LEAF_1: t357_leaf1 = 0
  TREE_357_EXCLUDE_LEAF_2: t357_leaf2 = 0
- TREE_357_EXCLUDE_LEAF_3: t357_leaf3 = 0
  TREE_358_ONEHOT: t358_leaf0 + t358_leaf1 + t358_leaf2 + t358_leaf3
    + t358_leaf4 + t358_leaf5 + t358_leaf6 = 1
  T358_L0_f231_lt: central_air_no + 1e-06 t358_leaf0 <= 1
@@ -7068,13 +6988,13 @@ Subject To
  T359_L4_f33_lt: x_Garage_Area + 99750.00000099999 t359_leaf4 <= 100000
  T359_R5_f161_ge: x_ex1_is_AsbShng - 1.000001 t359_leaf5 >= -1e-06
  T359_R5_f33_ge: x_Garage_Area - 250.000001 t359_leaf5 >= -1e-06
- T359_L5_f15_lt: const_Total_Bsmt_SF + 1e-06 t359_leaf5 <= 791
+ T359_L5_f15_fixed_off: t359_leaf5 = 0
  T359_R6_f161_ge: x_ex1_is_AsbShng - 1.000001 t359_leaf6 >= -1e-06
  T359_R6_f33_ge: x_Garage_Area - 250.000001 t359_leaf6 >= -1e-06
- T359_R6_f15_fixed_off: t359_leaf6 = 0
+ T359_R6_f15_ge: const_Total_Bsmt_SF - 1e-06 t359_leaf6 >= 790.999999
  TREE_360_ONEHOT: t360_leaf0 + t360_leaf1 = 1
- T360_L0_f3_lt: Overall_Qual_calc + 7.000001 t360_leaf0 <= 10
- T360_R1_f3_ge: Overall_Qual_calc - 2.000001 t360_leaf1 >= 0.999999
+ TREE_360_FORCE_LEAF_1: t360_leaf1 = 1
+ TREE_360_EXCLUDE_LEAF_0: t360_leaf0 = 0
  TREE_361_ONEHOT: t361_leaf0 + t361_leaf1 + t361_leaf2 + t361_leaf3 = 1
  T361_L0_f173_lt: x_ex1_is_Stucco + 1e-06 t361_leaf0 <= 1
  T361_L0_f17_lt: x_1st_Flr_SF + 4354.000001 t361_leaf0 <= 5000
@@ -7087,18 +7007,11 @@ Subject To
  T361_R3_f173_ge: x_ex1_is_Stucco - 1.000001 t361_leaf3 >= -1e-06
  TREE_362_ONEHOT: t362_leaf0 + t362_leaf1 + t362_leaf2 + t362_leaf3
    + t362_leaf4 = 1
- T362_L0_f5_fixed_off: t362_leaf0 = 0
- T362_L0_f4_lt: const_Overall_Cond + 1e-06 t362_leaf0 <= 7
- T362_L1_f5_fixed_off: t362_leaf1 = 0
- T362_R1_f4_fixed_off: t362_leaf1 = 0
- T362_R2_f5_ge: const_Year_Built - 1e-06 t362_leaf2 >= 1914.999999
- T362_L2_f18_fixed_off: t362_leaf2 = 0
- T362_R3_f5_ge: const_Year_Built - 1e-06 t362_leaf3 >= 1914.999999
- T362_R3_f18_ge: const_2nd_Flr_SF - 1e-06 t362_leaf3 >= 357.999999
- T362_L3_f3_lt: Overall_Qual_calc + 3.000001 t362_leaf3 <= 10
- T362_R4_f5_ge: const_Year_Built - 1e-06 t362_leaf4 >= 1914.999999
- T362_R4_f18_ge: const_2nd_Flr_SF - 1e-06 t362_leaf4 >= 357.999999
- T362_R4_f3_ge: Overall_Qual_calc - 6.000001 t362_leaf4 >= 0.999999
+ TREE_362_FORCE_LEAF_2: t362_leaf2 = 1
+ TREE_362_EXCLUDE_LEAF_0: t362_leaf0 = 0
+ TREE_362_EXCLUDE_LEAF_1: t362_leaf1 = 0
+ TREE_362_EXCLUDE_LEAF_3: t362_leaf3 = 0
+ TREE_362_EXCLUDE_LEAF_4: t362_leaf4 = 0
  TREE_363_ONEHOT: t363_leaf0 + t363_leaf1 + t363_leaf2 + t363_leaf3
    + t363_leaf4 = 1
  T363_L0_f296_lt: const_Sale_Condition_Family + 1e-06 t363_leaf0 <= 1
@@ -7150,28 +7063,28 @@ Subject To
  T366_R4_f9_ge: x_Exter_Cond - 2.000001 t366_leaf4 >= -1e-06
  T366_R4_f78_fixed_off: t366_leaf4 = 0
  TREE_367_ONEHOT: t367_leaf0 + t367_leaf1 + t367_leaf2 + t367_leaf3 = 1
- T367_L0_f3_lt: Overall_Qual_calc + 6.000001 t367_leaf0 <= 10
- T367_R1_f3_ge: Overall_Qual_calc - 3.000001 t367_leaf1 >= 0.999999
+ T367_L0_f3_fixed_off: t367_leaf0 = 0
+ T367_R1_f3_ge: const_Overall_Qual - 1e-06 t367_leaf1 >= 3.999999
  T367_L1_f68_lt: const_Street_Grvl + 1e-06 t367_leaf1 <= 1
  T367_L1_f219_lt: x_b2_is_BLQ + 1e-06 t367_leaf1 <= 1
- T367_R2_f3_ge: Overall_Qual_calc - 3.000001 t367_leaf2 >= 0.999999
+ T367_R2_f3_ge: const_Overall_Qual - 1e-06 t367_leaf2 >= 3.999999
  T367_L2_f68_lt: const_Street_Grvl + 1e-06 t367_leaf2 <= 1
  T367_R2_f219_ge: x_b2_is_BLQ - 1.000001 t367_leaf2 >= -1e-06
- T367_R3_f3_ge: Overall_Qual_calc - 3.000001 t367_leaf3 >= 0.999999
+ T367_R3_f3_ge: const_Overall_Qual - 1e-06 t367_leaf3 >= 3.999999
  T367_R3_f68_fixed_off: t367_leaf3 = 0
  TREE_368_ONEHOT: t368_leaf0 + t368_leaf1 + t368_leaf2 + t368_leaf3
    + t368_leaf4 = 1
- T368_L0_f96_fixed_off: t368_leaf0 = 0
- T368_R1_f96_ge: const_Neighborhood_Edwards - 1e-06 t368_leaf1 >= 0.999999
+ T368_L0_f96_lt: const_Neighborhood_Edwards + 1e-06 t368_leaf0 <= 1
+ T368_R1_f96_fixed_off: t368_leaf1 = 0
  T368_L1_f15_fixed_off: t368_leaf1 = 0
  T368_L1_f33_lt: x_Garage_Area + 99775.00000099999 t368_leaf1 <= 100000
- T368_R2_f96_ge: const_Neighborhood_Edwards - 1e-06 t368_leaf2 >= 0.999999
+ T368_R2_f96_fixed_off: t368_leaf2 = 0
  T368_L2_f15_fixed_off: t368_leaf2 = 0
  T368_R2_f33_ge: x_Garage_Area - 225.000001 t368_leaf2 >= -1e-06
- T368_R3_f96_ge: const_Neighborhood_Edwards - 1e-06 t368_leaf3 >= 0.999999
+ T368_R3_f96_fixed_off: t368_leaf3 = 0
  T368_R3_f15_ge: const_Total_Bsmt_SF - 1e-06 t368_leaf3 >= 760.999999
  T368_L3_f33_lt: x_Garage_Area + 99750.00000099999 t368_leaf3 <= 100000
- T368_R4_f96_ge: const_Neighborhood_Edwards - 1e-06 t368_leaf4 >= 0.999999
+ T368_R4_f96_fixed_off: t368_leaf4 = 0
  T368_R4_f15_ge: const_Total_Bsmt_SF - 1e-06 t368_leaf4 >= 760.999999
  T368_R4_f33_ge: x_Garage_Area - 250.000001 t368_leaf4 >= -1e-06
  TREE_369_ONEHOT: t369_leaf0 + t369_leaf1 + t369_leaf2 + t369_leaf3
@@ -7184,14 +7097,14 @@ Subject To
  T369_R1_f5_fixed_off: t369_leaf1 = 0
  T369_L2_f72_lt: const_Alley_Pave + 1e-06 t369_leaf2 <= 1
  T369_R2_f211_ge: x_b1_is_ALQ - 1.000001 t369_leaf2 >= -1e-06
- T369_L2_f3_lt: Overall_Qual_calc + 3.000001 t369_leaf2 <= 10
+ T369_L2_f3_lt: const_Overall_Qual + 1e-06 t369_leaf2 <= 7
  T369_L3_f72_lt: const_Alley_Pave + 1e-06 t369_leaf3 <= 1
  T369_R3_f211_ge: x_b1_is_ALQ - 1.000001 t369_leaf3 >= -1e-06
- T369_R3_f3_ge: Overall_Qual_calc - 6.000001 t369_leaf3 >= 0.999999
+ T369_R3_f3_fixed_off: t369_leaf3 = 0
  T369_R4_f72_fixed_off: t369_leaf4 = 0
- T369_L4_f3_lt: Overall_Qual_calc + 3.000001 t369_leaf4 <= 10
+ T369_L4_f3_lt: const_Overall_Qual + 1e-06 t369_leaf4 <= 7
  T369_R5_f72_fixed_off: t369_leaf5 = 0
- T369_R5_f3_ge: Overall_Qual_calc - 6.000001 t369_leaf5 >= 0.999999
+ T369_R5_f3_fixed_off: t369_leaf5 = 0
  TREE_370_ONEHOT: t370_leaf0 + t370_leaf1 + t370_leaf2 = 1
  TREE_370_FORCE_LEAF_0: t370_leaf0 = 1
  TREE_370_EXCLUDE_LEAF_1: t370_leaf1 = 0
@@ -7261,18 +7174,18 @@ Subject To
  T375_R2_f31_ge: const_Garage_Yr_Blt - 1e-06 t375_leaf2 >= 1920.999999
  T375_R3_f164_ge: x_ex1_is_BrkFace - 1.000001 t375_leaf3 >= -1e-06
  TREE_376_ONEHOT: t376_leaf0 + t376_leaf1 + t376_leaf2 + t376_leaf3 = 1
- TREE_376_FORCE_LEAF_1: t376_leaf1 = 1
- TREE_376_EXCLUDE_LEAF_0: t376_leaf0 = 0
+ TREE_376_FORCE_LEAF_0: t376_leaf0 = 1
+ TREE_376_EXCLUDE_LEAF_1: t376_leaf1 = 0
  TREE_376_EXCLUDE_LEAF_2: t376_leaf2 = 0
  TREE_376_EXCLUDE_LEAF_3: t376_leaf3 = 0
  TREE_377_ONEHOT: t377_leaf0 = 1
  TREE_377_FORCE_LEAF_0: t377_leaf0 = 1
  TREE_378_ONEHOT: t378_leaf0 + t378_leaf1 + t378_leaf2 = 1
- T378_L0_f3_lt: Overall_Qual_calc + 7.000001 t378_leaf0 <= 10
+ T378_L0_f3_fixed_off: t378_leaf0 = 0
  T378_L0_f33_lt: x_Garage_Area + 99727.00000099999 t378_leaf0 <= 100000
- T378_L1_f3_lt: Overall_Qual_calc + 7.000001 t378_leaf1 <= 10
+ T378_L1_f3_fixed_off: t378_leaf1 = 0
  T378_R1_f33_ge: x_Garage_Area - 273.000001 t378_leaf1 >= -1e-06
- T378_R2_f3_ge: Overall_Qual_calc - 2.000001 t378_leaf2 >= 0.999999
+ T378_R2_f3_ge: const_Overall_Qual - 1e-06 t378_leaf2 >= 2.999999
  TREE_379_ONEHOT: t379_leaf0 + t379_leaf1 + t379_leaf2 + t379_leaf3
    + t379_leaf4 = 1
  T379_L0_f32_lt: const_Garage_Cars + 1e-06 t379_leaf0 <= 3
@@ -7292,24 +7205,24 @@ Subject To
  T380_R1_f40_ge: x_Screen_Porch - 156.000001 t380_leaf1 >= -1e-06
  TREE_381_ONEHOT: t381_leaf0 + t381_leaf1 + t381_leaf2 + t381_leaf3
    + t381_leaf4 = 1
- T381_L0_f3_lt: Overall_Qual_calc + 6.000001 t381_leaf0 <= 10
+ T381_L0_f3_fixed_off: t381_leaf0 = 0
  T381_L0_f169_lt: x_ex1_is_MetalSd + 1e-06 t381_leaf0 <= 1
- T381_L1_f3_lt: Overall_Qual_calc + 6.000001 t381_leaf1 <= 10
+ T381_L1_f3_fixed_off: t381_leaf1 = 0
  T381_R1_f169_ge: x_ex1_is_MetalSd - 1.000001 t381_leaf1 >= -1e-06
- T381_R2_f3_ge: Overall_Qual_calc - 3.000001 t381_leaf2 >= 0.999999
+ T381_R2_f3_ge: const_Overall_Qual - 1e-06 t381_leaf2 >= 3.999999
  T381_L2_f5_fixed_off: t381_leaf2 = 0
  T381_L2_f4_lt: const_Overall_Cond + 1e-06 t381_leaf2 <= 7
- T381_R3_f3_ge: Overall_Qual_calc - 3.000001 t381_leaf3 >= 0.999999
+ T381_R3_f3_ge: const_Overall_Qual - 1e-06 t381_leaf3 >= 3.999999
  T381_L3_f5_fixed_off: t381_leaf3 = 0
  T381_R3_f4_fixed_off: t381_leaf3 = 0
- T381_R4_f3_ge: Overall_Qual_calc - 3.000001 t381_leaf4 >= 0.999999
+ T381_R4_f3_ge: const_Overall_Qual - 1e-06 t381_leaf4 >= 3.999999
  T381_R4_f5_ge: const_Year_Built - 1e-06 t381_leaf4 >= 1910.999999
  TREE_382_ONEHOT: t382_leaf0 + t382_leaf1 + t382_leaf2 + t382_leaf3
    + t382_leaf4 + t382_leaf5 = 1
  T382_L0_f27_lt: x_Kitchen_Qual + 2.000001 t382_leaf0 <= 4
- T382_L0_f32_lt: const_Garage_Cars + 1e-06 t382_leaf0 <= 2
+ T382_L0_f32_fixed_off: t382_leaf0 = 0
  T382_L1_f27_lt: x_Kitchen_Qual + 2.000001 t382_leaf1 <= 4
- T382_R1_f32_fixed_off: t382_leaf1 = 0
+ T382_R1_f32_ge: const_Garage_Cars - 1e-06 t382_leaf1 >= 1.999999
  T382_R2_f27_ge: x_Kitchen_Qual - 2.000001 t382_leaf2 >= -1e-06
  T382_L2_f6_fixed_off: t382_leaf2 = 0
  T382_L2_f17_lt: x_1st_Flr_SF + 4084.000001 t382_leaf2 <= 5000
@@ -7325,16 +7238,18 @@ Subject To
  TREE_383_ONEHOT: t383_leaf0 + t383_leaf1 + t383_leaf2 + t383_leaf3
    + t383_leaf4 + t383_leaf5 + t383_leaf6 = 1
  T383_L0_f20_lt: x_Gr_Liv_Area + 9106.000001 t383_leaf0 <= 10000
- T383_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t383_leaf0 <= 1
+ T383_L0_f293_fixed_off: t383_leaf0 = 0
  T383_L0_f76_fixed_off: t383_leaf0 = 0
  T383_L1_f20_lt: x_Gr_Liv_Area + 9106.000001 t383_leaf1 <= 10000
- T383_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t383_leaf1 <= 1
+ T383_L1_f293_fixed_off: t383_leaf1 = 0
  T383_R1_f76_ge: const_Lot_Shape_Reg - 1e-06 t383_leaf1 >= 0.999999
  T383_L2_f20_lt: x_Gr_Liv_Area + 9106.000001 t383_leaf2 <= 10000
- T383_R2_f293_fixed_off: t383_leaf2 = 0
+ T383_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t383_leaf2
+   >= 0.999999
  T383_L2_f33_lt: x_Garage_Area + 99629.00000099999 t383_leaf2 <= 100000
  T383_L3_f20_lt: x_Gr_Liv_Area + 9106.000001 t383_leaf3 <= 10000
- T383_R3_f293_fixed_off: t383_leaf3 = 0
+ T383_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t383_leaf3
+   >= 0.999999
  T383_R3_f33_ge: x_Garage_Area - 371.000001 t383_leaf3 >= -1e-06
  T383_R4_f20_ge: x_Gr_Liv_Area - 894.000001 t383_leaf4 >= -1e-06
  T383_L4_f28_lt: x_TotRms_AbvGrd + 3.000001 t383_leaf4 <= 15
@@ -7350,11 +7265,11 @@ Subject To
  T384_R1_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t384_leaf1
    >= 0.999999
  T384_L1_f14_lt: x_Bsmt_Unf_SF + 99878.00000099999 t384_leaf1 <= 100000
- T384_L1_f139_fixed_off: t384_leaf1 = 0
+ T384_L1_f139_lt: const_House_Style_1.5Fin + 1e-06 t384_leaf1 <= 1
  T384_R2_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t384_leaf2
    >= 0.999999
  T384_L2_f14_lt: x_Bsmt_Unf_SF + 99878.00000099999 t384_leaf2 <= 100000
- T384_R2_f139_ge: const_House_Style_1.5Fin - 1e-06 t384_leaf2 >= 0.999999
+ T384_R2_f139_fixed_off: t384_leaf2 = 0
  T384_R3_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t384_leaf3
    >= 0.999999
  T384_R3_f14_ge: x_Bsmt_Unf_SF - 122.000001 t384_leaf3 >= -1e-06
@@ -7367,10 +7282,10 @@ Subject To
    + t385_leaf4 = 1
  T385_L0_f161_lt: x_ex1_is_AsbShng + 1e-06 t385_leaf0 <= 1
  T385_L0_f62_lt: const_MS_Zoning_C_(all) + 1e-06 t385_leaf0 <= 1
- T385_L0_f3_lt: Overall_Qual_calc + 3.000001 t385_leaf0 <= 10
+ T385_L0_f3_lt: const_Overall_Qual + 1e-06 t385_leaf0 <= 7
  T385_L1_f161_lt: x_ex1_is_AsbShng + 1e-06 t385_leaf1 <= 1
  T385_L1_f62_lt: const_MS_Zoning_C_(all) + 1e-06 t385_leaf1 <= 1
- T385_R1_f3_ge: Overall_Qual_calc - 6.000001 t385_leaf1 >= 0.999999
+ T385_R1_f3_fixed_off: t385_leaf1 = 0
  T385_L2_f161_lt: x_ex1_is_AsbShng + 1e-06 t385_leaf2 <= 1
  T385_R2_f62_fixed_off: t385_leaf2 = 0
  T385_R3_f161_ge: x_ex1_is_AsbShng - 1.000001 t385_leaf3 >= -1e-06
@@ -7380,10 +7295,10 @@ Subject To
  TREE_386_ONEHOT: t386_leaf0 + t386_leaf1 + t386_leaf2 + t386_leaf3 = 1
  T386_L0_f33_lt: x_Garage_Area + 98846.00000099999 t386_leaf0 <= 100000
  T386_L0_f5_lt: const_Year_Built + 1e-06 t386_leaf0 <= 2006
- T386_L0_f3_lt: Overall_Qual_calc + 7.000001 t386_leaf0 <= 10
+ T386_L0_f3_fixed_off: t386_leaf0 = 0
  T386_L1_f33_lt: x_Garage_Area + 98846.00000099999 t386_leaf1 <= 100000
  T386_L1_f5_lt: const_Year_Built + 1e-06 t386_leaf1 <= 2006
- T386_R1_f3_ge: Overall_Qual_calc - 2.000001 t386_leaf1 >= 0.999999
+ T386_R1_f3_ge: const_Overall_Qual - 1e-06 t386_leaf1 >= 2.999999
  T386_L2_f33_lt: x_Garage_Area + 98846.00000099999 t386_leaf2 <= 100000
  T386_R2_f5_fixed_off: t386_leaf2 = 0
  T386_R3_f33_ge: x_Garage_Area - 1154.000001 t386_leaf3 >= -1e-06
@@ -7426,20 +7341,20 @@ Subject To
  TREE_390_EXCLUDE_LEAF_0: t390_leaf0 = 0
  TREE_390_EXCLUDE_LEAF_2: t390_leaf2 = 0
  TREE_391_ONEHOT: t391_leaf0 + t391_leaf1 + t391_leaf2 + t391_leaf3 = 1
- T391_L0_f3_lt: Overall_Qual_calc + 7.000001 t391_leaf0 <= 10
- T391_R1_f3_ge: Overall_Qual_calc - 2.000001 t391_leaf1 >= 0.999999
+ T391_L0_f3_fixed_off: t391_leaf0 = 0
+ T391_R1_f3_ge: const_Overall_Qual - 1e-06 t391_leaf1 >= 2.999999
  T391_L1_f250_lt: const_Garage_Type_CarPort + 1e-06 t391_leaf1 <= 1
  T391_L1_f12_lt: x_BsmtFin_SF_1 + 998268.000001 t391_leaf1 <= 1e+06
- T391_R2_f3_ge: Overall_Qual_calc - 2.000001 t391_leaf2 >= 0.999999
+ T391_R2_f3_ge: const_Overall_Qual - 1e-06 t391_leaf2 >= 2.999999
  T391_L2_f250_lt: const_Garage_Type_CarPort + 1e-06 t391_leaf2 <= 1
  T391_R2_f12_ge: x_BsmtFin_SF_1 - 1732.000001 t391_leaf2 >= -1e-06
- T391_R3_f3_ge: Overall_Qual_calc - 2.000001 t391_leaf3 >= 0.999999
+ T391_R3_f3_ge: const_Overall_Qual - 1e-06 t391_leaf3 >= 2.999999
  T391_R3_f250_fixed_off: t391_leaf3 = 0
  TREE_392_ONEHOT: t392_leaf0 + t392_leaf1 + t392_leaf2 + t392_leaf3 = 1
- TREE_392_FORCE_LEAF_3: t392_leaf3 = 1
- TREE_392_EXCLUDE_LEAF_0: t392_leaf0 = 0
+ TREE_392_FORCE_LEAF_0: t392_leaf0 = 1
  TREE_392_EXCLUDE_LEAF_1: t392_leaf1 = 0
  TREE_392_EXCLUDE_LEAF_2: t392_leaf2 = 0
+ TREE_392_EXCLUDE_LEAF_3: t392_leaf3 = 0
  TREE_393_ONEHOT: t393_leaf0 + t393_leaf1 + t393_leaf2 + t393_leaf3
    + t393_leaf4 = 1
  T393_L0_f12_lt: x_BsmtFin_SF_1 + 998268.000001 t393_leaf0 <= 1e+06
@@ -7473,23 +7388,22 @@ Subject To
  T395_R3_f6_fixed_off: t395_leaf3 = 0
  T395_R3_f89_fixed_off: t395_leaf3 = 0
  T395_R4_f37_ge: x_Open_Porch_SF - 291.000001 t395_leaf4 >= -1e-06
- T395_L4_f297_fixed_off: t395_leaf4 = 0
+ T395_L4_f297_lt: const_Sale_Condition_Normal + 1e-06 t395_leaf4 <= 1
  T395_R5_f37_ge: x_Open_Porch_SF - 291.000001 t395_leaf5 >= -1e-06
- T395_R5_f297_ge: const_Sale_Condition_Normal - 1e-06 t395_leaf5
-   >= 0.999999
+ T395_R5_f297_fixed_off: t395_leaf5 = 0
  TREE_396_ONEHOT: t396_leaf0 + t396_leaf1 + t396_leaf2 + t396_leaf3
    + t396_leaf4 = 1
- T396_L0_f3_lt: Overall_Qual_calc + 7.000001 t396_leaf0 <= 10
+ T396_L0_f3_fixed_off: t396_leaf0 = 0
  T396_L0_f31_fixed_off: t396_leaf0 = 0
- T396_L1_f3_lt: Overall_Qual_calc + 7.000001 t396_leaf1 <= 10
+ T396_L1_f3_fixed_off: t396_leaf1 = 0
  T396_R1_f31_ge: const_Garage_Yr_Blt - 1e-06 t396_leaf1 >= 1894.999999
- T396_R2_f3_ge: Overall_Qual_calc - 2.000001 t396_leaf2 >= 0.999999
+ T396_R2_f3_ge: const_Overall_Qual - 1e-06 t396_leaf2 >= 2.999999
  T396_L2_f37_lt: x_Open_Porch_SF + 99516.00000099999 t396_leaf2 <= 100000
  T396_L2_f35_lt: x_Garage_Cond + 2.000001 t396_leaf2 <= 4
- T396_R3_f3_ge: Overall_Qual_calc - 2.000001 t396_leaf3 >= 0.999999
+ T396_R3_f3_ge: const_Overall_Qual - 1e-06 t396_leaf3 >= 2.999999
  T396_L3_f37_lt: x_Open_Porch_SF + 99516.00000099999 t396_leaf3 <= 100000
  T396_R3_f35_ge: x_Garage_Cond - 3.000001 t396_leaf3 >= -1.000001
- T396_R4_f3_ge: Overall_Qual_calc - 2.000001 t396_leaf4 >= 0.999999
+ T396_R4_f3_ge: const_Overall_Qual - 1e-06 t396_leaf4 >= 2.999999
  T396_R4_f37_ge: x_Open_Porch_SF - 484.000001 t396_leaf4 >= -1e-06
  TREE_397_ONEHOT: t397_leaf0 + t397_leaf1 + t397_leaf2 + t397_leaf3
    + t397_leaf4 = 1
@@ -7510,10 +7424,10 @@ Subject To
  T398_L0_f11_lt: x_Bsmt_Cond + 1.000001 t398_leaf0 <= 4
  T398_L1_f37_lt: x_Open_Porch_SF + 99841.00000099999 t398_leaf1 <= 100000
  T398_R1_f11_ge: x_Bsmt_Cond - 4.000001 t398_leaf1 >= -1.000001
- T398_L1_f31_lt: const_Garage_Yr_Blt + 1e-06 t398_leaf1 <= 1977
+ T398_L1_f31_fixed_off: t398_leaf1 = 0
  T398_L2_f37_lt: x_Open_Porch_SF + 99841.00000099999 t398_leaf2 <= 100000
  T398_R2_f11_ge: x_Bsmt_Cond - 4.000001 t398_leaf2 >= -1.000001
- T398_R2_f31_fixed_off: t398_leaf2 = 0
+ T398_R2_f31_ge: const_Garage_Yr_Blt - 1e-06 t398_leaf2 >= 1976.999999
  T398_R3_f37_ge: x_Open_Porch_SF - 159.000001 t398_leaf3 >= -1e-06
  TREE_399_ONEHOT: t399_leaf0 + t399_leaf1 + t399_leaf2 + t399_leaf3 = 1
  T399_L0_f86_fixed_off: t399_leaf0 = 0
@@ -7541,10 +7455,10 @@ Subject To
  T402_R1_f17_ge: x_1st_Flr_SF - 932.000001 t402_leaf1 >= -1e-06
  T402_L2_f112_lt: const_Neighborhood_SawyerW + 1e-06 t402_leaf2 <= 1
  T402_R2_f226_ge: heat_is_GasA - 1.000001 t402_leaf2 >= -1e-06
- T402_L2_f3_lt: Overall_Qual_calc + 6.000001 t402_leaf2 <= 10
+ T402_L2_f3_fixed_off: t402_leaf2 = 0
  T402_L3_f112_lt: const_Neighborhood_SawyerW + 1e-06 t402_leaf3 <= 1
  T402_R3_f226_ge: heat_is_GasA - 1.000001 t402_leaf3 >= -1e-06
- T402_R3_f3_ge: Overall_Qual_calc - 3.000001 t402_leaf3 >= 0.999999
+ T402_R3_f3_ge: const_Overall_Qual - 1e-06 t402_leaf3 >= 3.999999
  T402_R4_f112_fixed_off: t402_leaf4 = 0
  TREE_403_ONEHOT: t403_leaf0 + t403_leaf1 + t403_leaf2 + t403_leaf3
    + t403_leaf4 = 1
@@ -7563,22 +7477,12 @@ Subject To
  T403_R4_f68_fixed_off: t403_leaf4 = 0
  TREE_404_ONEHOT: t404_leaf0 + t404_leaf1 + t404_leaf2 + t404_leaf3
    + t404_leaf4 + t404_leaf5 = 1
- T404_L0_f3_lt: Overall_Qual_calc + 5.000001 t404_leaf0 <= 10
- T404_L0_f6_fixed_off: t404_leaf0 = 0
- T404_L0_f0_fixed_off: t404_leaf0 = 0
- T404_L1_f3_lt: Overall_Qual_calc + 5.000001 t404_leaf1 <= 10
- T404_L1_f6_fixed_off: t404_leaf1 = 0
- T404_R1_f0_ge: const_Lot_Frontage - 1e-06 t404_leaf1 >= 50.999999
- T404_L2_f3_lt: Overall_Qual_calc + 5.000001 t404_leaf2 <= 10
- T404_R2_f6_ge: const_Year_Remod_Add - 1e-06 t404_leaf2 >= 1952.999999
- T404_R3_f3_ge: Overall_Qual_calc - 4.000001 t404_leaf3 >= 0.999999
- T404_L3_f121_lt: const_Condition_1_PosN + 1e-06 t404_leaf3 <= 1
- T404_L3_f119_fixed_off: t404_leaf3 = 0
- T404_R4_f3_ge: Overall_Qual_calc - 4.000001 t404_leaf4 >= 0.999999
- T404_L4_f121_lt: const_Condition_1_PosN + 1e-06 t404_leaf4 <= 1
- T404_R4_f119_ge: const_Condition_1_Norm - 1e-06 t404_leaf4 >= 0.999999
- T404_R5_f3_ge: Overall_Qual_calc - 4.000001 t404_leaf5 >= 0.999999
- T404_R5_f121_fixed_off: t404_leaf5 = 0
+ TREE_404_FORCE_LEAF_2: t404_leaf2 = 1
+ TREE_404_EXCLUDE_LEAF_0: t404_leaf0 = 0
+ TREE_404_EXCLUDE_LEAF_1: t404_leaf1 = 0
+ TREE_404_EXCLUDE_LEAF_3: t404_leaf3 = 0
+ TREE_404_EXCLUDE_LEAF_4: t404_leaf4 = 0
+ TREE_404_EXCLUDE_LEAF_5: t404_leaf5 = 0
  TREE_405_ONEHOT: t405_leaf0 + t405_leaf1 + t405_leaf2 + t405_leaf3
    + t405_leaf4 = 1
  T405_L0_f20_lt: x_Gr_Liv_Area + 9253.000001 t405_leaf0 <= 10000
@@ -7586,12 +7490,12 @@ Subject To
  T405_L1_f20_lt: x_Gr_Liv_Area + 9253.000001 t405_leaf1 <= 10000
  T405_R1_f16_ge: x_Heating_QC - 3.000001 t405_leaf1 >= -1e-06
  T405_R2_f20_ge: x_Gr_Liv_Area - 747.000001 t405_leaf2 >= -1e-06
- T405_L2_f3_lt: Overall_Qual_calc + 5.000001 t405_leaf2 <= 10
+ T405_L2_f3_lt: const_Overall_Qual + 1e-06 t405_leaf2 <= 5
  T405_R3_f20_ge: x_Gr_Liv_Area - 747.000001 t405_leaf3 >= -1e-06
- T405_R3_f3_ge: Overall_Qual_calc - 4.000001 t405_leaf3 >= 0.999999
+ T405_R3_f3_fixed_off: t405_leaf3 = 0
  T405_L3_f37_lt: x_Open_Porch_SF + 99740.00000099999 t405_leaf3 <= 100000
  T405_R4_f20_ge: x_Gr_Liv_Area - 747.000001 t405_leaf4 >= -1e-06
- T405_R4_f3_ge: Overall_Qual_calc - 4.000001 t405_leaf4 >= 0.999999
+ T405_R4_f3_fixed_off: t405_leaf4 = 0
  T405_R4_f37_ge: x_Open_Porch_SF - 260.000001 t405_leaf4 >= -1e-06
  TREE_406_ONEHOT: t406_leaf0 = 1
  TREE_406_FORCE_LEAF_0: t406_leaf0 = 1
@@ -7624,12 +7528,14 @@ Subject To
  T409_R2_f1_ge: const_Lot_Area - 1e-06 t409_leaf2 >= 10336.999999
  T409_R2_f191_ge: x_ex2_is_VinylSd - 1.000001 t409_leaf2 >= -1e-06
  T409_R3_f31_ge: const_Garage_Yr_Blt - 1e-06 t409_leaf3 >= 1930.999999
- T409_L3_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t409_leaf3 <= 1
+ T409_L3_f293_fixed_off: t409_leaf3 = 0
  T409_R4_f31_ge: const_Garage_Yr_Blt - 1e-06 t409_leaf4 >= 1930.999999
- T409_R4_f293_fixed_off: t409_leaf4 = 0
+ T409_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t409_leaf4
+   >= 0.999999
  T409_L4_f36_lt: x_Wood_Deck_SF + 99819.00000099999 t409_leaf4 <= 100000
  T409_R5_f31_ge: const_Garage_Yr_Blt - 1e-06 t409_leaf5 >= 1930.999999
- T409_R5_f293_fixed_off: t409_leaf5 = 0
+ T409_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t409_leaf5
+   >= 0.999999
  T409_R5_f36_ge: x_Wood_Deck_SF - 181.000001 t409_leaf5 >= -1e-06
  TREE_410_ONEHOT: t410_leaf0 + t410_leaf1 + t410_leaf2 + t410_leaf3 = 1
  T410_L0_f17_lt: x_1st_Flr_SF + 2800.000001 t410_leaf0 <= 5000
@@ -7667,10 +7573,10 @@ Subject To
  TREE_414_ONEHOT: t414_leaf0 + t414_leaf1 + t414_leaf2 + t414_leaf3 = 1
  T414_L0_f63_lt: const_MS_Zoning_FV + 1e-06 t414_leaf0 <= 1
  T414_L0_f11_lt: x_Bsmt_Cond + 1.000001 t414_leaf0 <= 4
- T414_L0_f96_fixed_off: t414_leaf0 = 0
+ T414_L0_f96_lt: const_Neighborhood_Edwards + 1e-06 t414_leaf0 <= 1
  T414_L1_f63_lt: const_MS_Zoning_FV + 1e-06 t414_leaf1 <= 1
  T414_L1_f11_lt: x_Bsmt_Cond + 1.000001 t414_leaf1 <= 4
- T414_R1_f96_ge: const_Neighborhood_Edwards - 1e-06 t414_leaf1 >= 0.999999
+ T414_R1_f96_fixed_off: t414_leaf1 = 0
  T414_L2_f63_lt: const_MS_Zoning_FV + 1e-06 t414_leaf2 <= 1
  T414_R2_f11_ge: x_Bsmt_Cond - 4.000001 t414_leaf2 >= -1.000001
  T414_R3_f63_fixed_off: t414_leaf3 = 0
@@ -7678,11 +7584,10 @@ Subject To
    + t415_leaf4 = 1
  T415_L0_f7_lt: x_Mas_Vnr_Area + 1e-06 t415_leaf0 <= 470
  T415_L0_f23_lt: x_Full_Bath + 2.000001 t415_leaf0 <= 4
- T415_L0_f297_fixed_off: t415_leaf0 = 0
+ T415_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t415_leaf0 <= 1
  T415_L1_f7_lt: x_Mas_Vnr_Area + 1e-06 t415_leaf1 <= 470
  T415_L1_f23_lt: x_Full_Bath + 2.000001 t415_leaf1 <= 4
- T415_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t415_leaf1
-   >= 0.999999
+ T415_R1_f297_fixed_off: t415_leaf1 = 0
  T415_L2_f7_lt: x_Mas_Vnr_Area + 1e-06 t415_leaf2 <= 470
  T415_R2_f23_ge: x_Full_Bath - 2.000001 t415_leaf2 >= -1e-06
  T415_L2_f8_lt: x_Exter_Qual + 1.000001 t415_leaf2 <= 4
@@ -7693,16 +7598,18 @@ Subject To
  TREE_416_ONEHOT: t416_leaf0 + t416_leaf1 + t416_leaf2 + t416_leaf3
    + t416_leaf4 + t416_leaf5 + t416_leaf6 = 1
  T416_L0_f35_lt: x_Garage_Cond + 2.000001 t416_leaf0 <= 4
- T416_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t416_leaf0 <= 1
- T416_L0_f1_fixed_off: t416_leaf0 = 0
+ T416_L0_f293_fixed_off: t416_leaf0 = 0
+ T416_L0_f1_lt: const_Lot_Area + 1e-06 t416_leaf0 <= 10990
  T416_L1_f35_lt: x_Garage_Cond + 2.000001 t416_leaf1 <= 4
- T416_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t416_leaf1 <= 1
- T416_R1_f1_ge: const_Lot_Area - 1e-06 t416_leaf1 >= 10989.999999
+ T416_L1_f293_fixed_off: t416_leaf1 = 0
+ T416_R1_f1_fixed_off: t416_leaf1 = 0
  T416_L2_f35_lt: x_Garage_Cond + 2.000001 t416_leaf2 <= 4
- T416_R2_f293_fixed_off: t416_leaf2 = 0
+ T416_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t416_leaf2
+   >= 0.999999
  T416_L2_f28_lt: x_TotRms_AbvGrd + 8.000000999999999 t416_leaf2 <= 15
  T416_L3_f35_lt: x_Garage_Cond + 2.000001 t416_leaf3 <= 4
- T416_R3_f293_fixed_off: t416_leaf3 = 0
+ T416_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t416_leaf3
+   >= 0.999999
  T416_R3_f28_ge: x_TotRms_AbvGrd - 7.000001 t416_leaf3 >= -1e-06
  T416_R4_f35_ge: x_Garage_Cond - 3.000001 t416_leaf4 >= -1.000001
  T416_L4_f38_lt: x_Enclosed_Porch + 99736.00000099999 t416_leaf4 <= 100000
@@ -7719,30 +7626,30 @@ Subject To
  T418_R1_f12_ge: x_BsmtFin_SF_1 - 1965.000001 t418_leaf1 >= -1e-06
  TREE_419_ONEHOT: t419_leaf0 + t419_leaf1 + t419_leaf2 + t419_leaf3
    + t419_leaf4 + t419_leaf5 + t419_leaf6 + t419_leaf7 = 1
- T419_L0_f3_lt: Overall_Qual_calc + 5.000001 t419_leaf0 <= 10
+ T419_L0_f3_lt: const_Overall_Qual + 1e-06 t419_leaf0 <= 5
  T419_L0_f10_fixed_off: t419_leaf0 = 0
  T419_L0_f0_fixed_off: t419_leaf0 = 0
- T419_L1_f3_lt: Overall_Qual_calc + 5.000001 t419_leaf1 <= 10
+ T419_L1_f3_lt: const_Overall_Qual + 1e-06 t419_leaf1 <= 5
  T419_L1_f10_fixed_off: t419_leaf1 = 0
  T419_R1_f0_ge: const_Lot_Frontage - 1e-06 t419_leaf1 >= 65.999999
- T419_L2_f3_lt: Overall_Qual_calc + 5.000001 t419_leaf2 <= 10
+ T419_L2_f3_lt: const_Overall_Qual + 1e-06 t419_leaf2 <= 5
  T419_R2_f10_ge: const_Bsmt_Qual - 1e-06 t419_leaf2 >= -1e-06
  T419_L2_f0_fixed_off: t419_leaf2 = 0
- T419_L3_f3_lt: Overall_Qual_calc + 5.000001 t419_leaf3 <= 10
+ T419_L3_f3_lt: const_Overall_Qual + 1e-06 t419_leaf3 <= 5
  T419_R3_f10_ge: const_Bsmt_Qual - 1e-06 t419_leaf3 >= -1e-06
  T419_R3_f0_ge: const_Lot_Frontage - 1e-06 t419_leaf3 >= 21.999999
- T419_R4_f3_ge: Overall_Qual_calc - 4.000001 t419_leaf4 >= 0.999999
+ T419_R4_f3_fixed_off: t419_leaf4 = 0
  T419_L4_f23_lt: x_Full_Bath + 2.000001 t419_leaf4 <= 4
  T419_L4_f119_fixed_off: t419_leaf4 = 0
- T419_R5_f3_ge: Overall_Qual_calc - 4.000001 t419_leaf5 >= 0.999999
+ T419_R5_f3_fixed_off: t419_leaf5 = 0
  T419_L5_f23_lt: x_Full_Bath + 2.000001 t419_leaf5 <= 4
  T419_R5_f119_ge: const_Condition_1_Norm - 1e-06 t419_leaf5 >= 0.999999
- T419_R6_f3_ge: Overall_Qual_calc - 4.000001 t419_leaf6 >= 0.999999
+ T419_R6_f3_fixed_off: t419_leaf6 = 0
  T419_R6_f23_ge: x_Full_Bath - 2.000001 t419_leaf6 >= -1e-06
- T419_L6_f3_lt: Overall_Qual_calc + 3.000001 t419_leaf6 <= 10
- T419_R7_f3_ge: Overall_Qual_calc - 4.000001 t419_leaf7 >= 0.999999
+ T419_L6_f3_lt: const_Overall_Qual + 1e-06 t419_leaf6 <= 7
+ T419_R7_f3_fixed_off: t419_leaf7 = 0
  T419_R7_f23_ge: x_Full_Bath - 2.000001 t419_leaf7 >= -1e-06
- T419_R7_f3_ge: Overall_Qual_calc - 6.000001 t419_leaf7 >= 0.999999
+ T419_R7_f3_fixed_off: t419_leaf7 = 0
  TREE_420_ONEHOT: t420_leaf0 = 1
  TREE_420_FORCE_LEAF_0: t420_leaf0 = 1
  TREE_421_ONEHOT: t421_leaf0 + t421_leaf1 + t421_leaf2 + t421_leaf3 = 1
@@ -7759,11 +7666,10 @@ Subject To
    + t422_leaf4 = 1
  T422_L0_f37_lt: x_Open_Porch_SF + 99742.00000099999 t422_leaf0 <= 100000
  T422_L0_f11_lt: x_Bsmt_Cond + 2.000001 t422_leaf0 <= 4
- T422_L0_f297_fixed_off: t422_leaf0 = 0
+ T422_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t422_leaf0 <= 1
  T422_L1_f37_lt: x_Open_Porch_SF + 99742.00000099999 t422_leaf1 <= 100000
  T422_L1_f11_lt: x_Bsmt_Cond + 2.000001 t422_leaf1 <= 4
- T422_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t422_leaf1
-   >= 0.999999
+ T422_R1_f297_fixed_off: t422_leaf1 = 0
  T422_L2_f37_lt: x_Open_Porch_SF + 99742.00000099999 t422_leaf2 <= 100000
  T422_R2_f11_ge: x_Bsmt_Cond - 3.000001 t422_leaf2 >= -1.000001
  T422_L2_f117_lt: const_Condition_1_Artery + 1e-06 t422_leaf2 <= 1
@@ -7783,20 +7689,20 @@ Subject To
  T423_R3_f38_ge: x_Enclosed_Porch - 290.000001 t423_leaf3 >= -1e-06
  TREE_424_ONEHOT: t424_leaf0 + t424_leaf1 + t424_leaf2 + t424_leaf3
    + t424_leaf4 + t424_leaf5 = 1
- T424_L0_f3_lt: Overall_Qual_calc + 7.000001 t424_leaf0 <= 10
+ T424_L0_f3_fixed_off: t424_leaf0 = 0
  T424_L0_f38_lt: x_Enclosed_Porch + 99974.00000099999 t424_leaf0 <= 100000
- T424_L1_f3_lt: Overall_Qual_calc + 7.000001 t424_leaf1 <= 10
+ T424_L1_f3_fixed_off: t424_leaf1 = 0
  T424_R1_f38_ge: x_Enclosed_Porch - 26.000001 t424_leaf1 >= -1e-06
- T424_R2_f3_ge: Overall_Qual_calc - 2.000001 t424_leaf2 >= 0.999999
+ T424_R2_f3_ge: const_Overall_Qual - 1e-06 t424_leaf2 >= 2.999999
  T424_L2_f119_fixed_off: t424_leaf2 = 0
  T424_L2_f14_lt: x_Bsmt_Unf_SF + 99084.00000099999 t424_leaf2 <= 100000
- T424_R3_f3_ge: Overall_Qual_calc - 2.000001 t424_leaf3 >= 0.999999
+ T424_R3_f3_ge: const_Overall_Qual - 1e-06 t424_leaf3 >= 2.999999
  T424_L3_f119_fixed_off: t424_leaf3 = 0
  T424_R3_f14_ge: x_Bsmt_Unf_SF - 916.000001 t424_leaf3 >= -1e-06
- T424_R4_f3_ge: Overall_Qual_calc - 2.000001 t424_leaf4 >= 0.999999
+ T424_R4_f3_ge: const_Overall_Qual - 1e-06 t424_leaf4 >= 2.999999
  T424_R4_f119_ge: const_Condition_1_Norm - 1e-06 t424_leaf4 >= 0.999999
  T424_L4_f164_lt: x_ex1_is_BrkFace + 1e-06 t424_leaf4 <= 1
- T424_R5_f3_ge: Overall_Qual_calc - 2.000001 t424_leaf5 >= 0.999999
+ T424_R5_f3_ge: const_Overall_Qual - 1e-06 t424_leaf5 >= 2.999999
  T424_R5_f119_ge: const_Condition_1_Norm - 1e-06 t424_leaf5 >= 0.999999
  T424_R5_f164_ge: x_ex1_is_BrkFace - 1.000001 t424_leaf5 >= -1e-06
  TREE_425_ONEHOT: t425_leaf0 + t425_leaf1 + t425_leaf2 = 1
@@ -7805,24 +7711,28 @@ Subject To
  TREE_425_EXCLUDE_LEAF_2: t425_leaf2 = 0
  TREE_426_ONEHOT: t426_leaf0 + t426_leaf1 + t426_leaf2 + t426_leaf3
    + t426_leaf4 + t426_leaf5 + t426_leaf6 = 1
- T426_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t426_leaf0 <= 1
+ T426_L0_f293_fixed_off: t426_leaf0 = 0
  T426_L0_f20_lt: x_Gr_Liv_Area + 6605.000001 t426_leaf0 <= 10000
  T426_L0_f35_lt: x_Garage_Cond + 2.000001 t426_leaf0 <= 4
- T426_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t426_leaf1 <= 1
+ T426_L1_f293_fixed_off: t426_leaf1 = 0
  T426_L1_f20_lt: x_Gr_Liv_Area + 6605.000001 t426_leaf1 <= 10000
  T426_R1_f35_ge: x_Garage_Cond - 3.000001 t426_leaf1 >= -1.000001
- T426_L2_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t426_leaf2 <= 1
+ T426_L2_f293_fixed_off: t426_leaf2 = 0
  T426_R2_f20_ge: x_Gr_Liv_Area - 3395.000001 t426_leaf2 >= -1e-06
- T426_R3_f293_fixed_off: t426_leaf3 = 0
+ T426_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t426_leaf3
+   >= 0.999999
  T426_L3_f81_lt: const_Lot_Config_Corner + 1e-06 t426_leaf3 <= 1
  T426_L3_f1_fixed_off: t426_leaf3 = 0
- T426_R4_f293_fixed_off: t426_leaf4 = 0
+ T426_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t426_leaf4
+   >= 0.999999
  T426_L4_f81_lt: const_Lot_Config_Corner + 1e-06 t426_leaf4 <= 1
  T426_R4_f1_ge: const_Lot_Area - 1e-06 t426_leaf4 >= 4670.999999
- T426_R5_f293_fixed_off: t426_leaf5 = 0
+ T426_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t426_leaf5
+   >= 0.999999
  T426_R5_f81_fixed_off: t426_leaf5 = 0
  T426_L5_f20_lt: x_Gr_Liv_Area + 8872.000001 t426_leaf5 <= 10000
- T426_R6_f293_fixed_off: t426_leaf6 = 0
+ T426_R6_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t426_leaf6
+   >= 0.999999
  T426_R6_f81_fixed_off: t426_leaf6 = 0
  T426_R6_f20_ge: x_Gr_Liv_Area - 1128.000001 t426_leaf6 >= -1e-06
  TREE_427_ONEHOT: t427_leaf0 + t427_leaf1 + t427_leaf2 + t427_leaf3 = 1
@@ -7845,10 +7755,10 @@ Subject To
  T428_R1_f95_fixed_off: t428_leaf1 = 0
  T428_L2_f38_lt: x_Enclosed_Porch + 99732.00000099999 t428_leaf2 <= 100000
  T428_R2_f5_ge: const_Year_Built - 1e-06 t428_leaf2 >= 1945.999999
- T428_L2_f5_lt: const_Year_Built + 1e-06 t428_leaf2 <= 1950
+ T428_L2_f5_fixed_off: t428_leaf2 = 0
  T428_L3_f38_lt: x_Enclosed_Porch + 99732.00000099999 t428_leaf3 <= 100000
  T428_R3_f5_ge: const_Year_Built - 1e-06 t428_leaf3 >= 1945.999999
- T428_R3_f5_fixed_off: t428_leaf3 = 0
+ T428_R3_f5_ge: const_Year_Built - 1e-06 t428_leaf3 >= 1949.999999
  T428_R4_f38_ge: x_Enclosed_Porch - 268.000001 t428_leaf4 >= -1e-06
  TREE_429_ONEHOT: t429_leaf0 + t429_leaf1 + t429_leaf2 + t429_leaf3
    + t429_leaf4 + t429_leaf5 = 1
@@ -7857,16 +7767,16 @@ Subject To
  T429_L1_f30_lt: x_Fireplace_Qu + 2.000001 t429_leaf1 <= 4
  T429_R1_f22_fixed_off: t429_leaf1 = 0
  T429_R2_f30_ge: x_Fireplace_Qu - 3.000001 t429_leaf2 >= -1.000001
- T429_L2_f96_fixed_off: t429_leaf2 = 0
+ T429_L2_f96_lt: const_Neighborhood_Edwards + 1e-06 t429_leaf2 <= 1
  T429_L2_f296_lt: const_Sale_Condition_Family + 1e-06 t429_leaf2 <= 1
  T429_R3_f30_ge: x_Fireplace_Qu - 3.000001 t429_leaf3 >= -1.000001
- T429_L3_f96_fixed_off: t429_leaf3 = 0
+ T429_L3_f96_lt: const_Neighborhood_Edwards + 1e-06 t429_leaf3 <= 1
  T429_R3_f296_fixed_off: t429_leaf3 = 0
  T429_R4_f30_ge: x_Fireplace_Qu - 3.000001 t429_leaf4 >= -1.000001
- T429_R4_f96_ge: const_Neighborhood_Edwards - 1e-06 t429_leaf4 >= 0.999999
+ T429_R4_f96_fixed_off: t429_leaf4 = 0
  T429_L4_f150_lt: const_Roof_Style_Hip + 1e-06 t429_leaf4 <= 1
  T429_R5_f30_ge: x_Fireplace_Qu - 3.000001 t429_leaf5 >= -1.000001
- T429_R5_f96_ge: const_Neighborhood_Edwards - 1e-06 t429_leaf5 >= 0.999999
+ T429_R5_f96_fixed_off: t429_leaf5 = 0
  T429_R5_f150_fixed_off: t429_leaf5 = 0
  TREE_430_ONEHOT: t430_leaf0 + t430_leaf1 + t430_leaf2 + t430_leaf3
    + t430_leaf4 + t430_leaf5 + t430_leaf6 = 1
@@ -7912,11 +7822,10 @@ Subject To
  T432_R2_f15_fixed_off: t432_leaf2 = 0
  T432_R3_f1_fixed_off: t432_leaf3 = 0
  T432_L3_f25_lt: x_Bedroom_AbvGr + 2.000001 t432_leaf3 <= 6
- T432_L3_f297_fixed_off: t432_leaf3 = 0
+ T432_L3_f297_lt: const_Sale_Condition_Normal + 1e-06 t432_leaf3 <= 1
  T432_R4_f1_fixed_off: t432_leaf4 = 0
  T432_L4_f25_lt: x_Bedroom_AbvGr + 2.000001 t432_leaf4 <= 6
- T432_R4_f297_ge: const_Sale_Condition_Normal - 1e-06 t432_leaf4
-   >= 0.999999
+ T432_R4_f297_fixed_off: t432_leaf4 = 0
  T432_R5_f1_fixed_off: t432_leaf5 = 0
  T432_R5_f25_ge: x_Bedroom_AbvGr - 4.000001 t432_leaf5 >= -1e-06
  TREE_433_ONEHOT: t433_leaf0 + t433_leaf1 + t433_leaf2 = 1
@@ -7947,11 +7856,9 @@ Subject To
  TREE_436_ONEHOT: t436_leaf0 = 1
  TREE_436_FORCE_LEAF_0: t436_leaf0 = 1
  TREE_437_ONEHOT: t437_leaf0 + t437_leaf1 + t437_leaf2 = 1
- T437_L0_f3_lt: Overall_Qual_calc + 6.000001 t437_leaf0 <= 10
- T437_L0_f80_fixed_off: t437_leaf0 = 0
- T437_L1_f3_lt: Overall_Qual_calc + 6.000001 t437_leaf1 <= 10
- T437_R1_f80_ge: const_Land_Contour_Lvl - 1e-06 t437_leaf1 >= 0.999999
- T437_R2_f3_ge: Overall_Qual_calc - 3.000001 t437_leaf2 >= 0.999999
+ TREE_437_FORCE_LEAF_2: t437_leaf2 = 1
+ TREE_437_EXCLUDE_LEAF_0: t437_leaf0 = 0
+ TREE_437_EXCLUDE_LEAF_1: t437_leaf1 = 0
  TREE_438_ONEHOT: t438_leaf0 + t438_leaf1 = 1
  TREE_438_FORCE_LEAF_1: t438_leaf1 = 1
  TREE_438_EXCLUDE_LEAF_0: t438_leaf0 = 0
@@ -7960,10 +7867,10 @@ Subject To
  T439_L0_f231_lt: central_air_no + 1e-06 t439_leaf0 <= 1
  T439_R1_f231_ge: central_air_no - 1.000001 t439_leaf1 >= -1e-06
  T439_L1_f12_lt: x_BsmtFin_SF_1 + 999684.000001 t439_leaf1 <= 1e+06
- T439_L1_f275_fixed_off: t439_leaf1 = 0
+ T439_L1_f275_lt: const_Mo_Sold_5 + 1e-06 t439_leaf1 <= 1
  T439_R2_f231_ge: central_air_no - 1.000001 t439_leaf2 >= -1e-06
  T439_L2_f12_lt: x_BsmtFin_SF_1 + 999684.000001 t439_leaf2 <= 1e+06
- T439_R2_f275_ge: const_Mo_Sold_5 - 1e-06 t439_leaf2 >= 0.999999
+ T439_R2_f275_fixed_off: t439_leaf2 = 0
  T439_R3_f231_ge: central_air_no - 1.000001 t439_leaf3 >= -1e-06
  T439_R3_f12_ge: x_BsmtFin_SF_1 - 316.000001 t439_leaf3 >= -1e-06
  T439_L3_f12_lt: x_BsmtFin_SF_1 + 999363.000001 t439_leaf3 <= 1e+06
@@ -7982,10 +7889,10 @@ Subject To
  T440_R2_f174_ge: x_ex1_is_VinylSd - 1.000001 t440_leaf2 >= -1e-06
  T440_R3_f25_ge: x_Bedroom_AbvGr - 3.000001 t440_leaf3 >= -1e-06
  T440_L3_f20_lt: x_Gr_Liv_Area + 9024.000001 t440_leaf3 <= 10000
- T440_L3_f31_lt: const_Garage_Yr_Blt + 1e-06 t440_leaf3 <= 1967
+ T440_L3_f31_fixed_off: t440_leaf3 = 0
  T440_R4_f25_ge: x_Bedroom_AbvGr - 3.000001 t440_leaf4 >= -1e-06
  T440_L4_f20_lt: x_Gr_Liv_Area + 9024.000001 t440_leaf4 <= 10000
- T440_R4_f31_fixed_off: t440_leaf4 = 0
+ T440_R4_f31_ge: const_Garage_Yr_Blt - 1e-06 t440_leaf4 >= 1966.999999
  T440_R5_f25_ge: x_Bedroom_AbvGr - 3.000001 t440_leaf5 >= -1e-06
  T440_R5_f20_ge: x_Gr_Liv_Area - 976.000001 t440_leaf5 >= -1e-06
  TREE_441_ONEHOT: t441_leaf0 + t441_leaf1 + t441_leaf2 + t441_leaf3
@@ -8111,15 +8018,14 @@ Subject To
  T453_R1_f14_ge: x_Bsmt_Unf_SF - 595.000001 t453_leaf1 >= -1e-06
  T453_L2_f272_lt: const_Mo_Sold_2 + 1e-06 t453_leaf2 <= 1
  T453_R2_f1_ge: const_Lot_Area - 1e-06 t453_leaf2 >= 5999.999999
- T453_L2_f3_lt: Overall_Qual_calc + 5.000001 t453_leaf2 <= 10
+ T453_L2_f3_lt: const_Overall_Qual + 1e-06 t453_leaf2 <= 5
  T453_L3_f272_lt: const_Mo_Sold_2 + 1e-06 t453_leaf3 <= 1
  T453_R3_f1_ge: const_Lot_Area - 1e-06 t453_leaf3 >= 5999.999999
- T453_R3_f3_ge: Overall_Qual_calc - 4.000001 t453_leaf3 >= 0.999999
+ T453_R3_f3_fixed_off: t453_leaf3 = 0
  T453_R4_f272_fixed_off: t453_leaf4 = 0
- T453_L4_f297_fixed_off: t453_leaf4 = 0
+ T453_L4_f297_lt: const_Sale_Condition_Normal + 1e-06 t453_leaf4 <= 1
  T453_R5_f272_fixed_off: t453_leaf5 = 0
- T453_R5_f297_ge: const_Sale_Condition_Normal - 1e-06 t453_leaf5
-   >= 0.999999
+ T453_R5_f297_fixed_off: t453_leaf5 = 0
  TREE_454_ONEHOT: t454_leaf0 + t454_leaf1 = 1
  T454_L0_f194_lt: x_mvt_is_BrkCmn + 1e-06 t454_leaf0 <= 1
  T454_R1_f194_ge: x_mvt_is_BrkCmn - 1.000001 t454_leaf1 >= -1e-06
@@ -8148,17 +8054,17 @@ Subject To
  TREE_460_FORCE_LEAF_0: t460_leaf0 = 1
  TREE_461_ONEHOT: t461_leaf0 + t461_leaf1 + t461_leaf2 + t461_leaf3
    + t461_leaf4 = 1
- T461_L0_f3_lt: Overall_Qual_calc + 7.000001 t461_leaf0 <= 10
- T461_R1_f3_ge: Overall_Qual_calc - 2.000001 t461_leaf1 >= 0.999999
+ T461_L0_f3_fixed_off: t461_leaf0 = 0
+ T461_R1_f3_ge: const_Overall_Qual - 1e-06 t461_leaf1 >= 2.999999
  T461_L1_f1_lt: const_Lot_Area + 1e-06 t461_leaf1 <= 16779
  T461_L1_f38_lt: x_Enclosed_Porch + 99769.00000099999 t461_leaf1 <= 100000
- T461_R2_f3_ge: Overall_Qual_calc - 2.000001 t461_leaf2 >= 0.999999
+ T461_R2_f3_ge: const_Overall_Qual - 1e-06 t461_leaf2 >= 2.999999
  T461_L2_f1_lt: const_Lot_Area + 1e-06 t461_leaf2 <= 16779
  T461_R2_f38_ge: x_Enclosed_Porch - 231.000001 t461_leaf2 >= -1e-06
- T461_R3_f3_ge: Overall_Qual_calc - 2.000001 t461_leaf3 >= 0.999999
+ T461_R3_f3_ge: const_Overall_Qual - 1e-06 t461_leaf3 >= 2.999999
  T461_R3_f1_fixed_off: t461_leaf3 = 0
  T461_L3_f267_fixed_off: t461_leaf3 = 0
- T461_R4_f3_ge: Overall_Qual_calc - 2.000001 t461_leaf4 >= 0.999999
+ T461_R4_f3_ge: const_Overall_Qual - 1e-06 t461_leaf4 >= 2.999999
  T461_R4_f1_fixed_off: t461_leaf4 = 0
  T461_R4_f267_ge: const_Misc_Feature_No_aplica - 1e-06 t461_leaf4
    >= 0.999999
@@ -8194,27 +8100,27 @@ Subject To
  T464_R1_f164_ge: x_ex1_is_BrkFace - 1.000001 t464_leaf1 >= -1e-06
  T464_R2_f202_fixed_off: t464_leaf2 = 0
  TREE_465_ONEHOT: t465_leaf0 + t465_leaf1 + t465_leaf2 + t465_leaf3 = 1
- T465_L0_f3_lt: Overall_Qual_calc + 6.000001 t465_leaf0 <= 10
+ T465_L0_f3_fixed_off: t465_leaf0 = 0
  T465_L0_f17_lt: x_1st_Flr_SF + 4187.000001 t465_leaf0 <= 5000
- T465_L1_f3_lt: Overall_Qual_calc + 6.000001 t465_leaf1 <= 10
+ T465_L1_f3_fixed_off: t465_leaf1 = 0
  T465_R1_f17_ge: x_1st_Flr_SF - 813.000001 t465_leaf1 >= -1e-06
- T465_R2_f3_ge: Overall_Qual_calc - 3.000001 t465_leaf2 >= 0.999999
+ T465_R2_f3_ge: const_Overall_Qual - 1e-06 t465_leaf2 >= 3.999999
  T465_L2_f37_lt: x_Open_Porch_SF + 99811.00000099999 t465_leaf2 <= 100000
- T465_R3_f3_ge: Overall_Qual_calc - 3.000001 t465_leaf3 >= 0.999999
+ T465_R3_f3_ge: const_Overall_Qual - 1e-06 t465_leaf3 >= 3.999999
  T465_R3_f37_ge: x_Open_Porch_SF - 189.000001 t465_leaf3 >= -1e-06
  TREE_466_ONEHOT: t466_leaf0 + t466_leaf1 + t466_leaf2 + t466_leaf3
    + t466_leaf4 = 1
- T466_L0_f3_lt: Overall_Qual_calc + 5.000001 t466_leaf0 <= 10
+ T466_L0_f3_lt: const_Overall_Qual + 1e-06 t466_leaf0 <= 5
  T466_L0_f1_fixed_off: t466_leaf0 = 0
- T466_L1_f3_lt: Overall_Qual_calc + 5.000001 t466_leaf1 <= 10
+ T466_L1_f3_lt: const_Overall_Qual + 1e-06 t466_leaf1 <= 5
  T466_R1_f1_ge: const_Lot_Area - 1e-06 t466_leaf1 >= 4269.999999
  T466_L1_f33_lt: x_Garage_Area + 99500.00000099999 t466_leaf1 <= 100000
- T466_L2_f3_lt: Overall_Qual_calc + 5.000001 t466_leaf2 <= 10
+ T466_L2_f3_lt: const_Overall_Qual + 1e-06 t466_leaf2 <= 5
  T466_R2_f1_ge: const_Lot_Area - 1e-06 t466_leaf2 >= 4269.999999
  T466_R2_f33_ge: x_Garage_Area - 500.000001 t466_leaf2 >= -1e-06
- T466_R3_f3_ge: Overall_Qual_calc - 4.000001 t466_leaf3 >= 0.999999
+ T466_R3_f3_fixed_off: t466_leaf3 = 0
  T466_L3_f218_lt: x_b2_is_ALQ + 1e-06 t466_leaf3 <= 1
- T466_R4_f3_ge: Overall_Qual_calc - 4.000001 t466_leaf4 >= 0.999999
+ T466_R4_f3_fixed_off: t466_leaf4 = 0
  T466_R4_f218_ge: x_b2_is_ALQ - 1.000001 t466_leaf4 >= -1e-06
  TREE_467_ONEHOT: t467_leaf0 = 1
  TREE_467_FORCE_LEAF_0: t467_leaf0 = 1
@@ -8229,13 +8135,13 @@ Subject To
  T470_R2_f8_ge: x_Exter_Qual - 2.000001 t470_leaf2 >= -1e-06
  T470_R2_f17_ge: x_1st_Flr_SF - 2200.000001 t470_leaf2 >= -1e-06
  TREE_471_ONEHOT: t471_leaf0 + t471_leaf1 + t471_leaf2 + t471_leaf3 = 1
- T471_L0_f96_fixed_off: t471_leaf0 = 0
- T471_R1_f96_ge: const_Neighborhood_Edwards - 1e-06 t471_leaf1 >= 0.999999
+ T471_L0_f96_lt: const_Neighborhood_Edwards + 1e-06 t471_leaf0 <= 1
+ T471_R1_f96_fixed_off: t471_leaf1 = 0
  T471_L1_f17_lt: x_1st_Flr_SF + 4014.000001 t471_leaf1 <= 5000
- T471_R2_f96_ge: const_Neighborhood_Edwards - 1e-06 t471_leaf2 >= 0.999999
+ T471_R2_f96_fixed_off: t471_leaf2 = 0
  T471_R2_f17_ge: x_1st_Flr_SF - 986.000001 t471_leaf2 >= -1e-06
  T471_L2_f17_lt: x_1st_Flr_SF + 3482.000001 t471_leaf2 <= 5000
- T471_R3_f96_ge: const_Neighborhood_Edwards - 1e-06 t471_leaf3 >= 0.999999
+ T471_R3_f96_fixed_off: t471_leaf3 = 0
  T471_R3_f17_ge: x_1st_Flr_SF - 986.000001 t471_leaf3 >= -1e-06
  T471_R3_f17_ge: x_1st_Flr_SF - 1518.000001 t471_leaf3 >= -1e-06
  TREE_472_ONEHOT: t472_leaf0 = 1
@@ -8247,11 +8153,9 @@ Subject To
  T473_R1_f14_ge: x_Bsmt_Unf_SF - 1393.000001 t473_leaf1 >= -1e-06
  T473_R2_f199_ge: x_mvt_is_Stone - 1.000001 t473_leaf2 >= -1e-06
  TREE_474_ONEHOT: t474_leaf0 + t474_leaf1 + t474_leaf2 = 1
- T474_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t474_leaf0 <= 1824
- T474_L0_f3_lt: Overall_Qual_calc + 6.000001 t474_leaf0 <= 10
- T474_L1_f15_lt: const_Total_Bsmt_SF + 1e-06 t474_leaf1 <= 1824
- T474_R1_f3_ge: Overall_Qual_calc - 3.000001 t474_leaf1 >= 0.999999
- T474_R2_f15_fixed_off: t474_leaf2 = 0
+ TREE_474_FORCE_LEAF_1: t474_leaf1 = 1
+ TREE_474_EXCLUDE_LEAF_0: t474_leaf0 = 0
+ TREE_474_EXCLUDE_LEAF_2: t474_leaf2 = 0
  TREE_475_ONEHOT: t475_leaf0 + t475_leaf1 + t475_leaf2 = 1
  TREE_475_FORCE_LEAF_2: t475_leaf2 = 1
  TREE_475_EXCLUDE_LEAF_0: t475_leaf0 = 0
@@ -8279,30 +8183,30 @@ Subject To
  TREE_478_ONEHOT: t478_leaf0 + t478_leaf1 + t478_leaf2 + t478_leaf3 = 1
  T478_L0_f38_lt: x_Enclosed_Porch + 99846.00000099999 t478_leaf0 <= 100000
  T478_R1_f38_ge: x_Enclosed_Porch - 154.000001 t478_leaf1 >= -1e-06
- T478_L1_f18_fixed_off: t478_leaf1 = 0
+ T478_L1_f18_lt: const_2nd_Flr_SF + 1e-06 t478_leaf1 <= 308
  T478_L1_f14_lt: x_Bsmt_Unf_SF + 99972.00000099999 t478_leaf1 <= 100000
  T478_R2_f38_ge: x_Enclosed_Porch - 154.000001 t478_leaf2 >= -1e-06
- T478_L2_f18_fixed_off: t478_leaf2 = 0
+ T478_L2_f18_lt: const_2nd_Flr_SF + 1e-06 t478_leaf2 <= 308
  T478_R2_f14_ge: x_Bsmt_Unf_SF - 28.000001 t478_leaf2 >= -1e-06
  T478_R3_f38_ge: x_Enclosed_Porch - 154.000001 t478_leaf3 >= -1e-06
- T478_R3_f18_ge: const_2nd_Flr_SF - 1e-06 t478_leaf3 >= 307.999999
+ T478_R3_f18_fixed_off: t478_leaf3 = 0
  TREE_479_ONEHOT: t479_leaf0 + t479_leaf1 + t479_leaf2 + t479_leaf3
    + t479_leaf4 + t479_leaf5 = 1
- T479_L0_f96_fixed_off: t479_leaf0 = 0
+ T479_L0_f96_lt: const_Neighborhood_Edwards + 1e-06 t479_leaf0 <= 1
  T479_L0_f177_lt: x_ex2_is_AsbShng + 1e-06 t479_leaf0 <= 1
  T479_L0_f20_lt: x_Gr_Liv_Area + 9106.000001 t479_leaf0 <= 10000
- T479_L1_f96_fixed_off: t479_leaf1 = 0
+ T479_L1_f96_lt: const_Neighborhood_Edwards + 1e-06 t479_leaf1 <= 1
  T479_L1_f177_lt: x_ex2_is_AsbShng + 1e-06 t479_leaf1 <= 1
  T479_R1_f20_ge: x_Gr_Liv_Area - 894.000001 t479_leaf1 >= -1e-06
- T479_L2_f96_fixed_off: t479_leaf2 = 0
+ T479_L2_f96_lt: const_Neighborhood_Edwards + 1e-06 t479_leaf2 <= 1
  T479_R2_f177_ge: x_ex2_is_AsbShng - 1.000001 t479_leaf2 >= -1e-06
- T479_R3_f96_ge: const_Neighborhood_Edwards - 1e-06 t479_leaf3 >= 0.999999
+ T479_R3_f96_fixed_off: t479_leaf3 = 0
  T479_L3_f33_lt: x_Garage_Area + 99390.00000099999 t479_leaf3 <= 100000
  T479_L3_f73_lt: const_Lot_Shape_IR1 + 1e-06 t479_leaf3 <= 1
- T479_R4_f96_ge: const_Neighborhood_Edwards - 1e-06 t479_leaf4 >= 0.999999
+ T479_R4_f96_fixed_off: t479_leaf4 = 0
  T479_L4_f33_lt: x_Garage_Area + 99390.00000099999 t479_leaf4 <= 100000
  T479_R4_f73_fixed_off: t479_leaf4 = 0
- T479_R5_f96_ge: const_Neighborhood_Edwards - 1e-06 t479_leaf5 >= 0.999999
+ T479_R5_f96_fixed_off: t479_leaf5 = 0
  T479_R5_f33_ge: x_Garage_Area - 610.000001 t479_leaf5 >= -1e-06
  TREE_480_ONEHOT: t480_leaf0 + t480_leaf1 + t480_leaf2 + t480_leaf3
    + t480_leaf4 = 1
@@ -8339,15 +8243,13 @@ Subject To
  TREE_487_FORCE_LEAF_0: t487_leaf0 = 1
  TREE_488_ONEHOT: t488_leaf0 + t488_leaf1 + t488_leaf2 + t488_leaf3 = 1
  T488_L0_f33_lt: x_Garage_Area + 99692.00000099999 t488_leaf0 <= 100000
- T488_L0_f297_fixed_off: t488_leaf0 = 0
+ T488_L0_f297_lt: const_Sale_Condition_Normal + 1e-06 t488_leaf0 <= 1
  T488_L1_f33_lt: x_Garage_Area + 99692.00000099999 t488_leaf1 <= 100000
- T488_R1_f297_ge: const_Sale_Condition_Normal - 1e-06 t488_leaf1
-   >= 0.999999
- T488_L1_f3_lt: Overall_Qual_calc + 7.000001 t488_leaf1 <= 10
+ T488_R1_f297_fixed_off: t488_leaf1 = 0
+ T488_L1_f3_fixed_off: t488_leaf1 = 0
  T488_L2_f33_lt: x_Garage_Area + 99692.00000099999 t488_leaf2 <= 100000
- T488_R2_f297_ge: const_Sale_Condition_Normal - 1e-06 t488_leaf2
-   >= 0.999999
- T488_R2_f3_ge: Overall_Qual_calc - 2.000001 t488_leaf2 >= 0.999999
+ T488_R2_f297_fixed_off: t488_leaf2 = 0
+ T488_R2_f3_ge: const_Overall_Qual - 1e-06 t488_leaf2 >= 2.999999
  T488_R3_f33_ge: x_Garage_Area - 308.000001 t488_leaf3 >= -1e-06
  TREE_489_ONEHOT: t489_leaf0 = 1
  TREE_489_FORCE_LEAF_0: t489_leaf0 = 1
@@ -8393,11 +8295,11 @@ Subject To
  TREE_494_EXCLUDE_LEAF_1: t494_leaf1 = 0
  TREE_494_EXCLUDE_LEAF_2: t494_leaf2 = 0
  TREE_495_ONEHOT: t495_leaf0 + t495_leaf1 = 1
- T495_L0_f3_lt: Overall_Qual_calc + 7.000001 t495_leaf0 <= 10
- T495_R1_f3_ge: Overall_Qual_calc - 2.000001 t495_leaf1 >= 0.999999
+ TREE_495_FORCE_LEAF_1: t495_leaf1 = 1
+ TREE_495_EXCLUDE_LEAF_0: t495_leaf0 = 0
  TREE_496_ONEHOT: t496_leaf0 + t496_leaf1 = 1
- T496_L0_f3_lt: Overall_Qual_calc + 7.000001 t496_leaf0 <= 10
- T496_R1_f3_ge: Overall_Qual_calc - 2.000001 t496_leaf1 >= 0.999999
+ TREE_496_FORCE_LEAF_1: t496_leaf1 = 1
+ TREE_496_EXCLUDE_LEAF_0: t496_leaf0 = 0
  TREE_497_ONEHOT: t497_leaf0 + t497_leaf1 + t497_leaf2 + t497_leaf3 = 1
  T497_L0_f0_lt: const_Lot_Frontage + 1e-06 t497_leaf0 <= 117
  T497_L0_f11_lt: x_Bsmt_Cond + 2.000001 t497_leaf0 <= 4
@@ -8411,16 +8313,16 @@ Subject To
  TREE_498_ONEHOT: t498_leaf0 + t498_leaf1 + t498_leaf2 + t498_leaf3
    + t498_leaf4 = 1
  T498_L0_f5_lt: const_Year_Built + 1e-06 t498_leaf0 <= 2005
- T498_L0_f3_lt: Overall_Qual_calc + 3.000001 t498_leaf0 <= 10
+ T498_L0_f3_lt: const_Overall_Qual + 1e-06 t498_leaf0 <= 7
  T498_L0_f28_lt: x_TotRms_AbvGrd + 7.000001 t498_leaf0 <= 15
  T498_L1_f5_lt: const_Year_Built + 1e-06 t498_leaf1 <= 2005
- T498_L1_f3_lt: Overall_Qual_calc + 3.000001 t498_leaf1 <= 10
+ T498_L1_f3_lt: const_Overall_Qual + 1e-06 t498_leaf1 <= 7
  T498_R1_f28_ge: x_TotRms_AbvGrd - 8.000000999999999 t498_leaf1 >= -1e-06
  T498_L2_f5_lt: const_Year_Built + 1e-06 t498_leaf2 <= 2005
- T498_R2_f3_ge: Overall_Qual_calc - 6.000001 t498_leaf2 >= 0.999999
+ T498_R2_f3_fixed_off: t498_leaf2 = 0
  T498_L2_f1_lt: const_Lot_Area + 1e-06 t498_leaf2 <= 25286
  T498_L3_f5_lt: const_Year_Built + 1e-06 t498_leaf3 <= 2005
- T498_R3_f3_ge: Overall_Qual_calc - 6.000001 t498_leaf3 >= 0.999999
+ T498_R3_f3_fixed_off: t498_leaf3 = 0
  T498_R3_f1_fixed_off: t498_leaf3 = 0
  T498_R4_f5_fixed_off: t498_leaf4 = 0
  TREE_499_ONEHOT: t499_leaf0 + t499_leaf1 = 1
@@ -8439,13 +8341,14 @@ Subject To
  TREE_501_ONEHOT: t501_leaf0 + t501_leaf1 + t501_leaf2 + t501_leaf3
    + t501_leaf4 + t501_leaf5 + t501_leaf6 = 1
  T501_L0_f20_lt: x_Gr_Liv_Area + 9124.000001 t501_leaf0 <= 10000
- T501_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t501_leaf0 <= 1
+ T501_L0_f293_fixed_off: t501_leaf0 = 0
  T501_L0_f76_fixed_off: t501_leaf0 = 0
  T501_L1_f20_lt: x_Gr_Liv_Area + 9124.000001 t501_leaf1 <= 10000
- T501_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t501_leaf1 <= 1
+ T501_L1_f293_fixed_off: t501_leaf1 = 0
  T501_R1_f76_ge: const_Lot_Shape_Reg - 1e-06 t501_leaf1 >= 0.999999
  T501_L2_f20_lt: x_Gr_Liv_Area + 9124.000001 t501_leaf2 <= 10000
- T501_R2_f293_fixed_off: t501_leaf2 = 0
+ T501_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t501_leaf2
+   >= 0.999999
  T501_R3_f20_ge: x_Gr_Liv_Area - 876.000001 t501_leaf3 >= -1e-06
  T501_L3_f33_lt: x_Garage_Area + 99356.00000099999 t501_leaf3 <= 100000
  T501_L3_f250_lt: const_Garage_Type_CarPort + 1e-06 t501_leaf3 <= 1
@@ -8459,8 +8362,8 @@ Subject To
  T501_R6_f33_ge: x_Garage_Area - 644.000001 t501_leaf6 >= -1e-06
  T501_R6_f20_ge: x_Gr_Liv_Area - 1779.000001 t501_leaf6 >= -1e-06
  TREE_502_ONEHOT: t502_leaf0 + t502_leaf1 = 1
- T502_L0_f3_lt: Overall_Qual_calc + 7.000001 t502_leaf0 <= 10
- T502_R1_f3_ge: Overall_Qual_calc - 2.000001 t502_leaf1 >= 0.999999
+ TREE_502_FORCE_LEAF_1: t502_leaf1 = 1
+ TREE_502_EXCLUDE_LEAF_0: t502_leaf0 = 0
  TREE_503_ONEHOT: t503_leaf0 = 1
  TREE_503_FORCE_LEAF_0: t503_leaf0 = 1
  TREE_504_ONEHOT: t504_leaf0 + t504_leaf1 + t504_leaf2 + t504_leaf3 = 1
@@ -8498,10 +8401,10 @@ Subject To
  T508_R1_f44_ge: const_Yr_Sold - 1e-06 t508_leaf1 >= 2006.999999
  T508_L2_f161_lt: x_ex1_is_AsbShng + 1e-06 t508_leaf2 <= 1
  T508_R2_f148_ge: const_Roof_Style_Gable - 1e-06 t508_leaf2 >= 0.999999
- T508_L2_f273_lt: const_Mo_Sold_3 + 1e-06 t508_leaf2 <= 1
+ T508_L2_f273_fixed_off: t508_leaf2 = 0
  T508_L3_f161_lt: x_ex1_is_AsbShng + 1e-06 t508_leaf3 <= 1
  T508_R3_f148_ge: const_Roof_Style_Gable - 1e-06 t508_leaf3 >= 0.999999
- T508_R3_f273_fixed_off: t508_leaf3 = 0
+ T508_R3_f273_ge: const_Mo_Sold_3 - 1e-06 t508_leaf3 >= 0.999999
  T508_R4_f161_ge: x_ex1_is_AsbShng - 1.000001 t508_leaf4 >= -1e-06
  T508_L4_f33_lt: x_Garage_Area + 99649.00000099999 t508_leaf4 <= 100000
  T508_R5_f161_ge: x_ex1_is_AsbShng - 1.000001 t508_leaf5 >= -1e-06
@@ -8549,16 +8452,16 @@ Subject To
  TREE_516_ONEHOT: t516_leaf0 + t516_leaf1 + t516_leaf2 + t516_leaf3
    + t516_leaf4 = 1
  T516_L0_f295_lt: const_Sale_Condition_Alloca + 1e-06 t516_leaf0 <= 1
- T516_L0_f3_lt: Overall_Qual_calc + 3.000001 t516_leaf0 <= 10
+ T516_L0_f3_lt: const_Overall_Qual + 1e-06 t516_leaf0 <= 7
  T516_L0_f214_lt: x_b1_is_LwQ + 1e-06 t516_leaf0 <= 1
  T516_L1_f295_lt: const_Sale_Condition_Alloca + 1e-06 t516_leaf1 <= 1
- T516_L1_f3_lt: Overall_Qual_calc + 3.000001 t516_leaf1 <= 10
+ T516_L1_f3_lt: const_Overall_Qual + 1e-06 t516_leaf1 <= 7
  T516_R1_f214_ge: x_b1_is_LwQ - 1.000001 t516_leaf1 >= -1e-06
  T516_L2_f295_lt: const_Sale_Condition_Alloca + 1e-06 t516_leaf2 <= 1
- T516_R2_f3_ge: Overall_Qual_calc - 6.000001 t516_leaf2 >= 0.999999
+ T516_R2_f3_fixed_off: t516_leaf2 = 0
  T516_L2_f296_lt: const_Sale_Condition_Family + 1e-06 t516_leaf2 <= 1
  T516_L3_f295_lt: const_Sale_Condition_Alloca + 1e-06 t516_leaf3 <= 1
- T516_R3_f3_ge: Overall_Qual_calc - 6.000001 t516_leaf3 >= 0.999999
+ T516_R3_f3_fixed_off: t516_leaf3 = 0
  T516_R3_f296_fixed_off: t516_leaf3 = 0
  T516_R4_f295_fixed_off: t516_leaf4 = 0
  TREE_517_ONEHOT: t517_leaf0 + t517_leaf1 + t517_leaf2 + t517_leaf3
@@ -8603,13 +8506,13 @@ Subject To
  TREE_520_ONEHOT: t520_leaf0 + t520_leaf1 + t520_leaf2 + t520_leaf3
    + t520_leaf4 + t520_leaf5 = 1
  T520_L0_f12_lt: x_BsmtFin_SF_1 + 998741.000001 t520_leaf0 <= 1e+06
- T520_L0_f31_lt: const_Garage_Yr_Blt + 1e-06 t520_leaf0 <= 1960
+ T520_L0_f31_fixed_off: t520_leaf0 = 0
  T520_L0_f17_lt: x_1st_Flr_SF + 4202.000001 t520_leaf0 <= 5000
  T520_L1_f12_lt: x_BsmtFin_SF_1 + 998741.000001 t520_leaf1 <= 1e+06
- T520_L1_f31_lt: const_Garage_Yr_Blt + 1e-06 t520_leaf1 <= 1960
+ T520_L1_f31_fixed_off: t520_leaf1 = 0
  T520_R1_f17_ge: x_1st_Flr_SF - 798.000001 t520_leaf1 >= -1e-06
  T520_L2_f12_lt: x_BsmtFin_SF_1 + 998741.000001 t520_leaf2 <= 1e+06
- T520_R2_f31_fixed_off: t520_leaf2 = 0
+ T520_R2_f31_ge: const_Garage_Yr_Blt - 1e-06 t520_leaf2 >= 1959.999999
  T520_R3_f12_ge: x_BsmtFin_SF_1 - 1259.000001 t520_leaf3 >= -1e-06
  T520_L3_f1_lt: const_Lot_Area + 1e-06 t520_leaf3 <= 15498
  T520_R4_f12_ge: x_BsmtFin_SF_1 - 1259.000001 t520_leaf4 >= -1e-06
@@ -8620,51 +8523,53 @@ Subject To
  T520_R5_f0_ge: const_Lot_Frontage - 1e-06 t520_leaf5 >= 59.999999
  TREE_521_ONEHOT: t521_leaf0 + t521_leaf1 + t521_leaf2 + t521_leaf3
    + t521_leaf4 = 1
- T521_L0_f3_lt: Overall_Qual_calc + 7.000001 t521_leaf0 <= 10
- T521_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t521_leaf0 <= 1
- T521_L1_f3_lt: Overall_Qual_calc + 7.000001 t521_leaf1 <= 10
- T521_R1_f293_fixed_off: t521_leaf1 = 0
- T521_R2_f3_ge: Overall_Qual_calc - 2.000001 t521_leaf2 >= 0.999999
+ T521_L0_f3_fixed_off: t521_leaf0 = 0
+ T521_L0_f293_fixed_off: t521_leaf0 = 0
+ T521_L1_f3_fixed_off: t521_leaf1 = 0
+ T521_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t521_leaf1
+   >= 0.999999
+ T521_R2_f3_ge: const_Overall_Qual - 1e-06 t521_leaf2 >= 2.999999
  T521_L2_f164_lt: x_ex1_is_BrkFace + 1e-06 t521_leaf2 <= 1
  T521_L2_f1_lt: const_Lot_Area + 1e-06 t521_leaf2 <= 13052
- T521_R3_f3_ge: Overall_Qual_calc - 2.000001 t521_leaf3 >= 0.999999
+ T521_R3_f3_ge: const_Overall_Qual - 1e-06 t521_leaf3 >= 2.999999
  T521_L3_f164_lt: x_ex1_is_BrkFace + 1e-06 t521_leaf3 <= 1
  T521_R3_f1_fixed_off: t521_leaf3 = 0
- T521_R4_f3_ge: Overall_Qual_calc - 2.000001 t521_leaf4 >= 0.999999
+ T521_R4_f3_ge: const_Overall_Qual - 1e-06 t521_leaf4 >= 2.999999
  T521_R4_f164_ge: x_ex1_is_BrkFace - 1.000001 t521_leaf4 >= -1e-06
  TREE_522_ONEHOT: t522_leaf0 + t522_leaf1 + t522_leaf2 + t522_leaf3
    + t522_leaf4 + t522_leaf5 = 1
- T522_L0_f3_lt: Overall_Qual_calc + 7.000001 t522_leaf0 <= 10
- T522_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t522_leaf0 <= 1
- T522_L1_f3_lt: Overall_Qual_calc + 7.000001 t522_leaf1 <= 10
- T522_R1_f293_fixed_off: t522_leaf1 = 0
- T522_R2_f3_ge: Overall_Qual_calc - 2.000001 t522_leaf2 >= 0.999999
+ T522_L0_f3_fixed_off: t522_leaf0 = 0
+ T522_L0_f293_fixed_off: t522_leaf0 = 0
+ T522_L1_f3_fixed_off: t522_leaf1 = 0
+ T522_R1_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t522_leaf1
+   >= 0.999999
+ T522_R2_f3_ge: const_Overall_Qual - 1e-06 t522_leaf2 >= 2.999999
  T522_L2_f185_lt: x_ex2_is_MetalSd + 1e-06 t522_leaf2 <= 1
  T522_L2_f26_lt: x_Kitchen_AbvGr + 1.000001 t522_leaf2 <= 3
- T522_R3_f3_ge: Overall_Qual_calc - 2.000001 t522_leaf3 >= 0.999999
+ T522_R3_f3_ge: const_Overall_Qual - 1e-06 t522_leaf3 >= 2.999999
  T522_L3_f185_lt: x_ex2_is_MetalSd + 1e-06 t522_leaf3 <= 1
  T522_R3_f26_ge: x_Kitchen_AbvGr - 2.000001 t522_leaf3 >= -1e-06
- T522_R4_f3_ge: Overall_Qual_calc - 2.000001 t522_leaf4 >= 0.999999
+ T522_R4_f3_ge: const_Overall_Qual - 1e-06 t522_leaf4 >= 2.999999
  T522_R4_f185_ge: x_ex2_is_MetalSd - 1.000001 t522_leaf4 >= -1e-06
  T522_L4_f31_lt: const_Garage_Yr_Blt + 1e-06 t522_leaf4 <= 2006
- T522_R5_f3_ge: Overall_Qual_calc - 2.000001 t522_leaf5 >= 0.999999
+ T522_R5_f3_ge: const_Overall_Qual - 1e-06 t522_leaf5 >= 2.999999
  T522_R5_f185_ge: x_ex2_is_MetalSd - 1.000001 t522_leaf5 >= -1e-06
  T522_R5_f31_fixed_off: t522_leaf5 = 0
  TREE_523_ONEHOT: t523_leaf0 + t523_leaf1 + t523_leaf2 + t523_leaf3
    + t523_leaf4 = 1
- T523_L0_f3_lt: Overall_Qual_calc + 5.000001 t523_leaf0 <= 10
+ T523_L0_f3_lt: const_Overall_Qual + 1e-06 t523_leaf0 <= 5
  T523_L0_f177_lt: x_ex2_is_AsbShng + 1e-06 t523_leaf0 <= 1
  T523_L0_f197_lt: x_mvt_is_No_aplica + 1e-06 t523_leaf0 <= 1
- T523_L1_f3_lt: Overall_Qual_calc + 5.000001 t523_leaf1 <= 10
+ T523_L1_f3_lt: const_Overall_Qual + 1e-06 t523_leaf1 <= 5
  T523_L1_f177_lt: x_ex2_is_AsbShng + 1e-06 t523_leaf1 <= 1
  T523_R1_f197_ge: x_mvt_is_No_aplica - 1.000001 t523_leaf1 >= -1e-06
- T523_L2_f3_lt: Overall_Qual_calc + 5.000001 t523_leaf2 <= 10
+ T523_L2_f3_lt: const_Overall_Qual + 1e-06 t523_leaf2 <= 5
  T523_R2_f177_ge: x_ex2_is_AsbShng - 1.000001 t523_leaf2 >= -1e-06
  T523_L2_f251_fixed_off: t523_leaf2 = 0
- T523_L3_f3_lt: Overall_Qual_calc + 5.000001 t523_leaf3 <= 10
+ T523_L3_f3_lt: const_Overall_Qual + 1e-06 t523_leaf3 <= 5
  T523_R3_f177_ge: x_ex2_is_AsbShng - 1.000001 t523_leaf3 >= -1e-06
  T523_R3_f251_ge: const_Garage_Type_Detchd - 1e-06 t523_leaf3 >= 0.999999
- T523_R4_f3_ge: Overall_Qual_calc - 4.000001 t523_leaf4 >= 0.999999
+ T523_R4_f3_fixed_off: t523_leaf4 = 0
  TREE_524_ONEHOT: t524_leaf0 + t524_leaf1 + t524_leaf2 + t524_leaf3 = 1
  T524_L0_f11_lt: x_Bsmt_Cond + 3.000001 t524_leaf0 <= 4
  T524_L0_f276_lt: const_Mo_Sold_6 + 1e-06 t524_leaf0 <= 1
@@ -8767,17 +8672,17 @@ Subject To
  TREE_537_EXCLUDE_LEAF_1: t537_leaf1 = 0
  TREE_538_ONEHOT: t538_leaf0 + t538_leaf1 + t538_leaf2 + t538_leaf3
    + t538_leaf4 = 1
- T538_L0_f3_lt: Overall_Qual_calc + 3.000001 t538_leaf0 <= 10
+ T538_L0_f3_lt: const_Overall_Qual + 1e-06 t538_leaf0 <= 7
  T538_L0_f12_lt: x_BsmtFin_SF_1 + 999082.000001 t538_leaf0 <= 1e+06
- T538_L1_f3_lt: Overall_Qual_calc + 3.000001 t538_leaf1 <= 10
+ T538_L1_f3_lt: const_Overall_Qual + 1e-06 t538_leaf1 <= 7
  T538_R1_f12_ge: x_BsmtFin_SF_1 - 918.000001 t538_leaf1 >= -1e-06
- T538_R2_f3_ge: Overall_Qual_calc - 6.000001 t538_leaf2 >= 0.999999
+ T538_R2_f3_fixed_off: t538_leaf2 = 0
  T538_L2_f14_lt: x_Bsmt_Unf_SF + 98205.00000099999 t538_leaf2 <= 100000
  T538_L2_f206_lt: const_Bsmt_Exposure_Av + 1e-06 t538_leaf2 <= 1
- T538_R3_f3_ge: Overall_Qual_calc - 6.000001 t538_leaf3 >= 0.999999
+ T538_R3_f3_fixed_off: t538_leaf3 = 0
  T538_L3_f14_lt: x_Bsmt_Unf_SF + 98205.00000099999 t538_leaf3 <= 100000
  T538_R3_f206_fixed_off: t538_leaf3 = 0
- T538_R4_f3_ge: Overall_Qual_calc - 6.000001 t538_leaf4 >= 0.999999
+ T538_R4_f3_fixed_off: t538_leaf4 = 0
  T538_R4_f14_ge: x_Bsmt_Unf_SF - 1795.000001 t538_leaf4 >= -1e-06
  TREE_539_ONEHOT: t539_leaf0 + t539_leaf1 = 1
  TREE_539_FORCE_LEAF_1: t539_leaf1 = 1
@@ -8792,10 +8697,10 @@ Subject To
  T540_R1_f1_ge: const_Lot_Area - 1e-06 t540_leaf1 >= 8799.999999
  T540_L2_f277_lt: const_Mo_Sold_7 + 1e-06 t540_leaf2 <= 1
  T540_R2_f35_ge: x_Garage_Cond - 2.000001 t540_leaf2 >= -1.000001
- T540_L2_f3_lt: Overall_Qual_calc + 7.000001 t540_leaf2 <= 10
+ T540_L2_f3_fixed_off: t540_leaf2 = 0
  T540_L3_f277_lt: const_Mo_Sold_7 + 1e-06 t540_leaf3 <= 1
  T540_R3_f35_ge: x_Garage_Cond - 2.000001 t540_leaf3 >= -1.000001
- T540_R3_f3_ge: Overall_Qual_calc - 2.000001 t540_leaf3 >= 0.999999
+ T540_R3_f3_ge: const_Overall_Qual - 1e-06 t540_leaf3 >= 2.999999
  T540_R4_f277_fixed_off: t540_leaf4 = 0
  TREE_541_ONEHOT: t541_leaf0 + t541_leaf1 + t541_leaf2 = 1
  T541_L0_f8_lt: x_Exter_Qual + 2.000001 t541_leaf0 <= 4
@@ -8869,10 +8774,10 @@ Subject To
  T549_R1_f17_ge: x_1st_Flr_SF - 712.000001 t549_leaf1 >= -1e-06
  T549_L2_f26_lt: x_Kitchen_AbvGr + 1.000001 t549_leaf2 <= 3
  T549_R2_f20_ge: x_Gr_Liv_Area - 747.000001 t549_leaf2 >= -1e-06
- T549_L2_f3_lt: Overall_Qual_calc + 5.000001 t549_leaf2 <= 10
+ T549_L2_f3_lt: const_Overall_Qual + 1e-06 t549_leaf2 <= 5
  T549_L3_f26_lt: x_Kitchen_AbvGr + 1.000001 t549_leaf3 <= 3
  T549_R3_f20_ge: x_Gr_Liv_Area - 747.000001 t549_leaf3 >= -1e-06
- T549_R3_f3_ge: Overall_Qual_calc - 4.000001 t549_leaf3 >= 0.999999
+ T549_R3_f3_fixed_off: t549_leaf3 = 0
  T549_R4_f26_ge: x_Kitchen_AbvGr - 2.000001 t549_leaf4 >= -1e-06
  T549_L4_f9_lt: x_Exter_Cond + 2.000001 t549_leaf4 <= 4
  T549_R5_f26_ge: x_Kitchen_AbvGr - 2.000001 t549_leaf5 >= -1e-06
@@ -9055,30 +8960,30 @@ Subject To
  T575_R1_f214_ge: x_b1_is_LwQ - 1.000001 t575_leaf1 >= -1e-06
  TREE_576_ONEHOT: t576_leaf0 + t576_leaf1 + t576_leaf2 + t576_leaf3
    + t576_leaf4 + t576_leaf5 = 1
- T576_L0_f3_lt: Overall_Qual_calc + 5.000001 t576_leaf0 <= 10
+ T576_L0_f3_lt: const_Overall_Qual + 1e-06 t576_leaf0 <= 5
  T576_L0_f6_fixed_off: t576_leaf0 = 0
- T576_L1_f3_lt: Overall_Qual_calc + 5.000001 t576_leaf1 <= 10
+ T576_L1_f3_lt: const_Overall_Qual + 1e-06 t576_leaf1 <= 5
  T576_R1_f6_ge: const_Year_Remod_Add - 1e-06 t576_leaf1 >= 1953.999999
  T576_L1_f37_lt: x_Open_Porch_SF + 99965.00000099999 t576_leaf1 <= 100000
- T576_L2_f3_lt: Overall_Qual_calc + 5.000001 t576_leaf2 <= 10
+ T576_L2_f3_lt: const_Overall_Qual + 1e-06 t576_leaf2 <= 5
  T576_R2_f6_ge: const_Year_Remod_Add - 1e-06 t576_leaf2 >= 1953.999999
  T576_R2_f37_ge: x_Open_Porch_SF - 35.000001 t576_leaf2 >= -1e-06
- T576_R3_f3_ge: Overall_Qual_calc - 4.000001 t576_leaf3 >= 0.999999
+ T576_R3_f3_fixed_off: t576_leaf3 = 0
  T576_L3_f33_lt: x_Garage_Area + 99456.00000099999 t576_leaf3 <= 100000
- T576_R4_f3_ge: Overall_Qual_calc - 4.000001 t576_leaf4 >= 0.999999
+ T576_R4_f3_fixed_off: t576_leaf4 = 0
  T576_R4_f33_ge: x_Garage_Area - 544.000001 t576_leaf4 >= -1e-06
  T576_L4_f33_lt: x_Garage_Area + 99364.00000099999 t576_leaf4 <= 100000
- T576_R5_f3_ge: Overall_Qual_calc - 4.000001 t576_leaf5 >= 0.999999
+ T576_R5_f3_fixed_off: t576_leaf5 = 0
  T576_R5_f33_ge: x_Garage_Area - 544.000001 t576_leaf5 >= -1e-06
  T576_R5_f33_ge: x_Garage_Area - 636.000001 t576_leaf5 >= -1e-06
  TREE_577_ONEHOT: t577_leaf0 = 1
  TREE_577_FORCE_LEAF_0: t577_leaf0 = 1
  TREE_578_ONEHOT: t578_leaf0 + t578_leaf1 + t578_leaf2 = 1
- T578_L0_f273_lt: const_Mo_Sold_3 + 1e-06 t578_leaf0 <= 1
+ T578_L0_f273_fixed_off: t578_leaf0 = 0
  T578_L0_f40_lt: x_Screen_Porch + 99846.00000099999 t578_leaf0 <= 100000
- T578_L1_f273_lt: const_Mo_Sold_3 + 1e-06 t578_leaf1 <= 1
+ T578_L1_f273_fixed_off: t578_leaf1 = 0
  T578_R1_f40_ge: x_Screen_Porch - 154.000001 t578_leaf1 >= -1e-06
- T578_R2_f273_fixed_off: t578_leaf2 = 0
+ T578_R2_f273_ge: const_Mo_Sold_3 - 1e-06 t578_leaf2 >= 0.999999
  TREE_579_ONEHOT: t579_leaf0 + t579_leaf1 = 1
  TREE_579_FORCE_LEAF_0: t579_leaf0 = 1
  TREE_579_EXCLUDE_LEAF_1: t579_leaf1 = 0
@@ -9104,12 +9009,11 @@ Subject To
  T581_L0_f33_lt: x_Garage_Area + 98846.00000099999 t581_leaf0 <= 100000
  T581_R1_f33_ge: x_Garage_Area - 1154.000001 t581_leaf1 >= -1e-06
  TREE_582_ONEHOT: t582_leaf0 + t582_leaf1 + t582_leaf2 = 1
- T582_L0_f3_lt: Overall_Qual_calc + 1e-06 t582_leaf0 <= 10
+ T582_L0_f3_lt: const_Overall_Qual + 1e-06 t582_leaf0 <= 10
  T582_L0_f16_lt: x_Heating_QC + 2.000001 t582_leaf0 <= 4
- T582_L1_f3_lt: Overall_Qual_calc + 1e-06 t582_leaf1 <= 10
+ T582_L1_f3_lt: const_Overall_Qual + 1e-06 t582_leaf1 <= 10
  T582_R1_f16_ge: x_Heating_QC - 2.000001 t582_leaf1 >= -1e-06
- T582_R2_f3_ge: Overall_Qual_calc - 9.000000999999999 t582_leaf2
-   >= 0.999999
+ T582_R2_f3_fixed_off: t582_leaf2 = 0
  TREE_583_ONEHOT: t583_leaf0 = 1
  TREE_583_FORCE_LEAF_0: t583_leaf0 = 1
  TREE_584_ONEHOT: t584_leaf0 + t584_leaf1 + t584_leaf2 + t584_leaf3
@@ -9138,70 +9042,72 @@ Subject To
  T585_L2_f0_lt: const_Lot_Frontage + 1e-06 t585_leaf2 <= 117
  T585_R2_f25_ge: x_Bedroom_AbvGr - 5.000001 t585_leaf2 >= -1e-06
  T585_R3_f0_fixed_off: t585_leaf3 = 0
- T585_L3_f297_fixed_off: t585_leaf3 = 0
+ T585_L3_f297_lt: const_Sale_Condition_Normal + 1e-06 t585_leaf3 <= 1
  T585_R4_f0_fixed_off: t585_leaf4 = 0
- T585_R4_f297_ge: const_Sale_Condition_Normal - 1e-06 t585_leaf4
-   >= 0.999999
+ T585_R4_f297_fixed_off: t585_leaf4 = 0
  TREE_586_ONEHOT: t586_leaf0 + t586_leaf1 + t586_leaf2 + t586_leaf3
    + t586_leaf4 = 1
- T586_L0_f3_lt: Overall_Qual_calc + 7.000001 t586_leaf0 <= 10
- T586_R1_f3_ge: Overall_Qual_calc - 2.000001 t586_leaf1 >= 0.999999
- T586_L1_f3_lt: Overall_Qual_calc + 3.000001 t586_leaf1 <= 10
+ T586_L0_f3_fixed_off: t586_leaf0 = 0
+ T586_R1_f3_ge: const_Overall_Qual - 1e-06 t586_leaf1 >= 2.999999
+ T586_L1_f3_lt: const_Overall_Qual + 1e-06 t586_leaf1 <= 7
  T586_L1_f20_lt: x_Gr_Liv_Area + 8299.000001 t586_leaf1 <= 10000
- T586_R2_f3_ge: Overall_Qual_calc - 2.000001 t586_leaf2 >= 0.999999
- T586_L2_f3_lt: Overall_Qual_calc + 3.000001 t586_leaf2 <= 10
+ T586_R2_f3_ge: const_Overall_Qual - 1e-06 t586_leaf2 >= 2.999999
+ T586_L2_f3_lt: const_Overall_Qual + 1e-06 t586_leaf2 <= 7
  T586_R2_f20_ge: x_Gr_Liv_Area - 1701.000001 t586_leaf2 >= -1e-06
- T586_R3_f3_ge: Overall_Qual_calc - 2.000001 t586_leaf3 >= 0.999999
- T586_R3_f3_ge: Overall_Qual_calc - 6.000001 t586_leaf3 >= 0.999999
+ T586_R3_f3_ge: const_Overall_Qual - 1e-06 t586_leaf3 >= 2.999999
+ T586_R3_f3_fixed_off: t586_leaf3 = 0
  T586_L3_f105_lt: const_Neighborhood_NWAmes + 1e-06 t586_leaf3 <= 1
- T586_R4_f3_ge: Overall_Qual_calc - 2.000001 t586_leaf4 >= 0.999999
- T586_R4_f3_ge: Overall_Qual_calc - 6.000001 t586_leaf4 >= 0.999999
+ T586_R4_f3_ge: const_Overall_Qual - 1e-06 t586_leaf4 >= 2.999999
+ T586_R4_f3_fixed_off: t586_leaf4 = 0
  T586_R4_f105_fixed_off: t586_leaf4 = 0
  TREE_587_ONEHOT: t587_leaf0 + t587_leaf1 + t587_leaf2 + t587_leaf3
    + t587_leaf4 + t587_leaf5 = 1
- T587_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t587_leaf0 <= 1
+ T587_L0_f293_fixed_off: t587_leaf0 = 0
  T587_L0_f12_lt: x_BsmtFin_SF_1 + 998526.000001 t587_leaf0 <= 1e+06
- T587_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t587_leaf1 <= 1
+ T587_L1_f293_fixed_off: t587_leaf1 = 0
  T587_R1_f12_ge: x_BsmtFin_SF_1 - 1474.000001 t587_leaf1 >= -1e-06
- T587_R2_f293_fixed_off: t587_leaf2 = 0
- T587_L2_f5_lt: const_Year_Built + 1e-06 t587_leaf2 <= 1954
+ T587_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t587_leaf2
+   >= 0.999999
+ T587_L2_f5_fixed_off: t587_leaf2 = 0
  T587_L2_f148_fixed_off: t587_leaf2 = 0
- T587_R3_f293_fixed_off: t587_leaf3 = 0
- T587_L3_f5_lt: const_Year_Built + 1e-06 t587_leaf3 <= 1954
+ T587_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t587_leaf3
+   >= 0.999999
+ T587_L3_f5_fixed_off: t587_leaf3 = 0
  T587_R3_f148_ge: const_Roof_Style_Gable - 1e-06 t587_leaf3 >= 0.999999
- T587_R4_f293_fixed_off: t587_leaf4 = 0
- T587_R4_f5_fixed_off: t587_leaf4 = 0
- T587_L4_f44_lt: const_Yr_Sold + 1e-06 t587_leaf4 <= 2009
- T587_R5_f293_fixed_off: t587_leaf5 = 0
- T587_R5_f5_fixed_off: t587_leaf5 = 0
- T587_R5_f44_fixed_off: t587_leaf5 = 0
+ T587_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t587_leaf4
+   >= 0.999999
+ T587_R4_f5_ge: const_Year_Built - 1e-06 t587_leaf4 >= 1953.999999
+ T587_L4_f44_fixed_off: t587_leaf4 = 0
+ T587_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t587_leaf5
+   >= 0.999999
+ T587_R5_f5_ge: const_Year_Built - 1e-06 t587_leaf5 >= 1953.999999
+ T587_R5_f44_ge: const_Yr_Sold - 1e-06 t587_leaf5 >= 2008.999999
  TREE_588_ONEHOT: t588_leaf0 + t588_leaf1 + t588_leaf2 + t588_leaf3
    + t588_leaf4 + t588_leaf5 + t588_leaf6 + t588_leaf7 = 1
- T588_L0_f3_lt: Overall_Qual_calc + 3.000001 t588_leaf0 <= 10
+ T588_L0_f3_lt: const_Overall_Qual + 1e-06 t588_leaf0 <= 7
  T588_L0_f1_fixed_off: t588_leaf0 = 0
  T588_L0_f33_lt: x_Garage_Area + 99785.00000099999 t588_leaf0 <= 100000
- T588_L1_f3_lt: Overall_Qual_calc + 3.000001 t588_leaf1 <= 10
+ T588_L1_f3_lt: const_Overall_Qual + 1e-06 t588_leaf1 <= 7
  T588_L1_f1_fixed_off: t588_leaf1 = 0
  T588_R1_f33_ge: x_Garage_Area - 215.000001 t588_leaf1 >= -1e-06
- T588_L2_f3_lt: Overall_Qual_calc + 3.000001 t588_leaf2 <= 10
+ T588_L2_f3_lt: const_Overall_Qual + 1e-06 t588_leaf2 <= 7
  T588_R2_f1_ge: const_Lot_Area - 1e-06 t588_leaf2 >= 8519.999999
  T588_L2_f231_lt: central_air_no + 1e-06 t588_leaf2 <= 1
- T588_L3_f3_lt: Overall_Qual_calc + 3.000001 t588_leaf3 <= 10
+ T588_L3_f3_lt: const_Overall_Qual + 1e-06 t588_leaf3 <= 7
  T588_R3_f1_ge: const_Lot_Area - 1e-06 t588_leaf3 >= 8519.999999
  T588_R3_f231_ge: central_air_no - 1.000001 t588_leaf3 >= -1e-06
- T588_R4_f3_ge: Overall_Qual_calc - 6.000001 t588_leaf4 >= 0.999999
- T588_L4_f6_fixed_off: t588_leaf4 = 0
- T588_L4_f297_fixed_off: t588_leaf4 = 0
- T588_R5_f3_ge: Overall_Qual_calc - 6.000001 t588_leaf5 >= 0.999999
- T588_L5_f6_fixed_off: t588_leaf5 = 0
- T588_R5_f297_ge: const_Sale_Condition_Normal - 1e-06 t588_leaf5
-   >= 0.999999
- T588_R6_f3_ge: Overall_Qual_calc - 6.000001 t588_leaf6 >= 0.999999
- T588_R6_f6_ge: const_Year_Remod_Add - 1e-06 t588_leaf6 >= 1992.999999
- T588_L6_f96_fixed_off: t588_leaf6 = 0
- T588_R7_f3_ge: Overall_Qual_calc - 6.000001 t588_leaf7 >= 0.999999
- T588_R7_f6_ge: const_Year_Remod_Add - 1e-06 t588_leaf7 >= 1992.999999
- T588_R7_f96_ge: const_Neighborhood_Edwards - 1e-06 t588_leaf7 >= 0.999999
+ T588_R4_f3_fixed_off: t588_leaf4 = 0
+ T588_L4_f6_lt: const_Year_Remod_Add + 1e-06 t588_leaf4 <= 1993
+ T588_L4_f297_lt: const_Sale_Condition_Normal + 1e-06 t588_leaf4 <= 1
+ T588_R5_f3_fixed_off: t588_leaf5 = 0
+ T588_L5_f6_lt: const_Year_Remod_Add + 1e-06 t588_leaf5 <= 1993
+ T588_R5_f297_fixed_off: t588_leaf5 = 0
+ T588_R6_f3_fixed_off: t588_leaf6 = 0
+ T588_R6_f6_fixed_off: t588_leaf6 = 0
+ T588_L6_f96_lt: const_Neighborhood_Edwards + 1e-06 t588_leaf6 <= 1
+ T588_R7_f3_fixed_off: t588_leaf7 = 0
+ T588_R7_f6_fixed_off: t588_leaf7 = 0
+ T588_R7_f96_fixed_off: t588_leaf7 = 0
  TREE_589_ONEHOT: t589_leaf0 = 1
  TREE_589_FORCE_LEAF_0: t589_leaf0 = 1
  TREE_590_ONEHOT: t590_leaf0 + t590_leaf1 = 1
@@ -9217,17 +9123,17 @@ Subject To
  TREE_594_FORCE_LEAF_0: t594_leaf0 = 1
  TREE_595_ONEHOT: t595_leaf0 + t595_leaf1 + t595_leaf2 + t595_leaf3
    + t595_leaf4 = 1
- T595_L0_f5_lt: const_Year_Built + 1e-06 t595_leaf0 <= 1960
+ T595_L0_f5_fixed_off: t595_leaf0 = 0
  T595_L0_f18_lt: const_2nd_Flr_SF + 1e-06 t595_leaf0 <= 472
- T595_L1_f5_lt: const_Year_Built + 1e-06 t595_leaf1 <= 1960
+ T595_L1_f5_fixed_off: t595_leaf1 = 0
  T595_R1_f18_fixed_off: t595_leaf1 = 0
  T595_L1_f14_lt: x_Bsmt_Unf_SF + 99810.00000099999 t595_leaf1 <= 100000
- T595_L2_f5_lt: const_Year_Built + 1e-06 t595_leaf2 <= 1960
+ T595_L2_f5_fixed_off: t595_leaf2 = 0
  T595_R2_f18_fixed_off: t595_leaf2 = 0
  T595_R2_f14_ge: x_Bsmt_Unf_SF - 190.000001 t595_leaf2 >= -1e-06
- T595_R3_f5_fixed_off: t595_leaf3 = 0
+ T595_R3_f5_ge: const_Year_Built - 1e-06 t595_leaf3 >= 1959.999999
  T595_L3_f0_lt: const_Lot_Frontage + 1e-06 t595_leaf3 <= 115
- T595_R4_f5_fixed_off: t595_leaf4 = 0
+ T595_R4_f5_ge: const_Year_Built - 1e-06 t595_leaf4 >= 1959.999999
  T595_R4_f0_fixed_off: t595_leaf4 = 0
  TREE_596_ONEHOT: t596_leaf0 = 1
  TREE_596_FORCE_LEAF_0: t596_leaf0 = 1
@@ -9255,10 +9161,10 @@ Subject To
  T600_L0_f216_lt: x_b1_is_Rec + 1e-06 t600_leaf0 <= 1
  T600_R1_f216_ge: x_b1_is_Rec - 1.000001 t600_leaf1 >= -1e-06
  T600_L1_f192_lt: x_ex2_is_Wd_Sdng + 1e-06 t600_leaf1 <= 1
- T600_L1_f31_lt: const_Garage_Yr_Blt + 1e-06 t600_leaf1 <= 1966
+ T600_L1_f31_fixed_off: t600_leaf1 = 0
  T600_R2_f216_ge: x_b1_is_Rec - 1.000001 t600_leaf2 >= -1e-06
  T600_L2_f192_lt: x_ex2_is_Wd_Sdng + 1e-06 t600_leaf2 <= 1
- T600_R2_f31_fixed_off: t600_leaf2 = 0
+ T600_R2_f31_ge: const_Garage_Yr_Blt - 1e-06 t600_leaf2 >= 1965.999999
  T600_R3_f216_ge: x_b1_is_Rec - 1.000001 t600_leaf3 >= -1e-06
  T600_R3_f192_ge: x_ex2_is_Wd_Sdng - 1.000001 t600_leaf3 >= -1e-06
  TREE_601_ONEHOT: t601_leaf0 + t601_leaf1 + t601_leaf2 + t601_leaf3 = 1
@@ -9313,21 +9219,19 @@ Subject To
  TREE_615_ONEHOT: t615_leaf0 = 1
  TREE_615_FORCE_LEAF_0: t615_leaf0 = 1
  TREE_616_ONEHOT: t616_leaf0 + t616_leaf1 + t616_leaf2 + t616_leaf3 = 1
- T616_L0_f85_fixed_off: t616_leaf0 = 0
- T616_R1_f85_ge: const_Lot_Config_Inside - 1e-06 t616_leaf1 >= 0.999999
- T616_L1_f1_fixed_off: t616_leaf1 = 0
- T616_R2_f85_ge: const_Lot_Config_Inside - 1e-06 t616_leaf2 >= 0.999999
- T616_R2_f1_ge: const_Lot_Area - 1e-06 t616_leaf2 >= 10799.999999
+ T616_L0_f85_lt: const_Lot_Config_Inside + 1e-06 t616_leaf0 <= 1
+ T616_R1_f85_fixed_off: t616_leaf1 = 0
+ T616_L1_f1_lt: const_Lot_Area + 1e-06 t616_leaf1 <= 10800
+ T616_R2_f85_fixed_off: t616_leaf2 = 0
+ T616_R2_f1_fixed_off: t616_leaf2 = 0
  T616_L2_f33_lt: x_Garage_Area + 99634.00000099999 t616_leaf2 <= 100000
- T616_R3_f85_ge: const_Lot_Config_Inside - 1e-06 t616_leaf3 >= 0.999999
- T616_R3_f1_ge: const_Lot_Area - 1e-06 t616_leaf3 >= 10799.999999
+ T616_R3_f85_fixed_off: t616_leaf3 = 0
+ T616_R3_f1_fixed_off: t616_leaf3 = 0
  T616_R3_f33_ge: x_Garage_Area - 366.000001 t616_leaf3 >= -1e-06
  TREE_617_ONEHOT: t617_leaf0 + t617_leaf1 + t617_leaf2 = 1
- T617_L0_f3_lt: Overall_Qual_calc + 5.000001 t617_leaf0 <= 10
- T617_L0_f80_fixed_off: t617_leaf0 = 0
- T617_L1_f3_lt: Overall_Qual_calc + 5.000001 t617_leaf1 <= 10
- T617_R1_f80_ge: const_Land_Contour_Lvl - 1e-06 t617_leaf1 >= 0.999999
- T617_R2_f3_ge: Overall_Qual_calc - 4.000001 t617_leaf2 >= 0.999999
+ TREE_617_FORCE_LEAF_1: t617_leaf1 = 1
+ TREE_617_EXCLUDE_LEAF_0: t617_leaf0 = 0
+ TREE_617_EXCLUDE_LEAF_2: t617_leaf2 = 0
  TREE_618_ONEHOT: t618_leaf0 + t618_leaf1 = 1
  TREE_618_FORCE_LEAF_0: t618_leaf0 = 1
  TREE_618_EXCLUDE_LEAF_1: t618_leaf1 = 0
@@ -9365,21 +9269,23 @@ Subject To
  T622_R3_f20_ge: x_Gr_Liv_Area - 2649.000001 t622_leaf3 >= -1e-06
  TREE_623_ONEHOT: t623_leaf0 + t623_leaf1 + t623_leaf2 + t623_leaf3
    + t623_leaf4 + t623_leaf5 = 1
- T623_L0_f44_lt: const_Yr_Sold + 1e-06 t623_leaf0 <= 2009
+ T623_L0_f44_fixed_off: t623_leaf0 = 0
  T623_L0_f77_lt: const_Land_Contour_Bnk + 1e-06 t623_leaf0 <= 1
- T623_L1_f44_lt: const_Yr_Sold + 1e-06 t623_leaf1 <= 2009
+ T623_L1_f44_fixed_off: t623_leaf1 = 0
  T623_R1_f77_fixed_off: t623_leaf1 = 0
  T623_L1_f33_lt: x_Garage_Area + 99423.00000099999 t623_leaf1 <= 100000
- T623_L2_f44_lt: const_Yr_Sold + 1e-06 t623_leaf2 <= 2009
+ T623_L2_f44_fixed_off: t623_leaf2 = 0
  T623_R2_f77_fixed_off: t623_leaf2 = 0
  T623_R2_f33_ge: x_Garage_Area - 577.000001 t623_leaf2 >= -1e-06
- T623_R3_f44_fixed_off: t623_leaf3 = 0
- T623_L3_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t623_leaf3 <= 1
- T623_R4_f44_fixed_off: t623_leaf4 = 0
- T623_R4_f293_fixed_off: t623_leaf4 = 0
+ T623_R3_f44_ge: const_Yr_Sold - 1e-06 t623_leaf3 >= 2008.999999
+ T623_L3_f293_fixed_off: t623_leaf3 = 0
+ T623_R4_f44_ge: const_Yr_Sold - 1e-06 t623_leaf4 >= 2008.999999
+ T623_R4_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t623_leaf4
+   >= 0.999999
  T623_L4_f81_lt: const_Lot_Config_Corner + 1e-06 t623_leaf4 <= 1
- T623_R5_f44_fixed_off: t623_leaf5 = 0
- T623_R5_f293_fixed_off: t623_leaf5 = 0
+ T623_R5_f44_ge: const_Yr_Sold - 1e-06 t623_leaf5 >= 2008.999999
+ T623_R5_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t623_leaf5
+   >= 0.999999
  T623_R5_f81_fixed_off: t623_leaf5 = 0
  TREE_624_ONEHOT: t624_leaf0 + t624_leaf1 = 1
  TREE_624_FORCE_LEAF_0: t624_leaf0 = 1
@@ -9508,10 +9414,10 @@ Subject To
  TREE_660_ONEHOT: t660_leaf0 + t660_leaf1 + t660_leaf2 + t660_leaf3 = 1
  T660_L0_f0_lt: const_Lot_Frontage + 1e-06 t660_leaf0 <= 140
  T660_L0_f37_lt: x_Open_Porch_SF + 99878.00000099999 t660_leaf0 <= 100000
- T660_L0_f1_fixed_off: t660_leaf0 = 0
+ T660_L0_f1_lt: const_Lot_Area + 1e-06 t660_leaf0 <= 11765
  T660_L1_f0_lt: const_Lot_Frontage + 1e-06 t660_leaf1 <= 140
  T660_L1_f37_lt: x_Open_Porch_SF + 99878.00000099999 t660_leaf1 <= 100000
- T660_R1_f1_ge: const_Lot_Area - 1e-06 t660_leaf1 >= 11764.999999
+ T660_R1_f1_fixed_off: t660_leaf1 = 0
  T660_L2_f0_lt: const_Lot_Frontage + 1e-06 t660_leaf2 <= 140
  T660_R2_f37_ge: x_Open_Porch_SF - 122.000001 t660_leaf2 >= -1e-06
  T660_R3_f0_fixed_off: t660_leaf3 = 0
@@ -9555,11 +9461,9 @@ Subject To
  T663_R6_f237_ge: x_elect_is_SBrkr - 1e-06 t663_leaf6 >= 0.999999
  T663_R6_f231_ge: central_air_no - 1.000001 t663_leaf6 >= -1e-06
  TREE_664_ONEHOT: t664_leaf0 + t664_leaf1 + t664_leaf2 = 1
- T664_L0_f1_fixed_off: t664_leaf0 = 0
- T664_R1_f1_ge: const_Lot_Area - 1e-06 t664_leaf1 >= 5999.999999
- T664_L1_f3_lt: Overall_Qual_calc + 5.000001 t664_leaf1 <= 10
- T664_R2_f1_ge: const_Lot_Area - 1e-06 t664_leaf2 >= 5999.999999
- T664_R2_f3_ge: Overall_Qual_calc - 4.000001 t664_leaf2 >= 0.999999
+ TREE_664_FORCE_LEAF_1: t664_leaf1 = 1
+ TREE_664_EXCLUDE_LEAF_0: t664_leaf0 = 0
+ TREE_664_EXCLUDE_LEAF_2: t664_leaf2 = 0
  TREE_665_ONEHOT: t665_leaf0 + t665_leaf1 + t665_leaf2 = 1
  T665_L0_f213_lt: x_b1_is_GLQ + 1e-06 t665_leaf0 <= 1
  T665_L0_f1_lt: const_Lot_Area + 1e-06 t665_leaf0 <= 19522
@@ -9583,13 +9487,13 @@ Subject To
  TREE_668_ONEHOT: t668_leaf0 + t668_leaf1 + t668_leaf2 + t668_leaf3 = 1
  T668_L0_f33_lt: x_Garage_Area + 99356.00000099999 t668_leaf0 <= 100000
  T668_R1_f33_ge: x_Garage_Area - 644.000001 t668_leaf1 >= -1e-06
- T668_L1_f96_fixed_off: t668_leaf1 = 0
+ T668_L1_f96_lt: const_Neighborhood_Edwards + 1e-06 t668_leaf1 <= 1
  T668_L1_f31_fixed_off: t668_leaf1 = 0
  T668_R2_f33_ge: x_Garage_Area - 644.000001 t668_leaf2 >= -1e-06
- T668_L2_f96_fixed_off: t668_leaf2 = 0
+ T668_L2_f96_lt: const_Neighborhood_Edwards + 1e-06 t668_leaf2 <= 1
  T668_R2_f31_ge: const_Garage_Yr_Blt - 1e-06 t668_leaf2 >= 1941.999999
  T668_R3_f33_ge: x_Garage_Area - 644.000001 t668_leaf3 >= -1e-06
- T668_R3_f96_ge: const_Neighborhood_Edwards - 1e-06 t668_leaf3 >= 0.999999
+ T668_R3_f96_fixed_off: t668_leaf3 = 0
  TREE_669_ONEHOT: t669_leaf0 = 1
  TREE_669_FORCE_LEAF_0: t669_leaf0 = 1
  TREE_670_ONEHOT: t670_leaf0 = 1
@@ -9602,26 +9506,25 @@ Subject To
  TREE_673_ONEHOT: t673_leaf0 + t673_leaf1 + t673_leaf2 + t673_leaf3
    + t673_leaf4 = 1
  T673_L0_f11_lt: x_Bsmt_Cond + 2.000001 t673_leaf0 <= 4
- T673_L0_f31_lt: const_Garage_Yr_Blt + 1e-06 t673_leaf0 <= 1974
+ T673_L0_f31_fixed_off: t673_leaf0 = 0
  T673_L0_f214_lt: x_b1_is_LwQ + 1e-06 t673_leaf0 <= 1
  T673_L1_f11_lt: x_Bsmt_Cond + 2.000001 t673_leaf1 <= 4
- T673_L1_f31_lt: const_Garage_Yr_Blt + 1e-06 t673_leaf1 <= 1974
+ T673_L1_f31_fixed_off: t673_leaf1 = 0
  T673_R1_f214_ge: x_b1_is_LwQ - 1.000001 t673_leaf1 >= -1e-06
  T673_L2_f11_lt: x_Bsmt_Cond + 2.000001 t673_leaf2 <= 4
- T673_R2_f31_fixed_off: t673_leaf2 = 0
+ T673_R2_f31_ge: const_Garage_Yr_Blt - 1e-06 t673_leaf2 >= 1973.999999
  T673_R3_f11_ge: x_Bsmt_Cond - 3.000001 t673_leaf3 >= -1.000001
  T673_L3_f1_fixed_off: t673_leaf3 = 0
  T673_R4_f11_ge: x_Bsmt_Cond - 3.000001 t673_leaf4 >= -1.000001
  T673_R4_f1_ge: const_Lot_Area - 1e-06 t673_leaf4 >= 4499.999999
  TREE_674_ONEHOT: t674_leaf0 + t674_leaf1 = 1
- T674_L0_f3_lt: Overall_Qual_calc + 1e-06 t674_leaf0 <= 10
- T674_R1_f3_ge: Overall_Qual_calc - 9.000000999999999 t674_leaf1
-   >= 0.999999
+ TREE_674_FORCE_LEAF_0: t674_leaf0 = 1
+ TREE_674_EXCLUDE_LEAF_1: t674_leaf1 = 0
  TREE_675_ONEHOT: t675_leaf0 = 1
  TREE_675_FORCE_LEAF_0: t675_leaf0 = 1
  TREE_676_ONEHOT: t676_leaf0 + t676_leaf1 = 1
- T676_L0_f3_lt: Overall_Qual_calc + 7.000001 t676_leaf0 <= 10
- T676_R1_f3_ge: Overall_Qual_calc - 2.000001 t676_leaf1 >= 0.999999
+ TREE_676_FORCE_LEAF_1: t676_leaf1 = 1
+ TREE_676_EXCLUDE_LEAF_0: t676_leaf0 = 0
  TREE_677_ONEHOT: t677_leaf0 = 1
  TREE_677_FORCE_LEAF_0: t677_leaf0 = 1
  TREE_678_ONEHOT: t678_leaf0 + t678_leaf1 + t678_leaf2 + t678_leaf3
@@ -9635,27 +9538,26 @@ Subject To
  T678_L2_f207_lt: const_Bsmt_Exposure_Gd + 1e-06 t678_leaf2 <= 1
  T678_R2_f38_ge: x_Enclosed_Porch - 265.000001 t678_leaf2 >= -1e-06
  T678_R3_f207_fixed_off: t678_leaf3 = 0
- T678_L3_f31_lt: const_Garage_Yr_Blt + 1e-06 t678_leaf3 <= 1961
+ T678_L3_f31_fixed_off: t678_leaf3 = 0
  T678_R4_f207_fixed_off: t678_leaf4 = 0
- T678_R4_f31_fixed_off: t678_leaf4 = 0
+ T678_R4_f31_ge: const_Garage_Yr_Blt - 1e-06 t678_leaf4 >= 1960.999999
  TREE_679_ONEHOT: t679_leaf0 = 1
  TREE_679_FORCE_LEAF_0: t679_leaf0 = 1
  TREE_680_ONEHOT: t680_leaf0 + t680_leaf1 + t680_leaf2 + t680_leaf3
    + t680_leaf4 = 1
- T680_L0_f3_lt: Overall_Qual_calc + 1e-06 t680_leaf0 <= 10
+ T680_L0_f3_lt: const_Overall_Qual + 1e-06 t680_leaf0 <= 10
  T680_L0_f29_lt: const_Fireplaces + 1e-06 t680_leaf0 <= 1
  T680_L0_f20_lt: x_Gr_Liv_Area + 8205.000001 t680_leaf0 <= 10000
- T680_L1_f3_lt: Overall_Qual_calc + 1e-06 t680_leaf1 <= 10
+ T680_L1_f3_lt: const_Overall_Qual + 1e-06 t680_leaf1 <= 10
  T680_L1_f29_lt: const_Fireplaces + 1e-06 t680_leaf1 <= 1
  T680_R1_f20_ge: x_Gr_Liv_Area - 1795.000001 t680_leaf1 >= -1e-06
- T680_L2_f3_lt: Overall_Qual_calc + 1e-06 t680_leaf2 <= 10
+ T680_L2_f3_lt: const_Overall_Qual + 1e-06 t680_leaf2 <= 10
  T680_R2_f29_fixed_off: t680_leaf2 = 0
  T680_L2_f46_lt: const_MS_SubClass_30 + 1e-06 t680_leaf2 <= 1
- T680_L3_f3_lt: Overall_Qual_calc + 1e-06 t680_leaf3 <= 10
+ T680_L3_f3_lt: const_Overall_Qual + 1e-06 t680_leaf3 <= 10
  T680_R3_f29_fixed_off: t680_leaf3 = 0
  T680_R3_f46_fixed_off: t680_leaf3 = 0
- T680_R4_f3_ge: Overall_Qual_calc - 9.000000999999999 t680_leaf4
-   >= 0.999999
+ T680_R4_f3_fixed_off: t680_leaf4 = 0
  TREE_681_ONEHOT: t681_leaf0 + t681_leaf1 = 1
  TREE_681_FORCE_LEAF_0: t681_leaf0 = 1
  TREE_681_EXCLUDE_LEAF_1: t681_leaf1 = 0
@@ -9682,11 +9584,9 @@ Subject To
  TREE_686_ONEHOT: t686_leaf0 = 1
  TREE_686_FORCE_LEAF_0: t686_leaf0 = 1
  TREE_687_ONEHOT: t687_leaf0 + t687_leaf1 + t687_leaf2 = 1
- T687_L0_f3_lt: Overall_Qual_calc + 7.000001 t687_leaf0 <= 10
- T687_R1_f3_ge: Overall_Qual_calc - 2.000001 t687_leaf1 >= 0.999999
- T687_L1_f5_lt: const_Year_Built + 1e-06 t687_leaf1 <= 2005
- T687_R2_f3_ge: Overall_Qual_calc - 2.000001 t687_leaf2 >= 0.999999
- T687_R2_f5_fixed_off: t687_leaf2 = 0
+ TREE_687_FORCE_LEAF_1: t687_leaf1 = 1
+ TREE_687_EXCLUDE_LEAF_0: t687_leaf0 = 0
+ TREE_687_EXCLUDE_LEAF_2: t687_leaf2 = 0
  TREE_688_ONEHOT: t688_leaf0 = 1
  TREE_688_FORCE_LEAF_0: t688_leaf0 = 1
  TREE_689_ONEHOT: t689_leaf0 = 1
@@ -9759,14 +9659,13 @@ Subject To
  TREE_710_ONEHOT: t710_leaf0 + t710_leaf1 + t710_leaf2 + t710_leaf3 = 1
  T710_L0_f38_lt: x_Enclosed_Porch + 99982.00000099999 t710_leaf0 <= 100000
  T710_R1_f38_ge: x_Enclosed_Porch - 18.000001 t710_leaf1 >= -1e-06
- T710_L1_f297_fixed_off: t710_leaf1 = 0
+ T710_L1_f297_lt: const_Sale_Condition_Normal + 1e-06 t710_leaf1 <= 1
  T710_L1_f283_lt: const_Sale_Type_COD + 1e-06 t710_leaf1 <= 1
  T710_R2_f38_ge: x_Enclosed_Porch - 18.000001 t710_leaf2 >= -1e-06
- T710_L2_f297_fixed_off: t710_leaf2 = 0
+ T710_L2_f297_lt: const_Sale_Condition_Normal + 1e-06 t710_leaf2 <= 1
  T710_R2_f283_fixed_off: t710_leaf2 = 0
  T710_R3_f38_ge: x_Enclosed_Porch - 18.000001 t710_leaf3 >= -1e-06
- T710_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t710_leaf3
-   >= 0.999999
+ T710_R3_f297_fixed_off: t710_leaf3 = 0
  TREE_711_ONEHOT: t711_leaf0 = 1
  TREE_711_FORCE_LEAF_0: t711_leaf0 = 1
  TREE_712_ONEHOT: t712_leaf0 + t712_leaf1 + t712_leaf2 + t712_leaf3 = 1
@@ -9798,8 +9697,8 @@ Subject To
  TREE_719_ONEHOT: t719_leaf0 = 1
  TREE_719_FORCE_LEAF_0: t719_leaf0 = 1
  TREE_720_ONEHOT: t720_leaf0 + t720_leaf1 = 1
- T720_L0_f3_lt: Overall_Qual_calc + 7.000001 t720_leaf0 <= 10
- T720_R1_f3_ge: Overall_Qual_calc - 2.000001 t720_leaf1 >= 0.999999
+ TREE_720_FORCE_LEAF_1: t720_leaf1 = 1
+ TREE_720_EXCLUDE_LEAF_0: t720_leaf0 = 0
  TREE_721_ONEHOT: t721_leaf0 = 1
  TREE_721_FORCE_LEAF_0: t721_leaf0 = 1
  TREE_722_ONEHOT: t722_leaf0 = 1
@@ -9831,16 +9730,16 @@ Subject To
    + t730_leaf4 = 1
  T730_L0_f20_lt: x_Gr_Liv_Area + 9012.000001 t730_leaf0 <= 10000
  T730_R1_f20_ge: x_Gr_Liv_Area - 988.000001 t730_leaf1 >= -1e-06
- T730_L1_f6_fixed_off: t730_leaf1 = 0
+ T730_L1_f6_lt: const_Year_Remod_Add + 1e-06 t730_leaf1 <= 1972
  T730_L1_f26_lt: x_Kitchen_AbvGr + 1.000001 t730_leaf1 <= 3
  T730_R2_f20_ge: x_Gr_Liv_Area - 988.000001 t730_leaf2 >= -1e-06
- T730_L2_f6_fixed_off: t730_leaf2 = 0
+ T730_L2_f6_lt: const_Year_Remod_Add + 1e-06 t730_leaf2 <= 1972
  T730_R2_f26_ge: x_Kitchen_AbvGr - 2.000001 t730_leaf2 >= -1e-06
  T730_R3_f20_ge: x_Gr_Liv_Area - 988.000001 t730_leaf3 >= -1e-06
- T730_R3_f6_ge: const_Year_Remod_Add - 1e-06 t730_leaf3 >= 1971.999999
+ T730_R3_f6_fixed_off: t730_leaf3 = 0
  T730_L3_f7_lt: x_Mas_Vnr_Area + 1e-06 t730_leaf3 <= 788
  T730_R4_f20_ge: x_Gr_Liv_Area - 988.000001 t730_leaf4 >= -1e-06
- T730_R4_f6_ge: const_Year_Remod_Add - 1e-06 t730_leaf4 >= 1971.999999
+ T730_R4_f6_fixed_off: t730_leaf4 = 0
  T730_R4_f7_fixed_off: t730_leaf4 = 0
  TREE_731_ONEHOT: t731_leaf0 = 1
  TREE_731_FORCE_LEAF_0: t731_leaf0 = 1
@@ -9882,14 +9781,13 @@ Subject To
  T742_R3_f232_ge: central_air_yes - 1e-06 t742_leaf3 >= 0.999999
  T742_R3_f33_ge: x_Garage_Area - 270.000001 t742_leaf3 >= -1e-06
  T742_R4_f272_fixed_off: t742_leaf4 = 0
- T742_L4_f297_fixed_off: t742_leaf4 = 0
+ T742_L4_f297_lt: const_Sale_Condition_Normal + 1e-06 t742_leaf4 <= 1
  T742_L4_f37_lt: x_Open_Porch_SF + 99950.00000099999 t742_leaf4 <= 100000
  T742_R5_f272_fixed_off: t742_leaf5 = 0
- T742_L5_f297_fixed_off: t742_leaf5 = 0
+ T742_L5_f297_lt: const_Sale_Condition_Normal + 1e-06 t742_leaf5 <= 1
  T742_R5_f37_ge: x_Open_Porch_SF - 50.000001 t742_leaf5 >= -1e-06
  T742_R6_f272_fixed_off: t742_leaf6 = 0
- T742_R6_f297_ge: const_Sale_Condition_Normal - 1e-06 t742_leaf6
-   >= 0.999999
+ T742_R6_f297_fixed_off: t742_leaf6 = 0
  TREE_743_ONEHOT: t743_leaf0 = 1
  TREE_743_FORCE_LEAF_0: t743_leaf0 = 1
  TREE_744_ONEHOT: t744_leaf0 = 1
@@ -10023,10 +9921,10 @@ Subject To
  TREE_780_ONEHOT: t780_leaf0 = 1
  TREE_780_FORCE_LEAF_0: t780_leaf0 = 1
  TREE_781_ONEHOT: t781_leaf0 + t781_leaf1 + t781_leaf2 = 1
- T781_L0_f3_lt: Overall_Qual_calc + 7.000001 t781_leaf0 <= 10
- T781_R1_f3_ge: Overall_Qual_calc - 2.000001 t781_leaf1 >= 0.999999
+ T781_L0_f3_fixed_off: t781_leaf0 = 0
+ T781_R1_f3_ge: const_Overall_Qual - 1e-06 t781_leaf1 >= 2.999999
  T781_L1_f33_lt: x_Garage_Area + 99196.00000099999 t781_leaf1 <= 100000
- T781_R2_f3_ge: Overall_Qual_calc - 2.000001 t781_leaf2 >= 0.999999
+ T781_R2_f3_ge: const_Overall_Qual - 1e-06 t781_leaf2 >= 2.999999
  T781_R2_f33_ge: x_Garage_Area - 804.000001 t781_leaf2 >= -1e-06
  TREE_782_ONEHOT: t782_leaf0 = 1
  TREE_782_FORCE_LEAF_0: t782_leaf0 = 1
@@ -10036,10 +9934,10 @@ Subject To
    + t784_leaf4 = 1
  T784_L0_f15_lt: const_Total_Bsmt_SF + 1e-06 t784_leaf0 <= 2136
  T784_L0_f33_lt: x_Garage_Area + 99748.00000099999 t784_leaf0 <= 100000
- T784_L0_f3_lt: Overall_Qual_calc + 4.000001 t784_leaf0 <= 10
+ T784_L0_f3_lt: const_Overall_Qual + 1e-06 t784_leaf0 <= 6
  T784_L1_f15_lt: const_Total_Bsmt_SF + 1e-06 t784_leaf1 <= 2136
  T784_L1_f33_lt: x_Garage_Area + 99748.00000099999 t784_leaf1 <= 100000
- T784_R1_f3_ge: Overall_Qual_calc - 5.000001 t784_leaf1 >= 0.999999
+ T784_R1_f3_fixed_off: t784_leaf1 = 0
  T784_L2_f15_lt: const_Total_Bsmt_SF + 1e-06 t784_leaf2 <= 2136
  T784_R2_f33_ge: x_Garage_Area - 252.000001 t784_leaf2 >= -1e-06
  T784_L2_f62_lt: const_MS_Zoning_C_(all) + 1e-06 t784_leaf2 <= 1
@@ -10071,10 +9969,9 @@ Subject To
  T793_L1_f37_lt: x_Open_Porch_SF + 99740.00000099999 t793_leaf1 <= 100000
  T793_R1_f12_ge: x_BsmtFin_SF_1 - 1965.000001 t793_leaf1 >= -1e-06
  T793_R2_f37_ge: x_Open_Porch_SF - 260.000001 t793_leaf2 >= -1e-06
- T793_L2_f297_fixed_off: t793_leaf2 = 0
+ T793_L2_f297_lt: const_Sale_Condition_Normal + 1e-06 t793_leaf2 <= 1
  T793_R3_f37_ge: x_Open_Porch_SF - 260.000001 t793_leaf3 >= -1e-06
- T793_R3_f297_ge: const_Sale_Condition_Normal - 1e-06 t793_leaf3
-   >= 0.999999
+ T793_R3_f297_fixed_off: t793_leaf3 = 0
  TREE_794_ONEHOT: t794_leaf0 = 1
  TREE_794_FORCE_LEAF_0: t794_leaf0 = 1
  TREE_795_ONEHOT: t795_leaf0 + t795_leaf1 + t795_leaf2 + t795_leaf3
@@ -10133,10 +10030,11 @@ Subject To
    + t814_leaf4 = 1
  T814_L0_f38_lt: x_Enclosed_Porch + 99764.00000099999 t814_leaf0 <= 100000
  T814_L0_f258_lt: x_paved_drive_is_P + 1e-06 t814_leaf0 <= 1
- T814_L0_f106_lt: const_Neighborhood_No_aplicames + 1e-06 t814_leaf0 <= 1
+ T814_L0_f106_fixed_off: t814_leaf0 = 0
  T814_L1_f38_lt: x_Enclosed_Porch + 99764.00000099999 t814_leaf1 <= 100000
  T814_L1_f258_lt: x_paved_drive_is_P + 1e-06 t814_leaf1 <= 1
- T814_R1_f106_fixed_off: t814_leaf1 = 0
+ T814_R1_f106_ge: const_Neighborhood_No_aplicames - 1e-06 t814_leaf1
+   >= 0.999999
  T814_L2_f38_lt: x_Enclosed_Porch + 99764.00000099999 t814_leaf2 <= 100000
  T814_R2_f258_fixed_off: t814_leaf2 = 0
  T814_R3_f38_ge: x_Enclosed_Porch - 236.000001 t814_leaf3 >= -1e-06
@@ -10173,10 +10071,10 @@ Subject To
  TREE_826_ONEHOT: t826_leaf0 = 1
  TREE_826_FORCE_LEAF_0: t826_leaf0 = 1
  TREE_827_ONEHOT: t827_leaf0 + t827_leaf1 + t827_leaf2 + t827_leaf3 = 1
- TREE_827_FORCE_LEAF_0: t827_leaf0 = 1
+ TREE_827_FORCE_LEAF_3: t827_leaf3 = 1
+ TREE_827_EXCLUDE_LEAF_0: t827_leaf0 = 0
  TREE_827_EXCLUDE_LEAF_1: t827_leaf1 = 0
  TREE_827_EXCLUDE_LEAF_2: t827_leaf2 = 0
- TREE_827_EXCLUDE_LEAF_3: t827_leaf3 = 0
  TREE_828_ONEHOT: t828_leaf0 = 1
  TREE_828_FORCE_LEAF_0: t828_leaf0 = 1
  TREE_829_ONEHOT: t829_leaf0 + t829_leaf1 + t829_leaf2 + t829_leaf3
@@ -10199,8 +10097,8 @@ Subject To
  T831_L0_f38_lt: x_Enclosed_Porch + 99735.00000099999 t831_leaf0 <= 100000
  T831_R1_f38_ge: x_Enclosed_Porch - 265.000001 t831_leaf1 >= -1e-06
  TREE_832_ONEHOT: t832_leaf0 + t832_leaf1 = 1
- T832_L0_f3_lt: Overall_Qual_calc + 7.000001 t832_leaf0 <= 10
- T832_R1_f3_ge: Overall_Qual_calc - 2.000001 t832_leaf1 >= 0.999999
+ TREE_832_FORCE_LEAF_1: t832_leaf1 = 1
+ TREE_832_EXCLUDE_LEAF_0: t832_leaf0 = 0
  TREE_833_ONEHOT: t833_leaf0 = 1
  TREE_833_FORCE_LEAF_0: t833_leaf0 = 1
  TREE_834_ONEHOT: t834_leaf0 = 1
@@ -10275,13 +10173,15 @@ Subject To
  TREE_857_ONEHOT: t857_leaf0 = 1
  TREE_857_FORCE_LEAF_0: t857_leaf0 = 1
  TREE_858_ONEHOT: t858_leaf0 + t858_leaf1 + t858_leaf2 + t858_leaf3 = 1
- T858_L0_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t858_leaf0 <= 1
+ T858_L0_f293_fixed_off: t858_leaf0 = 0
  T858_L0_f21_lt: const_Bsmt_Full_Bath + 1e-06 t858_leaf0 <= 2
- T858_L1_f293_lt: const_Sale_Condition_Abnorml + 1e-06 t858_leaf1 <= 1
+ T858_L1_f293_fixed_off: t858_leaf1 = 0
  T858_R1_f21_fixed_off: t858_leaf1 = 0
- T858_R2_f293_fixed_off: t858_leaf2 = 0
+ T858_R2_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t858_leaf2
+   >= 0.999999
  T858_L2_f30_lt: x_Fireplace_Qu + 1.000001 t858_leaf2 <= 4
- T858_R3_f293_fixed_off: t858_leaf3 = 0
+ T858_R3_f293_ge: const_Sale_Condition_Abnorml - 1e-06 t858_leaf3
+   >= 0.999999
  T858_R3_f30_ge: x_Fireplace_Qu - 4.000001 t858_leaf3 >= -1.000001
  TREE_859_ONEHOT: t859_leaf0 = 1
  TREE_859_FORCE_LEAF_0: t859_leaf0 = 1
@@ -10356,13 +10256,13 @@ Subject To
  TREE_881_ONEHOT: t881_leaf0 + t881_leaf1 + t881_leaf2 + t881_leaf3
    + t881_leaf4 = 1
  T881_L0_f245_fixed_off: t881_leaf0 = 0
- T881_L0_f44_lt: const_Yr_Sold + 1e-06 t881_leaf0 <= 2009
+ T881_L0_f44_fixed_off: t881_leaf0 = 0
  T881_L0_f12_lt: x_BsmtFin_SF_1 + 999812.000001 t881_leaf0 <= 1e+06
  T881_L1_f245_fixed_off: t881_leaf1 = 0
- T881_L1_f44_lt: const_Yr_Sold + 1e-06 t881_leaf1 <= 2009
+ T881_L1_f44_fixed_off: t881_leaf1 = 0
  T881_R1_f12_ge: x_BsmtFin_SF_1 - 188.000001 t881_leaf1 >= -1e-06
  T881_L2_f245_fixed_off: t881_leaf2 = 0
- T881_R2_f44_fixed_off: t881_leaf2 = 0
+ T881_R2_f44_ge: const_Yr_Sold - 1e-06 t881_leaf2 >= 2008.999999
  T881_R3_f245_ge: const_FunctioNo_aplical_Typ - 1e-06 t881_leaf3
    >= 0.999999
  T881_L3_f30_lt: x_Fireplace_Qu + 4.000001 t881_leaf3 <= 4
@@ -10389,13 +10289,13 @@ Subject To
  T886_L2_f38_lt: x_Enclosed_Porch + 99922.00000099999 t886_leaf2 <= 100000
  T886_R2_f38_ge: x_Enclosed_Porch - 56.000001 t886_leaf2 >= -1e-06
  T886_R3_f38_ge: x_Enclosed_Porch - 78.000001 t886_leaf3 >= -1e-06
- T886_L3_f49_fixed_off: t886_leaf3 = 0
- T886_L3_f275_fixed_off: t886_leaf3 = 0
+ T886_L3_f49_lt: const_MS_SubClass_50 + 1e-06 t886_leaf3 <= 1
+ T886_L3_f275_lt: const_Mo_Sold_5 + 1e-06 t886_leaf3 <= 1
  T886_R4_f38_ge: x_Enclosed_Porch - 78.000001 t886_leaf4 >= -1e-06
- T886_L4_f49_fixed_off: t886_leaf4 = 0
- T886_R4_f275_ge: const_Mo_Sold_5 - 1e-06 t886_leaf4 >= 0.999999
+ T886_L4_f49_lt: const_MS_SubClass_50 + 1e-06 t886_leaf4 <= 1
+ T886_R4_f275_fixed_off: t886_leaf4 = 0
  T886_R5_f38_ge: x_Enclosed_Porch - 78.000001 t886_leaf5 >= -1e-06
- T886_R5_f49_ge: const_MS_SubClass_50 - 1e-06 t886_leaf5 >= 0.999999
+ T886_R5_f49_fixed_off: t886_leaf5 = 0
  TREE_887_ONEHOT: t887_leaf0 = 1
  TREE_887_FORCE_LEAF_0: t887_leaf0 = 1
  TREE_888_ONEHOT: t888_leaf0 + t888_leaf1 = 1
@@ -10450,14 +10350,14 @@ Subject To
  T903_R2_f15_ge: const_Total_Bsmt_SF - 1e-06 t903_leaf2 >= 482.999999
  T903_R2_f37_ge: x_Open_Porch_SF - 288.000001 t903_leaf2 >= -1e-06
  TREE_904_ONEHOT: t904_leaf0 + t904_leaf1 = 1
- T904_L0_f3_lt: Overall_Qual_calc + 7.000001 t904_leaf0 <= 10
- T904_R1_f3_ge: Overall_Qual_calc - 2.000001 t904_leaf1 >= 0.999999
+ TREE_904_FORCE_LEAF_1: t904_leaf1 = 1
+ TREE_904_EXCLUDE_LEAF_0: t904_leaf0 = 0
  TREE_905_ONEHOT: t905_leaf0 = 1
  TREE_905_FORCE_LEAF_0: t905_leaf0 = 1
  TREE_906_ONEHOT: t906_leaf0 + t906_leaf1 + t906_leaf2 = 1
- TREE_906_FORCE_LEAF_0: t906_leaf0 = 1
+ TREE_906_FORCE_LEAF_2: t906_leaf2 = 1
+ TREE_906_EXCLUDE_LEAF_0: t906_leaf0 = 0
  TREE_906_EXCLUDE_LEAF_1: t906_leaf1 = 0
- TREE_906_EXCLUDE_LEAF_2: t906_leaf2 = 0
  TREE_907_ONEHOT: t907_leaf0 = 1
  TREE_907_FORCE_LEAF_0: t907_leaf0 = 1
  TREE_908_ONEHOT: t908_leaf0 = 1
@@ -12319,39 +12219,40 @@ Subject To
    - 3461.81 x_ex2_is_Plywood - 17625 x_ex2_is_PreCast
    - 106250 x_ex2_is_Stone - 5629 x_ex2_is_Stucco - 17410 x_ex2_is_VinylSd
    - 12500 x_ex2_is_Wd_Sdng - 21900 x_ex2_is_WdShngl - 75000 x_b1_is_GLQ
-   - 53500 x_b1_is_ALQ - 23500 x_b1_is_Rec - 15000 x_b1_is_LwQ
+   - 32000 x_b1_is_BLQ - 23500 x_b1_is_Rec - 15000 x_b1_is_LwQ
    - 11250 x_b1_is_Unf - 75000 x_b2_is_GLQ - 53500 x_b2_is_ALQ
-   - 32000 x_b2_is_BLQ - 23500 x_b2_is_Rec - 15000 x_b2_is_LwQ
-   - 2211.6 x_z10_GarageArea - 5724.96 x_z20_GarageArea
-   - 10539.36 x_z30_GarageArea - 42500 kit_is_Gd - 180000 kit_is_Ex
-   - 3949.31 exterqual_is_Gd - 87366.25 exterqual_is_Ex
-   - 3949.31 extercond_is_Gd - 87366.25 extercond_is_Ex
-   - 1.21 mv_area_mvt_BrkCmn - 15 mv_area_mvt_BrkFace
-   - 22.5 mv_area_mvt_CBlock - 27.5 mv_area_mvt_Stone
-   - 10850 roof_change_mat - 10304 x_Add1stFlr - 1773 heat_is_Floor
-   - 8500 heat_is_GasW - 6300 heat_is_Grav - 5000 heat_is_OthW
-   - 3700 heat_is_Wall - 3750 heat_qc_is_Po - 5125 heat_qc_is_Fa
-   - 6500 heat_qc_is_TA - 8250 heat_qc_is_Gd - 1500 fireplace_is_Po
-   - 2000 fireplace_is_Fa - 2500 fireplace_is_TA - 3525 fireplace_is_Gd
-   - 4550 fireplace_is_Ex - 13312 bsmt_finish_all - 10750 bsmtcond_is_Gd
-   - 21500 bsmtcond_is_Ex + cost_model = 0
+   - 32000 x_b2_is_BLQ - 23500 x_b2_is_Rec - 11250 x_b2_is_Unf
+   - 5307.84 x_z10_GarageArea - 13739.904 x_z20_GarageArea
+   - 25294.464 x_z30_GarageArea - 1990.44 x_z10_WoodDeckSF
+   - 5152.464 x_z20_WoodDeckSF - 9485.423999999999 x_z30_WoodDeckSF
+   - 42500 kit_is_Gd - 180000 kit_is_Ex - 3949.31 exterqual_is_Gd
+   - 87366.25 exterqual_is_Ex - 3949.31 extercond_is_Gd
+   - 87366.25 extercond_is_Ex - 1.21 mv_area_mvt_BrkCmn
+   - 15 mv_area_mvt_BrkFace - 22.5 mv_area_mvt_CBlock
+   - 27.5 mv_area_mvt_Stone - 10850 roof_change_mat - 10304 x_Add1stFlr
+   - 1773 heat_is_Floor - 8500 heat_is_GasW - 6300 heat_is_Grav
+   - 5000 heat_is_OthW - 3700 heat_is_Wall - 3750 heat_qc_is_Po
+   - 5125 heat_qc_is_Fa - 6500 heat_qc_is_TA - 10000 heat_qc_is_Ex
+   - 1500 fireplace_is_Po - 2000 fireplace_is_Fa - 2500 fireplace_is_TA
+   - 3525 fireplace_is_Gd - 4550 fireplace_is_Ex - 5120 bsmt_finish_all
+   - 10750 bsmtcond_is_Gd - 21500 bsmtcond_is_Ex + cost_model = 0
  BUDGET: cost_model <= 18000
  NOCHG_cost_link: cost_model - 18000 z_change <= 0
  NOCHG_cost_lb: cost_model - z_change >= 0
  NOCHG_pos_Lot_Frontage: const_Lot_Frontage <= 70
  NOCHG_neg_Lot_Frontage: - const_Lot_Frontage <= -70
- NOCHG_pos_Lot_Area: const_Lot_Area <= 11767
- NOCHG_neg_Lot_Area: - const_Lot_Area <= -11767
+ NOCHG_pos_Lot_Area: const_Lot_Area <= 10500
+ NOCHG_neg_Lot_Area: - const_Lot_Area <= -10500
  NOCHG_pos_Utilities: x_Utilities <= 3
  NOCHG_neg_Utilities: - x_Utilities - 3 z_change <= -3
- NOCHG_pos_Overall_Qual: Overall_Qual_calc - 5 z_change <= 5
- NOCHG_neg_Overall_Qual: - Overall_Qual_calc - 4 z_change <= -5
+ NOCHG_pos_Overall_Qual: const_Overall_Qual <= 4
+ NOCHG_neg_Overall_Qual: - const_Overall_Qual <= -4
  NOCHG_pos_Overall_Cond: const_Overall_Cond <= 6
  NOCHG_neg_Overall_Cond: - const_Overall_Cond <= -6
- NOCHG_pos_Year_Built: const_Year_Built <= 1946
- NOCHG_neg_Year_Built: - const_Year_Built <= -1946
- NOCHG_pos_Year_Remod/Add: const_Year_Remod_Add <= 1995
- NOCHG_neg_Year_Remod/Add: - const_Year_Remod_Add <= -1995
+ NOCHG_pos_Year_Built: const_Year_Built <= 1971
+ NOCHG_neg_Year_Built: - const_Year_Built <= -1971
+ NOCHG_pos_Year_Remod/Add: const_Year_Remod_Add <= 1971
+ NOCHG_neg_Year_Remod/Add: - const_Year_Remod_Add <= -1971
  NOCHG_pos_Mas_Vnr_Area: x_Mas_Vnr_Area <= 0
  NOCHG_neg_Mas_Vnr_Area: - x_Mas_Vnr_Area <= 0
  NOCHG_pos_Exter_Qual: x_Exter_Qual - 2 z_change <= 2
@@ -12362,24 +12263,24 @@ Subject To
  NOCHG_neg_Bsmt_Qual: - const_Bsmt_Qual <= -2
  NOCHG_pos_Bsmt_Cond: x_Bsmt_Cond - 2 z_change <= 2
  NOCHG_neg_Bsmt_Cond: - x_Bsmt_Cond - 3 z_change <= -2
- NOCHG_pos_BsmtFin_SF_1: x_BsmtFin_SF_1 - 999648 z_change <= 352
- NOCHG_neg_BsmtFin_SF_1: - x_BsmtFin_SF_1 - 352 z_change <= -352
- NOCHG_pos_BsmtFin_SF_2: x_BsmtFin_SF_2 - 100000 z_change <= 0
- NOCHG_neg_BsmtFin_SF_2: - x_BsmtFin_SF_2 <= 0
- NOCHG_pos_Bsmt_Unf_SF: x_Bsmt_Unf_SF - 99584 z_change <= 416
- NOCHG_neg_Bsmt_Unf_SF: - x_Bsmt_Unf_SF - 416 z_change <= -416
- NOCHG_pos_Total_Bsmt_SF: const_Total_Bsmt_SF <= 768
- NOCHG_neg_Total_Bsmt_SF: - const_Total_Bsmt_SF <= -768
- NOCHG_pos_Heating_QC: x_Heating_QC <= 4
- NOCHG_neg_Heating_QC: - x_Heating_QC - 4 z_change <= -4
- NOCHG_pos_1st_Flr_SF: x_1st_Flr_SF - 4232 z_change <= 768
- NOCHG_neg_1st_Flr_SF: - x_1st_Flr_SF - 768 z_change <= -768
- NOCHG_pos_2nd_Flr_SF: const_2nd_Flr_SF <= 432
- NOCHG_neg_2nd_Flr_SF: - const_2nd_Flr_SF <= -432
+ NOCHG_pos_BsmtFin_SF_1: x_BsmtFin_SF_1 - 999476 z_change <= 524
+ NOCHG_neg_BsmtFin_SF_1: - x_BsmtFin_SF_1 - 524 z_change <= -524
+ NOCHG_pos_BsmtFin_SF_2: x_BsmtFin_SF_2 - 99820 z_change <= 180
+ NOCHG_neg_BsmtFin_SF_2: - x_BsmtFin_SF_2 - 180 z_change <= -180
+ NOCHG_pos_Bsmt_Unf_SF: x_Bsmt_Unf_SF - 99840 z_change <= 160
+ NOCHG_neg_Bsmt_Unf_SF: - x_Bsmt_Unf_SF - 160 z_change <= -160
+ NOCHG_pos_Total_Bsmt_SF: const_Total_Bsmt_SF <= 864
+ NOCHG_neg_Total_Bsmt_SF: - const_Total_Bsmt_SF <= -864
+ NOCHG_pos_Heating_QC: x_Heating_QC - z_change <= 3
+ NOCHG_neg_Heating_QC: - x_Heating_QC - 3 z_change <= -3
+ NOCHG_pos_1st_Flr_SF: x_1st_Flr_SF - 4136 z_change <= 864
+ NOCHG_neg_1st_Flr_SF: - x_1st_Flr_SF - 864 z_change <= -864
+ NOCHG_pos_2nd_Flr_SF: const_2nd_Flr_SF <= 0
+ NOCHG_neg_2nd_Flr_SF: - const_2nd_Flr_SF <= 0
  NOCHG_pos_Low_Qual_Fin_SF: const_Low_Qual_Fin_SF <= 0
  NOCHG_neg_Low_Qual_Fin_SF: - const_Low_Qual_Fin_SF <= 0
- NOCHG_pos_Gr_Liv_Area: x_Gr_Liv_Area - 8800 z_change <= 1200
- NOCHG_neg_Gr_Liv_Area: - x_Gr_Liv_Area - 1200 z_change <= -1200
+ NOCHG_pos_Gr_Liv_Area: x_Gr_Liv_Area - 9136 z_change <= 864
+ NOCHG_neg_Gr_Liv_Area: - x_Gr_Liv_Area - 864 z_change <= -864
  NOCHG_pos_Bsmt_Full_Bath: const_Bsmt_Full_Bath <= 0
  NOCHG_neg_Bsmt_Full_Bath: - const_Bsmt_Full_Bath <= 0
  NOCHG_pos_Bsmt_Half_Bath: const_Bsmt_Half_Bath <= 0
@@ -12388,30 +12289,30 @@ Subject To
  NOCHG_neg_Full_Bath: - x_Full_Bath - z_change <= -1
  NOCHG_pos_Half_Bath: x_Half_Bath - 5 z_change <= 0
  NOCHG_neg_Half_Bath: - x_Half_Bath <= 0
- NOCHG_pos_Bedroom_AbvGr: x_Bedroom_AbvGr - 3 z_change <= 3
- NOCHG_neg_Bedroom_AbvGr: - x_Bedroom_AbvGr - 3 z_change <= -3
+ NOCHG_pos_Bedroom_AbvGr: x_Bedroom_AbvGr - 4 z_change <= 2
+ NOCHG_neg_Bedroom_AbvGr: - x_Bedroom_AbvGr - 2 z_change <= -2
  NOCHG_pos_Kitchen_AbvGr: x_Kitchen_AbvGr - 2 z_change <= 1
  NOCHG_neg_Kitchen_AbvGr: - x_Kitchen_AbvGr - z_change <= -1
  NOCHG_pos_Kitchen_Qual: x_Kitchen_Qual - 2 z_change <= 2
  NOCHG_neg_Kitchen_Qual: - x_Kitchen_Qual - 2 z_change <= -2
- NOCHG_pos_TotRms_AbvGrd: x_TotRms_AbvGrd - 9 z_change <= 6
- NOCHG_neg_TotRms_AbvGrd: - x_TotRms_AbvGrd - 6 z_change <= -6
+ NOCHG_pos_TotRms_AbvGrd: x_TotRms_AbvGrd - 11 z_change <= 4
+ NOCHG_neg_TotRms_AbvGrd: - x_TotRms_AbvGrd - 4 z_change <= -4
  NOCHG_pos_Fireplaces: const_Fireplaces <= 0
  NOCHG_neg_Fireplaces: - const_Fireplaces <= 0
  NOCHG_pos_Fireplace_Qu: x_Fireplace_Qu - 5 z_change <= -1
  NOCHG_neg_Fireplace_Qu: - x_Fireplace_Qu <= 1
- NOCHG_pos_Garage_Yr_Blt: const_Garage_Yr_Blt <= 1946
- NOCHG_neg_Garage_Yr_Blt: - const_Garage_Yr_Blt <= -1946
- NOCHG_pos_Garage_Cars: const_Garage_Cars <= 1
- NOCHG_neg_Garage_Cars: - const_Garage_Cars <= -1
- NOCHG_pos_Garage_Area: x_Garage_Area - 99760 z_change <= 240
- NOCHG_neg_Garage_Area: - x_Garage_Area - 240 z_change <= -240
+ NOCHG_pos_Garage_Yr_Blt: const_Garage_Yr_Blt <= 1989
+ NOCHG_neg_Garage_Yr_Blt: - const_Garage_Yr_Blt <= -1989
+ NOCHG_pos_Garage_Cars: const_Garage_Cars <= 2
+ NOCHG_neg_Garage_Cars: - const_Garage_Cars <= -2
+ NOCHG_pos_Garage_Area: x_Garage_Area - 99424 z_change <= 576
+ NOCHG_neg_Garage_Area: - x_Garage_Area - 576 z_change <= -576
  NOCHG_pos_Garage_Qual: x_Garage_Qual - 2 z_change <= 2
  NOCHG_neg_Garage_Qual: - x_Garage_Qual - 3 z_change <= -2
  NOCHG_pos_Garage_Cond: x_Garage_Cond - 2 z_change <= 2
  NOCHG_neg_Garage_Cond: - x_Garage_Cond - 3 z_change <= -2
- NOCHG_pos_Wood_Deck_SF: x_Wood_Deck_SF - 100000 z_change <= 0
- NOCHG_neg_Wood_Deck_SF: - x_Wood_Deck_SF <= 0
+ NOCHG_pos_Wood_Deck_SF: x_Wood_Deck_SF - 99784 z_change <= 216
+ NOCHG_neg_Wood_Deck_SF: - x_Wood_Deck_SF - 216 z_change <= -216
  NOCHG_pos_Open_Porch_SF: x_Open_Porch_SF - 100000 z_change <= 0
  NOCHG_neg_Open_Porch_SF: - x_Open_Porch_SF <= 0
  NOCHG_pos_Enclosed_Porch: x_Enclosed_Porch - 100000 z_change <= 0
@@ -12426,18 +12327,18 @@ Subject To
  NOCHG_neg_Pool_QC: - x_Pool_QC <= 1
  NOCHG_pos_Misc_Val: const_Misc_Val <= 0
  NOCHG_neg_Misc_Val: - const_Misc_Val <= 0
- NOCHG_pos_Yr_Sold: const_Yr_Sold <= 2008
- NOCHG_neg_Yr_Sold: - const_Yr_Sold <= -2008
- NOCHG_pos_MS_SubClass_20: const_MS_SubClass_20 <= 0
- NOCHG_neg_MS_SubClass_20: - const_MS_SubClass_20 <= 0
+ NOCHG_pos_Yr_Sold: const_Yr_Sold <= 2009
+ NOCHG_neg_Yr_Sold: - const_Yr_Sold <= -2009
+ NOCHG_pos_MS_SubClass_20: const_MS_SubClass_20 <= 1
+ NOCHG_neg_MS_SubClass_20: - const_MS_SubClass_20 <= -1
  NOCHG_pos_MS_SubClass_30: const_MS_SubClass_30 <= 0
  NOCHG_neg_MS_SubClass_30: - const_MS_SubClass_30 <= 0
  NOCHG_pos_MS_SubClass_40: const_MS_SubClass_40 <= 0
  NOCHG_neg_MS_SubClass_40: - const_MS_SubClass_40 <= 0
  NOCHG_pos_MS_SubClass_45: const_MS_SubClass_45 <= 0
  NOCHG_neg_MS_SubClass_45: - const_MS_SubClass_45 <= 0
- NOCHG_pos_MS_SubClass_50: const_MS_SubClass_50 <= 1
- NOCHG_neg_MS_SubClass_50: - const_MS_SubClass_50 <= -1
+ NOCHG_pos_MS_SubClass_50: const_MS_SubClass_50 <= 0
+ NOCHG_neg_MS_SubClass_50: - const_MS_SubClass_50 <= 0
  NOCHG_pos_MS_SubClass_60: const_MS_SubClass_60 <= 0
  NOCHG_neg_MS_SubClass_60: - const_MS_SubClass_60 <= 0
  NOCHG_pos_MS_SubClass_70: const_MS_SubClass_70 <= 0
@@ -12504,12 +12405,12 @@ Subject To
  NOCHG_neg_Lot_Config_Corner: - const_Lot_Config_Corner <= 0
  NOCHG_pos_Lot_Config_CulDSac: const_Lot_Config_CulDSac <= 0
  NOCHG_neg_Lot_Config_CulDSac: - const_Lot_Config_CulDSac <= 0
- NOCHG_pos_Lot_Config_FR2: const_Lot_Config_FR2 <= 0
- NOCHG_neg_Lot_Config_FR2: - const_Lot_Config_FR2 <= 0
+ NOCHG_pos_Lot_Config_FR2: const_Lot_Config_FR2 <= 1
+ NOCHG_neg_Lot_Config_FR2: - const_Lot_Config_FR2 <= -1
  NOCHG_pos_Lot_Config_FR3: const_Lot_Config_FR3 <= 0
  NOCHG_neg_Lot_Config_FR3: - const_Lot_Config_FR3 <= 0
- NOCHG_pos_Lot_Config_Inside: const_Lot_Config_Inside <= 1
- NOCHG_neg_Lot_Config_Inside: - const_Lot_Config_Inside <= -1
+ NOCHG_pos_Lot_Config_Inside: const_Lot_Config_Inside <= 0
+ NOCHG_neg_Lot_Config_Inside: - const_Lot_Config_Inside <= 0
  NOCHG_pos_Land_Slope_Gtl: const_Land_Slope_Gtl <= 1
  NOCHG_neg_Land_Slope_Gtl: - const_Land_Slope_Gtl <= -1
  NOCHG_pos_Land_Slope_Mod: const_Land_Slope_Mod <= 0
@@ -12530,8 +12431,8 @@ Subject To
  NOCHG_neg_Neighborhood_CollgCr: - const_Neighborhood_CollgCr <= 0
  NOCHG_pos_Neighborhood_Crawfor: const_Neighborhood_Crawfor <= 0
  NOCHG_neg_Neighborhood_Crawfor: - const_Neighborhood_Crawfor <= 0
- NOCHG_pos_Neighborhood_Edwards: const_Neighborhood_Edwards <= 1
- NOCHG_neg_Neighborhood_Edwards: - const_Neighborhood_Edwards <= -1
+ NOCHG_pos_Neighborhood_Edwards: const_Neighborhood_Edwards <= 0
+ NOCHG_neg_Neighborhood_Edwards: - const_Neighborhood_Edwards <= 0
  NOCHG_pos_Neighborhood_Gilbert: const_Neighborhood_Gilbert <= 0
  NOCHG_neg_Neighborhood_Gilbert: - const_Neighborhood_Gilbert <= 0
  NOCHG_pos_Neighborhood_Greens: const_Neighborhood_Greens <= 0
@@ -12550,9 +12451,9 @@ Subject To
  NOCHG_neg_Neighborhood_NPkVill: - const_Neighborhood_NPkVill <= 0
  NOCHG_pos_Neighborhood_NWAmes: const_Neighborhood_NWAmes <= 0
  NOCHG_neg_Neighborhood_NWAmes: - const_Neighborhood_NWAmes <= 0
- NOCHG_pos_Neighborhood_No_aplicames: const_Neighborhood_No_aplicames <= 0
+ NOCHG_pos_Neighborhood_No_aplicames: const_Neighborhood_No_aplicames <= 1
  NOCHG_neg_Neighborhood_No_aplicames: - const_Neighborhood_No_aplicames
-   <= 0
+   <= -1
  NOCHG_pos_Neighborhood_NoRidge: const_Neighborhood_NoRidge <= 0
  NOCHG_neg_Neighborhood_NoRidge: - const_Neighborhood_NoRidge <= 0
  NOCHG_pos_Neighborhood_NridgHt: const_Neighborhood_NridgHt <= 0
@@ -12617,12 +12518,12 @@ Subject To
  NOCHG_neg_Bldg_Type_Twnhs: - const_Bldg_Type_Twnhs <= 0
  NOCHG_pos_Bldg_Type_TwnhsE: const_Bldg_Type_TwnhsE <= 0
  NOCHG_neg_Bldg_Type_TwnhsE: - const_Bldg_Type_TwnhsE <= 0
- NOCHG_pos_House_Style_1.5Fin: const_House_Style_1.5Fin <= 1
- NOCHG_neg_House_Style_1.5Fin: - const_House_Style_1.5Fin <= -1
+ NOCHG_pos_House_Style_1.5Fin: const_House_Style_1.5Fin <= 0
+ NOCHG_neg_House_Style_1.5Fin: - const_House_Style_1.5Fin <= 0
  NOCHG_pos_House_Style_1.5Unf: const_House_Style_1.5Unf <= 0
  NOCHG_neg_House_Style_1.5Unf: - const_House_Style_1.5Unf <= 0
- NOCHG_pos_House_Style_1Story: const_House_Style_1Story <= 0
- NOCHG_neg_House_Style_1Story: - const_House_Style_1Story <= 0
+ NOCHG_pos_House_Style_1Story: const_House_Style_1Story <= 1
+ NOCHG_neg_House_Style_1Story: - const_House_Style_1Story <= -1
  NOCHG_pos_House_Style_2.5Fin: const_House_Style_2.5Fin <= 0
  NOCHG_neg_House_Style_2.5Fin: - const_House_Style_2.5Fin <= 0
  NOCHG_pos_House_Style_2.5Unf: const_House_Style_2.5Unf <= 0
@@ -12673,12 +12574,12 @@ Subject To
  NOCHG_neg_Exterior_1st_CBlock: - x_ex1_is_CBlock <= 0
  NOCHG_pos_Exterior_1st_CemntBd: x_ex1_is_CemntBd - z_change <= 0
  NOCHG_neg_Exterior_1st_CemntBd: - x_ex1_is_CemntBd <= 0
- NOCHG_pos_Exterior_1st_HdBoard: x_ex1_is_HdBoard - z_change <= 0
- NOCHG_neg_Exterior_1st_HdBoard: - x_ex1_is_HdBoard <= 0
+ NOCHG_pos_Exterior_1st_HdBoard: x_ex1_is_HdBoard <= 1
+ NOCHG_neg_Exterior_1st_HdBoard: - x_ex1_is_HdBoard - z_change <= -1
  NOCHG_pos_Exterior_1st_ImStucc: x_ex1_is_ImStucc - z_change <= 0
  NOCHG_neg_Exterior_1st_ImStucc: - x_ex1_is_ImStucc <= 0
- NOCHG_pos_Exterior_1st_MetalSd: x_ex1_is_MetalSd <= 1
- NOCHG_neg_Exterior_1st_MetalSd: - x_ex1_is_MetalSd - z_change <= -1
+ NOCHG_pos_Exterior_1st_MetalSd: x_ex1_is_MetalSd - z_change <= 0
+ NOCHG_neg_Exterior_1st_MetalSd: - x_ex1_is_MetalSd <= 0
  NOCHG_pos_Exterior_1st_Plywood: x_ex1_is_Plywood - z_change <= 0
  NOCHG_neg_Exterior_1st_Plywood: - x_ex1_is_Plywood <= 0
  NOCHG_pos_Exterior_1st_PreCast: x_ex1_is_PreCast - z_change <= 0
@@ -12705,12 +12606,12 @@ Subject To
  NOCHG_neg_Exterior_2nd_CBlock: - x_ex2_is_CBlock <= 0
  NOCHG_pos_Exterior_2nd_CmentBd: const_Exterior_2nd_CmentBd <= 0
  NOCHG_neg_Exterior_2nd_CmentBd: - const_Exterior_2nd_CmentBd <= 0
- NOCHG_pos_Exterior_2nd_HdBoard: x_ex2_is_HdBoard - z_change <= 0
- NOCHG_neg_Exterior_2nd_HdBoard: - x_ex2_is_HdBoard <= 0
+ NOCHG_pos_Exterior_2nd_HdBoard: x_ex2_is_HdBoard <= 1
+ NOCHG_neg_Exterior_2nd_HdBoard: - x_ex2_is_HdBoard - z_change <= -1
  NOCHG_pos_Exterior_2nd_ImStucc: x_ex2_is_ImStucc - z_change <= 0
  NOCHG_neg_Exterior_2nd_ImStucc: - x_ex2_is_ImStucc <= 0
- NOCHG_pos_Exterior_2nd_MetalSd: x_ex2_is_MetalSd <= 1
- NOCHG_neg_Exterior_2nd_MetalSd: - x_ex2_is_MetalSd - z_change <= -1
+ NOCHG_pos_Exterior_2nd_MetalSd: x_ex2_is_MetalSd - z_change <= 0
+ NOCHG_neg_Exterior_2nd_MetalSd: - x_ex2_is_MetalSd <= 0
  NOCHG_pos_Exterior_2nd_Other: x_ex2_is_Other - z_change <= 0
  NOCHG_neg_Exterior_2nd_Other: - x_ex2_is_Other <= 0
  NOCHG_pos_Exterior_2nd_Plywood: x_ex2_is_Plywood - z_change <= 0
@@ -12761,10 +12662,10 @@ Subject To
  NOCHG_neg_Bsmt_Exposure_No: - const_Bsmt_Exposure_No <= -1
  NOCHG_pos_Bsmt_Exposure_No_aplica: const_Bsmt_Exposure_No_aplica <= 0
  NOCHG_neg_Bsmt_Exposure_No_aplica: - const_Bsmt_Exposure_No_aplica <= 0
- NOCHG_pos_BsmtFin_Type_1_ALQ: x_b1_is_ALQ - z_change <= 0
- NOCHG_neg_BsmtFin_Type_1_ALQ: - x_b1_is_ALQ <= 0
- NOCHG_pos_BsmtFin_Type_1_BLQ: x_b1_is_BLQ <= 1
- NOCHG_neg_BsmtFin_Type_1_BLQ: - x_b1_is_BLQ - z_change <= -1
+ NOCHG_pos_BsmtFin_Type_1_ALQ: x_b1_is_ALQ <= 1
+ NOCHG_neg_BsmtFin_Type_1_ALQ: - x_b1_is_ALQ - z_change <= -1
+ NOCHG_pos_BsmtFin_Type_1_BLQ: x_b1_is_BLQ - z_change <= 0
+ NOCHG_neg_BsmtFin_Type_1_BLQ: - x_b1_is_BLQ <= 0
  NOCHG_pos_BsmtFin_Type_1_GLQ: x_b1_is_GLQ - z_change <= 0
  NOCHG_neg_BsmtFin_Type_1_GLQ: - x_b1_is_GLQ <= 0
  NOCHG_pos_BsmtFin_Type_1_LwQ: x_b1_is_LwQ - z_change <= 0
@@ -12781,14 +12682,14 @@ Subject To
  NOCHG_neg_BsmtFin_Type_2_BLQ: - x_b2_is_BLQ <= 0
  NOCHG_pos_BsmtFin_Type_2_GLQ: x_b2_is_GLQ - z_change <= 0
  NOCHG_neg_BsmtFin_Type_2_GLQ: - x_b2_is_GLQ <= 0
- NOCHG_pos_BsmtFin_Type_2_LwQ: x_b2_is_LwQ - z_change <= 0
- NOCHG_neg_BsmtFin_Type_2_LwQ: - x_b2_is_LwQ <= 0
+ NOCHG_pos_BsmtFin_Type_2_LwQ: x_b2_is_LwQ <= 1
+ NOCHG_neg_BsmtFin_Type_2_LwQ: - x_b2_is_LwQ - z_change <= -1
  NOCHG_pos_BsmtFin_Type_2_No_aplica: const_BsmtFin_Type_2_No_aplica <= 0
  NOCHG_neg_BsmtFin_Type_2_No_aplica: - const_BsmtFin_Type_2_No_aplica <= 0
  NOCHG_pos_BsmtFin_Type_2_Rec: x_b2_is_Rec - z_change <= 0
  NOCHG_neg_BsmtFin_Type_2_Rec: - x_b2_is_Rec <= 0
- NOCHG_pos_BsmtFin_Type_2_Unf: x_b2_is_Unf <= 1
- NOCHG_neg_BsmtFin_Type_2_Unf: - x_b2_is_Unf - z_change <= -1
+ NOCHG_pos_BsmtFin_Type_2_Unf: x_b2_is_Unf - z_change <= 0
+ NOCHG_neg_BsmtFin_Type_2_Unf: - x_b2_is_Unf <= 0
  NOCHG_pos_Heating_Floor: heat_is_Floor <= 0
  NOCHG_neg_Heating_Floor: - heat_is_Floor <= 0
  NOCHG_pos_Heating_GasA: heat_is_GasA <= 1
@@ -12885,12 +12786,12 @@ Subject To
  NOCHG_neg_Mo_Sold_1: - const_Mo_Sold_1 <= 0
  NOCHG_pos_Mo_Sold_2: const_Mo_Sold_2 <= 0
  NOCHG_neg_Mo_Sold_2: - const_Mo_Sold_2 <= 0
- NOCHG_pos_Mo_Sold_3: const_Mo_Sold_3 <= 0
- NOCHG_neg_Mo_Sold_3: - const_Mo_Sold_3 <= 0
+ NOCHG_pos_Mo_Sold_3: const_Mo_Sold_3 <= 1
+ NOCHG_neg_Mo_Sold_3: - const_Mo_Sold_3 <= -1
  NOCHG_pos_Mo_Sold_4: const_Mo_Sold_4 <= 0
  NOCHG_neg_Mo_Sold_4: - const_Mo_Sold_4 <= 0
- NOCHG_pos_Mo_Sold_5: const_Mo_Sold_5 <= 1
- NOCHG_neg_Mo_Sold_5: - const_Mo_Sold_5 <= -1
+ NOCHG_pos_Mo_Sold_5: const_Mo_Sold_5 <= 0
+ NOCHG_neg_Mo_Sold_5: - const_Mo_Sold_5 <= 0
  NOCHG_pos_Mo_Sold_6: const_Mo_Sold_6 <= 0
  NOCHG_neg_Mo_Sold_6: - const_Mo_Sold_6 <= 0
  NOCHG_pos_Mo_Sold_7: const_Mo_Sold_7 <= 0
@@ -12925,22 +12826,22 @@ Subject To
  NOCHG_neg_Sale_Type_VWD: - const_Sale_Type_VWD <= 0
  NOCHG_pos_Sale_Type_WD_: const_Sale_Type_WD_ <= 1
  NOCHG_neg_Sale_Type_WD_: - const_Sale_Type_WD_ <= -1
- NOCHG_pos_Sale_Condition_Abnorml: const_Sale_Condition_Abnorml <= 0
- NOCHG_neg_Sale_Condition_Abnorml: - const_Sale_Condition_Abnorml <= 0
+ NOCHG_pos_Sale_Condition_Abnorml: const_Sale_Condition_Abnorml <= 1
+ NOCHG_neg_Sale_Condition_Abnorml: - const_Sale_Condition_Abnorml <= -1
  NOCHG_pos_Sale_Condition_AdjLand: const_Sale_Condition_AdjLand <= 0
  NOCHG_neg_Sale_Condition_AdjLand: - const_Sale_Condition_AdjLand <= 0
  NOCHG_pos_Sale_Condition_Alloca: const_Sale_Condition_Alloca <= 0
  NOCHG_neg_Sale_Condition_Alloca: - const_Sale_Condition_Alloca <= 0
  NOCHG_pos_Sale_Condition_Family: const_Sale_Condition_Family <= 0
  NOCHG_neg_Sale_Condition_Family: - const_Sale_Condition_Family <= 0
- NOCHG_pos_Sale_Condition_Normal: const_Sale_Condition_Normal <= 1
- NOCHG_neg_Sale_Condition_Normal: - const_Sale_Condition_Normal <= -1
+ NOCHG_pos_Sale_Condition_Normal: const_Sale_Condition_Normal <= 0
+ NOCHG_neg_Sale_Condition_Normal: - const_Sale_Condition_Normal <= 0
  NOCHG_pos_Sale_Condition_Partial: const_Sale_Condition_Partial <= 0
  NOCHG_neg_Sale_Condition_Partial: - const_Sale_Condition_Partial <= 0
- NOCHG_price_pos: y_price - 2e+06 z_change <= 188106.46875
- NOCHG_price_neg: - y_price - 2e+06 z_change <= -188106.46875
- MIN_PRICE_BASE: y_price >= 188106.468749
- NO_NEGATIVE_ROI: y_price - cost_model >= 188106.468749
+ NOCHG_price_pos: y_price - 2e+06 z_change <= 155881.328125
+ NOCHG_price_neg: - y_price - 2e+06 z_change <= -155881.328125
+ MIN_PRICE_BASE: y_price >= 155881.328124
+ NO_NEGATIVE_ROI: y_price - cost_model >= 155881.328124
 Bounds
  x_Bedroom_AbvGr <= 6
  x_Full_Bath <= 4
@@ -12986,7 +12887,6 @@ Bounds
  x_paved_drive_is_Y = 1
  x_paved_drive_is_P = 0
  x_paved_drive_is_N = 0
- 1 <= Overall_Qual_float <= 10
  1 <= Overall_Qual_calc <= 10
  kit_is_Po = 0
  kit_is_Fa = 0
@@ -13026,26 +12926,27 @@ Bounds
  util_NoSewr = 0
  R8_other_rooms <= 15
  const_Lot_Frontage = 70
- const_Lot_Area = 11767
+ const_Lot_Area = 10500
+ const_Overall_Qual = 4
  const_Overall_Cond = 6
- const_Year_Built = 1946
- const_Year_Remod_Add = 1995
+ const_Year_Built = 1971
+ const_Year_Remod_Add = 1971
  const_Bsmt_Qual = 2
- const_Total_Bsmt_SF = 768
- const_2nd_Flr_SF = 432
+ const_Total_Bsmt_SF = 864
+ const_2nd_Flr_SF = 0
  const_Low_Qual_Fin_SF = 0
  const_Bsmt_Full_Bath = 0
  const_Bsmt_Half_Bath = 0
  const_Fireplaces = 0
- const_Garage_Yr_Blt = 1946
- const_Garage_Cars = 1
+ const_Garage_Yr_Blt = 1989
+ const_Garage_Cars = 2
  const_Misc_Val = 0
- const_Yr_Sold = 2008
- const_MS_SubClass_20 = 0
+ const_Yr_Sold = 2009
+ const_MS_SubClass_20 = 1
  const_MS_SubClass_30 = 0
  const_MS_SubClass_40 = 0
  const_MS_SubClass_45 = 0
- const_MS_SubClass_50 = 1
+ const_MS_SubClass_50 = 0
  const_MS_SubClass_60 = 0
  const_MS_SubClass_70 = 0
  const_MS_SubClass_75 = 0
@@ -13079,9 +12980,9 @@ Bounds
  const_Land_Contour_Lvl = 1
  const_Lot_Config_Corner = 0
  const_Lot_Config_CulDSac = 0
- const_Lot_Config_FR2 = 0
+ const_Lot_Config_FR2 = 1
  const_Lot_Config_FR3 = 0
- const_Lot_Config_Inside = 1
+ const_Lot_Config_Inside = 0
  const_Land_Slope_Gtl = 1
  const_Land_Slope_Mod = 0
  const_Land_Slope_Sev = 0
@@ -13092,7 +12993,7 @@ Bounds
  const_Neighborhood_ClearCr = 0
  const_Neighborhood_CollgCr = 0
  const_Neighborhood_Crawfor = 0
- const_Neighborhood_Edwards = 1
+ const_Neighborhood_Edwards = 0
  const_Neighborhood_Gilbert = 0
  const_Neighborhood_Greens = 0
  const_Neighborhood_GrnHill = 0
@@ -13102,7 +13003,7 @@ Bounds
  const_Neighborhood_Mitchel = 0
  const_Neighborhood_NPkVill = 0
  const_Neighborhood_NWAmes = 0
- const_Neighborhood_No_aplicames = 0
+ const_Neighborhood_No_aplicames = 1
  const_Neighborhood_NoRidge = 0
  const_Neighborhood_NridgHt = 0
  const_Neighborhood_OldTown = 0
@@ -13135,9 +13036,9 @@ Bounds
  const_Bldg_Type_Duplex = 0
  const_Bldg_Type_Twnhs = 0
  const_Bldg_Type_TwnhsE = 0
- const_House_Style_1.5Fin = 1
+ const_House_Style_1.5Fin = 0
  const_House_Style_1.5Unf = 0
- const_House_Style_1Story = 0
+ const_House_Style_1Story = 1
  const_House_Style_2.5Fin = 0
  const_House_Style_2.5Unf = 0
  const_House_Style_2Story = 0
@@ -13193,9 +13094,9 @@ Bounds
  const_Misc_Feature_TenC = 0
  const_Mo_Sold_1 = 0
  const_Mo_Sold_2 = 0
- const_Mo_Sold_3 = 0
+ const_Mo_Sold_3 = 1
  const_Mo_Sold_4 = 0
- const_Mo_Sold_5 = 1
+ const_Mo_Sold_5 = 0
  const_Mo_Sold_6 = 0
  const_Mo_Sold_7 = 0
  const_Mo_Sold_8 = 0
@@ -13213,11 +13114,11 @@ Bounds
  const_Sale_Type_Oth = 0
  const_Sale_Type_VWD = 0
  const_Sale_Type_WD_ = 1
- const_Sale_Condition_Abnorml = 0
+ const_Sale_Condition_Abnorml = 1
  const_Sale_Condition_AdjLand = 0
  const_Sale_Condition_Alloca = 0
  const_Sale_Condition_Family = 0
- const_Sale_Condition_Normal = 1
+ const_Sale_Condition_Normal = 0
  const_Sale_Condition_Partial = 0
  y_log_raw free
  y_log free

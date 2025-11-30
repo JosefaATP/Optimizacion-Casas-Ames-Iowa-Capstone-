@@ -28,6 +28,7 @@ from optimization.remodel.io import get_base_house
 from optimization.remodel import costs
 from optimization.remodel.xgb_predictor import XGBBundle
 from optimization.remodel.gurobi_model import build_mip_embed
+from optimization.remodel.regression_predictor import RegressionPredictor
 from optimization.remodel.features import MODIFIABLE
 
 from shutil import get_terminal_size
@@ -433,6 +434,17 @@ def main():
     # ===== precio base en el espacio del pipeline =====
     X_base = build_base_input_row(bundle, base_row)
     precio_base = float(bundle.predict(X_base).iloc[0])
+    
+    # ===== precio base con regresión lineal =====
+    precio_base_lineal = None
+    try:
+        reg_pred = RegressionPredictor()
+        pred_result = reg_pred.predict(X_base)
+        # RegressionPredictor.predict retorna float directamente
+        precio_base_lineal = float(pred_result) if not isinstance(pred_result, pd.DataFrame) else float(pred_result.iloc[0])
+    except Exception as e:
+        print(f"[WARN] No se pudo cargar modelo lineal: {e}")
+    
     #print("log1p(y_base) =", np.log1p(y_base))
 
     if args.debug_xgb:
@@ -1039,6 +1051,23 @@ def main():
     # ========= Lectura segura de solución =========
     precio_opt_var  = getattr(m, "_y_price_var", None)
     precio_opt      = float(precio_opt_var.X) if precio_opt_var is not None else None
+    
+    # ===== precio óptimo con regresión lineal =====
+    precio_opt_lineal = None
+    if hasattr(m, "_X_input") and precio_base_lineal is not None:
+        try:
+            X_opt = m._X_input.copy()
+            # Extraer valores de variables de Gurobi si es necesario
+            for col in X_opt.columns:
+                if hasattr(X_opt.loc[0, col], 'X'):  # Es una variable de Gurobi
+                    X_opt.loc[0, col] = float(X_opt.loc[0, col].X)
+            reg_pred = RegressionPredictor()
+            pred_result = reg_pred.predict(X_opt)
+            # RegressionPredictor.predict retorna float directamente
+            precio_opt_lineal = float(pred_result) if not isinstance(pred_result, pd.DataFrame) else float(pred_result.iloc[0])
+        except Exception as e:
+            print(f"[WARN] No se pudo predecir precio óptimo con lineal: {e}")
+    
     total_cost_var  = m.getVarByName("cost_model")
     if total_cost_var is not None:
         total_cost_model = float(total_cost_var.X)
@@ -1053,6 +1082,10 @@ def main():
 
     budget_usd      = float(getattr(m, "_budget_usd", args.budget))
     budget_slack    = budget_usd - total_cost_model
+
+    # Guardar predicciones lineales como atributos del modelo (para acceso en benchmark)
+    m._precio_base_lineal = precio_base_lineal
+    m._precio_opt_lineal = precio_opt_lineal
 
     # Métricas
     delta_precio = utilidad_incremental = None
@@ -1072,6 +1105,13 @@ def main():
         share_final_pct = _pct((precio_opt - precio_base), precio_opt)
         uplift_base_pct = _pct((precio_opt - precio_base), precio_base)
         roi_pct         = _pct(utilidad_incremental, total_cost_model)
+        
+        # ========= LÓGICA DE ROI NEGATIVO =========
+        # Si ROI < 0, mensaje "No conviene hacer cambios" pero reporta el valor real
+        if roi_pct is not None and roi_pct < 0:
+            no_changes_recommended = True
+        else:
+            no_changes_recommended = False
 
     # ========= Reporte de cambios (resumen compacto) =========
     cambios_costos: list[tuple[str, object, object, float | None]] = []
@@ -1622,7 +1662,11 @@ def main():
 
     print(" **Resumen Económico**")
     print(f"  Precio casa base:        ${precio_base:,.0f}")
+    if precio_base_lineal is not None:
+        print(f"  Precio base (lineal):    ${precio_base_lineal:,.0f}")
     print(f"  Precio casa remodelada:  ${precio_opt:,.0f}"      if precio_opt is not None else "  Precio casa remodelada:  N/A")
+    if precio_opt_lineal is not None:
+        print(f"  Precio óptimo (lineal):  ${precio_opt_lineal:,.0f}")
     print(f"  Δ Precio:                ${delta_precio:,.0f}"    if delta_precio is not None else "  Δ Precio:                N/A")
     print(f"  Costos totales (modelo): ${total_cost_model:,.0f}")
 
@@ -1641,6 +1685,9 @@ def main():
         print(f"  ROI (Δ neto $):          ${utilidad_incremental:,.0f}")
     if roi_pct is not None:
         print(f"  ROI %:                   {roi_pct:.0f}%")
+    if no_changes_recommended:
+        print(f"\n  ⚠️  NO TE CONVIENE HACER CAMBIOS EN TU CASA")
+        print(f"      El presupuesto es insuficiente para obtener ganancias")
     print(f"  Slack presupuesto:       ${budget_slack:,.2f}")
 
     # Calidad global y calidades clave

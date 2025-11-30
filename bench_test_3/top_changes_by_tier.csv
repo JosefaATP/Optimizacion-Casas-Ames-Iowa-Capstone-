@@ -1,0 +1,31 @@
+tier,change,count
+low,Exter Qual,3
+low,Exterior 1st_Plywood,3
+low,Exterior 2nd_Plywood,3
+low,Mas Vnr Type_NoAplica,3
+low,BsmtFin Type 2_Unf,2
+low,Enclosed Porch,1
+low,Exterior 1st_MetalSd,1
+low,Exterior 2nd_MetalSd,1
+low,Exterior 1st_HdBoard,1
+low,Exterior 2nd_HdBoard,1
+mid,Exter Qual,3
+mid,Exterior 2nd_Plywood,3
+mid,Mas Vnr Type_NoAplica,3
+mid,Exterior 1st_Plywood,2
+mid,BsmtFin Type 2_Unf,2
+mid,Enclosed Porch,1
+mid,Exterior 1st_MetalSd,1
+mid,Exterior 2nd_MetalSd,1
+mid,Exterior 1st_HdBoard,1
+mid,Exterior 2nd_HdBoard,1
+high,Exter Qual,3
+high,Exterior 2nd_Plywood,3
+high,Mas Vnr Type_NoAplica,3
+high,Exterior 1st_Plywood,2
+high,BsmtFin Type 2_Unf,2
+high,Enclosed Porch,1
+high,Exterior 1st_MetalSd,1
+high,Exterior 2nd_MetalSd,1
+high,Exterior 1st_HdBoard,1
+high,Exterior 2nd_HdBoard,1

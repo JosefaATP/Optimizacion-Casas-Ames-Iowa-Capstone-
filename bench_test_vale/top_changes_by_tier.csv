@@ -1,0 +1,27 @@
+tier,change,count
+low,Exter Qual,20
+low,Overall Qual,10
+low,Exterior 1st,10
+low,Exterior 2nd,10
+low,Garage Cond,2
+low,Enclosed Porch +10%,1
+low,Basement finish (ft²),1
+low,Garage Qual,1
+mid,Exter Qual,20
+mid,Overall Qual,10
+mid,Exterior 1st,10
+mid,Exterior 2nd,10
+mid,Garage Cond,2
+mid,Enclosed Porch +10%,1
+mid,Basement finish (ft²),1
+mid,Open Porch SF +20%,1
+mid,Garage Qual,1
+high,Exter Qual,20
+high,Overall Qual,10
+high,Exterior 1st,10
+high,Exterior 2nd,10
+high,Garage Cond,2
+high,Enclosed Porch +10%,1
+high,Basement finish (ft²),1
+high,Open Porch SF +20%,1
+high,Garage Qual,1
