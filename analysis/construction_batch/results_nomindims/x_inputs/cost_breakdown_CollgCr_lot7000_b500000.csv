@@ -1,0 +1,104 @@
+var,coef,value,contrib
+Remainder1 @construction,230.0,224.5,51635.0
+Remainder2 @construction,230.0,0.0,0.0
+AreaOther1 @construction,230.0,269.4,61961.99999999999
+AreaOther2 @construction,230.0,0.0,0.0
+Bsmt Unf SF @construction,230.0,0.0,0.0
+BsmtFin SF 1 @finish,15.0,770.0,11550.0
+BsmtFin SF 2 @finish,15.0,11.0,165.0
+Wood Deck SF,50.0,0.0,0.0
+Open Porch SF,77.5,0.0,0.0
+Enclosed Porch,80.0,0.0,0.0
+3Ssn Porch,157.5,0.0,0.0
+Screen Porch,72.5,162.0,11745.0
+Pool TA,70.4,0.0,0.0
+Pool Gd,80.96000000000001,0.0,0.0
+Pool Ex,88.0,0.0,0.0
+Garage TA,54.0,0.0,0.0
+Garage Gd,57.599999999999994,0.0,0.0
+Garage Ex,60.0,450.0,27000.0
+FA BrkTil,22.0,0.0,0.0
+FA CBlock,12.0,0.0,0.0
+FA PConc,10.0,898.0,8980.0
+FA Slab,10.0,0.0,0.0
+FA Stone,23.5,0.0,0.0
+FA Wood,40.0,0.0,0.0
+RoofMatl ClyTile,17352.0,-0.0,-0.0
+RoofMatl CompShg,20000.0,0.0,0.0
+RoofMatl Membran,8011.95,-0.0,-0.0
+RoofMatl Metal,11739.0,-0.0,-0.0
+RoofMatl Roll,7600.0,1.0,7600.0
+RoofMatl Tar&Grv,8550.0,0.0,0.0
+RoofMatl WdShake,22500.0,-0.0,-0.0
+RoofMatl WdShngl,19500.0,-0.0,-0.0
+Heating Floor,1773.0,0.0,0.0
+Heating GasA,5750.0,1.0,5750.0
+Heating GasW,8500.0,0.0,0.0
+Heating Grav,6300.0,0.0,0.0
+Heating OthW,5000.0,0.0,0.0
+Heating Wall,3700.0,0.0,0.0
+CentralAir Install,5362.0,1.0,5362.0
+Electrical FuseP,850.0,0.0,0.0
+Electrical FuseF,1675.0,0.0,0.0
+Electrical FuseA,2500.0,0.0,0.0
+Electrical Mix,1075.0,0.0,0.0
+Electrical SBrkr,1587.5,1.0,1587.5
+PavedDrive Y,4.0,1.0,4.0
+PavedDrive P,5.0,0.0,0.0
+PavedDrive N,1.0,0.0,0.0
+MasVnr BrkCmn,1.21,673.0,814.3299999999999
+MasVnr BrkFace,15.0,0.0,0.0
+MasVnr CBlock,22.5,0.0,0.0
+MasVnr Stone,27.5,0.0,0.0
+Exterior1st AsbShng,19000.0,0.0,0.0
+Exterior1st AsphShn,22500.0,-0.0,-0.0
+Exterior1st BrkComm,26000.0,-0.0,-0.0
+Exterior1st BrkFace,22000.0,1.0,22000.0
+Exterior1st CBlock,10300.0,-0.0,-0.0
+Exterior1st CemntBd,14674.0,-0.0,-0.0
+Exterior1st HdBoard,21300.0,-0.0,-0.0
+Exterior1st ImStucc,16500.0,-0.0,-0.0
+Exterior1st MetalSd,9600.0,-0.0,-0.0
+Exterior1st Plywood,8461.81,-0.0,-0.0
+Exterior1st Stone,50216.5,-0.0,-0.0
+Exterior1st Stucco,5629.0,-0.0,-0.0
+Exterior1st VinylSd,12500.0,-0.0,-0.0
+Exterior1st Wd Sdng,12500.0,-0.0,-0.0
+Exterior1st WdShngl,21900.0,-0.0,-0.0
+Exterior2nd AsbShng,19000.0,0.0,0.0
+Exterior2nd AsphShn,22500.0,-0.0,-0.0
+Exterior2nd BrkComm,26000.0,-0.0,-0.0
+Exterior2nd BrkFace,22000.0,0.0,0.0
+Exterior2nd CBlock,10300.0,-0.0,-0.0
+Exterior2nd CemntBd,14674.0,-0.0,-0.0
+Exterior2nd HdBoard,21300.0,0.0,0.0
+Exterior2nd ImStucc,16500.0,-0.0,-0.0
+Exterior2nd MetalSd,9600.0,0.0,0.0
+Exterior2nd Plywood,8461.81,-0.0,-0.0
+Exterior2nd Stone,50216.5,-0.0,-0.0
+Exterior2nd Stucco,5629.0,1.0,5629.0
+Exterior2nd VinylSd,12500.0,-0.0,-0.0
+Exterior2nd Wd Sdng,12500.0,0.0,0.0
+Exterior2nd WdShngl,21900.0,-0.0,-0.0
+GarageFinish Fin,24038.0,0.0,0.0
+GarageFinish RFn,20769.0,1.0,20769.0
+GarageFinish Unf,17500.0,0.0,0.0
+Utilities AllPub,31750.0,1.0,31750.0
+HeatingQC TA,6500.0,0.0,0.0
+HeatingQC Gd,8250.0,1.0,8250.0
+HeatingQC Ex,10000.0,-0.0,-0.0
+ExterQual TA,18883.75,-0.0,-0.0
+ExterQual Gd,22833.06,1.0,22833.06
+ExterQual Ex,106250.0,-0.0,-0.0
+Fireplace TA,2500.0,1.0,2500.0
+Fireplace Gd,3525.0,0.0,0.0
+Fireplace Ex,4550.0,0.0,0.0
+AreaKitchen,200.0,300.0,60000.0
+AreaFullBath,500.0,3.0,1500.0
+AreaHalfBath,500.0,1.0,500.0
+AreaBedroom,325.0,100.1,32532.499999999996
+MiscFeature Elev,48000.0,-0.0,-0.0
+MiscFeature Gar2,32100.0,-0.0,-0.0
+MiscFeature Othr,50000.0,-0.0,-0.0
+MiscFeature Shed,5631.0,-0.0,-0.0
+MiscFeature TenC,15774.0,-0.0,-0.0

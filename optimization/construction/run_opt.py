@@ -430,6 +430,7 @@ def main():
     ap.add_argument("--tag", type=str, default=None, help="Etiqueta opcional para identificar la corrida (se guarda en el CSV)")
     ap.add_argument("--xinput-outdir", type=str, default=None,
                     help="Si se define, guarda el vector completo de features optimizadas (X_input) en esta carpeta.")
+    ap.add_argument("--no-min-dims", action="store_true", help="Desactiva mínimos de áreas/piezas (uso exploratorio).")
     args = ap.parse_args()
 
     reg_model = None
@@ -525,6 +526,7 @@ def main():
             pass
 
     ct = costs.CostTables()
+    ct.enforce_min_dims = not args.no_min_dims
     if args.xgbdir:
         from pathlib import Path
         model_path = Path(args.xgbdir) / "model_xgb.joblib"
@@ -750,11 +752,42 @@ def main():
             outdir = pathlib.Path(args.xinput_outdir)
             outdir.mkdir(parents=True, exist_ok=True)
             opt_df = materialize_optimal_input_df(m)
+            # helper para costos por variable
+            def _cost_breakdown(model):
+                # 1) lineal si existe _lin_cost_expr
+                expr = getattr(model, "_lin_cost_expr", None)
+                rows = []
+                if expr is not None:
+                    try:
+                        vs = expr.getVars(); cs = expr.getCoeffs()
+                        Xv = model.getAttr("X", vs)
+                        for v, c, x in zip(vs, cs, Xv):
+                            try:
+                                rows.append({"var": v.VarName, "coef": float(c), "value": float(x), "contrib": float(c) * float(x)})
+                            except Exception:
+                                continue
+                    except Exception:
+                        pass
+                # 2) fallback: _cost_terms (label, coef, var)
+                if not rows:
+                    terms = getattr(model, "_cost_terms", [])
+                    for label, coef, var in terms:
+                        try:
+                            xv = var.X if hasattr(var, "X") else float(var)
+                            rows.append({"var": str(label), "coef": float(coef), "value": float(xv), "contrib": float(coef) * float(xv)})
+                        except Exception:
+                            continue
+                return pd.DataFrame(rows) if rows else None
+
             if opt_df is not None:
                 neigh_label = str(base_row.get("Neighborhood", args.neigh or "NA")).replace(" ", "_")
                 lot_label = int(base_row.get("LotArea", args.lot or 0.0)) if base_row.get("LotArea", None) is not None else 0
                 fname = f"x_input_{neigh_label}_lot{lot_label}_b{int(args.budget)}.csv"
                 opt_df.to_csv(outdir / fname, index=False)
+                cost_df = _cost_breakdown(m)
+                if cost_df is not None:
+                    cost_fname = f"cost_breakdown_{neigh_label}_lot{lot_label}_b{int(args.budget)}.csv"
+                    cost_df.to_csv(outdir / cost_fname, index=False)
         except Exception as e:
             print(f"[WARN] No se pudo exportar X_input completo: {e}")
 

@@ -686,6 +686,7 @@ def _build_cost_expr(m, x, ct):
 
 def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Model:
     m = gp.Model("construction_embed")
+    enforce_min_dims = bool(getattr(ct, "enforce_min_dims", True))
 
     lot_area = float(base_row.get("Lot Area", getattr(ct, "lot_area", 7000)))
     lot_frontage = float(base_row.get("Lot Frontage", getattr(ct, "lot_frontage_ft", 60)))
@@ -954,15 +955,17 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
     m.addConstr(AreaKitchen  == AreaKitchen1  + AreaKitchen2,  name="11.3__AKitchen")
     m.addConstr(AreaBedroom  == AreaBedroom1  + AreaBedroom2,  name="11.3__ABedroom")
     m.addConstr(AreaOther    == AreaOther1    + AreaOther2,    name="7.22.1__AreaOther_sum")
-    m.addConstr(FullBath1 >= 1, name="7.1.6__fullbath_1min")
-    m.addConstr(Kitchen1 >= 1, name="7.1.7__kitchen_1min")
+    if enforce_min_dims:
+        m.addConstr(FullBath1 >= 1, name="7.1.6__fullbath_1min")
+        m.addConstr(Kitchen1 >= 1, name="7.1.7__kitchen_1min")
 
     eps1 = getattr(ct, "eps_floor_min_first", 450)
     eps2 = getattr(ct, "eps_floor_min_second", 350)
     if x1 is not None and x2 is not None:
         m.addConstr(x2 <= getattr(ct, "M2ndFlrSF_max", 0.5 * lot_area) * Floor2, name="7.1.8__2nd_max")
-        m.addConstr(x2 >= eps2 * Floor2, name="7.1.8__2nd_min_if_on")
-        m.addConstr(x1 >= eps1 * Floor1, name="7.1.8__1st_min_if_on")
+        if enforce_min_dims:
+            m.addConstr(x2 >= eps2 * Floor2, name="7.1.8__2nd_min_if_on")
+            m.addConstr(x1 >= eps1 * Floor1, name="7.1.8__1st_min_if_on")
 
     # 7.2 conteos totales
     FullBath  = m.addVar(vtype=GRB.INTEGER, lb=0, name="FullBath")
@@ -1035,7 +1038,7 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         eps_map = getattr(ct, "eps1_by_bldg", None)
     except Exception:
         eps_map = None
-    if eps_map and x1 is not None:
+    if eps_map and x1 is not None and enforce_min_dims:
         try:
             m.addConstr(
                 x1 >= gp.quicksum(float(eps_map.get(b, 450.0)) * Bldg[b] for b in bldg_opts) * Floor1,
@@ -1472,8 +1475,9 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
         m.addConstr(tbsmt <= U_bsmt * (1 - EXP["NA"]), name="7.18__bsmt_cap_if_not_na")
     m.addConstr(BsmtFinSF1 <= U_bsmt * phi1, name="7.18__sf1_cap_by_type")
     m.addConstr(BsmtFinSF2 <= U_bsmt * phi2, name="7.18__sf2_cap_by_type")
-    m.addConstr(BsmtFinSF1 >= Af_min * psi1, name="7.18__sf1_min_if_real")
-    m.addConstr(BsmtFinSF2 >= Af_min * psi2, name="7.18__sf2_min_if_real")
+    if enforce_min_dims:
+        m.addConstr(BsmtFinSF1 >= Af_min * psi1, name="7.18__sf1_min_if_real")
+        m.addConstr(BsmtFinSF2 >= Af_min * psi2, name="7.18__sf2_min_if_real")
     m.addConstr(BsmtFullBath <= UbF * (psi1 + psi2), name="7.18__bsmt_fullbath_if_real")
     m.addConstr(BsmtHalfBath <= UbH * (psi1 + psi2), name="7.18__bsmt_halfbath_if_real")
     m.addConstr(BsmtFinSF1 <= U_bsmt * (1 - EXP["NA"]), name="7.18__sf1_off_if_na")
@@ -1491,10 +1495,16 @@ def build_mip_embed(*, base_row, budget: float, ct, bundle: XGBBundle) -> gp.Mod
 
     # min areas por cuenta para evitar cuartos fantasma
     # 11.20 Áreas mínimas por ambiente (alineado con PDF)
-    m.addConstr(AreaFullBath >= 32 * FullBath,  name="11.20__min_area_full_bath") #cambios de 20% original 40
-    m.addConstr(AreaHalfBath >= 20 * HalfBath,  name="11.20__min_area_half_bath")
-    m.addConstr(AreaKitchen  >= 75 * Kitchen,   name="11.20__min_area_kitchen")
-    m.addConstr(AreaBedroom  >= 70 * Bedrooms,  name="11.20__min_area_bedroom")
+    if enforce_min_dims:
+        m.addConstr(AreaFullBath >= 32 * FullBath,  name="11.20__min_area_full_bath") #cambios de 20% original 40
+        m.addConstr(AreaHalfBath >= 20 * HalfBath,  name="11.20__min_area_half_bath")
+        m.addConstr(AreaKitchen  >= 75 * Kitchen,   name="11.20__min_area_kitchen")
+        m.addConstr(AreaBedroom  >= 70 * Bedrooms,  name="11.20__min_area_bedroom")
+    # Guard-rails mínimos (aunque se desactiven los mins) para evitar áreas cero
+    m.addConstr(AreaBedroom  >= 1.0 * Bedrooms,  name="11.20__min_area_bedroom_floor")
+    m.addConstr(AreaFullBath >= 1.0 * FullBath,  name="11.20__min_area_fullbath_floor")
+    m.addConstr(AreaHalfBath >= 1.0 * HalfBath,  name="11.20__min_area_halfbath_floor")
+    m.addConstr(AreaKitchen  >= 1.0 * Kitchen,   name="11.20__min_area_kitchen_floor")
 
     # la suma de areas funcionales no puede pasar el total de 1ro+2do piso
     if x1 is not None and x2 is not None:
