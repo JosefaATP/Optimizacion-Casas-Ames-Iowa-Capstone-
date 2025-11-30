@@ -456,9 +456,9 @@ class XGBBundle:
                         # x <= thr cuando z=1  → x <= thr + M*(1 - z)
                         m.addConstr(xv <= thr + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_le")
                     else:
-                        # x >= thr cuando z=1  → x >= thr - M*(1 - z)
-                        # NOTA: sin +eps aqui para no dejar residuo cuando z=0
-                        m.addConstr(xv >= thr - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge")
+                        # x >= thr cuando z=1  → x >= thr + eps - M*(1 - z)
+                        # NOTA: +eps aqui para evitar ambigüedad cuando x = thr (consistente con LEFT)
+                        m.addConstr(xv >= thr + 1e-8 - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge")
 
             total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))
 

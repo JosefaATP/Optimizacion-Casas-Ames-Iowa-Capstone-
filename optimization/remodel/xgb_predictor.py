@@ -306,24 +306,23 @@ class XGBBundle:
         ])
         
         # Extraer base_score del booster para usar en predict_log_raw()
-        # IMPORTANTE: Usar bst.attr("base_score") directamente (método oficial)
-        # antes de intentar parsear JSON (que puede cambiar entre versiones).
+        # IMPORTANTE: recalcularlo con la misma lógica que se usa en el embed
+        # (predict(output_margin) - suma_de_hojas) para evitar desalineaciones.
         self.b0_offset: float = 0.0
         try:
-            bst = self.reg.get_booster()
-            # Método 1 (oficial): Usar attr
-            bs_attr = bst.attr("base_score")
-            if bs_attr is not None:
-                self.b0_offset = float(bs_attr)
-            else:
-                # Método 2 (fallback): Calcular manualmente
-                # predict(zeros) = sum_of_leaves(zeros) + base_score
-                # => base_score = predict(zeros) - sum_of_leaves(zeros)
-                import numpy as _np
-                X_zero = _np.zeros((1, len(self.feature_names_in())))
-                y_margin_zero = self.reg.predict(X_zero, output_margin=True)[0]
-                sum_leaves_zero = self._eval_sum_leaves(X_zero.ravel())
-                self.b0_offset = float(y_margin_zero - sum_leaves_zero)
+            # Primero, valor declarado en el booster (método oficial)
+            try:
+                bst = self.reg.get_booster()
+                bs_attr = bst.attr("base_score")
+                if bs_attr is not None:
+                    self.b0_offset = float(bs_attr)
+            except Exception:
+                self.b0_offset = 0.5
+
+            # Luego, recalcula con la fórmula robusta para alinear con el embed manual
+            b0_recalc = self._compute_base_score_from_zero(len(self.feature_names_in()))
+            if np.isfinite(b0_recalc):
+                self.b0_offset = float(b0_recalc)
         except Exception:
             # Último fallback: valor por defecto de XGBoost
             self.b0_offset = 0.5
@@ -540,6 +539,13 @@ class XGBBundle:
             self.b0_offset = 0.0
         return self.b0_offset
 
+    def _compute_base_score_from_zero(self, n_features: int) -> float:
+        """Calcula base_score como predict(margen, 0) - suma_de_hojas(0)."""
+        zeros = np.zeros((1, n_features))
+        y_out = float(self.reg.predict(zeros, output_margin=True)[0])
+        y_in = self._eval_sum_leaves(zeros.ravel())
+        return float(y_out - y_in)
+
     # === Embebidos de árboles (igual que construcción) ===
     def attach_to_gurobi(self, m: gp.Model, x_list: list, y_log: gp.Var, eps: float = 1e-6) -> None:
         import json, math
@@ -567,20 +573,11 @@ class XGBBundle:
             except Exception:
                 pass
 
-        # Intenta fijar offset/base_score si no se ha calculado
-        if (self.b0_offset is None) or (abs(self.b0_offset) < 1e-12):
-            try:
-                bs_attr = bst.attr("base_score")
-                if bs_attr is not None:
-                    self.b0_offset = float(bs_attr)
-                else:
-                    # fallback: evalúa predict(output_margin) en el origen y resta suma de hojas
-                    import numpy as _np
-                    zeros = _np.zeros((1, len(x_list)))
-                    y_out = float(self.reg.predict(zeros, output_margin=True)[0])
-                    y_in = self._eval_sum_leaves(zeros.ravel())
-                    self.b0_offset = float(y_out - y_in)
-            except Exception:
+        # Recalcular siempre el base_score con la misma base que usa el embed
+        try:
+            self.b0_offset = self._compute_base_score_from_zero(len(x_list))
+        except Exception:
+            if (self.b0_offset is None) or (not np.isfinite(self.b0_offset)):
                 self.b0_offset = 0.0
 
         total_expr = gp.LinExpr(0.0)
@@ -590,6 +587,8 @@ class XGBBundle:
                 return math.isfinite(float(v))
             except Exception:
                 return False
+
+        base_tiny = abs(float(eps)) if eps is not None else 1e-8
 
         for t_idx, js in enumerate(dumps):
             node = json.loads(js)
@@ -651,11 +650,11 @@ class XGBBundle:
                         xv = x_list[f_idx]
                         x_val = float(xv.LB)
                         if is_left:
-                            if not (x_val < thr - 1e-9):  # x < thr
+                            if not (x_val < thr):  # x < thr (must be strictly less)
                                 all_conds_satisfied = False
                                 break
                         else:
-                            if not (x_val >= thr - 1e-9):  # x >= thr
+                            if not (x_val >= thr):  # x >= thr (must be greater or equal)
                                 all_conds_satisfied = False
                                 break
                     
@@ -683,23 +682,24 @@ class XGBBundle:
                         lb = float(xv.LB) if fin(getattr(xv, "LB", None)) else -1e6
                         ub = float(xv.UB) if fin(getattr(xv, "UB", None)) else  1e6
 
-                        M_le = max(0.0, ub - thr)
-                        M_ge = max(0.0, thr - lb)
+                        # Si la variable está fija, descarta ramas imposibles
+                        if fin(lb) and fin(ub) and lb == ub:
+                            base_val = lb
+                            if is_left and base_val >= thr:
+                                m.addConstr(z[k] == 0, name=f"T{t_idx}_L{k}_f{f_idx}_fixed_off")
+                                continue
+                            if (not is_left) and base_val < thr:
+                                m.addConstr(z[k] == 0, name=f"T{t_idx}_R{k}_f{f_idx}_fixed_off")
+                                continue
 
+                        # Big‑M genérico (aplica a todas las VTypes para mantener factibilidad)
+                        tiny = base_tiny
+                        # Asegura que cuando z=0 no se apriete por debajo del valor fijo/base
+                        M_le = max(tiny, ub - thr + tiny)
+                        M_ge = max(tiny, thr - lb + tiny)
                         if is_left:
-                            # Left child: x < thr
-                            # Standard Big-M: xv <= thr + M_le * (1 - z[k])
-                            # When z[k]=1, this gives xv <= thr (allows x < thr and x = thr)
-                            # When z[k]=0, this gives xv <= thr + M_le (allows wider range)
-                            # ISSUE: When x exactly equals thr, we're allowing it in left child
-                            # FIX: Use xv < thr strictly by reformulating as xv <= thr - 1e-8 when z[k]=1
-                            # In Big-M form: xv <= thr - 1e-8 + M_le * (1 - z[k])
-                            # This ensures x < thr (not x <= thr) when leaf is selected
-                            m.addConstr(xv <= thr - 1e-8 + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_lt")
+                            m.addConstr(xv <= thr - tiny + M_le * (1 - z[k]), name=f"T{t_idx}_L{k}_f{f_idx}_lt")
                         else:
-                            # Right child: x >= thr
-                            # Standard Big-M: xv >= thr - M_ge * (1 - z[k])
-                            # When z[k]=1, this gives xv >= thr (exactly what we want)
                             m.addConstr(xv >= thr - M_ge * (1 - z[k]), name=f"T{t_idx}_R{k}_f{f_idx}_ge")
 
             total_expr += gp.quicksum(z[k] * leaves[k][1] for k in range(len(leaves)))

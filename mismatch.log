@@ -1,0 +1,28 @@
+Set parameter Username
+Set parameter LicenseID to value 2737549
+Academic license - for non-commercial use only - expires 2026-11-13
+[CHK-MVT] Base=BrkFace area_base=108.0 | allowed=BrkCmn, BrkFace, CBlock, Stone, No aplica
+  Lot Frontage Lot Area  ... Sale Condition_Normal Sale Condition_Partial
+0         81.0  14267.0  ...                   1.0                    0.0
+
+[1 rows x 299 columns]
+[ALIGN] columnas faltantes añadidas a X_input: 0
+[CHK] Fireplace Qu LB=-1.0 UB=4.0
+[CHK] Pool QC      LB=-1.0 UB=4.0
+[MISMATCH] Tree 26: ext=4 (-0.001596) vs mip=1 (-0.00120182964)
+[MISMATCH] Tree 27: ext=4 (-0.001667) vs mip=1 (0.000494684326)
+[MISMATCH] Tree 131: ext=5 (-0.000630) vs mip=1 (-0.00061366969)
+[MISMATCH] Tree 133: ext=2 (0.000069) vs mip=1 (0.00138416921)
+[MISMATCH] Tree 152: ext=3 (-0.000036) vs mip=2 (0.0022599895)
+[MISMATCH] Tree 161: ext=2 (-0.000022) vs mip=1 (0.0043304693)
+[MISMATCH] Tree 186: ext=1 (-0.000544) vs mip=0 (0.000449474814)
+[MISMATCH] Tree 192: ext=4 (-0.000342) vs mip=1 (0.000115221002)
+[MISMATCH] Tree 204: ext=3 (-0.000228) vs mip=2 (0.000524831994)
+[MISMATCH] Tree 212: ext=5 (-0.000068) vs mip=2 (5.61783736e-06)
+
+Total trees: 914
+Leaf mismatches: 59
+Sum leaves external: -0.006503
+Sum leaves MIP:      0.076146
+Delta (MIP-ext):     0.082649
+y_log_raw (MIP var): 0.076146 | diff vs sum_mip: 0.000000

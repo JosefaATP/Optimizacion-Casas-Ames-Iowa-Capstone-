@@ -1825,7 +1825,7 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
     # las ramas quedaran solapadas, el one‑hot de hojas lo resolverá al elegir
     # una sola hoja factible.
     # eps negativo desplaza el umbral para que empates (x==thr) no se cuelen al lado izquierdo.
-    bundle.attach_to_gurobi(m, x_vars, y_log_raw, eps=-1e-6)
+    bundle.attach_to_gurobi(m, x_vars, y_log_raw, eps=1e-6)
 
     # offset/base_score del modelo (si no pudo calcularse, se asume 0)
     try:
