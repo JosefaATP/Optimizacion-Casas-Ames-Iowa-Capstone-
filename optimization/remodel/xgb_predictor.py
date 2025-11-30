@@ -682,7 +682,7 @@ class XGBBundle:
                         lb = float(xv.LB) if fin(getattr(xv, "LB", None)) else -1e6
                         ub = float(xv.UB) if fin(getattr(xv, "UB", None)) else  1e6
 
-                        # Si la variable está fija, descarta ramas imposibles
+                        # Si está fija y es dummy/ordinal base, descarta la rama imposible
                         if fin(lb) and fin(ub) and lb == ub:
                             base_val = lb
                             if is_left and base_val >= thr:

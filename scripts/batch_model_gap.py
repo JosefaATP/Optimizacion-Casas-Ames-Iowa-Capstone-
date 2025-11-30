@@ -140,6 +140,9 @@ def run_for_pid(pid: int, budget: float) -> RunResult:
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
         raise RuntimeError(f"run_opt fallo para PID {pid}: {proc.stderr}")
+    out_lower = proc.stdout.lower()
+    if "infeas" in out_lower or "no hay solucion" in out_lower or "modelo no optimo" in out_lower:
+        raise RuntimeError(f"run_opt infeasible/unbounded para PID {pid}")
     return parse_run_opt_output(proc.stdout, pid, budget)
 
 
@@ -185,7 +188,9 @@ def main():
     all_pool = [int(x) for x in pd.read_csv(args.csv)["PID"].tolist()]
 
     idx = 0
-    while len(results) < args.sample_size:
+    max_tries = max(len(pids), len(all_pool)) * 3
+    attempts = 0
+    while len(results) < args.sample_size and attempts < max_tries:
         pid = pids[idx] if idx < len(pids) else None
         if pid is None:
             # buscar reemplazo
@@ -206,6 +211,7 @@ def main():
         except Exception as exc:
             print(f"  ⚠️  PID {pid} falló ({exc}); reemplazando...")
             continue
+        attempts += 1
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     import csv

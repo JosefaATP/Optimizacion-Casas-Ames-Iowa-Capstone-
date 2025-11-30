@@ -1803,6 +1803,48 @@ def build_mip_embed(base_row: pd.Series, budget: float, ct: CostTables, bundle: 
             v = m.addVar(lb=num, ub=num, name=f"const_{safe_c}")
         var_by_name[c] = v
 
+    # Fijar solo constantes continuas no modificables (evita chocar con one-hot/pick-one)
+    # y dummies específicas que sabemos que no son decisiones.
+    FIXED_DUMMIES = {
+        "Electrical_SBrkr",  # base eléctrica
+        "Electrical_FuseP", "Electrical_FuseA", "Electrical_FuseF", "Electrical_Mix",
+        "Exter Cond_Po", "Exter Cond_Fa", "Exter Cond_TA", "Exter Cond_Gd", "Exter Cond_Ex",
+        "Exter Qual_Po", "Exter Qual_Fa", "Exter Qual_TA", "Exter Qual_Gd", "Exter Qual_Ex",
+        # Fijar PavedDrive y Bedroom para evitar ramas inconsistentes con la base
+        "Paved Drive_Y", "Paved Drive_P", "Paved Drive_N",
+        "Bedroom AbvGr",
+    }
+
+    for fname, v in var_by_name.items():
+        if fname in _MODIF_NAMES:
+            continue
+        # si no es gp.Var o es expresión ya linkeada, saltar
+        if not hasattr(v, "LB") or not hasattr(v, "UB"):
+            continue
+        # si es bin/int, no fijar aquí (ya hay políticas upgrade-only)
+        try:
+            vt = getattr(v, "VType", "")
+            if vt in (gp.GRB.BINARY, gp.GRB.INTEGER):
+                # Excepción: algunas dummies no son decisión y deben quedar fijas
+                if fname not in FIXED_DUMMIES:
+                    continue
+        except Exception:
+            pass
+        try:
+            base_val = float(base_X.iloc[0][fname]) if fname in base_X.columns else None
+        except Exception:
+            base_val = None
+        if base_val is None:
+            continue
+        try:
+            v.LB = base_val
+            v.UB = base_val
+        except Exception:
+            try:
+                m.addConstr(v == base_val, name=f"FIX_unmod_{_safe_name(fname)}")
+            except Exception:
+                pass
+
     booster_order = list(bundle.booster_feature_order())
     missing = [f for f in booster_order if f not in var_by_name]
     if missing:
