@@ -306,21 +306,27 @@ class XGBBundle:
         ])
         
         # Extraer base_score del booster para usar en predict_log_raw()
+        # IMPORTANTE: Usar bst.attr("base_score") directamente (método oficial)
+        # antes de intentar parsear JSON (que puede cambiar entre versiones).
         self.b0_offset: float = 0.0
         try:
             bst = self.reg.get_booster()
-            json_model = bst.save_raw("json")
-            data = json.loads(json_model)
-            bs_str = data.get("learner", {}).get("learner_model_param", {}).get("base_score", "[0.5]")
-            # Extraer número de formato "[1.2437748E1]"
-            if isinstance(bs_str, str) and "[" in bs_str:
-                m = re.match(r"\[\s*([0-9.eE+-]+)\s*\]", bs_str)
-                if m:
-                    self.b0_offset = float(m.group(1))
+            # Método 1 (oficial): Usar attr
+            bs_attr = bst.attr("base_score")
+            if bs_attr is not None:
+                self.b0_offset = float(bs_attr)
             else:
-                self.b0_offset = float(bs_str) if bs_str else 0.5
+                # Método 2 (fallback): Calcular manualmente
+                # predict(zeros) = sum_of_leaves(zeros) + base_score
+                # => base_score = predict(zeros) - sum_of_leaves(zeros)
+                import numpy as _np
+                X_zero = _np.zeros((1, len(self.feature_names_in())))
+                y_margin_zero = self.reg.predict(X_zero, output_margin=True)[0]
+                sum_leaves_zero = self._eval_sum_leaves(X_zero.ravel())
+                self.b0_offset = float(y_margin_zero - sum_leaves_zero)
         except Exception:
-            self.b0_offset = 0.5  # fallback al valor por defecto de XGB
+            # Último fallback: valor por defecto de XGBoost
+            self.b0_offset = 0.5
         
         # INFO: pipe_for_gurobi() predice en escala LOG1P (raw XGB margin)
         # mientras que predict() predice en escala ORIGINAL (precio).
