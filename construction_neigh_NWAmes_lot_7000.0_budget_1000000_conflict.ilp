@@ -1,9 +1,0 @@
-\ Model construction_embed_copy
-\ LP format - for model browsing. Use MPS format to capture full model detail.
-Maximize
- 
-Subject To
- fix__mosold: x_Mo_Sold_1 = 6
-Bounds
- -infinity <= x_Mo_Sold_1 <= 1
-End

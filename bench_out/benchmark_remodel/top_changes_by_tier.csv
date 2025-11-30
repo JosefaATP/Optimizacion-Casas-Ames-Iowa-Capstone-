@@ -1,0 +1,31 @@
+tier,change,count
+low,Exterior 1st_Plywood,182
+low,Exter Qual,181
+low,Exterior 2nd_Plywood,179
+low,Mas Vnr Type_NoAplica,137
+low,BsmtFin Type 2_Unf,111
+low,Exterior 1st_VinylSd,59
+low,Exterior 2nd_VinylSd,58
+low,BsmtFin Type 1_Unf,45
+low,Exterior 2nd_MetalSd,35
+low,Exterior 1st_Wd Sdng,35
+mid,Exterior 2nd_Plywood,220
+mid,Exter Qual,172
+mid,Exterior 1st_Plywood,152
+mid,Mas Vnr Type_NoAplica,142
+mid,BsmtFin Type 2_Unf,116
+mid,Exterior 1st_VinylSd,90
+mid,Exterior 2nd_VinylSd,89
+mid,Exterior 1st_BrkFace,85
+mid,BsmtFin Type 1_Unf,43
+mid,Exterior 2nd_MetalSd,35
+high,Exterior 2nd_Plywood,212
+high,Exter Qual,164
+high,Exterior 1st_Plywood,141
+high,Mas Vnr Type_NoAplica,136
+high,BsmtFin Type 2_Unf,111
+high,Exterior 1st_BrkFace,90
+high,Exterior 1st_VinylSd,89
+high,Exterior 2nd_VinylSd,89
+high,BsmtFin Type 1_Unf,43
+high,BsmtFin SF 1,37
