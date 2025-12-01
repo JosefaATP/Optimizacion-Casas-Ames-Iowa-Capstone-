@@ -1,4 +1,4 @@
-# BRANCH OFICIAL ENTREGA 2: `XGBoost-+-Remodelación`
+# BRANCH OFICIAL ENTREGA 3: `Branch_final_con_sensibilidades `
 
 # 🧭 Guía rápida de trabajo en este repositorio
 
@@ -141,6 +141,7 @@ git stash pop
 - Revisar bien antes de hacer merge a main
 
 Si algo falla, no forzar nada sin entenderlo primero 😅
+
 
 
 
