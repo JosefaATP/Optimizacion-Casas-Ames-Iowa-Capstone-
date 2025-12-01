@@ -100,6 +100,18 @@ Genera gráficos de evolución de R²/RMSE/MAPE a partir de `all_iterations.csv`
 - Carpetas `results*` (`results`, `results_nomindims`, `results_fullfeatures`, `results_fullbath32`, `results_fullbath48`, `results_2811`): incluyen `analysis.txt`, `construction_runs.csv`, `category_summary.csv`, `neighborhood_comparison.csv`, y subcarpetas `x_inputs/` o `cost_breakdown_*.csv`.
 - `combined_temp.csv`: auxiliar para combinar corridas.
 
+## Construcción (MIP + XGB) – módulo `optimization/construction`
+- Qué hace: arma un MIP de **construcción nueva** soportado por un modelo XGBoost de precio; decide dimensiones/calidades factibles, calcula precio esperado y costos con límites de negocio y presupuesto.
+- Estructura clave: `run_opt.py` (CLI principal), `gurobi_model.py` (MIP), `xgb_predictor.py` (bundle XGB), `config.py` (rutas/params), `costs.py`, `features.py`, `io.py`, `utils.py`, `compat_*`, `benchmark_construction.py`, `check_env.py`, `check_violations.py`, `preprocess_regresion.py`, `summary_and_costs_hooks.py`.
+- Uso rápido (caso puntual):
+  ```bash
+  python -m optimization.construction.run_opt --pid <PID> --budget <USD>
+  # o semilla por barrio/lote:
+  python -m optimization.construction.run_opt --neigh <Barrio> --lot 7000 --budget 500000
+  ```
+  Flags útiles: `--xgbdir` (modelo XGB construcción), `--basecsv`, `--bldg` (tipo edificio), límites manuales (`--min/max-beds/fullbath/halfbath/kitchen/grliv/garage-area/totalbsmt/overallqual`), `--no-min-dims` (relaja mínimos), `--xinput-outdir` (guarda features optimizadas), `--outcsv` (append de resultados), `--audit` (desglose de costos).
+- Batch/sensibilidad construcción: `analysis/construction_batch/batch_run_by_neighborhood.py` ejecuta barridos masivos; resultados en `analysis/construction_batch/results*` (CSV de corridas, resúmenes, x_inputs y desgloses de costo según variante).
+
 ## Remodelación (optimización, sensibilidad y comparación)
 - `optimization/Copia de sensibilidad_remodelacion 2/sensitivity.py` (“sensitivity 2”): barre barrios/percentiles/presupuestos; guarda `resumen.csv` y `detalles.jsonl` en el `--outdir` elegido.
 - En la misma carpeta: `compare_batch_preds.py` y `compare_xgb_vs_reg.py` para comparar predicciones (XGB vs regresión/otros lotes).
