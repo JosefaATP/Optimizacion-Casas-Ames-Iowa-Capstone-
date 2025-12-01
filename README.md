@@ -152,5 +152,5 @@ El código fue hecho con ayuda de la IA. Links de referencia consultados:
 - https://chatgpt.com/share/68fc08b0-708c-8008-b337-4af0640732e0
 
 ### Referencias APA (interacción en línea, sin URL pública)
-- Codex (ChatGPT). (2025, 11 de marzo). Asistencia en “Optimizacion-Casas-Ames-Iowa-Capstone-” sobre sensibilidad, merge y documentación [Interacción en línea]. OpenAI.
-- Codex (ChatGPT). (2025, 11 de marzo). “Análisis sensibilidad” sobre análisis y soporte técnico [Interacción en línea]. OpenAI.
+- Codex (ChatGPT). (2025, 30 de Noviembre). Asistencia en “Optimizacion-Casas-Ames-Iowa-Capstone-” sobre sensibilidad, merge y documentación [Interacción en línea]. OpenAI.
+- Codex (ChatGPT). (2025, 29 de Noviembre). “Análisis sensibilidad” sobre análisis y soporte técnico [Interacción en línea]. OpenAI.
