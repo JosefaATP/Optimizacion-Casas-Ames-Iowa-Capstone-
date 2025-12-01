@@ -1,0 +1,29 @@
+Resumen batch run_opt por barrio
+
+Total de corridas: 26
+Barrios analizados: Blmngtn, Blueste, BrDale, BrkSide, ClearCr, CollgCr, Crawfor, Edwards, Gilbert, Greens, GrnHill, IDOTRR, MeadowV, Mitchel, NPkVill, NWAmes, No aplicames, NridgHt, OldTown, SWISU, Sawyer, SawyerW, Somerst, StoneBr, Timber, Veenker
+
+Promedios por categoría (ver category_summary.csv):
+ - Alta: n=8, precio promedio=495,285, costo=479,225, ROI medio=0.04, slack medio=20,775
+ - Baja: n=10, precio promedio=399,562, costo=365,873, ROI medio=0.11, slack medio=134,127
+ - Media: n=8, precio promedio=454,078, costo=443,274, ROI medio=0.02, slack medio=56,726
+
+Top 3 barrios por ROI individual:
+ - SWISU (baja): ROI=0.26, profit=88,072, costo=334,149
+ - OldTown (baja): ROI=0.20, profit=61,217, costo=298,852
+ - BrkSide (baja): ROI=0.17, profit=52,626, costo=316,299
+
+Bottom 3 barrios por ROI individual:
+ - BrDale (baja): ROI=-0.08, profit=-33,742, costo=427,335
+ - NridgHt (alta): ROI=-0.04, profit=-20,222, costo=499,256
+ - NWAmes (media): ROI=-0.03, profit=-17,403, costo=497,946
+
+Barrios con mayor área habitable diseñada:
+ - NridgHt: GrLivArea=1,302 ft², beds=3.0, baths=1.0
+ - GrnHill: GrLivArea=1,295 ft², beds=3.0, baths=1.0
+ - NWAmes: GrLivArea=1,210 ft², beds=2.0, baths=1.0
+
+Barrios con mayor presupuesto sin usar (slack):
+ - IDOTRR: slack=209,822 (41.96%)
+ - OldTown: slack=201,148 (40.23%)
+ - BrkSide: slack=183,701 (36.74%)

@@ -1,0 +1,29 @@
+Resumen batch run_opt por barrio
+
+Total de corridas: 26
+Barrios analizados: Blmngtn, Blueste, BrDale, BrkSide, ClearCr, CollgCr, Crawfor, Edwards, Gilbert, Greens, GrnHill, IDOTRR, MeadowV, Mitchel, NPkVill, NWAmes, No aplicames, NridgHt, OldTown, SWISU, Sawyer, SawyerW, Somerst, StoneBr, Timber, Veenker
+
+Promedios por categoría (ver category_summary.csv):
+ - Alta: n=8, precio promedio=518,748, costo=471,297, ROI medio=0.11, slack medio=28,703
+ - Baja: n=10, precio promedio=417,468, costo=340,109, ROI medio=0.26, slack medio=159,891
+ - Media: n=8, precio promedio=480,261, costo=422,162, ROI medio=0.14, slack medio=77,838
+
+Top 3 barrios por ROI individual:
+ - BrkSide (baja): ROI=0.58, profit=162,209, costo=278,889
+ - OldTown (baja): ROI=0.41, profit=126,016, costo=306,099
+ - SWISU (baja): ROI=0.37, profit=92,728, costo=253,590
+
+Bottom 3 barrios por ROI individual:
+ - BrDale (baja): ROI=0.02, profit=9,173, costo=486,412
+ - Blueste (baja): ROI=0.03, profit=13,299, costo=498,892
+ - Veenker (alta): ROI=0.05, profit=22,756, costo=499,707
+
+Barrios con mayor área habitable diseñada:
+ - GrnHill: GrLivArea=1,302 ft², beds=5.0, baths=3.0
+ - NridgHt: GrLivArea=1,302 ft², beds=5.0, baths=3.0
+ - Veenker: GrLivArea=1,248 ft², beds=5.0, baths=3.0
+
+Barrios con mayor presupuesto sin usar (slack):
+ - Edwards: slack=261,470 (52.29%)
+ - SWISU: slack=246,410 (49.28%)
+ - IDOTRR: slack=222,387 (44.48%)

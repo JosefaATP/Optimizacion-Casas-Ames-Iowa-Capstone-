@@ -1,0 +1,55 @@
+\section{Análisis de Sensibilidad en Construcción}
+
+Para evaluar cómo afecta únicamente la variación del barrio en los resultados del modelo, se realizó un análisis segmentando las zonas en tres categorías: \textbf{alta}, \textbf{media} y \textbf{baja}. El escenario base considera un \textbf{presupuesto inicial de 500.000 USD} y un \textbf{lote de 7.000 ft$^2$}.
+
+\subsection{Resultados por categoría de barrio}
+
+\subsubsection{Barrios de gama baja}
+
+Los barrios de categoría baja presentaron un \textbf{ROI promedio de 0{,}13 (13\%)}. El \textbf{precio final promedio} de las viviendas alcanzó aproximadamente \textbf{402.927 USD}, con \textbf{costos de construcción promedio de 362.370 USD}.
+
+En este segmento se observó un \textbf{slack} o presupuesto no utilizado cercano a \textbf{137.630 USD}, lo que implica que, en promedio, sólo se utilizó alrededor del \textbf{73\% del presupuesto}.
+
+Este menor gasto podría explicarse porque, para ser competitivo dentro del segmento, \textbf{se requiere menos inversión adicional}, ya que el valor promedio de las viviendas generadas en barrios bajos \textbf{se posiciona en torno al percentil 75\%} de ese mercado.
+
+\subsubsection{Barrios de gama media}
+
+En los barrios medios, el \textbf{ROI promedio} fue de \textbf{0{,}08 (8\%)}. El \textbf{precio final promedio} fue de \textbf{451.110 USD}, con \textbf{costos de 418.099 USD} y un uso aproximado del \textbf{72\% del presupuesto}.
+
+A diferencia del segmento bajo, aquí la vivienda final se posicionó \textbf{mucho más arriba dentro de su categoría}, ubicándose en el \textbf{percentil 2\% más alto} de su competencia, lo que sugiere que el modelo debió invertir más para lograr dicha posición.
+
+\subsubsection{Barrios de gama alta}
+
+Los barrios altos registraron el \textbf{ROI más bajo} de los tres segmentos, con \textbf{0{,}03 (3\%)}. La \textbf{valuación promedio} fue de \textbf{493.522 USD}, acompañada de \textbf{costos de 481.621 USD}, consumiendo cerca del \textbf{96\% del presupuesto disponible}.
+
+Este mayor nivel de gasto se asocia a la \textbf{alta competitividad} en los barrios de gama alta, donde las viviendas resultantes se ubicaron en el \textbf{percentil 20\% más alto}, una diferencia marcada en comparación con los segmentos medio y bajo.
+
+\subsection{Patrones de construcción y características destacadas}
+
+Entre los elementos más construidos, aproximadamente el \textbf{40\% de las casas incorporó 3 dormitorios}, mientras que el resto se diseñó con \textbf{2 dormitorios}. Sólo en un caso se añadió un \textbf{half bath} y un \textbf{segundo piso}, lo que resulta llamativo considerando que ocurrió en un barrio de categoría baja.
+
+En cuanto a materiales, los más utilizados fueron \textbf{brkface} y \textbf{stucco}, mientras que en cimentación predominó \textbf{CBlock}, especialmente en los barrios de gama baja (\textbf{70\%}) y en menor proporción en barrios medios y altos (\textbf{40--50\%}).
+
+Respecto a la cubierta, cerca del \textbf{90\% de las viviendas utilizaron techos tipo Flat}, combinados casi siempre con el material más económico disponible (\textbf{Roll}), sin importar el segmento del barrio.
+
+Aunque ninguna vivienda se construyó con calidades malas, se identificó que \textbf{solo en barrios de categoría baja} algunos atributos descendieron un punto en \textbf{heating quality} o en \textbf{overall quality}, algo que no se observó en los segmentos medio y alto.
+
+También se encontró que los \textbf{porches}, tanto abiertos como cerrados, aparecieron únicamente en los barrios \textbf{bajos} y \textbf{altos} en proporciones bajas, mientras que en los barrios \textbf{medios no estuvieron presentes}, probablemente porque en ese segmento se priorizan diseños más funcionales. En barrios bajos y altos, en cambio, estos elementos podrían responder a estándares del segmento o a decisiones para destacar la vivienda.
+
+\subsection{Diferencias estructurales según tipo de barrio}
+
+Se observaron incrementos sistemáticos desde barrios bajos hasta altos en diversas métricas:
+
+\begin{itemize}
+    \item \textbf{GR Liv Area}: 723 $\rightarrow$ 932 $\rightarrow$ 1174 ft$^2$.
+    \item \textbf{Garage area}: 413 $\rightarrow$ 454 $\rightarrow$ 459 ft$^2$.
+    \item \textbf{Basement (bsmt)}: 585 $\rightarrow$ 905 $\rightarrow$ 1169 ft$^2$.
+\end{itemize}
+
+Esto sugiere que, para ser competitivo en barrios de mayor nivel, \textbf{no siempre es necesario aumentar todas las dimensiones de la vivienda}, pero sí ciertos espacios clave.
+
+Las \textbf{chimeneas} fluctuaron entre 1 y 2 en todos los segmentos sin depender de la calidad del barrio.
+
+\subsection{Atributos únicos de los barrios de gama baja}
+
+Los barrios de categoría baja presentaron diversas características que los diferencian del resto. En estos barrios aparecieron \textbf{atributos que no se observaron en los segmentos medio y alto}, o bien fueron los únicos donde dichos atributos \textbf{variaron o dejaron de estar presentes}. Esto se evidenció en el gráfico de calor, donde los barrios bajos mostraron la mayor diversidad de presencia o ausencia de atributos comunes.

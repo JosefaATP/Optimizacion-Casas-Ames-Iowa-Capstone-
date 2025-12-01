@@ -1,0 +1,23 @@
+ROI promedio por categoría de barrio (batch construcción, budget 500 000, lote 7 000 ft²)
+
+Fuente de datos: analysis/construction_batch/results/category_summary.csv
+- Baja (≤ 214 886 USD): ROI medio 14.66 %; precio promedio 413 341; costo 365 847; slack ~134 153 (73 % de uso de presupuesto).
+- Media (214 886–307 292 USD): ROI medio 5.64 %; precio promedio 443 310; costo 419 702; slack ~80 298 (84 % de uso).
+- Alta (> 307 292 USD): ROI medio 3.37 %; precio promedio 488 959; costo 474 206; slack ~25 794 (95 % de uso).
+
+Lecturas ejecutivas
+- La categoría Baja es la más eficiente: casi quintuplica el ROI de Alta y usa bastante menos presupuesto (mayor slack).
+- La categoría Media rinde la mitad del ROI de Baja y aún deja ~16 % del presupuesto libre; es el rango “equilibrado” entre escala de precio y eficiencia.
+- La categoría Alta consume casi todo el presupuesto y deja ROI marginal; útil si se busca ganancia nominal alta en precio, pero con margen muy delgado.
+
+Conclusiones detalladas (10)
+1) Baja (14.66 % ROI) es el segmento óptimo para retorno relativo; solo ejecuta 73 % del capex y deja 134 k USD libres.
+2) Media (5.64 % ROI) mantiene 16 % de slack; es la opción balance cuando se busca escala sin sacrificar tanta eficiencia.
+3) Alta (3.37 % ROI) gasta 95 % del presupuesto y deja 25 k USD de slack; margen de error casi nulo.
+4) El costo extra de Alta sobre Baja (~108 k) solo se traduce en +75 k de precio final; sobreinversión clara.
+5) Para cada dólar, Baja entrega ~4.3 veces más ROI que Alta y ~2.6 veces más que Media; la eficiencia cae con la categoría.
+6) Si el objetivo es valor nominal, Alta alcanza 489 k de precio (vs. 413 k en Baja), pero con riesgo de margen delgado; necesita control estricto de alcance/capex.
+7) Media puede ser el “escalón” para crecer portafolio: ROI moderado, slack razonable, y precio final 443 k que admite rotación.
+8) El patrón slack→ROI es monotónico: más slack (Baja) → mayor ROI; slack reducido (Alta) → ROI marginal.
+9) Sensibilidad: el salto de ROI Media→Baja (+9 puntos) es mayor que Alta→Media (+2.3), evidenciando rendimientos decrecientes al subir categoría.
+10) Estrategia recomendada: priorizar pipeline en Baja para retornos rápidos; usar Media para volumen y estabilidad; reservar Alta solo cuando la meta sea maximizar precio de venta con capex muy controlado.
