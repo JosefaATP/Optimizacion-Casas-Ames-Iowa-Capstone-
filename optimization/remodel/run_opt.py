@@ -36,6 +36,7 @@ from shutil import get_terminal_size
 
 import pandas as _pd
 import numpy as _np
+from types import SimpleNamespace
 
 def _to_num(x):
     """Convierte a float cuando se puede; deja strings/constantes si no."""
@@ -79,6 +80,19 @@ def rebuild_embed_input_df(m, base_X):
         pass
 
     return X_in
+
+
+# ==============================
+# Utilidad para armar fila con OHE (compartida con scripts de sensibilidad)
+# ==============================
+def _row_with_dummies(base_row: pd.Series, feat_order: list[str]) -> dict:
+    """
+    Construye un dict con la misma estructura que espera el modelo XGB:
+    numéricas/ordinales y one-hot para categóricas según feat_order.
+    """
+    dummy_bundle = SimpleNamespace(feature_names_in=lambda: feat_order)
+    df = build_base_input_row(dummy_bundle, base_row)
+    return df.iloc[0].to_dict()
 # ==============================
 # Utilidades de impresión
 # ==============================

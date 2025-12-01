@@ -324,7 +324,7 @@
     "random_state": 42
   },
   "log_target": true,
-  "best_iteration": 957,
+  "best_iteration": 813,
   "quality_cols": [
     "Kitchen Qual",
     "Exter Qual",

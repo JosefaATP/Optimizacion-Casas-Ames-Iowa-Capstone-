@@ -1,0 +1,2756 @@
+combo,count
+Exter Cond + Exter Qual + Garage Qual,75
+Exter Qual + Garage Cond + Garage Qual,75
+Exter Qual + Garage Cond + Heating QC,75
+Exter Qual + Garage Cond + Kitchen Qual,75
+Exter Qual + Garage Cond + Low Qual Fin SF,75
+Exter Qual + Garage Cond + Utilities,75
+Exter Qual + Garage Qual + Gr Liv Area,75
+Exter Qual + Garage Qual + Heating QC,75
+Exter Qual + Garage Qual + Kitchen Qual,75
+Exter Qual + Garage Qual + Low Qual Fin SF,75
+Exter Qual + Garage Qual + Utilities,75
+Exter Qual + Gr Liv Area + Heating QC,75
+Exter Qual + Gr Liv Area + Kitchen Qual,75
+Exter Qual + Gr Liv Area + Low Qual Fin SF,75
+Exter Qual + Gr Liv Area + Utilities,75
+Exter Qual + Heating QC + Kitchen Qual,75
+Exter Qual + Heating QC + Low Qual Fin SF,75
+Exter Qual + Heating QC + Utilities,75
+Exter Qual + Kitchen Qual + Low Qual Fin SF,75
+Exter Qual + Garage Cond + Gr Liv Area,75
+Bsmt Qual + Exter Cond + Gr Liv Area,75
+Exter Cond + Gr Liv Area + Kitchen Qual,75
+Bsmt Qual + Exter Cond + Garage Qual,75
+Exter Cond + Gr Liv Area + Utilities,75
+Exter Cond + Heating QC + Kitchen Qual,75
+Exter Cond + Heating QC + Low Qual Fin SF,75
+Exter Cond + Heating QC + Utilities,75
+Exter Cond + Kitchen Qual + Low Qual Fin SF,75
+Exter Cond + Kitchen Qual + Utilities,75
+Exter Cond + Low Qual Fin SF + Utilities,75
+Exter Qual + Fireplace Qu + Garage Cond,75
+Exter Qual + Fireplace Qu + Garage Qual,75
+Exter Qual + Fireplace Qu + Gr Liv Area,75
+Exter Qual + Fireplace Qu + Heating QC,75
+Exter Qual + Fireplace Qu + Kitchen Qual,75
+Exter Qual + Fireplace Qu + Low Qual Fin SF,75
+Exter Qual + Fireplace Qu + Utilities,75
+Bsmt Qual + Exter Cond + Exter Qual,75
+Bsmt Qual + Exter Cond + Fireplace Qu,75
+Bsmt Qual + Exter Cond + Garage Cond,75
+Exter Qual + Kitchen Qual + Utilities,75
+Exter Qual + Low Qual Fin SF + Utilities,75
+Bsmt Qual + Exter Cond + Heating QC,75
+Bsmt Qual + Exter Cond + Kitchen Qual,75
+Fireplace Qu + Heating QC + Kitchen Qual,75
+Fireplace Qu + Heating QC + Low Qual Fin SF,75
+Fireplace Qu + Heating QC + Utilities,75
+Fireplace Qu + Kitchen Qual + Low Qual Fin SF,75
+Fireplace Qu + Kitchen Qual + Utilities,75
+Fireplace Qu + Low Qual Fin SF + Utilities,75
+Bsmt Qual + Exter Qual + Gr Liv Area,75
+Bsmt Qual + Exter Qual + Heating QC,75
+Bsmt Qual + Exter Qual + Kitchen Qual,75
+Bsmt Qual + Exter Qual + Low Qual Fin SF,75
+Bsmt Qual + Exter Qual + Utilities,75
+Bsmt Qual + Fireplace Qu + Garage Qual,75
+Bsmt Qual + Fireplace Qu + Gr Liv Area,75
+Bsmt Qual + Fireplace Qu + Heating QC,75
+Low Qual Fin SF + Utilities,75
+Bsmt Qual + Fireplace Qu + Kitchen Qual,75
+Kitchen Qual + Utilities,75
+Fireplace Qu + Gr Liv Area + Utilities,75
+Fireplace Qu + Gr Liv Area + Low Qual Fin SF,75
+Fireplace Qu + Gr Liv Area + Kitchen Qual,75
+Fireplace Qu + Garage Cond + Heating QC,75
+Bsmt Qual + Exter Cond + Low Qual Fin SF,75
+Bsmt Qual + Exter Cond + Utilities,75
+Bsmt Qual + Exter Qual + Fireplace Qu,75
+Bsmt Qual + Exter Qual + Garage Cond,75
+Bsmt Qual + Exter Qual + Garage Qual,75
+Fireplace Qu + Garage Cond + Garage Qual,75
+Fireplace Qu + Garage Cond + Gr Liv Area,75
+Fireplace Qu + Garage Cond + Kitchen Qual,75
+Fireplace Qu + Gr Liv Area + Heating QC,75
+Fireplace Qu + Garage Cond + Low Qual Fin SF,75
+Fireplace Qu + Garage Cond + Utilities,75
+Fireplace Qu + Garage Qual + Gr Liv Area,75
+Fireplace Qu + Garage Qual + Heating QC,75
+Fireplace Qu + Garage Qual + Kitchen Qual,75
+Fireplace Qu + Garage Qual + Low Qual Fin SF,75
+Fireplace Qu + Garage Qual + Utilities,75
+Exter Cond + Gr Liv Area + Low Qual Fin SF,75
+Exter Cond + Gr Liv Area + Heating QC,75
+Kitchen Qual + Low Qual Fin SF,75
+Bsmt Cond + Exter Qual + Fireplace Qu,75
+Bsmt Cond + Exter Qual + Garage Qual,75
+Bsmt Cond + Exter Qual + Gr Liv Area,75
+Bsmt Cond + Exter Qual + Heating QC,75
+Bsmt Cond + Exter Qual + Kitchen Qual,75
+Bsmt Cond + Exter Qual + Low Qual Fin SF,75
+Bsmt Cond + Exter Qual + Utilities,75
+Bsmt Cond + Fireplace Qu + Garage Cond,75
+Bsmt Cond + Fireplace Qu + Garage Qual,75
+Bsmt Cond + Fireplace Qu + Gr Liv Area,75
+Bsmt Cond + Fireplace Qu + Heating QC,75
+Bsmt Cond + Fireplace Qu + Kitchen Qual,75
+Bsmt Cond + Fireplace Qu + Low Qual Fin SF,75
+Bsmt Cond + Fireplace Qu + Utilities,75
+Bsmt Cond + Garage Cond + Garage Qual,75
+Bsmt Cond + Garage Cond + Gr Liv Area,75
+Bsmt Cond + Garage Cond + Heating QC,75
+Bsmt Cond + Garage Cond + Kitchen Qual,75
+Bsmt Cond + Exter Qual + Garage Cond,75
+Bsmt Cond + Exter Cond + Utilities,75
+Exter Cond + Garage Qual + Utilities,75
+Bsmt Cond + Exter Cond + Low Qual Fin SF,75
+Bsmt Cond + Bsmt Qual + Utilities,75
+Bsmt Cond + Exter Cond + Exter Qual,75
+Bsmt Cond + Bsmt Qual + Low Qual Fin SF,75
+Bsmt Cond + Bsmt Qual + Kitchen Qual,75
+Bsmt Cond + Bsmt Qual + Heating QC,75
+Bsmt Cond + Bsmt Qual + Gr Liv Area,75
+Bsmt Cond + Bsmt Qual + Garage Qual,75
+Bsmt Cond + Bsmt Qual + Garage Cond,75
+Bsmt Cond + Exter Cond + Fireplace Qu,75
+Bsmt Cond + Exter Cond + Garage Cond,75
+Bsmt Cond + Bsmt Qual + Fireplace Qu,75
+Bsmt Cond + Bsmt Qual + Exter Qual,75
+Bsmt Cond + Bsmt Qual + Exter Cond,75
+Bsmt Cond + Exter Cond + Garage Qual,75
+Bsmt Cond + Exter Cond + Gr Liv Area,75
+Bsmt Cond + Exter Cond + Heating QC,75
+Bsmt Cond + Exter Cond + Kitchen Qual,75
+Bsmt Cond + Garage Cond + Low Qual Fin SF,75
+Bsmt Cond + Garage Cond + Utilities,75
+Bsmt Cond + Garage Qual + Gr Liv Area,75
+Bsmt Cond + Garage Qual + Heating QC,75
+Exter Cond + Fireplace Qu + Garage Cond,75
+Exter Cond + Fireplace Qu + Garage Qual,75
+Exter Cond + Fireplace Qu + Gr Liv Area,75
+Exter Cond + Fireplace Qu + Heating QC,75
+Exter Cond + Fireplace Qu + Kitchen Qual,75
+Exter Cond + Fireplace Qu + Low Qual Fin SF,75
+Exter Cond + Fireplace Qu + Utilities,75
+Exter Cond + Garage Cond + Garage Qual,75
+Exter Cond + Garage Cond + Gr Liv Area,75
+Exter Cond + Garage Cond + Heating QC,75
+Exter Cond + Garage Cond + Kitchen Qual,75
+Exter Cond + Garage Cond + Low Qual Fin SF,75
+Exter Cond + Garage Cond + Utilities,75
+Exter Cond + Garage Qual + Gr Liv Area,75
+Exter Cond + Garage Qual + Heating QC,75
+Exter Cond + Garage Qual + Kitchen Qual,75
+Exter Cond + Garage Qual + Low Qual Fin SF,75
+Bsmt Cond + Low Qual Fin SF + Utilities,75
+Exter Cond + Exter Qual + Utilities,75
+Exter Cond + Exter Qual + Low Qual Fin SF,75
+Bsmt Cond + Heating QC + Kitchen Qual,75
+Bsmt Cond + Garage Qual + Kitchen Qual,75
+Bsmt Cond + Garage Qual + Low Qual Fin SF,75
+Bsmt Cond + Garage Qual + Utilities,75
+Bsmt Cond + Gr Liv Area + Heating QC,75
+Bsmt Cond + Gr Liv Area + Kitchen Qual,75
+Bsmt Cond + Gr Liv Area + Low Qual Fin SF,75
+Bsmt Cond + Gr Liv Area + Utilities,75
+Bsmt Cond + Heating QC + Low Qual Fin SF,75
+Exter Cond + Exter Qual + Kitchen Qual,75
+Bsmt Cond + Heating QC + Utilities,75
+Bsmt Cond + Kitchen Qual + Low Qual Fin SF,75
+Exter Cond + Exter Qual + Fireplace Qu,75
+Bsmt Cond + Kitchen Qual + Utilities,75
+Exter Cond + Exter Qual + Garage Cond,75
+Exter Cond + Exter Qual + Gr Liv Area,75
+Exter Cond + Exter Qual + Heating QC,75
+Bsmt Qual + Fireplace Qu + Low Qual Fin SF,75
+Bsmt Qual + Fireplace Qu + Garage Cond,75
+Heating QC + Utilities,75
+Bsmt Qual + Exter Qual,75
+Garage Qual + Gr Liv Area + Low Qual Fin SF,75
+Bsmt Qual + Garage Cond,75
+Bsmt Qual + Garage Qual,75
+Bsmt Qual + Gr Liv Area,75
+Bsmt Qual + Heating QC,75
+Bsmt Qual + Kitchen Qual,75
+Bsmt Qual + Low Qual Fin SF,75
+Garage Qual + Gr Liv Area + Kitchen Qual,75
+Bsmt Qual + Utilities,75
+Garage Qual + Gr Liv Area + Heating QC,75
+Garage Cond + Low Qual Fin SF + Utilities,75
+Garage Cond + Kitchen Qual + Utilities,75
+Bsmt Qual + Fireplace Qu + Utilities,75
+Garage Cond + Heating QC + Utilities,75
+Bsmt Qual + Low Qual Fin SF + Utilities,75
+Garage Cond + Heating QC + Low Qual Fin SF,75
+Bsmt Qual + Kitchen Qual + Utilities,75
+Exter Cond + Exter Qual,75
+Exter Cond + Fireplace Qu,75
+Garage Cond + Heating QC + Kitchen Qual,75
+Bsmt Qual + Kitchen Qual + Low Qual Fin SF,75
+Exter Cond + Garage Cond,75
+Exter Cond + Garage Qual,75
+Exter Cond + Gr Liv Area,75
+Exter Cond + Heating QC,75
+Exter Cond + Kitchen Qual,75
+Exter Cond + Low Qual Fin SF,75
+Bsmt Qual + Fireplace Qu,75
+Bsmt Qual + Exter Cond,75
+Exter Cond + Utilities,75
+Bsmt Cond + Utilities,75
+Kitchen Qual + Low Qual Fin SF + Utilities,75
+Heating QC + Low Qual Fin SF + Utilities,75
+Heating QC + Kitchen Qual + Utilities,75
+Heating QC + Kitchen Qual + Low Qual Fin SF,75
+Gr Liv Area + Low Qual Fin SF + Utilities,75
+Gr Liv Area + Kitchen Qual + Utilities,75
+Gr Liv Area + Kitchen Qual + Low Qual Fin SF,75
+Gr Liv Area + Heating QC + Utilities,75
+Gr Liv Area + Heating QC + Low Qual Fin SF,75
+Gr Liv Area + Heating QC + Kitchen Qual,75
+Garage Qual + Low Qual Fin SF + Utilities,75
+Garage Qual + Kitchen Qual + Utilities,75
+Garage Qual + Kitchen Qual + Low Qual Fin SF,75
+Garage Qual + Heating QC + Utilities,75
+Garage Qual + Heating QC + Low Qual Fin SF,75
+Bsmt Cond + Bsmt Qual,75
+Bsmt Cond + Exter Cond,75
+Bsmt Cond + Exter Qual,75
+Bsmt Cond + Fireplace Qu,75
+Garage Qual + Heating QC + Kitchen Qual,75
+Bsmt Cond + Garage Cond,75
+Bsmt Cond + Garage Qual,75
+Bsmt Cond + Gr Liv Area,75
+Bsmt Cond + Heating QC,75
+Bsmt Cond + Kitchen Qual,75
+Bsmt Cond + Low Qual Fin SF,75
+Garage Qual + Gr Liv Area + Utilities,75
+Garage Cond + Gr Liv Area + Utilities,75
+Garage Cond + Kitchen Qual + Low Qual Fin SF,75
+Exter Qual + Fireplace Qu,75
+Garage Qual + Kitchen Qual,75
+Garage Qual + Gr Liv Area,75
+Bsmt Qual + Gr Liv Area + Low Qual Fin SF,75
+Bsmt Qual + Garage Cond + Heating QC,75
+Garage Cond + Low Qual Fin SF,75
+Garage Cond + Kitchen Qual,75
+Fireplace Qu + Heating QC,75
+Garage Cond + Heating QC,75
+Garage Cond + Gr Liv Area,75
+Garage Cond + Garage Qual,75
+Bsmt Qual + Garage Cond + Kitchen Qual,75
+Fireplace Qu + Kitchen Qual,75
+Bsmt Qual + Garage Cond + Low Qual Fin SF,75
+Bsmt Qual + Garage Cond + Utilities,75
+Bsmt Qual + Garage Qual + Gr Liv Area,75
+Bsmt Qual + Garage Qual + Heating QC,75
+Bsmt Qual + Garage Qual + Kitchen Qual,75
+Bsmt Qual + Garage Qual + Low Qual Fin SF,75
+Fireplace Qu + Low Qual Fin SF,75
+Garage Cond + Gr Liv Area + Low Qual Fin SF,75
+Bsmt Qual + Garage Qual + Utilities,75
+Bsmt Qual + Gr Liv Area + Heating QC,75
+Garage Cond + Garage Qual + Utilities,75
+Fireplace Qu + Utilities,75
+Garage Cond + Garage Qual + Low Qual Fin SF,75
+Garage Cond + Garage Qual + Kitchen Qual,75
+Garage Cond + Garage Qual + Heating QC,75
+Garage Cond + Garage Qual + Gr Liv Area,75
+Bsmt Qual + Heating QC + Kitchen Qual,75
+Bsmt Qual + Gr Liv Area + Utilities,75
+Garage Qual + Heating QC,75
+Garage Cond + Utilities,75
+Garage Qual + Low Qual Fin SF,75
+Heating QC + Low Qual Fin SF,75
+Bsmt Qual + Heating QC + Utilities,75
+Exter Qual + Garage Cond,75
+Exter Qual + Garage Qual,75
+Exter Qual + Gr Liv Area,75
+Exter Qual + Heating QC,75
+Exter Qual + Kitchen Qual,75
+Exter Qual + Low Qual Fin SF,75
+Garage Cond + Gr Liv Area + Kitchen Qual,75
+Exter Qual + Utilities,75
+Garage Cond + Gr Liv Area + Heating QC,75
+Bsmt Qual + Heating QC + Low Qual Fin SF,75
+Fireplace Qu + Garage Cond,75
+Bsmt Qual + Garage Cond + Gr Liv Area,75
+Bsmt Qual + Gr Liv Area + Kitchen Qual,75
+Heating QC + Kitchen Qual,75
+Garage Qual + Utilities,75
+Gr Liv Area + Utilities,75
+Gr Liv Area + Heating QC,75
+Fireplace Qu + Garage Qual,75
+Fireplace Qu + Gr Liv Area,75
+Bsmt Qual + Garage Cond + Garage Qual,75
+Gr Liv Area + Low Qual Fin SF,75
+Gr Liv Area + Kitchen Qual,75
+Bsmt Unf SF + Heating QC + Kitchen Qual,69
+Bsmt Cond + Bsmt Unf SF + Gr Liv Area,69
+Bsmt Cond + Bsmt Unf SF + Heating QC,69
+Bsmt Unf SF + Heating QC + Utilities,69
+Bsmt Unf SF + Heating QC + Low Qual Fin SF,69
+Bsmt Unf SF + Gr Liv Area + Heating QC,69
+Bsmt Cond + Bsmt Unf SF + Garage Cond,69
+Bsmt Unf SF + Kitchen Qual + Low Qual Fin SF,69
+Bsmt Unf SF + Gr Liv Area + Kitchen Qual,69
+Bsmt Unf SF + Gr Liv Area + Low Qual Fin SF,69
+Bsmt Cond + Bsmt Unf SF + Kitchen Qual,69
+Bsmt Unf SF + Gr Liv Area + Utilities,69
+Bsmt Cond + Bsmt Unf SF + Utilities,69
+Bsmt Cond + Bsmt Unf SF + Low Qual Fin SF,69
+Bsmt Unf SF + Garage Qual + Gr Liv Area,69
+Bsmt Unf SF + Garage Qual + Utilities,69
+Bsmt Qual + Bsmt Unf SF + Heating QC,69
+Bsmt Unf SF + Exter Qual + Low Qual Fin SF,69
+Bsmt Unf SF + Exter Qual + Kitchen Qual,69
+Bsmt Unf SF + Exter Qual + Heating QC,69
+Bsmt Unf SF + Exter Qual + Gr Liv Area,69
+Bsmt Unf SF + Exter Qual + Garage Qual,69
+Bsmt Unf SF + Exter Qual + Garage Cond,69
+Bsmt Unf SF + Exter Qual + Fireplace Qu,69
+Bsmt Unf SF + Exter Cond + Utilities,69
+Bsmt Unf SF + Exter Cond + Low Qual Fin SF,69
+Bsmt Unf SF + Exter Cond + Kitchen Qual,69
+Bsmt Unf SF + Exter Cond + Heating QC,69
+Bsmt Unf SF + Exter Cond + Gr Liv Area,69
+Bsmt Unf SF + Exter Cond + Garage Qual,69
+Bsmt Unf SF + Exter Cond + Garage Cond,69
+Bsmt Unf SF + Exter Cond + Fireplace Qu,69
+Bsmt Unf SF + Exter Cond + Exter Qual,69
+Bsmt Qual + Bsmt Unf SF + Kitchen Qual,69
+Bsmt Qual + Bsmt Unf SF + Low Qual Fin SF,69
+Bsmt Qual + Bsmt Unf SF + Utilities,69
+Bsmt Unf SF + Exter Qual + Utilities,69
+Bsmt Qual + Bsmt Unf SF + Gr Liv Area,69
+Bsmt Unf SF + Garage Qual + Low Qual Fin SF,69
+Bsmt Qual + Bsmt Unf SF + Garage Qual,69
+Bsmt Unf SF + Garage Qual + Kitchen Qual,69
+Bsmt Unf SF + Garage Qual + Heating QC,69
+Bsmt Unf SF + Garage Cond + Utilities,69
+Bsmt Unf SF + Garage Cond + Low Qual Fin SF,69
+Bsmt Unf SF + Garage Cond + Kitchen Qual,69
+Bsmt Unf SF + Garage Cond + Heating QC,69
+Bsmt Unf SF + Garage Cond + Gr Liv Area,69
+Bsmt Unf SF + Garage Cond + Garage Qual,69
+Bsmt Unf SF + Fireplace Qu + Utilities,69
+Bsmt Unf SF + Fireplace Qu + Low Qual Fin SF,69
+Bsmt Unf SF + Fireplace Qu + Kitchen Qual,69
+Bsmt Unf SF + Fireplace Qu + Heating QC,69
+Bsmt Unf SF + Fireplace Qu + Gr Liv Area,69
+Bsmt Unf SF + Fireplace Qu + Garage Qual,69
+Bsmt Unf SF + Fireplace Qu + Garage Cond,69
+Bsmt Qual + Bsmt Unf SF + Exter Cond,69
+Bsmt Qual + Bsmt Unf SF + Exter Qual,69
+Bsmt Qual + Bsmt Unf SF + Fireplace Qu,69
+Bsmt Qual + Bsmt Unf SF + Garage Cond,69
+Bsmt Cond + Bsmt Unf SF + Garage Qual,69
+Bsmt Unf SF + Low Qual Fin SF + Utilities,69
+Bsmt Unf SF + Garage Cond,69
+Bsmt Cond + Bsmt Qual + Bsmt Unf SF,69
+Bsmt Unf SF + Fireplace Qu,69
+Bsmt Unf SF + Utilities,69
+Bsmt Unf SF + Low Qual Fin SF,69
+Bsmt Unf SF + Kitchen Qual,69
+Bsmt Unf SF + Exter Cond,69
+Bsmt Unf SF + Gr Liv Area,69
+Bsmt Unf SF + Heating QC,69
+Bsmt Unf SF + Garage Qual,69
+Bsmt Unf SF + Exter Qual,69
+Bsmt Cond + Bsmt Unf SF + Exter Qual,69
+Bsmt Cond + Bsmt Unf SF + Fireplace Qu,69
+Bsmt Cond + Bsmt Unf SF,69
+Bsmt Unf SF + Kitchen Qual + Utilities,69
+Bsmt Qual + Bsmt Unf SF,69
+Bsmt Cond + Bsmt Unf SF + Exter Cond,69
+BsmtFin SF 1 + Exter Cond + Garage Qual,67
+Bsmt Qual + BsmtFin SF 1 + Exter Cond,67
+Bsmt Qual + BsmtFin SF 1 + Exter Qual,67
+Bsmt Qual + BsmtFin SF 1 + Fireplace Qu,67
+BsmtFin SF 1 + Garage Cond + Utilities,67
+Bsmt Qual + BsmtFin SF 1 + Low Qual Fin SF,67
+Bsmt Qual + BsmtFin SF 1 + Kitchen Qual,67
+BsmtFin SF 1 + Garage Cond + Low Qual Fin SF,67
+Bsmt Qual + BsmtFin SF 1 + Garage Cond,67
+Bsmt Qual + BsmtFin SF 1 + Garage Qual,67
+Bsmt Qual + BsmtFin SF 1 + Gr Liv Area,67
+Bsmt Qual + BsmtFin SF 1 + Heating QC,67
+BsmtFin SF 1 + Exter Cond + Gr Liv Area,67
+Bsmt Cond + Bsmt Unf SF + BsmtFin SF 1,67
+BsmtFin SF 1 + Fireplace Qu,67
+BsmtFin SF 1 + Garage Qual + Gr Liv Area,67
+BsmtFin SF 1 + Exter Qual,67
+BsmtFin SF 1 + Exter Cond,67
+BsmtFin SF 1 + Garage Cond + Kitchen Qual,67
+BsmtFin SF 1 + Exter Cond + Garage Cond,67
+BsmtFin SF 1 + Garage Qual + Heating QC,67
+BsmtFin SF 1 + Exter Cond + Fireplace Qu,67
+BsmtFin SF 1 + Exter Cond + Exter Qual,67
+Bsmt Qual + Bsmt Unf SF + BsmtFin SF 1,67
+BsmtFin SF 1 + Garage Qual + Kitchen Qual,67
+BsmtFin SF 1 + Garage Qual + Low Qual Fin SF,67
+BsmtFin SF 1 + Garage Qual + Utilities,67
+BsmtFin SF 1 + Gr Liv Area + Heating QC,67
+BsmtFin SF 1 + Gr Liv Area + Kitchen Qual,67
+Bsmt Qual + BsmtFin SF 1 + Utilities,67
+BsmtFin SF 1 + Garage Qual,67
+BsmtFin SF 1 + Garage Cond,67
+Bsmt Unf SF + BsmtFin SF 1 + Fireplace Qu,67
+BsmtFin SF 1 + Fireplace Qu + Heating QC,67
+BsmtFin SF 1 + Fireplace Qu + Gr Liv Area,67
+BsmtFin SF 1 + Fireplace Qu + Garage Qual,67
+Bsmt Unf SF + BsmtFin SF 1 + Gr Liv Area,67
+Bsmt Unf SF + BsmtFin SF 1 + Garage Qual,67
+Bsmt Unf SF + BsmtFin SF 1 + Garage Cond,67
+BsmtFin SF 1 + Exter Qual + Garage Cond,67
+Bsmt Unf SF + BsmtFin SF 1 + Exter Qual,67
+BsmtFin SF 1 + Fireplace Qu + Low Qual Fin SF,67
+BsmtFin SF 1 + Fireplace Qu + Garage Cond,67
+Bsmt Unf SF + BsmtFin SF 1 + Exter Cond,67
+BsmtFin SF 1 + Exter Qual + Garage Qual,67
+BsmtFin SF 1 + Exter Qual + Gr Liv Area,67
+BsmtFin SF 1 + Exter Qual + Heating QC,67
+BsmtFin SF 1 + Exter Qual + Kitchen Qual,67
+BsmtFin SF 1 + Exter Qual + Utilities,67
+BsmtFin SF 1 + Fireplace Qu + Kitchen Qual,67
+BsmtFin SF 1 + Fireplace Qu + Utilities,67
+BsmtFin SF 1 + Garage Cond + Heating QC,67
+BsmtFin SF 1 + Utilities,67
+BsmtFin SF 1 + Gr Liv Area + Utilities,67
+BsmtFin SF 1 + Gr Liv Area,67
+BsmtFin SF 1 + Garage Cond + Gr Liv Area,67
+BsmtFin SF 1 + Heating QC,67
+BsmtFin SF 1 + Kitchen Qual,67
+BsmtFin SF 1 + Low Qual Fin SF,67
+BsmtFin SF 1 + Exter Cond + Heating QC,67
+BsmtFin SF 1 + Exter Cond + Kitchen Qual,67
+Bsmt Unf SF + BsmtFin SF 1 + Heating QC,67
+BsmtFin SF 1 + Garage Cond + Garage Qual,67
+BsmtFin SF 1 + Exter Cond + Low Qual Fin SF,67
+BsmtFin SF 1 + Exter Cond + Utilities,67
+BsmtFin SF 1 + Exter Qual + Fireplace Qu,67
+Bsmt Unf SF + BsmtFin SF 1 + Utilities,67
+Bsmt Unf SF + BsmtFin SF 1 + Low Qual Fin SF,67
+Bsmt Unf SF + BsmtFin SF 1 + Kitchen Qual,67
+BsmtFin SF 1 + Gr Liv Area + Low Qual Fin SF,67
+BsmtFin SF 1 + Exter Qual + Low Qual Fin SF,67
+BsmtFin SF 1 + Low Qual Fin SF + Utilities,67
+Bsmt Cond + BsmtFin SF 1 + Heating QC,67
+BsmtFin SF 1 + Kitchen Qual + Utilities,67
+BsmtFin SF 1 + Kitchen Qual + Low Qual Fin SF,67
+BsmtFin SF 1 + Heating QC + Utilities,67
+BsmtFin SF 1 + Heating QC + Low Qual Fin SF,67
+Bsmt Qual + BsmtFin SF 1,67
+Bsmt Cond + BsmtFin SF 1,67
+Bsmt Unf SF + BsmtFin SF 1,67
+Bsmt Cond + BsmtFin SF 1 + Utilities,67
+Bsmt Cond + BsmtFin SF 1 + Low Qual Fin SF,67
+Bsmt Cond + BsmtFin SF 1 + Kitchen Qual,67
+BsmtFin SF 1 + Heating QC + Kitchen Qual,67
+Bsmt Cond + BsmtFin SF 1 + Gr Liv Area,67
+Bsmt Cond + BsmtFin SF 1 + Exter Cond,67
+Bsmt Cond + BsmtFin SF 1 + Garage Cond,67
+Bsmt Cond + BsmtFin SF 1 + Fireplace Qu,67
+Bsmt Cond + BsmtFin SF 1 + Exter Qual,67
+Bsmt Cond + BsmtFin SF 1 + Garage Qual,67
+Bsmt Cond + Bsmt Qual + BsmtFin SF 1,67
+Bsmt Cond + BsmtFin SF 2 + Kitchen Qual,66
+Bsmt Unf SF + BsmtFin SF 2 + Utilities,66
+BsmtFin SF 2 + Kitchen Qual,66
+BsmtFin SF 2 + Heating QC,66
+Bsmt Cond + BsmtFin SF 2 + Low Qual Fin SF,66
+BsmtFin SF 2 + Gr Liv Area,66
+BsmtFin SF 2 + Garage Qual,66
+BsmtFin SF 2 + Exter Qual + Utilities,66
+BsmtFin SF 2 + Fireplace Qu,66
+Bsmt Cond + Bsmt Qual + BsmtFin SF 2,66
+BsmtFin SF 2 + Garage Cond,66
+BsmtFin SF 2 + Exter Qual + Heating QC,66
+BsmtFin SF 2 + Exter Qual,66
+BsmtFin SF 2 + Exter Qual + Low Qual Fin SF,66
+BsmtFin SF 2 + Exter Qual + Fireplace Qu,66
+Bsmt Cond + BsmtFin SF 2 + Utilities,66
+BsmtFin SF 2 + Exter Cond,66
+BsmtFin SF 2 + Exter Cond + Utilities,66
+BsmtFin SF 2 + Exter Qual + Kitchen Qual,66
+Bsmt Unf SF + BsmtFin SF 2 + Low Qual Fin SF,66
+BsmtFin SF 2 + Garage Cond + Utilities,66
+Bsmt Unf SF + BsmtFin SF 2 + Kitchen Qual,66
+Bsmt Unf SF + BsmtFin SF 2 + Heating QC,66
+Bsmt Cond + Bsmt Unf SF + BsmtFin SF 2,66
+BsmtFin SF 2 + Exter Qual + Gr Liv Area,66
+BsmtFin SF 2 + Utilities,66
+BsmtFin SF 2 + Low Qual Fin SF,66
+BsmtFin SF 2 + Exter Qual + Garage Qual,66
+BsmtFin SF 2 + Exter Qual + Garage Cond,66
+Bsmt Cond + BsmtFin SF 2 + Exter Cond,66
+Bsmt Cond + BsmtFin SF 2 + Exter Qual,66
+Bsmt Cond + BsmtFin SF 2 + Fireplace Qu,66
+Bsmt Cond + BsmtFin SF 2,66
+Bsmt Cond + BsmtFin SF 2 + Garage Cond,66
+Bsmt Cond + BsmtFin SF 2 + Garage Qual,66
+Bsmt Cond + BsmtFin SF 2 + Gr Liv Area,66
+Bsmt Unf SF + BsmtFin SF 2 + Exter Cond,66
+BsmtFin SF 2 + Garage Qual + Gr Liv Area,66
+Bsmt Unf SF + BsmtFin SF 2 + Exter Qual,66
+Bsmt Unf SF + BsmtFin SF 2 + Fireplace Qu,66
+Bsmt Cond + BsmtFin SF 2 + Heating QC,66
+Bsmt Unf SF + BsmtFin SF 2 + Garage Cond,66
+Bsmt Unf SF + BsmtFin SF 2 + Garage Qual,66
+Bsmt Unf SF + BsmtFin SF 2 + Gr Liv Area,66
+Bsmt Qual + BsmtFin SF 2 + Utilities,66
+BsmtFin SF 2 + Exter Cond + Low Qual Fin SF,66
+Bsmt Qual + BsmtFin SF 2 + Low Qual Fin SF,66
+Bsmt Unf SF + BsmtFin SF 2,66
+BsmtFin SF 2 + Garage Cond + Gr Liv Area,66
+BsmtFin SF 2 + Exter Cond + Garage Cond,66
+BsmtFin SF 2 + Garage Qual + Heating QC,66
+BsmtFin SF 2 + Exter Cond + Fireplace Qu,66
+BsmtFin SF 2 + Exter Cond + Exter Qual,66
+Bsmt Qual + BsmtFin SF 2 + Kitchen Qual,66
+Bsmt Qual + Bsmt Unf SF + BsmtFin SF 2,66
+BsmtFin SF 2 + Garage Qual + Kitchen Qual,66
+BsmtFin SF 2 + Garage Qual + Low Qual Fin SF,66
+BsmtFin SF 2 + Garage Qual + Utilities,66
+BsmtFin SF 2 + Low Qual Fin SF + Utilities,66
+BsmtFin SF 2 + Kitchen Qual + Utilities,66
+BsmtFin SF 2 + Gr Liv Area + Heating QC,66
+BsmtFin SF 2 + Kitchen Qual + Low Qual Fin SF,66
+BsmtFin SF 2 + Heating QC + Utilities,66
+BsmtFin SF 2 + Heating QC + Low Qual Fin SF,66
+BsmtFin SF 2 + Garage Cond + Heating QC,66
+BsmtFin SF 2 + Heating QC + Kitchen Qual,66
+BsmtFin SF 2 + Gr Liv Area + Utilities,66
+BsmtFin SF 2 + Gr Liv Area + Low Qual Fin SF,66
+BsmtFin SF 2 + Garage Cond + Kitchen Qual,66
+BsmtFin SF 2 + Exter Cond + Garage Qual,66
+BsmtFin SF 2 + Garage Cond + Garage Qual,66
+BsmtFin SF 2 + Exter Cond + Kitchen Qual,66
+BsmtFin SF 2 + Fireplace Qu + Gr Liv Area,66
+Bsmt Qual + BsmtFin SF 2 + Heating QC,66
+Bsmt Qual + BsmtFin SF 2 + Gr Liv Area,66
+Bsmt Qual + BsmtFin SF 2 + Garage Qual,66
+Bsmt Qual + BsmtFin SF 2 + Garage Cond,66
+BsmtFin SF 2 + Garage Cond + Low Qual Fin SF,66
+BsmtFin SF 2 + Fireplace Qu + Garage Cond,66
+BsmtFin SF 2 + Fireplace Qu + Garage Qual,66
+Bsmt Qual + BsmtFin SF 2 + Fireplace Qu,66
+Bsmt Qual + BsmtFin SF 2 + Exter Qual,66
+Bsmt Qual + BsmtFin SF 2 + Exter Cond,66
+BsmtFin SF 2 + Gr Liv Area + Kitchen Qual,66
+BsmtFin SF 2 + Fireplace Qu + Heating QC,66
+BsmtFin SF 2 + Fireplace Qu + Kitchen Qual,66
+BsmtFin SF 2 + Fireplace Qu + Low Qual Fin SF,66
+BsmtFin SF 2 + Fireplace Qu + Utilities,66
+Bsmt Qual + BsmtFin SF 2,66
+BsmtFin SF 2 + Exter Cond + Heating QC,66
+BsmtFin SF 2 + Exter Cond + Gr Liv Area,66
+Fireplace Qu + Garage Cars,64
+Exter Cond + Garage Cars,64
+Exter Qual + Garage Cars,64
+Garage Cars + Kitchen Qual + Utilities,64
+Garage Cars + Low Qual Fin SF + Utilities,64
+Bsmt Unf SF + BsmtFin SF 1 + BsmtFin SF 2,64
+BsmtFin SF 1 + BsmtFin SF 2 + Utilities,64
+BsmtFin SF 1 + BsmtFin SF 2 + Exter Cond,64
+BsmtFin SF 1 + BsmtFin SF 2 + Heating QC,64
+Garage Cars + Kitchen Qual + Low Qual Fin SF,64
+BsmtFin SF 1 + BsmtFin SF 2 + Gr Liv Area,64
+BsmtFin SF 1 + BsmtFin SF 2 + Low Qual Fin SF,64
+BsmtFin SF 1 + BsmtFin SF 2 + Garage Qual,64
+BsmtFin SF 1 + BsmtFin SF 2 + Garage Cond,64
+BsmtFin SF 1 + BsmtFin SF 2,64
+BsmtFin SF 1 + BsmtFin SF 2 + Fireplace Qu,64
+Bsmt Qual + Garage Cars,64
+Bsmt Cond + Garage Cars,64
+BsmtFin SF 1 + BsmtFin SF 2 + Exter Qual,64
+BsmtFin SF 1 + BsmtFin SF 2 + Kitchen Qual,64
+Fireplace Qu + Garage Cars + Kitchen Qual,64
+Garage Cars + Heating QC + Utilities,64
+Exter Cond + Garage Cars + Low Qual Fin SF,64
+Exter Qual + Fireplace Qu + Garage Cars,64
+Exter Qual + Garage Cars + Garage Cond,64
+Exter Qual + Garage Cars + Garage Qual,64
+Bsmt Qual + BsmtFin SF 1 + BsmtFin SF 2,64
+Exter Qual + Garage Cars + Gr Liv Area,64
+Exter Qual + Garage Cars + Heating QC,64
+Garage Cars + Heating QC + Low Qual Fin SF,64
+Exter Qual + Garage Cars + Kitchen Qual,64
+Exter Qual + Garage Cars + Low Qual Fin SF,64
+Exter Qual + Garage Cars + Utilities,64
+Fireplace Qu + Garage Cars + Garage Cond,64
+Fireplace Qu + Garage Cars + Garage Qual,64
+Fireplace Qu + Garage Cars + Gr Liv Area,64
+Fireplace Qu + Garage Cars + Heating QC,64
+Bsmt Qual + Exter Qual + Garage Cars,64
+Fireplace Qu + Garage Cars + Low Qual Fin SF,64
+Fireplace Qu + Garage Cars + Utilities,64
+Exter Cond + Garage Cars + Utilities,64
+Exter Cond + Garage Cars + Kitchen Qual,64
+Garage Cars + Garage Cond + Gr Liv Area,64
+Exter Cond + Garage Cars + Heating QC,64
+Bsmt Cond + BsmtFin SF 1 + BsmtFin SF 2,64
+Bsmt Cond + Bsmt Qual + Garage Cars,64
+Bsmt Cond + Exter Cond + Garage Cars,64
+Bsmt Cond + Exter Qual + Garage Cars,64
+Bsmt Cond + Fireplace Qu + Garage Cars,64
+Bsmt Cond + Garage Cars + Garage Cond,64
+Bsmt Cond + Garage Cars + Garage Qual,64
+Bsmt Cond + Garage Cars + Gr Liv Area,64
+Bsmt Cond + Garage Cars + Heating QC,64
+Bsmt Cond + Garage Cars + Kitchen Qual,64
+Bsmt Cond + Garage Cars + Low Qual Fin SF,64
+Bsmt Cond + Garage Cars + Utilities,64
+Exter Cond + Exter Qual + Garage Cars,64
+Exter Cond + Fireplace Qu + Garage Cars,64
+Exter Cond + Garage Cars + Garage Cond,64
+Exter Cond + Garage Cars + Garage Qual,64
+Exter Cond + Garage Cars + Gr Liv Area,64
+Garage Cars + Garage Cond + Garage Qual,64
+Bsmt Qual + Exter Cond + Garage Cars,64
+Garage Cars + Garage Cond + Heating QC,64
+Garage Cars + Gr Liv Area + Utilities,64
+Bsmt Qual + Garage Cars + Garage Qual,64
+Bsmt Qual + Garage Cars + Gr Liv Area,64
+Bsmt Qual + Garage Cars + Heating QC,64
+Bsmt Qual + Garage Cars + Kitchen Qual,64
+Bsmt Qual + Garage Cars + Low Qual Fin SF,64
+Garage Cars + Gr Liv Area + Kitchen Qual,64
+Garage Cars + Gr Liv Area + Low Qual Fin SF,64
+Garage Cars + Utilities,64
+Garage Cars + Gr Liv Area + Heating QC,64
+Garage Cars + Heating QC + Kitchen Qual,64
+Garage Cars + Low Qual Fin SF,64
+Garage Cars + Kitchen Qual,64
+Garage Cars + Heating QC,64
+Garage Cars + Gr Liv Area,64
+Garage Cars + Garage Qual,64
+Garage Cars + Garage Cond,64
+Bsmt Qual + Garage Cars + Garage Cond,64
+Bsmt Qual + Garage Cars + Utilities,64
+Garage Cars + Garage Cond + Utilities,64
+Garage Cars + Garage Qual + Heating QC,64
+Garage Cars + Garage Qual + Kitchen Qual,64
+Garage Cars + Garage Qual + Low Qual Fin SF,64
+Garage Cars + Garage Qual + Utilities,64
+Garage Cars + Garage Qual + Gr Liv Area,64
+Bsmt Qual + Fireplace Qu + Garage Cars,64
+Garage Cars + Garage Cond + Low Qual Fin SF,64
+Garage Cars + Garage Cond + Kitchen Qual,64
+Bsmt Unf SF + Garage Cars + Utilities,58
+Bsmt Unf SF + Garage Cars + Low Qual Fin SF,58
+Bsmt Unf SF + Garage Cars,58
+Bsmt Unf SF + Garage Cars + Heating QC,58
+Bsmt Unf SF + Garage Cars + Gr Liv Area,58
+Bsmt Unf SF + Garage Cars + Garage Qual,58
+Bsmt Unf SF + Garage Cars + Garage Cond,58
+Bsmt Unf SF + Garage Cars + Kitchen Qual,58
+Bsmt Cond + Bsmt Unf SF + Garage Cars,58
+Bsmt Unf SF + Exter Qual + Garage Cars,58
+Bsmt Unf SF + Fireplace Qu + Garage Cars,58
+Bsmt Qual + Bsmt Unf SF + Garage Cars,58
+Bsmt Unf SF + Exter Cond + Garage Cars,58
+BsmtFin SF 1 + Fireplace Qu + Garage Cars,56
+Bsmt Cond + BsmtFin SF 1 + Garage Cars,56
+BsmtFin SF 1 + Garage Cars + Low Qual Fin SF,56
+BsmtFin SF 1 + Exter Qual + Garage Cars,56
+BsmtFin SF 1 + Garage Cars + Utilities,56
+BsmtFin SF 1 + Garage Cars + Gr Liv Area,56
+BsmtFin SF 1 + Garage Cars + Kitchen Qual,56
+BsmtFin SF 1 + Garage Cars,56
+BsmtFin SF 1 + Garage Cars + Garage Qual,56
+BsmtFin SF 1 + Garage Cars + Garage Cond,56
+Bsmt Unf SF + BsmtFin SF 1 + Garage Cars,56
+Bsmt Qual + BsmtFin SF 1 + Garage Cars,56
+BsmtFin SF 1 + Exter Cond + Garage Cars,56
+BsmtFin SF 1 + Garage Cars + Heating QC,56
+BsmtFin SF 2 + Garage Cars,55
+Bsmt Unf SF + BsmtFin SF 2 + Garage Cars,55
+BsmtFin SF 2 + Exter Qual + Garage Cars,55
+Bsmt Cond + BsmtFin SF 2 + Garage Cars,55
+BsmtFin SF 2 + Fireplace Qu + Garage Cars,55
+BsmtFin SF 2 + Garage Cars + Garage Cond,55
+BsmtFin SF 2 + Exter Cond + Garage Cars,55
+BsmtFin SF 2 + Garage Cars + Garage Qual,55
+Bsmt Qual + BsmtFin SF 2 + Garage Cars,55
+BsmtFin SF 2 + Garage Cars + Gr Liv Area,55
+BsmtFin SF 2 + Garage Cars + Heating QC,55
+BsmtFin SF 2 + Garage Cars + Kitchen Qual,55
+BsmtFin SF 2 + Garage Cars + Utilities,55
+BsmtFin SF 2 + Garage Cars + Low Qual Fin SF,55
+BsmtFin SF 1 + BsmtFin SF 2 + Garage Cars,53
+1st Flr SF + Bsmt Qual,33
+1st Flr SF + Bsmt Cond,33
+1st Flr SF + Garage Cond + Garage Qual,33
+1st Flr SF + Exter Qual + Low Qual Fin SF,33
+1st Flr SF + Fireplace Qu + Garage Cond,33
+1st Flr SF + Fireplace Qu + Garage Qual,33
+1st Flr SF + Fireplace Qu + Gr Liv Area,33
+1st Flr SF + Fireplace Qu + Heating QC,33
+1st Flr SF + Fireplace Qu + Kitchen Qual,33
+1st Flr SF + Fireplace Qu + Low Qual Fin SF,33
+1st Flr SF + Fireplace Qu + Utilities,33
+1st Flr SF + Garage Cond + Gr Liv Area,33
+1st Flr SF + Garage Cond + Heating QC,33
+1st Flr SF + Garage Cond + Kitchen Qual,33
+1st Flr SF + Garage Cond + Low Qual Fin SF,33
+1st Flr SF + Bsmt Cond + Fireplace Qu,33
+1st Flr SF + Garage Cond + Utilities,33
+1st Flr SF + Bsmt Cond + Exter Qual,33
+1st Flr SF + Garage Qual + Gr Liv Area,33
+1st Flr SF + Garage Qual + Heating QC,33
+1st Flr SF + Garage Qual + Kitchen Qual,33
+1st Flr SF + Garage Qual + Low Qual Fin SF,33
+1st Flr SF + Bsmt Cond + Exter Cond,33
+1st Flr SF + Garage Qual + Utilities,33
+1st Flr SF + Gr Liv Area + Heating QC,33
+1st Flr SF + Gr Liv Area + Kitchen Qual,33
+1st Flr SF + Gr Liv Area + Low Qual Fin SF,33
+1st Flr SF + Gr Liv Area + Utilities,33
+1st Flr SF + Heating QC + Kitchen Qual,33
+1st Flr SF + Bsmt Cond + Bsmt Qual,33
+1st Flr SF + Heating QC + Low Qual Fin SF,33
+1st Flr SF + Heating QC + Utilities,33
+1st Flr SF + Kitchen Qual + Low Qual Fin SF,33
+1st Flr SF + Exter Qual + Utilities,33
+1st Flr SF + Exter Qual + Kitchen Qual,33
+1st Flr SF + Low Qual Fin SF + Utilities,33
+1st Flr SF + Exter Qual + Heating QC,33
+1st Flr SF + Bsmt Qual + Garage Qual,33
+1st Flr SF + Bsmt Qual + Gr Liv Area,33
+1st Flr SF + Bsmt Qual + Heating QC,33
+1st Flr SF + Bsmt Qual + Kitchen Qual,33
+1st Flr SF + Bsmt Qual + Low Qual Fin SF,33
+1st Flr SF + Bsmt Qual + Utilities,33
+1st Flr SF + Bsmt Qual + Fireplace Qu,33
+1st Flr SF + Bsmt Qual + Exter Qual,33
+1st Flr SF + Bsmt Qual + Exter Cond,33
+1st Flr SF + Bsmt Cond + Utilities,33
+1st Flr SF + Bsmt Cond + Low Qual Fin SF,33
+1st Flr SF + Bsmt Cond + Kitchen Qual,33
+1st Flr SF + Bsmt Cond + Heating QC,33
+1st Flr SF + Bsmt Cond + Gr Liv Area,33
+1st Flr SF + Bsmt Cond + Garage Qual,33
+1st Flr SF + Bsmt Cond + Garage Cond,33
+1st Flr SF + Exter Cond + Exter Qual,33
+1st Flr SF + Exter Cond + Fireplace Qu,33
+1st Flr SF + Exter Cond + Garage Cond,33
+1st Flr SF + Exter Cond + Garage Qual,33
+1st Flr SF + Exter Cond + Gr Liv Area,33
+1st Flr SF + Exter Cond + Heating QC,33
+1st Flr SF + Exter Cond + Kitchen Qual,33
+1st Flr SF + Exter Cond + Low Qual Fin SF,33
+1st Flr SF + Exter Cond + Utilities,33
+1st Flr SF + Exter Qual + Fireplace Qu,33
+1st Flr SF + Exter Qual + Garage Cond,33
+1st Flr SF + Exter Qual + Garage Qual,33
+1st Flr SF + Exter Qual + Gr Liv Area,33
+1st Flr SF + Kitchen Qual + Utilities,33
+1st Flr SF + Bsmt Qual + Garage Cond,33
+1st Flr SF + Low Qual Fin SF,33
+1st Flr SF + Exter Qual,33
+1st Flr SF + Fireplace Qu,33
+1st Flr SF + Kitchen Qual,33
+1st Flr SF + Exter Cond,33
+1st Flr SF + Utilities,33
+1st Flr SF + Heating QC,33
+1st Flr SF + Gr Liv Area,33
+1st Flr SF + Garage Cond,33
+1st Flr SF + Garage Qual,33
+1st Flr SF + Bsmt Cond + Bsmt Unf SF,32
+1st Flr SF + Bsmt Qual + BsmtFin SF 1,32
+1st Flr SF + Bsmt Qual + Bsmt Unf SF,32
+1st Flr SF + Bsmt Unf SF + Garage Cond,32
+1st Flr SF + Bsmt Unf SF + Exter Qual,32
+1st Flr SF + BsmtFin SF 1 + Utilities,32
+1st Flr SF + Bsmt Unf SF + Low Qual Fin SF,32
+1st Flr SF + Bsmt Unf SF + Heating QC,32
+1st Flr SF + Bsmt Unf SF + Garage Qual,32
+1st Flr SF + Bsmt Unf SF + Gr Liv Area,32
+1st Flr SF + Bsmt Unf SF + Exter Cond,32
+1st Flr SF + Bsmt Unf SF + Kitchen Qual,32
+1st Flr SF + BsmtFin SF 1 + Garage Cond,32
+1st Flr SF + Bsmt Unf SF,32
+1st Flr SF + BsmtFin SF 1 + Low Qual Fin SF,32
+1st Flr SF + Bsmt Unf SF + BsmtFin SF 1,32
+1st Flr SF + BsmtFin SF 1 + Kitchen Qual,32
+1st Flr SF + BsmtFin SF 1,32
+1st Flr SF + Bsmt Cond + BsmtFin SF 1,32
+1st Flr SF + BsmtFin SF 1 + Heating QC,32
+1st Flr SF + BsmtFin SF 1 + Gr Liv Area,32
+1st Flr SF + BsmtFin SF 1 + Garage Qual,32
+1st Flr SF + Bsmt Unf SF + Fireplace Qu,32
+1st Flr SF + Bsmt Unf SF + Utilities,32
+1st Flr SF + BsmtFin SF 1 + Fireplace Qu,32
+1st Flr SF + BsmtFin SF 1 + Exter Qual,32
+1st Flr SF + BsmtFin SF 1 + Exter Cond,32
+1st Flr SF + BsmtFin SF 2 + Utilities,31
+1st Flr SF + BsmtFin SF 2 + Kitchen Qual,31
+1st Flr SF + Bsmt Qual + BsmtFin SF 2,31
+1st Flr SF + Bsmt Cond + BsmtFin SF 2,31
+1st Flr SF + BsmtFin SF 2 + Low Qual Fin SF,31
+1st Flr SF + BsmtFin SF 2 + Heating QC,31
+1st Flr SF + BsmtFin SF 2 + Fireplace Qu,31
+1st Flr SF + BsmtFin SF 1 + BsmtFin SF 2,31
+1st Flr SF + BsmtFin SF 2 + Gr Liv Area,31
+1st Flr SF + BsmtFin SF 2 + Garage Qual,31
+1st Flr SF + BsmtFin SF 2,31
+1st Flr SF + Bsmt Unf SF + BsmtFin SF 2,31
+1st Flr SF + BsmtFin SF 2 + Garage Cond,31
+1st Flr SF + BsmtFin SF 2 + Exter Cond,31
+1st Flr SF + BsmtFin SF 2 + Exter Qual,31
+1st Flr SF + Garage Cars + Garage Cond,24
+1st Flr SF + Fireplace Qu + Garage Cars,24
+1st Flr SF + Exter Qual + Garage Cars,24
+1st Flr SF + Bsmt Qual + Garage Cars,24
+1st Flr SF + Garage Cars + Utilities,24
+1st Flr SF + Garage Cars,24
+1st Flr SF + Garage Cars + Gr Liv Area,24
+1st Flr SF + Garage Cars + Garage Qual,24
+1st Flr SF + Garage Cars + Kitchen Qual,24
+1st Flr SF + Exter Cond + Garage Cars,24
+1st Flr SF + Garage Cars + Heating QC,24
+1st Flr SF + Garage Cars + Low Qual Fin SF,24
+1st Flr SF + Bsmt Cond + Garage Cars,24
+1st Flr SF + Bsmt Unf SF + Garage Cars,23
+1st Flr SF + BsmtFin SF 1 + Garage Cars,23
+Exter Cond + Full Bath + Heating QC,22
+Full Bath + Garage Qual + Gr Liv Area,22
+1st Flr SF + Fireplace Qu + Full Bath,22
+Full Bath + Garage Qual + Utilities,22
+Exter Cond + Full Bath + Utilities,22
+Full Bath + Garage Qual + Heating QC,22
+Exter Cond + Full Bath + Gr Liv Area,22
+BsmtFin SF 1 + Fireplace Qu + Full Bath,22
+Exter Cond + Full Bath + Low Qual Fin SF,22
+Bsmt Qual + Exter Cond + Full Bath,22
+Exter Cond + Full Bath + Garage Cond,22
+Exter Cond + Full Bath + Garage Qual,22
+Full Bath + Garage Qual + Low Qual Fin SF,22
+Full Bath + Garage Qual + Kitchen Qual,22
+Exter Cond + Full Bath + Kitchen Qual,22
+Fireplace Qu + Full Bath + Garage Cond,22
+1st Flr SF + Bsmt Unf SF + Full Bath,22
+Bsmt Unf SF + Full Bath + Low Qual Fin SF,22
+Bsmt Unf SF + Full Bath + Heating QC,22
+1st Flr SF + BsmtFin SF 1 + Full Bath,22
+Exter Qual + Full Bath + Utilities,22
+Bsmt Unf SF + Full Bath + Gr Liv Area,22
+Exter Qual + Full Bath + Low Qual Fin SF,22
+Exter Qual + Full Bath + Kitchen Qual,22
+Exter Qual + Full Bath + Heating QC,22
+Exter Qual + Full Bath + Gr Liv Area,22
+Exter Qual + Full Bath + Garage Qual,22
+Exter Qual + Full Bath + Garage Cond,22
+Bsmt Unf SF + Full Bath + Garage Qual,22
+1st Flr SF + BsmtFin SF 2 + Garage Cars,22
+Exter Qual + Fireplace Qu + Full Bath,22
+Bsmt Unf SF + Full Bath + Garage Cond,22
+BsmtFin SF 1 + Exter Cond + Full Bath,22
+1st Flr SF + Full Bath,22
+Full Bath + Garage Cond + Garage Qual,22
+1st Flr SF + Exter Cond + Full Bath,22
+Full Bath + Garage Cond + Gr Liv Area,22
+Bsmt Unf SF + Fireplace Qu + Full Bath,22
+Full Bath + Gr Liv Area + Heating QC,22
+Bsmt Unf SF + Exter Qual + Full Bath,22
+Full Bath + Garage Cond + Heating QC,22
+Bsmt Unf SF + Exter Cond + Full Bath,22
+Full Bath + Garage Cond + Kitchen Qual,22
+Full Bath + Garage Cond + Low Qual Fin SF,22
+1st Flr SF + Exter Qual + Full Bath,22
+BsmtFin SF 1 + Exter Qual + Full Bath,22
+Bsmt Unf SF + BsmtFin SF 1 + Full Bath,22
+Full Bath + Garage Cond + Utilities,22
+Exter Cond + Fireplace Qu + Full Bath,22
+Full Bath + Heating QC + Kitchen Qual,22
+Full Bath + Gr Liv Area + Kitchen Qual,22
+Full Bath + Garage Qual,22
+Full Bath + Gr Liv Area,22
+Full Bath + Heating QC,22
+Bsmt Cond + Exter Cond + Full Bath,22
+Full Bath + Kitchen Qual,22
+Full Bath + Low Qual Fin SF,22
+Bsmt Cond + BsmtFin SF 1 + Full Bath,22
+Full Bath + Utilities,22
+Bsmt Cond + Bsmt Unf SF + Full Bath,22
+Fireplace Qu + Full Bath + Low Qual Fin SF,22
+Bsmt Cond + Bsmt Qual + Full Bath,22
+Fireplace Qu + Full Bath + Kitchen Qual,22
+Fireplace Qu + Full Bath + Heating QC,22
+1st Flr SF + Full Bath + Garage Cond,22
+Bsmt Qual + Exter Qual + Full Bath,22
+Fireplace Qu + Full Bath + Gr Liv Area,22
+Fireplace Qu + Full Bath + Garage Qual,22
+Bsmt Unf SF + Full Bath + Utilities,22
+Bsmt Cond + Exter Qual + Full Bath,22
+Bsmt Cond + Fireplace Qu + Full Bath,22
+Bsmt Qual + Fireplace Qu + Full Bath,22
+Full Bath + Garage Cond,22
+Bsmt Qual + Full Bath,22
+Bsmt Unf SF + Full Bath,22
+Bsmt Qual + BsmtFin SF 1 + Full Bath,22
+Bsmt Qual + Bsmt Unf SF + Full Bath,22
+BsmtFin SF 1 + Full Bath,22
+1st Flr SF + Bsmt Qual + Full Bath,22
+Exter Cond + Full Bath,22
+Bsmt Cond + Full Bath + Utilities,22
+Exter Qual + Full Bath,22
+Bsmt Cond + Full Bath + Low Qual Fin SF,22
+Bsmt Cond + Full Bath + Kitchen Qual,22
+Fireplace Qu + Full Bath,22
+Bsmt Cond + Full Bath + Heating QC,22
+Fireplace Qu + Full Bath + Utilities,22
+Bsmt Cond + Full Bath + Gr Liv Area,22
+Bsmt Cond + Full Bath + Garage Qual,22
+Bsmt Cond + Full Bath + Garage Cond,22
+Bsmt Cond + Full Bath,22
+Bsmt Unf SF + Full Bath + Kitchen Qual,22
+Bsmt Qual + Full Bath + Low Qual Fin SF,22
+Full Bath + Kitchen Qual + Low Qual Fin SF,22
+Full Bath + Low Qual Fin SF + Utilities,22
+Bsmt Qual + Full Bath + Utilities,22
+1st Flr SF + Bsmt Cond + Full Bath,22
+Full Bath + Heating QC + Utilities,22
+Full Bath + Heating QC + Low Qual Fin SF,22
+1st Flr SF + Full Bath + Utilities,22
+Bsmt Qual + Full Bath + Kitchen Qual,22
+Bsmt Qual + Full Bath + Heating QC,22
+Bsmt Qual + Full Bath + Gr Liv Area,22
+Full Bath + Gr Liv Area + Utilities,22
+Exter Cond + Exter Qual + Full Bath,22
+BsmtFin SF 1 + Full Bath + Garage Cond,22
+BsmtFin SF 1 + Full Bath + Garage Qual,22
+BsmtFin SF 1 + Full Bath + Gr Liv Area,22
+BsmtFin SF 1 + Full Bath + Heating QC,22
+1st Flr SF + Full Bath + Low Qual Fin SF,22
+BsmtFin SF 1 + Full Bath + Kitchen Qual,22
+BsmtFin SF 1 + Full Bath + Low Qual Fin SF,22
+BsmtFin SF 1 + Full Bath + Utilities,22
+Bsmt Qual + Full Bath + Garage Qual,22
+Bsmt Qual + Full Bath + Garage Cond,22
+1st Flr SF + Full Bath + Kitchen Qual,22
+Full Bath + Gr Liv Area + Low Qual Fin SF,22
+1st Flr SF + Full Bath + Heating QC,22
+1st Flr SF + Full Bath + Gr Liv Area,22
+1st Flr SF + Full Bath + Garage Qual,22
+Full Bath + Kitchen Qual + Utilities,22
+BsmtFin SF 2 + Full Bath,21
+BsmtFin SF 1 + BsmtFin SF 2 + Full Bath,21
+Bsmt Qual + BsmtFin SF 2 + Full Bath,21
+BsmtFin SF 2 + Fireplace Qu + Full Bath,21
+BsmtFin SF 2 + Exter Cond + Full Bath,21
+BsmtFin SF 2 + Full Bath + Garage Cond,21
+BsmtFin SF 2 + Full Bath + Garage Qual,21
+BsmtFin SF 2 + Full Bath + Gr Liv Area,21
+BsmtFin SF 2 + Full Bath + Heating QC,21
+BsmtFin SF 2 + Full Bath + Kitchen Qual,21
+BsmtFin SF 2 + Full Bath + Low Qual Fin SF,21
+BsmtFin SF 2 + Full Bath + Utilities,21
+Bsmt Unf SF + BsmtFin SF 2 + Full Bath,21
+Bsmt Cond + BsmtFin SF 2 + Full Bath,21
+BsmtFin SF 2 + Exter Qual + Full Bath,21
+1st Flr SF + BsmtFin SF 2 + Full Bath,21
+Fireplace Qu + Garage Cond + Open Porch SF,20
+Kitchen Qual + Open Porch SF + Utilities,20
+Low Qual Fin SF + Open Porch SF + Utilities,20
+Bsmt Unf SF + Kitchen Qual + Open Porch SF,20
+Fireplace Qu + Garage Qual + Open Porch SF,20
+Kitchen Qual + Low Qual Fin SF + Open Porch SF,20
+Heating QC + Open Porch SF + Utilities,20
+Garage Qual + Gr Liv Area + Open Porch SF,20
+Fireplace Qu + Gr Liv Area + Open Porch SF,20
+Fireplace Qu + Heating QC + Open Porch SF,20
+Garage Qual + Open Porch SF,20
+Garage Cond + Open Porch SF,20
+Garage Cond + Garage Qual + Open Porch SF,20
+Fireplace Qu + Open Porch SF,20
+Exter Qual + Open Porch SF,20
+Garage Cond + Gr Liv Area + Open Porch SF,20
+Exter Cond + Open Porch SF,20
+BsmtFin SF 2 + Open Porch SF,20
+Garage Cond + Heating QC + Open Porch SF,20
+BsmtFin SF 1 + Open Porch SF,20
+Garage Cond + Kitchen Qual + Open Porch SF,20
+Garage Cond + Low Qual Fin SF + Open Porch SF,20
+Bsmt Unf SF + Open Porch SF,20
+Garage Cond + Open Porch SF + Utilities,20
+Bsmt Qual + Open Porch SF,20
+Gr Liv Area + Open Porch SF,20
+Heating QC + Open Porch SF,20
+Bsmt Cond + Open Porch SF,20
+Gr Liv Area + Low Qual Fin SF + Open Porch SF,20
+Fireplace Qu + Kitchen Qual + Open Porch SF,20
+Fireplace Qu + Low Qual Fin SF + Open Porch SF,20
+Fireplace Qu + Open Porch SF + Utilities,20
+Heating QC + Low Qual Fin SF + Open Porch SF,20
+Heating QC + Kitchen Qual + Open Porch SF,20
+Gr Liv Area + Open Porch SF + Utilities,20
+Gr Liv Area + Kitchen Qual + Open Porch SF,20
+Kitchen Qual + Open Porch SF,20
+Garage Qual + Open Porch SF + Utilities,20
+Garage Qual + Low Qual Fin SF + Open Porch SF,20
+Garage Qual + Kitchen Qual + Open Porch SF,20
+Garage Qual + Heating QC + Open Porch SF,20
+Open Porch SF + Utilities,20
+Low Qual Fin SF + Open Porch SF,20
+Gr Liv Area + Heating QC + Open Porch SF,20
+Bsmt Unf SF + Low Qual Fin SF + Open Porch SF,20
+BsmtFin SF 1 + Fireplace Qu + Open Porch SF,20
+Bsmt Qual + Low Qual Fin SF + Open Porch SF,20
+BsmtFin SF 2 + Gr Liv Area + Open Porch SF,20
+Bsmt Cond + Exter Qual + Open Porch SF,20
+BsmtFin SF 2 + Heating QC + Open Porch SF,20
+BsmtFin SF 2 + Kitchen Qual + Open Porch SF,20
+Bsmt Cond + Fireplace Qu + Open Porch SF,20
+BsmtFin SF 2 + Low Qual Fin SF + Open Porch SF,20
+BsmtFin SF 2 + Open Porch SF + Utilities,20
+Bsmt Qual + Kitchen Qual + Open Porch SF,20
+Bsmt Cond + Bsmt Qual + Open Porch SF,20
+BsmtFin SF 1 + Open Porch SF + Utilities,20
+Exter Cond + Exter Qual + Open Porch SF,20
+BsmtFin SF 1 + Low Qual Fin SF + Open Porch SF,20
+BsmtFin SF 1 + Kitchen Qual + Open Porch SF,20
+Bsmt Qual + Heating QC + Open Porch SF,20
+Exter Cond + Fireplace Qu + Open Porch SF,20
+BsmtFin SF 1 + Heating QC + Open Porch SF,20
+Bsmt Cond + Exter Cond + Open Porch SF,20
+Bsmt Qual + Open Porch SF + Utilities,20
+BsmtFin SF 2 + Exter Cond + Open Porch SF,20
+BsmtFin SF 2 + Garage Qual + Open Porch SF,20
+BsmtFin SF 2 + Exter Qual + Open Porch SF,20
+Bsmt Unf SF + Exter Qual + Open Porch SF,20
+BsmtFin SF 1 + BsmtFin SF 2 + Open Porch SF,20
+Bsmt Cond + Bsmt Unf SF + Open Porch SF,20
+Bsmt Unf SF + Garage Cond + Open Porch SF,20
+Bsmt Unf SF + Garage Qual + Open Porch SF,20
+BsmtFin SF 2 + Fireplace Qu + Open Porch SF,20
+Bsmt Unf SF + Gr Liv Area + Open Porch SF,20
+Bsmt Unf SF + Exter Cond + Open Porch SF,20
+BsmtFin SF 1 + Exter Cond + Open Porch SF,20
+Bsmt Cond + BsmtFin SF 1 + Open Porch SF,20
+Bsmt Unf SF + BsmtFin SF 2 + Open Porch SF,20
+Bsmt Cond + BsmtFin SF 2 + Open Porch SF,20
+BsmtFin SF 2 + Garage Cond + Open Porch SF,20
+Bsmt Unf SF + BsmtFin SF 1 + Open Porch SF,20
+Bsmt Qual + Gr Liv Area + Open Porch SF,20
+Bsmt Unf SF + Open Porch SF + Utilities,20
+Bsmt Cond + Garage Cond + Open Porch SF,20
+BsmtFin SF 1 + Gr Liv Area + Open Porch SF,20
+Bsmt Qual + BsmtFin SF 2 + Open Porch SF,20
+Bsmt Qual + Exter Cond + Open Porch SF,20
+BsmtFin SF 1 + Exter Qual + Open Porch SF,20
+Bsmt Qual + Exter Qual + Open Porch SF,20
+Exter Qual + Garage Cond + Open Porch SF,20
+Exter Qual + Garage Qual + Open Porch SF,20
+Bsmt Qual + Fireplace Qu + Open Porch SF,20
+Bsmt Qual + Garage Qual + Open Porch SF,20
+Exter Qual + Gr Liv Area + Open Porch SF,20
+Exter Qual + Heating QC + Open Porch SF,20
+Exter Qual + Kitchen Qual + Open Porch SF,20
+Exter Qual + Low Qual Fin SF + Open Porch SF,20
+Exter Qual + Open Porch SF + Utilities,20
+Bsmt Qual + Garage Cond + Open Porch SF,20
+Bsmt Unf SF + Heating QC + Open Porch SF,20
+Exter Qual + Fireplace Qu + Open Porch SF,20
+Exter Cond + Open Porch SF + Utilities,20
+Exter Cond + Low Qual Fin SF + Open Porch SF,20
+Bsmt Qual + BsmtFin SF 1 + Open Porch SF,20
+Exter Cond + Garage Cond + Open Porch SF,20
+Bsmt Cond + Garage Qual + Open Porch SF,20
+Exter Cond + Garage Qual + Open Porch SF,20
+Exter Cond + Gr Liv Area + Open Porch SF,20
+Exter Cond + Heating QC + Open Porch SF,20
+Bsmt Cond + Gr Liv Area + Open Porch SF,20
+Bsmt Cond + Heating QC + Open Porch SF,20
+Bsmt Cond + Kitchen Qual + Open Porch SF,20
+BsmtFin SF 1 + Garage Qual + Open Porch SF,20
+Bsmt Cond + Low Qual Fin SF + Open Porch SF,20
+Bsmt Cond + Open Porch SF + Utilities,20
+Bsmt Qual + Bsmt Unf SF + Open Porch SF,20
+BsmtFin SF 1 + Garage Cond + Open Porch SF,20
+Exter Cond + Kitchen Qual + Open Porch SF,20
+Bsmt Unf SF + Fireplace Qu + Open Porch SF,20
+Bsmt Qual + Utilities + Wood Deck SF,17
+Heating QC + Low Qual Fin SF + Wood Deck SF,17
+Bsmt Unf SF + BsmtFin SF 1 + Wood Deck SF,17
+BsmtFin SF 1 + Fireplace Qu + Wood Deck SF,17
+Exter Cond + Exter Qual + Wood Deck SF,17
+BsmtFin SF 1 + Utilities + Wood Deck SF,17
+BsmtFin SF 1 + Low Qual Fin SF + Wood Deck SF,17
+BsmtFin SF 1 + Kitchen Qual + Wood Deck SF,17
+BsmtFin SF 1 + Heating QC + Wood Deck SF,17
+BsmtFin SF 1 + Gr Liv Area + Wood Deck SF,17
+BsmtFin SF 1 + Garage Qual + Wood Deck SF,17
+BsmtFin SF 1 + Garage Cond + Wood Deck SF,17
+BsmtFin SF 1 + Exter Qual + Wood Deck SF,17
+Exter Cond + Garage Cond + Wood Deck SF,17
+BsmtFin SF 1 + Exter Cond + Wood Deck SF,17
+Bsmt Unf SF + Utilities + Wood Deck SF,17
+Bsmt Unf SF + Low Qual Fin SF + Wood Deck SF,17
+Bsmt Unf SF + Kitchen Qual + Wood Deck SF,17
+Bsmt Unf SF + Heating QC + Wood Deck SF,17
+Bsmt Unf SF + Gr Liv Area + Wood Deck SF,17
+Bsmt Unf SF + Garage Qual + Wood Deck SF,17
+Bsmt Unf SF + Garage Cond + Wood Deck SF,17
+Exter Cond + Fireplace Qu + Wood Deck SF,17
+Exter Cond + Garage Qual + Wood Deck SF,17
+Bsmt Unf SF + Exter Cond + Wood Deck SF,17
+Exter Qual + Kitchen Qual + Wood Deck SF,17
+Fireplace Qu + Low Qual Fin SF + Wood Deck SF,17
+Fireplace Qu + Kitchen Qual + Wood Deck SF,17
+Fireplace Qu + Heating QC + Wood Deck SF,17
+Fireplace Qu + Gr Liv Area + Wood Deck SF,17
+Fireplace Qu + Garage Qual + Wood Deck SF,17
+Bsmt Qual + Low Qual Fin SF + Wood Deck SF,17
+Exter Qual + Utilities + Wood Deck SF,17
+Exter Qual + Low Qual Fin SF + Wood Deck SF,17
+Exter Qual + Heating QC + Wood Deck SF,17
+Exter Cond + Gr Liv Area + Wood Deck SF,17
+Exter Qual + Gr Liv Area + Wood Deck SF,17
+Exter Qual + Garage Qual + Wood Deck SF,17
+Exter Qual + Garage Cond + Wood Deck SF,17
+Exter Qual + Fireplace Qu + Wood Deck SF,17
+Exter Cond + Utilities + Wood Deck SF,17
+Exter Cond + Low Qual Fin SF + Wood Deck SF,17
+Exter Cond + Kitchen Qual + Wood Deck SF,17
+Exter Cond + Heating QC + Wood Deck SF,17
+Fireplace Qu + Garage Cond + Wood Deck SF,17
+Bsmt Qual + Garage Cond + Wood Deck SF,17
+Bsmt Qual + Kitchen Qual + Wood Deck SF,17
+Garage Qual + Utilities + Wood Deck SF,17
+Bsmt Cond + Exter Qual + Wood Deck SF,17
+Gr Liv Area + Kitchen Qual + Wood Deck SF,17
+Bsmt Cond + Exter Cond + Wood Deck SF,17
+Bsmt Qual + Heating QC + Wood Deck SF,17
+Gr Liv Area + Low Qual Fin SF + Wood Deck SF,17
+Bsmt Cond + Bsmt Unf SF + Wood Deck SF,17
+Bsmt Cond + Bsmt Qual + Wood Deck SF,17
+Low Qual Fin SF + Utilities + Wood Deck SF,17
+Gr Liv Area + Utilities + Wood Deck SF,17
+Utilities + Wood Deck SF,17
+Low Qual Fin SF + Wood Deck SF,17
+Heating QC + Kitchen Qual + Wood Deck SF,17
+Kitchen Qual + Wood Deck SF,17
+Heating QC + Wood Deck SF,17
+Gr Liv Area + Wood Deck SF,17
+Garage Qual + Wood Deck SF,17
+Garage Cond + Wood Deck SF,17
+Fireplace Qu + Wood Deck SF,17
+Exter Qual + Wood Deck SF,17
+Exter Cond + Wood Deck SF,17
+Kitchen Qual + Utilities + Wood Deck SF,17
+Kitchen Qual + Low Qual Fin SF + Wood Deck SF,17
+BsmtFin SF 1 + Wood Deck SF,17
+Bsmt Unf SF + Wood Deck SF,17
+Bsmt Qual + Wood Deck SF,17
+Bsmt Cond + Wood Deck SF,17
+Heating QC + Utilities + Wood Deck SF,17
+Gr Liv Area + Heating QC + Wood Deck SF,17
+Bsmt Cond + BsmtFin SF 1 + Wood Deck SF,17
+Garage Qual + Low Qual Fin SF + Wood Deck SF,17
+Bsmt Cond + Fireplace Qu + Wood Deck SF,17
+Bsmt Qual + Gr Liv Area + Wood Deck SF,17
+Bsmt Qual + Garage Qual + Wood Deck SF,17
+Bsmt Unf SF + Exter Qual + Wood Deck SF,17
+Bsmt Qual + Fireplace Qu + Wood Deck SF,17
+Bsmt Qual + Exter Qual + Wood Deck SF,17
+Bsmt Qual + Exter Cond + Wood Deck SF,17
+Fireplace Qu + Utilities + Wood Deck SF,17
+Garage Cond + Garage Qual + Wood Deck SF,17
+Garage Cond + Gr Liv Area + Wood Deck SF,17
+Garage Cond + Heating QC + Wood Deck SF,17
+Garage Cond + Kitchen Qual + Wood Deck SF,17
+Garage Cond + Low Qual Fin SF + Wood Deck SF,17
+Garage Cond + Utilities + Wood Deck SF,17
+Bsmt Qual + BsmtFin SF 1 + Wood Deck SF,17
+Bsmt Unf SF + Fireplace Qu + Wood Deck SF,17
+Bsmt Cond + Utilities + Wood Deck SF,17
+Bsmt Cond + Low Qual Fin SF + Wood Deck SF,17
+Garage Qual + Kitchen Qual + Wood Deck SF,17
+Bsmt Cond + Garage Cond + Wood Deck SF,17
+Bsmt Cond + Garage Qual + Wood Deck SF,17
+Bsmt Cond + Gr Liv Area + Wood Deck SF,17
+Garage Qual + Heating QC + Wood Deck SF,17
+Bsmt Cond + Heating QC + Wood Deck SF,17
+Bsmt Qual + Bsmt Unf SF + Wood Deck SF,17
+Garage Qual + Gr Liv Area + Wood Deck SF,17
+Bsmt Cond + Kitchen Qual + Wood Deck SF,17
+Bsmt Cond + BsmtFin SF 2 + Wood Deck SF,16
+BsmtFin SF 2 + Wood Deck SF,16
+BsmtFin SF 1 + BsmtFin SF 2 + Wood Deck SF,16
+BsmtFin SF 2 + Heating QC + Wood Deck SF,16
+BsmtFin SF 2 + Gr Liv Area + Wood Deck SF,16
+BsmtFin SF 2 + Utilities + Wood Deck SF,16
+Bsmt Qual + BsmtFin SF 2 + Wood Deck SF,16
+BsmtFin SF 2 + Low Qual Fin SF + Wood Deck SF,16
+Bsmt Unf SF + BsmtFin SF 2 + Wood Deck SF,16
+BsmtFin SF 2 + Exter Cond + Wood Deck SF,16
+BsmtFin SF 2 + Exter Qual + Wood Deck SF,16
+BsmtFin SF 2 + Kitchen Qual + Wood Deck SF,16
+BsmtFin SF 2 + Garage Cond + Wood Deck SF,16
+BsmtFin SF 2 + Garage Qual + Wood Deck SF,16
+BsmtFin SF 2 + Fireplace Qu + Wood Deck SF,16
+Bsmt Unf SF + Full Bath + Garage Cars,14
+Full Bath + Garage Cars + Garage Qual,14
+1st Flr SF + Gr Liv Area + Open Porch SF,14
+1st Flr SF + Garage Qual + Open Porch SF,14
+1st Flr SF + Garage Cond + Open Porch SF,14
+1st Flr SF + BsmtFin SF 1 + Open Porch SF,14
+Exter Qual + Full Bath + Garage Cars,14
+1st Flr SF + BsmtFin SF 2 + Open Porch SF,14
+1st Flr SF + Full Bath + Garage Cars,14
+1st Flr SF + Fireplace Qu + Open Porch SF,14
+Exter Cond + Full Bath + Garage Cars,14
+Full Bath + Garage Cars + Garage Cond,14
+1st Flr SF + Exter Qual + Open Porch SF,14
+1st Flr SF + Exter Cond + Open Porch SF,14
+Full Bath + Garage Cars + Utilities,14
+Full Bath + Garage Cars + Low Qual Fin SF,14
+Full Bath + Garage Cars + Kitchen Qual,14
+Full Bath + Garage Cars + Heating QC,14
+1st Flr SF + Bsmt Unf SF + Open Porch SF,14
+1st Flr SF + Bsmt Cond + Open Porch SF,14
+Full Bath + Garage Cars + Gr Liv Area,14
+BsmtFin SF 1 + Full Bath + Garage Cars,14
+1st Flr SF + Heating QC + Open Porch SF,14
+1st Flr SF + Kitchen Qual + Open Porch SF,14
+1st Flr SF + Low Qual Fin SF + Open Porch SF,14
+1st Flr SF + Open Porch SF + Utilities,14
+Full Bath + Garage Cars,14
+Bsmt Cond + Full Bath + Garage Cars,14
+1st Flr SF + Bsmt Qual + Open Porch SF,14
+Fireplace Qu + Full Bath + Garage Cars,14
+Bsmt Qual + Full Bath + Garage Cars,14
+1st Flr SF + Open Porch SF,14
+Bedroom AbvGr + Gr Liv Area + Heating QC,13
+Bedroom AbvGr + Garage Qual + Utilities,13
+Bedroom AbvGr + Garage Cond + Utilities,13
+Bedroom AbvGr + Garage Qual + Low Qual Fin SF,13
+Bedroom AbvGr + Garage Qual + Kitchen Qual,13
+Bedroom AbvGr + Garage Qual + Gr Liv Area,13
+Bedroom AbvGr + Garage Qual + Heating QC,13
+Bedroom AbvGr + Garage Cond + Kitchen Qual,13
+Bedroom AbvGr + Garage Cond + Low Qual Fin SF,13
+Bedroom AbvGr + Gr Liv Area + Low Qual Fin SF,13
+Bedroom AbvGr + Garage Cond + Heating QC,13
+Bedroom AbvGr + Garage Cond + Gr Liv Area,13
+Bedroom AbvGr + Garage Cond + Garage Qual,13
+Bedroom AbvGr + Fireplace Qu + Utilities,13
+Bedroom AbvGr + Fireplace Qu + Low Qual Fin SF,13
+Bedroom AbvGr + Fireplace Qu + Kitchen Qual,13
+Bedroom AbvGr + Fireplace Qu + Heating QC,13
+Bedroom AbvGr + Fireplace Qu + Gr Liv Area,13
+Bedroom AbvGr + Fireplace Qu + Garage Qual,13
+Bedroom AbvGr + Fireplace Qu + Garage Cond,13
+Bedroom AbvGr + Exter Qual + Utilities,13
+Bedroom AbvGr + Gr Liv Area + Kitchen Qual,13
+Garage Cars + Utilities + Wood Deck SF,13
+Bedroom AbvGr + Gr Liv Area + Utilities,13
+Bsmt Unf SF + Garage Cars + Wood Deck SF,13
+Garage Cars + Kitchen Qual + Wood Deck SF,13
+Garage Cars + Heating QC + Wood Deck SF,13
+Garage Cars + Gr Liv Area + Wood Deck SF,13
+Garage Cars + Garage Qual + Wood Deck SF,13
+Garage Cars + Garage Cond + Wood Deck SF,13
+Fireplace Qu + Garage Cars + Wood Deck SF,13
+Exter Qual + Garage Cars + Wood Deck SF,13
+Exter Cond + Garage Cars + Wood Deck SF,13
+BsmtFin SF 1 + Garage Cars + Wood Deck SF,13
+Bsmt Qual + Garage Cars + Wood Deck SF,13
+Bedroom AbvGr + Heating QC + Kitchen Qual,13
+Bsmt Cond + Garage Cars + Wood Deck SF,13
+Garage Cars + Wood Deck SF,13
+Garage Cars + Low Qual Fin SF + Wood Deck SF,13
+Bedroom AbvGr + Exter Qual + Kitchen Qual,13
+Bedroom AbvGr + Low Qual Fin SF + Utilities,13
+Bedroom AbvGr + Kitchen Qual + Utilities,13
+Bedroom AbvGr + Kitchen Qual + Low Qual Fin SF,13
+Bedroom AbvGr + Heating QC + Utilities,13
+Bedroom AbvGr + Heating QC + Low Qual Fin SF,13
+Bedroom AbvGr + Exter Qual + Low Qual Fin SF,13
+Bedroom AbvGr + Bsmt Qual + Fireplace Qu,13
+Bedroom AbvGr + Exter Qual + Heating QC,13
+Bedroom AbvGr + Low Qual Fin SF,13
+1st Flr SF + Bedroom AbvGr + Gr Liv Area,13
+1st Flr SF + Bedroom AbvGr + Garage Qual,13
+1st Flr SF + Bedroom AbvGr + Garage Cond,13
+1st Flr SF + Bedroom AbvGr + Fireplace Qu,13
+1st Flr SF + Bedroom AbvGr + Exter Qual,13
+1st Flr SF + Bedroom AbvGr + Exter Cond,13
+1st Flr SF + Bedroom AbvGr + Bsmt Qual,13
+1st Flr SF + Bedroom AbvGr + Bsmt Cond,13
+Bedroom AbvGr + Utilities,13
+Bedroom AbvGr + Kitchen Qual,13
+Bedroom AbvGr + Bsmt Qual + Garage Qual,13
+Bedroom AbvGr + Heating QC,13
+Bedroom AbvGr + Gr Liv Area,13
+Bedroom AbvGr + Garage Qual,13
+Bedroom AbvGr + Garage Cond,13
+Bedroom AbvGr + Fireplace Qu,13
+Bedroom AbvGr + Exter Qual,13
+Bedroom AbvGr + Exter Cond,13
+Bedroom AbvGr + Bsmt Qual,13
+Bedroom AbvGr + Bsmt Cond,13
+1st Flr SF + Bedroom AbvGr + Heating QC,13
+1st Flr SF + Bedroom AbvGr + Kitchen Qual,13
+1st Flr SF + Bedroom AbvGr + Low Qual Fin SF,13
+1st Flr SF + Bedroom AbvGr + Utilities,13
+Bedroom AbvGr + Bsmt Qual + Exter Qual,13
+Bedroom AbvGr + Bsmt Qual + Exter Cond,13
+Bedroom AbvGr + Bsmt Qual + Gr Liv Area,13
+Bedroom AbvGr + Bsmt Qual + Heating QC,13
+Bedroom AbvGr + Bsmt Qual + Kitchen Qual,13
+Bedroom AbvGr + Bsmt Qual + Low Qual Fin SF,13
+Bedroom AbvGr + Bsmt Cond + Utilities,13
+Bedroom AbvGr + Bsmt Cond + Low Qual Fin SF,13
+Bedroom AbvGr + Bsmt Qual + Utilities,13
+Bedroom AbvGr + Bsmt Cond + Kitchen Qual,13
+Bedroom AbvGr + Bsmt Cond + Heating QC,13
+Bedroom AbvGr + Bsmt Cond + Gr Liv Area,13
+Bedroom AbvGr + Bsmt Cond + Garage Qual,13
+Bedroom AbvGr + Bsmt Cond + Garage Cond,13
+Bedroom AbvGr + Exter Qual + Gr Liv Area,13
+Bedroom AbvGr + Bsmt Cond + Fireplace Qu,13
+Bedroom AbvGr + Bsmt Cond + Exter Qual,13
+Bedroom AbvGr + Bsmt Cond + Exter Cond,13
+Bedroom AbvGr + Bsmt Cond + Bsmt Qual,13
+1st Flr SF + Bedroom AbvGr,13
+Bedroom AbvGr + Bsmt Qual + Garage Cond,13
+BsmtFin SF 2 + Full Bath + Garage Cars,13
+Bedroom AbvGr + Exter Cond + Exter Qual,13
+Bedroom AbvGr + Exter Cond + Utilities,13
+Bedroom AbvGr + Exter Qual + Fireplace Qu,13
+Bedroom AbvGr + Exter Cond + Low Qual Fin SF,13
+Bedroom AbvGr + Exter Cond + Kitchen Qual,13
+Bedroom AbvGr + Exter Qual + Garage Cond,13
+Bedroom AbvGr + Exter Cond + Heating QC,13
+Bedroom AbvGr + Exter Cond + Fireplace Qu,13
+Bedroom AbvGr + Exter Cond + Gr Liv Area,13
+Bedroom AbvGr + Exter Cond + Garage Qual,13
+Bedroom AbvGr + Exter Qual + Garage Qual,13
+Bedroom AbvGr + Exter Cond + Garage Cond,13
+Bsmt Unf SF + Half Bath + Utilities,12
+Bsmt Unf SF + Half Bath + Heating QC,12
+Bsmt Unf SF + Half Bath + Kitchen Qual,12
+Bsmt Unf SF + Half Bath + Low Qual Fin SF,12
+Half Bath + Utilities,12
+BsmtFin SF 2 + Garage Cars + Open Porch SF,12
+BsmtFin SF 2 + Garage Cars + Wood Deck SF,12
+BsmtFin SF 2 + Full Bath + Open Porch SF,12
+BsmtFin SF 1 + Half Bath,12
+Bsmt Cond + Full Bath + Open Porch SF,12
+1st Flr SF + Full Bath + Open Porch SF,12
+1st Flr SF + Bedroom AbvGr + BsmtFin SF 1,12
+Exter Cond + Full Bath + Open Porch SF,12
+Gr Liv Area + Half Bath,12
+Bsmt Unf SF + Gr Liv Area + Half Bath,12
+1st Flr SF + Bedroom AbvGr + BsmtFin SF 2,12
+BsmtFin SF 1 + Garage Cars + Open Porch SF,12
+1st Flr SF + Bedroom AbvGr + Bsmt Unf SF,12
+Bsmt Unf SF + Garage Qual + Half Bath,12
+Bsmt Unf SF + Garage Cond + Half Bath,12
+Bsmt Unf SF + Fireplace Qu + Half Bath,12
+Bsmt Unf SF + Exter Qual + Half Bath,12
+Bsmt Cond + Garage Cars + Open Porch SF,12
+BsmtFin SF 1 + Exter Cond + Half Bath,12
+Bedroom AbvGr + Bsmt Cond + Bsmt Unf SF,12
+Bedroom AbvGr + Bsmt Cond + BsmtFin SF 1,12
+Bsmt Qual + Half Bath,12
+BsmtFin SF 1 + Half Bath + Utilities,12
+Exter Cond + Half Bath,12
+Bedroom AbvGr + Bsmt Qual + BsmtFin SF 2,12
+Bsmt Cond + Half Bath,12
+Bedroom AbvGr + Bsmt Qual + BsmtFin SF 1,12
+Bedroom AbvGr + Bsmt Qual + Bsmt Unf SF,12
+Exter Qual + Half Bath,12
+Fireplace Qu + Half Bath,12
+BsmtFin SF 1 + Half Bath + Low Qual Fin SF,12
+BsmtFin SF 1 + Half Bath + Kitchen Qual,12
+BsmtFin SF 1 + Half Bath + Heating QC,12
+BsmtFin SF 1 + Gr Liv Area + Half Bath,12
+Garage Cond + Half Bath,12
+Garage Qual + Half Bath,12
+1st Flr SF + Half Bath,12
+Bsmt Unf SF + Garage Cars + Open Porch SF,12
+BsmtFin SF 1 + Garage Qual + Half Bath,12
+Bsmt Unf SF + Full Bath + Open Porch SF,12
+Bsmt Qual + Garage Cars + Open Porch SF,12
+Bsmt Qual + Full Bath + Open Porch SF,12
+BsmtFin SF 1 + Full Bath + Open Porch SF,12
+Bedroom AbvGr + Bsmt Cond + BsmtFin SF 2,12
+BsmtFin SF 1 + Garage Cond + Half Bath,12
+BsmtFin SF 1 + Fireplace Qu + Half Bath,12
+BsmtFin SF 1 + Exter Qual + Half Bath,12
+Exter Cond + Garage Cars + Open Porch SF,12
+Bsmt Unf SF + Exter Cond + Half Bath,12
+Bsmt Unf SF + BsmtFin SF 1 + Half Bath,12
+Half Bath + Heating QC,12
+Bsmt Cond + Exter Cond + Half Bath,12
+Bsmt Cond + Bsmt Unf SF + Half Bath,12
+Bsmt Cond + Bsmt Qual + Half Bath,12
+1st Flr SF + Half Bath + Utilities,12
+1st Flr SF + Half Bath + Low Qual Fin SF,12
+1st Flr SF + Half Bath + Kitchen Qual,12
+1st Flr SF + Half Bath + Heating QC,12
+1st Flr SF + Gr Liv Area + Half Bath,12
+1st Flr SF + Garage Qual + Half Bath,12
+1st Flr SF + Garage Cond + Half Bath,12
+1st Flr SF + Fireplace Qu + Half Bath,12
+1st Flr SF + Exter Qual + Half Bath,12
+1st Flr SF + Exter Cond + Half Bath,12
+1st Flr SF + BsmtFin SF 1 + Half Bath,12
+1st Flr SF + Bsmt Unf SF + Half Bath,12
+Garage Cars + Low Qual Fin SF + Open Porch SF,12
+Garage Cars + Kitchen Qual + Open Porch SF,12
+Full Bath + Open Porch SF,12
+Garage Cars + Heating QC + Open Porch SF,12
+Garage Cars + Open Porch SF,12
+1st Flr SF + Bsmt Qual + Half Bath,12
+Garage Cars + Gr Liv Area + Open Porch SF,12
+Garage Cars + Garage Qual + Open Porch SF,12
+Garage Cars + Garage Cond + Open Porch SF,12
+Full Bath + Open Porch SF + Utilities,12
+Full Bath + Low Qual Fin SF + Open Porch SF,12
+1st Flr SF + Bsmt Cond + Half Bath,12
+Full Bath + Kitchen Qual + Open Porch SF,12
+Full Bath + Heating QC + Open Porch SF,12
+Full Bath + Gr Liv Area + Open Porch SF,12
+Bsmt Cond + BsmtFin SF 1 + Half Bath,12
+Bsmt Cond + Exter Qual + Half Bath,12
+Full Bath + Garage Qual + Open Porch SF,12
+Bsmt Cond + Fireplace Qu + Half Bath,12
+Bsmt Qual + Half Bath + Utilities,12
+Bsmt Qual + Half Bath + Low Qual Fin SF,12
+Exter Qual + Full Bath + Open Porch SF,12
+Half Bath + Kitchen Qual,12
+Bsmt Qual + Half Bath + Kitchen Qual,12
+Exter Qual + Garage Cars + Open Porch SF,12
+Bsmt Qual + Half Bath + Heating QC,12
+Bsmt Qual + Gr Liv Area + Half Bath,12
+Bsmt Qual + Garage Qual + Half Bath,12
+Bsmt Qual + Garage Cond + Half Bath,12
+Bedroom AbvGr + BsmtFin SF 2,12
+Bedroom AbvGr + BsmtFin SF 1,12
+Bedroom AbvGr + Bsmt Unf SF,12
+Fireplace Qu + Full Bath + Open Porch SF,12
+Half Bath + Low Qual Fin SF,12
+Fireplace Qu + Garage Cars + Open Porch SF,12
+Bsmt Qual + Fireplace Qu + Half Bath,12
+Garage Cars + Open Porch SF + Utilities,12
+Bsmt Qual + Exter Qual + Half Bath,12
+Bsmt Qual + Exter Cond + Half Bath,12
+Full Bath + Garage Cond + Open Porch SF,12
+Bsmt Qual + Bsmt Unf SF + Half Bath,12
+Bsmt Cond + Half Bath + Utilities,12
+Bsmt Cond + Half Bath + Low Qual Fin SF,12
+Bsmt Cond + Half Bath + Kitchen Qual,12
+Bsmt Cond + Half Bath + Heating QC,12
+Bsmt Cond + Gr Liv Area + Half Bath,12
+Bsmt Cond + Garage Qual + Half Bath,12
+Bsmt Cond + Garage Cond + Half Bath,12
+Bsmt Qual + BsmtFin SF 1 + Half Bath,12
+Bsmt Unf SF + Half Bath,12
+Fireplace Qu + Half Bath + Heating QC,12
+Bedroom AbvGr + BsmtFin SF 1 + Heating QC,12
+Exter Qual + Fireplace Qu + Half Bath,12
+Exter Cond + Half Bath + Utilities,12
+Exter Cond + Half Bath + Low Qual Fin SF,12
+Bedroom AbvGr + BsmtFin SF 1 + Exter Qual,12
+Exter Cond + Half Bath + Kitchen Qual,12
+Bedroom AbvGr + BsmtFin SF 1 + Fireplace Qu,12
+Bedroom AbvGr + BsmtFin SF 1 + Garage Cond,12
+Garage Qual + Half Bath + Utilities,12
+Exter Cond + Half Bath + Heating QC,12
+Exter Cond + Gr Liv Area + Half Bath,12
+Exter Cond + Garage Qual + Half Bath,12
+Gr Liv Area + Half Bath + Heating QC,12
+Exter Cond + Garage Cond + Half Bath,12
+Exter Cond + Fireplace Qu + Half Bath,12
+Exter Cond + Exter Qual + Half Bath,12
+Bedroom AbvGr + Bsmt Unf SF + Low Qual Fin SF,12
+Gr Liv Area + Half Bath + Kitchen Qual,12
+Gr Liv Area + Half Bath + Low Qual Fin SF,12
+Bedroom AbvGr + Bsmt Unf SF + Kitchen Qual,12
+Bedroom AbvGr + Bsmt Unf SF + Heating QC,12
+Bedroom AbvGr + BsmtFin SF 1 + Garage Qual,12
+Bedroom AbvGr + Bsmt Unf SF + Garage Qual,12
+Bedroom AbvGr + Bsmt Unf SF + Garage Cond,12
+Exter Qual + Garage Cond + Half Bath,12
+Bedroom AbvGr + BsmtFin SF 1 + Exter Cond,12
+Exter Qual + Garage Qual + Half Bath,12
+Fireplace Qu + Garage Cond + Half Bath,12
+Garage Cond + Gr Liv Area + Half Bath,12
+Garage Cond + Garage Qual + Half Bath,12
+Fireplace Qu + Half Bath + Utilities,12
+Bedroom AbvGr + Bsmt Unf SF + Utilities,12
+Fireplace Qu + Half Bath + Low Qual Fin SF,12
+Fireplace Qu + Half Bath + Kitchen Qual,12
+Garage Cond + Half Bath + Heating QC,12
+Fireplace Qu + Gr Liv Area + Half Bath,12
+Fireplace Qu + Garage Qual + Half Bath,12
+Garage Cond + Half Bath + Kitchen Qual,12
+Garage Cond + Half Bath + Low Qual Fin SF,12
+Exter Qual + Gr Liv Area + Half Bath,12
+Garage Cond + Half Bath + Utilities,12
+Garage Qual + Gr Liv Area + Half Bath,12
+Garage Qual + Half Bath + Heating QC,12
+Garage Qual + Half Bath + Kitchen Qual,12
+Bedroom AbvGr + BsmtFin SF 1 + BsmtFin SF 2,12
+Exter Qual + Half Bath + Utilities,12
+Exter Qual + Half Bath + Low Qual Fin SF,12
+Garage Qual + Half Bath + Low Qual Fin SF,12
+Exter Qual + Half Bath + Kitchen Qual,12
+Exter Qual + Half Bath + Heating QC,12
+Bedroom AbvGr + BsmtFin SF 1 + Gr Liv Area,12
+Bedroom AbvGr + Bsmt Unf SF + Gr Liv Area,12
+Bedroom AbvGr + Bsmt Unf SF + Fireplace Qu,12
+Bedroom AbvGr + BsmtFin SF 2 + Gr Liv Area,12
+Half Bath + Kitchen Qual + Low Qual Fin SF,12
+Half Bath + Heating QC + Utilities,12
+Bedroom AbvGr + Bsmt Unf SF + BsmtFin SF 1,12
+Bedroom AbvGr + BsmtFin SF 2 + Utilities,12
+Bedroom AbvGr + BsmtFin SF 1 + Utilities,12
+Bedroom AbvGr + BsmtFin SF 2 + Low Qual Fin SF,12
+Bedroom AbvGr + BsmtFin SF 2 + Kitchen Qual,12
+Bedroom AbvGr + BsmtFin SF 2 + Heating QC,12
+Bedroom AbvGr + BsmtFin SF 2 + Garage Qual,12
+Bedroom AbvGr + BsmtFin SF 1 + Low Qual Fin SF,12
+Bedroom AbvGr + BsmtFin SF 2 + Garage Cond,12
+Bedroom AbvGr + BsmtFin SF 2 + Exter Cond,12
+Bedroom AbvGr + BsmtFin SF 2 + Fireplace Qu,12
+Bedroom AbvGr + Bsmt Unf SF + Exter Qual,12
+Bedroom AbvGr + Bsmt Unf SF + Exter Cond,12
+Bedroom AbvGr + BsmtFin SF 2 + Exter Qual,12
+Bedroom AbvGr + Bsmt Unf SF + BsmtFin SF 2,12
+Half Bath + Heating QC + Kitchen Qual,12
+Half Bath + Kitchen Qual + Utilities,12
+Half Bath + Heating QC + Low Qual Fin SF,12
+Bedroom AbvGr + BsmtFin SF 1 + Kitchen Qual,12
+Half Bath + Low Qual Fin SF + Utilities,12
+Gr Liv Area + Half Bath + Utilities,12
+BsmtFin SF 2 + Garage Cond + Half Bath,11
+BsmtFin SF 2 + Half Bath + Heating QC,11
+Bsmt Qual + BsmtFin SF 2 + Half Bath,11
+BsmtFin SF 2 + Garage Qual + Half Bath,11
+BsmtFin SF 2 + Half Bath,11
+BsmtFin SF 2 + Exter Qual + Half Bath,11
+BsmtFin SF 2 + Exter Cond + Half Bath,11
+BsmtFin SF 2 + Half Bath + Kitchen Qual,11
+BsmtFin SF 2 + Half Bath + Low Qual Fin SF,11
+BsmtFin SF 2 + Gr Liv Area + Half Bath,11
+BsmtFin SF 2 + Fireplace Qu + Half Bath,11
+BsmtFin SF 2 + Half Bath + Utilities,11
+BsmtFin SF 1 + BsmtFin SF 2 + Half Bath,11
+Bsmt Cond + BsmtFin SF 2 + Half Bath,11
+Bsmt Unf SF + BsmtFin SF 2 + Half Bath,11
+1st Flr SF + BsmtFin SF 2 + Half Bath,11
+Fireplace Qu + Garage Area + Low Qual Fin SF,10
+BsmtFin SF 1 + Garage Cars + Half Bath,10
+Garage Cars + Half Bath,10
+Fireplace Qu + Garage Area + Kitchen Qual,10
+Exter Cond + Garage Cars + Half Bath,10
+1st Flr SF + Garage Cars + Half Bath,10
+Bsmt Unf SF + Garage Cars + Half Bath,10
+Garage Cars + Half Bath + Low Qual Fin SF,10
+Exter Qual + Garage Cars + Half Bath,10
+Bsmt Qual + Garage Cars + Half Bath,10
+Fireplace Qu + Garage Area + Utilities,10
+Bsmt Cond + Garage Cars + Half Bath,10
+Garage Cars + Half Bath + Utilities,10
+Garage Area + Heating QC + Low Qual Fin SF,10
+Fireplace Qu + Garage Cars + Half Bath,10
+Garage Area + Garage Qual + Utilities,10
+Garage Area + Garage Qual + Heating QC,10
+Fireplace Qu + Garage Area + Gr Liv Area,10
+Garage Area + Garage Qual + Kitchen Qual,10
+Garage Area + Garage Qual + Low Qual Fin SF,10
+Garage Area + Kitchen Qual + Low Qual Fin SF,10
+Fireplace Qu + Garage Area,10
+Garage Area + Heating QC + Utilities,10
+Garage Area + Kitchen Qual + Utilities,10
+Garage Area + Gr Liv Area + Heating QC,10
+Garage Area + Gr Liv Area + Kitchen Qual,10
+Garage Area + Gr Liv Area + Low Qual Fin SF,10
+Exter Qual + Garage Area,10
+Garage Area + Gr Liv Area + Utilities,10
+Exter Cond + Garage Area,10
+Garage Area + Garage Qual + Gr Liv Area,10
+Garage Area + Garage Cond + Utilities,10
+Garage Area + Utilities,10
+Garage Area + Gr Liv Area,10
+Garage Area + Heating QC + Kitchen Qual,10
+Bsmt Cond + Garage Area,10
+Garage Area + Low Qual Fin SF,10
+Bsmt Qual + Garage Area,10
+Garage Area + Kitchen Qual,10
+Garage Area + Heating QC,10
+Garage Area + Garage Qual,10
+Garage Area + Low Qual Fin SF + Utilities,10
+Garage Area + Garage Cond,10
+Garage Area + Garage Cond + Garage Qual,10
+Garage Area + Garage Cond + Gr Liv Area,10
+Garage Area + Garage Cond + Heating QC,10
+Garage Area + Garage Cond + Kitchen Qual,10
+Garage Area + Garage Cond + Low Qual Fin SF,10
+Fireplace Qu + Garage Area + Heating QC,10
+Bsmt Qual + Garage Area + Heating QC,10
+Fireplace Qu + Garage Area + Garage Qual,10
+Bsmt Qual + Fireplace Qu + Garage Area,10
+Garage Cars + Half Bath + Heating QC,10
+Bsmt Qual + Garage Area + Gr Liv Area,10
+Bsmt Cond + Exter Cond + Garage Area,10
+Garage Cars + Garage Qual + Half Bath,10
+Bsmt Cond + Exter Qual + Garage Area,10
+Bsmt Cond + Fireplace Qu + Garage Area,10
+Bsmt Cond + Garage Area + Garage Cond,10
+Bsmt Qual + Garage Area + Garage Cond,10
+Bsmt Cond + Garage Area + Garage Qual,10
+Bsmt Qual + Exter Qual + Garage Area,10
+Bsmt Cond + Bsmt Qual + Garage Area,10
+Bsmt Qual + Exter Cond + Garage Area,10
+Bsmt Cond + Garage Area + Gr Liv Area,10
+Bsmt Cond + Garage Area + Heating QC,10
+Bsmt Cond + Garage Area + Kitchen Qual,10
+Bsmt Cond + Garage Area + Low Qual Fin SF,10
+Fireplace Qu + Garage Area + Garage Cond,10
+Bsmt Cond + Garage Area + Utilities,10
+Garage Cars + Garage Cond + Half Bath,10
+Garage Cars + Gr Liv Area + Half Bath,10
+Bsmt Qual + Garage Area + Utilities,10
+Bsmt Qual + Garage Area + Garage Qual,10
+Exter Cond + Exter Qual + Garage Area,10
+Exter Cond + Garage Area + Heating QC,10
+Bsmt Qual + Garage Area + Low Qual Fin SF,10
+Garage Cars + Half Bath + Kitchen Qual,10
+Bsmt Qual + Garage Area + Kitchen Qual,10
+Exter Qual + Garage Area + Utilities,10
+Exter Qual + Garage Area + Low Qual Fin SF,10
+Exter Qual + Garage Area + Kitchen Qual,10
+Exter Qual + Garage Area + Heating QC,10
+Exter Qual + Garage Area + Gr Liv Area,10
+Exter Qual + Garage Area + Garage Qual,10
+Exter Cond + Fireplace Qu + Garage Area,10
+Exter Qual + Fireplace Qu + Garage Area,10
+Exter Cond + Garage Area + Utilities,10
+Exter Cond + Garage Area + Low Qual Fin SF,10
+Exter Cond + Garage Area + Kitchen Qual,10
+Exter Qual + Garage Area + Garage Cond,10
+Exter Cond + Garage Area + Gr Liv Area,10
+Exter Cond + Garage Area + Garage Qual,10
+Exter Cond + Garage Area + Garage Cond,10
+Bedroom AbvGr + Full Bath + Utilities,9
+BsmtFin SF 2 + Garage Cars + Half Bath,9
+Bsmt Unf SF + Exter Qual + Garage Area,9
+Bedroom AbvGr + Garage Qual + Open Porch SF,9
+Bedroom AbvGr + Exter Qual + Full Bath,9
+Bedroom AbvGr + BsmtFin SF 2 + Open Porch SF,9
+Bedroom AbvGr + Bsmt Cond + Open Porch SF,9
+Bsmt Unf SF + Fireplace Qu + Garage Area,9
+Bedroom AbvGr + Exter Cond + Open Porch SF,9
+Bedroom AbvGr + Bsmt Qual + Open Porch SF,9
+Bsmt Qual + BsmtFin SF 1 + Garage Area,9
+Bedroom AbvGr + Gr Liv Area + Open Porch SF,9
+Bsmt Qual + Bsmt Unf SF + Garage Area,9
+Bsmt Unf SF + Garage Area + Garage Cond,9
+Bsmt Unf SF + Garage Area + Garage Qual,9
+Bedroom AbvGr + Exter Cond + Full Bath,9
+Bedroom AbvGr + Fireplace Qu + Open Porch SF,9
+Bedroom AbvGr + Fireplace Qu + Full Bath,9
+Bsmt Qual + BsmtFin SF 2 + Garage Area,9
+Bedroom AbvGr + Garage Cond + Open Porch SF,9
+Bedroom AbvGr + Full Bath + Garage Cond,9
+Bedroom AbvGr + Full Bath + Garage Qual,9
+Bsmt Unf SF + Exter Cond + Garage Area,9
+Bedroom AbvGr + Full Bath + Gr Liv Area,9
+Bsmt Unf SF + BsmtFin SF 2 + Garage Area,9
+Bedroom AbvGr + Full Bath + Heating QC,9
+Bsmt Unf SF + BsmtFin SF 1 + Garage Area,9
+Bedroom AbvGr + Full Bath + Kitchen Qual,9
+Bedroom AbvGr + Exter Qual + Open Porch SF,9
+Bedroom AbvGr + Full Bath + Low Qual Fin SF,9
+Bsmt Unf SF + Garage Area + Gr Liv Area,9
+Bedroom AbvGr + Bsmt Qual + Full Bath,9
+Bedroom AbvGr + Heating QC + Open Porch SF,9
+BsmtFin SF 1 + Exter Qual + Garage Area,9
+Bedroom AbvGr + BsmtFin SF 2 + Full Bath,9
+BsmtFin SF 2 + Garage Area + Kitchen Qual,9
+BsmtFin SF 2 + Exter Cond + Garage Area,9
+BsmtFin SF 2 + Exter Qual + Garage Area,9
+BsmtFin SF 2 + Fireplace Qu + Garage Area,9
+Bsmt Cond + BsmtFin SF 2 + Garage Area,9
+BsmtFin SF 2 + Garage Area + Garage Cond,9
+BsmtFin SF 2 + Garage Area + Garage Qual,9
+BsmtFin SF 2 + Garage Area + Gr Liv Area,9
+BsmtFin SF 2 + Garage Area + Heating QC,9
+BsmtFin SF 2 + Garage Area + Low Qual Fin SF,9
+BsmtFin SF 1 + Garage Area + Utilities,9
+Bsmt Cond + BsmtFin SF 1 + Garage Area,9
+BsmtFin SF 2 + Garage Area + Utilities,9
+Bsmt Cond + Bsmt Unf SF + Garage Area,9
+1st Flr SF + Bedroom AbvGr + Full Bath,9
+Bedroom AbvGr + Bsmt Unf SF + Open Porch SF,9
+Bedroom AbvGr + BsmtFin SF 1 + Full Bath,9
+Bedroom AbvGr + Open Porch SF,9
+Bedroom AbvGr + Full Bath,9
+1st Flr SF + Bedroom AbvGr + Open Porch SF,9
+BsmtFin SF 1 + Garage Area + Low Qual Fin SF,9
+Bedroom AbvGr + Kitchen Qual + Open Porch SF,9
+Bsmt Unf SF + Garage Area,9
+Bsmt Unf SF + Garage Area + Heating QC,9
+Bedroom AbvGr + Low Qual Fin SF + Open Porch SF,9
+Bsmt Unf SF + Garage Area + Kitchen Qual,9
+Bedroom AbvGr + Open Porch SF + Utilities,9
+Bsmt Unf SF + Garage Area + Low Qual Fin SF,9
+Bsmt Unf SF + Garage Area + Utilities,9
+Bedroom AbvGr + Bsmt Unf SF + Full Bath,9
+BsmtFin SF 1 + BsmtFin SF 2 + Garage Area,9
+Bedroom AbvGr + BsmtFin SF 1 + Open Porch SF,9
+BsmtFin SF 1 + Garage Area + Kitchen Qual,9
+BsmtFin SF 1 + Exter Cond + Garage Area,9
+BsmtFin SF 1 + Garage Area,9
+BsmtFin SF 2 + Garage Area,9
+BsmtFin SF 1 + Fireplace Qu + Garage Area,9
+BsmtFin SF 1 + Garage Area + Garage Cond,9
+BsmtFin SF 1 + Garage Area + Garage Qual,9
+BsmtFin SF 1 + Garage Area + Gr Liv Area,9
+BsmtFin SF 1 + Garage Area + Heating QC,9
+Bedroom AbvGr + Bsmt Cond + Full Bath,9
+1st Flr SF + Exter Cond + Garage Area,8
+1st Flr SF + Garage Area + Garage Cond,8
+1st Flr SF + Garage Area,8
+1st Flr SF + BsmtFin SF 1 + Garage Area,8
+1st Flr SF + Bsmt Cond + Garage Area,8
+1st Flr SF + BsmtFin SF 2 + Garage Area,8
+1st Flr SF + Exter Qual + Garage Area,8
+1st Flr SF + Fireplace Qu + Garage Area,8
+1st Flr SF + Garage Area + Garage Qual,8
+1st Flr SF + Garage Area + Gr Liv Area,8
+1st Flr SF + Garage Area + Heating QC,8
+1st Flr SF + Garage Area + Kitchen Qual,8
+1st Flr SF + Garage Area + Low Qual Fin SF,8
+1st Flr SF + Bsmt Qual + Garage Area,8
+1st Flr SF + Garage Area + Utilities,8
+1st Flr SF + Bsmt Unf SF + Garage Area,8
+Full Bath + Garage Area + Gr Liv Area,7
+Bsmt Unf SF + Full Bath + Garage Area,7
+BsmtFin SF 2 + Full Bath + Garage Area,7
+Exter Cond + Full Bath + Garage Area,7
+Bedroom AbvGr + Garage Cars + Gr Liv Area,7
+1st Flr SF + Garage Cars + Open Porch SF,7
+Bsmt Qual + Full Bath + Garage Area,7
+1st Flr SF + Full Bath + Garage Area,7
+Bedroom AbvGr + Garage Cars + Garage Qual,7
+Bedroom AbvGr + Garage Cars + Garage Cond,7
+Bedroom AbvGr + Full Bath + Open Porch SF,7
+BsmtFin SF 1 + Full Bath + Garage Area,7
+Exter Qual + Full Bath + Garage Area,7
+Full Bath + Garage Area + Garage Qual,7
+1st Flr SF + Bedroom AbvGr + Garage Cars,7
+Fireplace Qu + Full Bath + Garage Area,7
+Bedroom AbvGr + Bsmt Cond + Garage Cars,7
+Bedroom AbvGr + Fireplace Qu + Garage Cars,7
+Bedroom AbvGr + Exter Qual + Garage Cars,7
+Bedroom AbvGr + Exter Cond + Garage Cars,7
+Full Bath + Garage Area + Garage Cond,7
+Full Bath + Garage Area + Utilities,7
+Full Bath + Garage Area + Low Qual Fin SF,7
+Full Bath + Garage Area + Kitchen Qual,7
+Bedroom AbvGr + Bsmt Qual + Garage Cars,7
+Full Bath + Garage Area + Heating QC,7
+Bsmt Cond + Full Bath + Garage Area,7
+Bedroom AbvGr + Garage Cars,7
+Bedroom AbvGr + Garage Cars + Utilities,7
+Bedroom AbvGr + Garage Cars + Kitchen Qual,7
+Bedroom AbvGr + Garage Cars + Heating QC,7
+Bedroom AbvGr + Garage Cars + Low Qual Fin SF,7
+Full Bath + Garage Area,7
+Open Porch SF + Utilities + Wood Deck SF,6
+Garage Area + Garage Cond + Open Porch SF,6
+1st Flr SF + Exter Cond + Wood Deck SF,6
+1st Flr SF + Gr Liv Area + Wood Deck SF,6
+Bedroom AbvGr + BsmtFin SF 1 + Garage Cars,6
+1st Flr SF + BsmtFin SF 2 + Wood Deck SF,6
+Exter Cond + Open Porch SF + Wood Deck SF,6
+1st Flr SF + Exter Qual + Wood Deck SF,6
+Bsmt Cond + Open Porch SF + Wood Deck SF,6
+1st Flr SF + Garage Qual + Wood Deck SF,6
+Low Qual Fin SF + Open Porch SF + Wood Deck SF,6
+1st Flr SF + Garage Cond + Wood Deck SF,6
+1st Flr SF + Utilities + Wood Deck SF,6
+Bsmt Qual + Open Porch SF + Wood Deck SF,6
+Bedroom AbvGr + BsmtFin SF 2 + Garage Cars,6
+Garage Cond + Open Porch SF + Wood Deck SF,6
+Kitchen Qual + Open Porch SF + Wood Deck SF,6
+BsmtFin SF 2 + Garage Area + Open Porch SF,6
+Exter Cond + Garage Area + Open Porch SF,6
+Garage Area + Low Qual Fin SF + Open Porch SF,6
+Full Bath + Garage Cars + Open Porch SF,6
+Garage Qual + Open Porch SF + Wood Deck SF,6
+Garage Area + Open Porch SF,6
+Bsmt Qual + Garage Area + Open Porch SF,6
+BsmtFin SF 2 + Open Porch SF + Wood Deck SF,6
+Exter Qual + Garage Area + Open Porch SF,6
+Heating QC + Open Porch SF + Wood Deck SF,6
+1st Flr SF + Wood Deck SF,6
+1st Flr SF + Fireplace Qu + Wood Deck SF,6
+1st Flr SF + Heating QC + Wood Deck SF,6
+BsmtFin SF 1 + Open Porch SF + Wood Deck SF,6
+Garage Area + Gr Liv Area + Open Porch SF,6
+Bsmt Unf SF + Open Porch SF + Wood Deck SF,6
+Exter Qual + Open Porch SF + Wood Deck SF,6
+1st Flr SF + Bsmt Qual + Wood Deck SF,6
+1st Flr SF + Bsmt Cond + Wood Deck SF,6
+Garage Area + Kitchen Qual + Open Porch SF,6
+1st Flr SF + Bsmt Unf SF + Wood Deck SF,6
+Garage Area + Open Porch SF + Utilities,6
+Fireplace Qu + Garage Area + Open Porch SF,6
+1st Flr SF + Kitchen Qual + Wood Deck SF,6
+1st Flr SF + BsmtFin SF 1 + Wood Deck SF,6
+BsmtFin SF 1 + Garage Area + Open Porch SF,6
+Garage Area + Heating QC + Open Porch SF,6
+Gr Liv Area + Open Porch SF + Wood Deck SF,6
+Bedroom AbvGr + Bsmt Unf SF + Garage Cars,6
+Bsmt Cond + Garage Area + Open Porch SF,6
+Garage Area + Garage Qual + Open Porch SF,6
+1st Flr SF + Low Qual Fin SF + Wood Deck SF,6
+Fireplace Qu + Open Porch SF + Wood Deck SF,6
+Open Porch SF + Wood Deck SF,6
+Bsmt Unf SF + Garage Area + Open Porch SF,6
+Bsmt Unf SF + Full Bath + Half Bath,5
+Full Bath + Utilities + Wood Deck SF,5
+Bedroom AbvGr + Garage Area,5
+Full Bath + Half Bath,5
+Exter Qual + Full Bath + Half Bath,5
+Fireplace Qu + Full Bath + Wood Deck SF,5
+Full Bath + Low Qual Fin SF + Wood Deck SF,5
+Full Bath + Garage Cond + Wood Deck SF,5
+Bsmt Cond + Full Bath + Wood Deck SF,5
+Full Bath + Kitchen Qual + Wood Deck SF,5
+Full Bath + Heating QC + Wood Deck SF,5
+Exter Cond + Full Bath + Half Bath,5
+Bsmt Qual + Full Bath + Half Bath,5
+Exter Qual + Full Bath + Wood Deck SF,5
+Full Bath + Gr Liv Area + Wood Deck SF,5
+Full Bath + Garage Qual + Wood Deck SF,5
+1st Flr SF + Garage Area + Open Porch SF,5
+Bsmt Cond + Full Bath + Half Bath,5
+Full Bath + Gr Liv Area + Half Bath,5
+Full Bath + Half Bath + Kitchen Qual,5
+Full Bath + Half Bath + Low Qual Fin SF,5
+Bedroom AbvGr + BsmtFin SF 1 + Garage Area,5
+Bedroom AbvGr + Exter Cond + Garage Area,5
+Bedroom AbvGr + Exter Qual + Garage Area,5
+Full Bath + Half Bath + Utilities,5
+Bedroom AbvGr + Bsmt Unf SF + Garage Area,5
+Bsmt Unf SF + Full Bath + Wood Deck SF,5
+Bedroom AbvGr + Fireplace Qu + Garage Area,5
+Bedroom AbvGr + Bsmt Qual + Garage Area,5
+Full Bath + Half Bath + Heating QC,5
+BsmtFin SF 2 + Full Bath + Wood Deck SF,5
+Bedroom AbvGr + Garage Area + Garage Cond,5
+Bedroom AbvGr + Garage Area + Garage Qual,5
+Bedroom AbvGr + Garage Area + Gr Liv Area,5
+BsmtFin SF 1 + Full Bath + Wood Deck SF,5
+1st Flr SF + Full Bath + Half Bath,5
+Bedroom AbvGr + Garage Area + Heating QC,5
+Exter Cond + Full Bath + Wood Deck SF,5
+Bsmt Qual + Full Bath + Wood Deck SF,5
+Bedroom AbvGr + Bsmt Cond + Garage Area,5
+BsmtFin SF 1 + Full Bath + Half Bath,5
+1st Flr SF + Bedroom AbvGr + Garage Area,5
+Full Bath + Wood Deck SF,5
+1st Flr SF + Full Bath + Wood Deck SF,5
+Full Bath + Garage Qual + Half Bath,5
+Full Bath + Garage Cond + Half Bath,5
+Fireplace Qu + Full Bath + Half Bath,5
+Bedroom AbvGr + Garage Area + Utilities,5
+Bedroom AbvGr + Garage Area + Low Qual Fin SF,5
+Bedroom AbvGr + Garage Area + Kitchen Qual,5
+Bedroom AbvGr + BsmtFin SF 2 + Garage Area,5
+Bedroom AbvGr + Garage Cars + Open Porch SF,4
+Bedroom AbvGr + Full Bath + Garage Cars,4
+1st Flr SF + Open Porch SF + Wood Deck SF,4
+BsmtFin SF 2 + Full Bath + Half Bath,4
+Full Bath + Garage Area + Open Porch SF,4
+Bedroom AbvGr + Garage Area + Open Porch SF,4
+Bedroom AbvGr + Full Bath + Garage Area,4
+BsmtFin SF 2 + Gr Liv Area + Screen Porch,3
+BsmtFin SF 1 + Gr Liv Area + Screen Porch,3
+Heating QC + Low Qual Fin SF + Screen Porch,3
+BsmtFin SF 1 + Garage Qual + Screen Porch,3
+Heating QC + Kitchen Qual + Screen Porch,3
+BsmtFin SF 2 + Fireplace Qu + Screen Porch,3
+BsmtFin SF 1 + Screen Porch,3
+Heating QC + Screen Porch + Utilities,3
+BsmtFin SF 1 + Heating QC + Screen Porch,3
+BsmtFin SF 2 + Garage Qual + Screen Porch,3
+BsmtFin SF 1 + Low Qual Fin SF + Screen Porch,3
+BsmtFin SF 1 + Screen Porch + Utilities,3
+BsmtFin SF 2 + Garage Cond + Screen Porch,3
+Kitchen Qual + Low Qual Fin SF + Screen Porch,3
+BsmtFin SF 2 + Exter Cond + Screen Porch,3
+BsmtFin SF 2 + Exter Qual + Screen Porch,3
+Kitchen Qual + Screen Porch + Utilities,3
+Low Qual Fin SF + Screen Porch + Utilities,3
+BsmtFin SF 1 + Kitchen Qual + Screen Porch,3
+Garage Qual + Gr Liv Area + Screen Porch,3
+BsmtFin SF 2 + Heating QC + Screen Porch,3
+BsmtFin SF 2 + Kitchen Qual + Screen Porch,3
+Exter Qual + Screen Porch + Utilities,3
+Garage Qual + Screen Porch + Utilities,3
+Fireplace Qu + Garage Cond + Screen Porch,3
+Fireplace Qu + Garage Qual + Screen Porch,3
+Garage Qual + Low Qual Fin SF + Screen Porch,3
+Fireplace Qu + Gr Liv Area + Screen Porch,3
+Garage Qual + Kitchen Qual + Screen Porch,3
+Garage Qual + Heating QC + Screen Porch,3
+Fireplace Qu + Heating QC + Screen Porch,3
+Fireplace Qu + Kitchen Qual + Screen Porch,3
+Fireplace Qu + Low Qual Fin SF + Screen Porch,3
+Fireplace Qu + Screen Porch + Utilities,3
+1st Flr SF + Garage Cars + Wood Deck SF,3
+Garage Cond + Garage Qual + Screen Porch,3
+Garage Cond + Gr Liv Area + Screen Porch,3
+Garage Cond + Heating QC + Screen Porch,3
+Garage Cond + Kitchen Qual + Screen Porch,3
+Garage Cond + Low Qual Fin SF + Screen Porch,3
+Garage Cond + Screen Porch + Utilities,3
+Exter Qual + Low Qual Fin SF + Screen Porch,3
+Exter Qual + Kitchen Qual + Screen Porch,3
+Exter Qual + Heating QC + Screen Porch,3
+Exter Cond + Heating QC + Screen Porch,3
+BsmtFin SF 2 + Low Qual Fin SF + Screen Porch,3
+BsmtFin SF 2 + Screen Porch + Utilities,3
+Exter Cond + Exter Qual + Screen Porch,3
+Exter Cond + Fireplace Qu + Screen Porch,3
+Exter Cond + Garage Cond + Screen Porch,3
+Exter Cond + Garage Qual + Screen Porch,3
+Exter Cond + Gr Liv Area + Screen Porch,3
+Gr Liv Area + Screen Porch + Utilities,3
+Exter Cond + Kitchen Qual + Screen Porch,3
+Exter Qual + Gr Liv Area + Screen Porch,3
+Exter Cond + Low Qual Fin SF + Screen Porch,3
+Exter Cond + Screen Porch + Utilities,3
+Exter Qual + Fireplace Qu + Screen Porch,3
+Gr Liv Area + Low Qual Fin SF + Screen Porch,3
+Gr Liv Area + Kitchen Qual + Screen Porch,3
+Exter Qual + Garage Cond + Screen Porch,3
+Gr Liv Area + Heating QC + Screen Porch,3
+Exter Qual + Garage Qual + Screen Porch,3
+BsmtFin SF 1 + Garage Cond + Screen Porch,3
+Bsmt Unf SF + Screen Porch,3
+Low Qual Fin SF + Screen Porch,3
+Bsmt Cond + Heating QC + Screen Porch,3
+Bsmt Qual + Gr Liv Area + Screen Porch,3
+Bsmt Qual + Garage Qual + Screen Porch,3
+Bsmt Qual + Garage Cond + Screen Porch,3
+Fireplace Qu + Screen Porch,3
+Exter Qual + Screen Porch,3
+Full Bath + Garage Cars + Half Bath,3
+Bsmt Qual + Fireplace Qu + Screen Porch,3
+Bsmt Qual + Exter Qual + Screen Porch,3
+Bsmt Qual + Exter Cond + Screen Porch,3
+Bsmt Qual + BsmtFin SF 2 + Screen Porch,3
+Bsmt Qual + BsmtFin SF 1 + Screen Porch,3
+Bsmt Qual + Bsmt Unf SF + Screen Porch,3
+Bsmt Cond + Screen Porch + Utilities,3
+Bsmt Cond + Low Qual Fin SF + Screen Porch,3
+Exter Cond + Screen Porch,3
+Bsmt Qual + Kitchen Qual + Screen Porch,3
+Bsmt Cond + Screen Porch,3
+Bsmt Cond + Gr Liv Area + Screen Porch,3
+Bsmt Cond + Garage Qual + Screen Porch,3
+Bsmt Cond + Garage Cond + Screen Porch,3
+Bsmt Cond + Fireplace Qu + Screen Porch,3
+Bsmt Cond + Exter Qual + Screen Porch,3
+Bsmt Cond + Exter Cond + Screen Porch,3
+Bsmt Cond + BsmtFin SF 2 + Screen Porch,3
+Full Bath + Open Porch SF + Wood Deck SF,3
+Bsmt Cond + BsmtFin SF 1 + Screen Porch,3
+Bsmt Cond + Bsmt Unf SF + Screen Porch,3
+Bsmt Cond + Bsmt Qual + Screen Porch,3
+Kitchen Qual + Screen Porch,3
+BsmtFin SF 2 + Screen Porch,3
+Bsmt Qual + Heating QC + Screen Porch,3
+Bsmt Cond + Kitchen Qual + Screen Porch,3
+Bsmt Qual + Low Qual Fin SF + Screen Porch,3
+Bsmt Unf SF + Garage Cond + Screen Porch,3
+Heating QC + Screen Porch,3
+BsmtFin SF 1 + Fireplace Qu + Screen Porch,3
+BsmtFin SF 1 + Exter Qual + Screen Porch,3
+BsmtFin SF 1 + Exter Cond + Screen Porch,3
+BsmtFin SF 1 + BsmtFin SF 2 + Screen Porch,3
+Gr Liv Area + Screen Porch,3
+Bsmt Unf SF + Screen Porch + Utilities,3
+Bsmt Unf SF + Low Qual Fin SF + Screen Porch,3
+Bsmt Unf SF + Kitchen Qual + Screen Porch,3
+Bsmt Unf SF + Heating QC + Screen Porch,3
+Garage Qual + Screen Porch,3
+Bsmt Unf SF + Gr Liv Area + Screen Porch,3
+Bsmt Unf SF + Garage Qual + Screen Porch,3
+Screen Porch + Utilities,3
+Garage Cond + Screen Porch,3
+Bsmt Qual + Screen Porch,3
+Bsmt Unf SF + BsmtFin SF 1 + Screen Porch,3
+Bsmt Unf SF + Exter Cond + Screen Porch,3
+Bsmt Unf SF + Exter Qual + Screen Porch,3
+Bsmt Unf SF + Fireplace Qu + Screen Porch,3
+Bsmt Unf SF + BsmtFin SF 2 + Screen Porch,3
+Bsmt Qual + Screen Porch + Utilities,3
+Fireplace Qu + Gr Liv Area + Kitchen AbvGr,2
+Full Bath + Gr Liv Area + Kitchen AbvGr,2
+Full Bath + Garage Qual + Kitchen AbvGr,2
+Full Bath + Garage Cond + Kitchen AbvGr,2
+Fireplace Qu + Kitchen AbvGr + Utilities,2
+Garage Qual + Kitchen AbvGr + Low Qual Fin SF,2
+Fireplace Qu + Kitchen AbvGr + Open Porch SF,2
+Fireplace Qu + Kitchen AbvGr + Low Qual Fin SF,2
+Fireplace Qu + Kitchen AbvGr + Kitchen Qual,2
+Fireplace Qu + Heating QC + Kitchen AbvGr,2
+Exter Qual + Heating QC + Kitchen AbvGr,2
+Exter Qual + Gr Liv Area + Kitchen AbvGr,2
+Fireplace Qu + Garage Qual + Kitchen AbvGr,2
+Fireplace Qu + Garage Cond + Kitchen AbvGr,2
+Full Bath + Heating QC + Kitchen AbvGr,2
+Fireplace Qu + Full Bath + Kitchen AbvGr,2
+Exter Qual + Garage Qual + Kitchen AbvGr,2
+Exter Qual + Kitchen AbvGr + Utilities,2
+Exter Qual + Kitchen AbvGr + Open Porch SF,2
+Exter Qual + Kitchen AbvGr + Low Qual Fin SF,2
+Exter Qual + Kitchen AbvGr + Kitchen Qual,2
+Exter Qual + Garage Cond + Kitchen AbvGr,2
+Full Bath + Kitchen AbvGr + Utilities,2
+Full Bath + Kitchen AbvGr + Kitchen Qual,2
+Full Bath + Kitchen AbvGr + Low Qual Fin SF,2
+Exter Qual + Fireplace Qu + Kitchen AbvGr,2
+Garage Qual + Kitchen AbvGr + Utilities,2
+Gr Liv Area + Heating QC + Kitchen AbvGr,2
+Garage Cars + Heating QC + Screen Porch,2
+Garage Qual + Kitchen AbvGr + Kitchen Qual,2
+Garage Qual + Heating QC + Kitchen AbvGr,2
+Garage Qual + Gr Liv Area + Kitchen AbvGr,2
+Garage Cars + Low Qual Fin SF + Screen Porch,2
+Garage Cars + Screen Porch + Utilities,2
+Garage Cars + Gr Liv Area + Screen Porch,2
+Garage Qual + Kitchen AbvGr + Open Porch SF,2
+Garage Cars + Open Porch SF + Wood Deck SF,2
+Garage Cond + Kitchen AbvGr + Utilities,2
+Garage Cond + Kitchen AbvGr + Open Porch SF,2
+Garage Cond + Kitchen AbvGr + Low Qual Fin SF,2
+Garage Cond + Kitchen AbvGr + Kitchen Qual,2
+Garage Cond + Heating QC + Kitchen AbvGr,2
+Garage Cond + Gr Liv Area + Kitchen AbvGr,2
+Garage Cond + Garage Qual + Kitchen AbvGr,2
+Garage Cars + Kitchen Qual + Screen Porch,2
+Full Bath + Kitchen AbvGr + Open Porch SF,2
+Exter Qual + Full Bath + Kitchen AbvGr,2
+Enclosed Porch + Fireplace Qu,2
+Exter Cond + Kitchen AbvGr + Utilities,2
+Bsmt Unf SF + Full Bath + Kitchen AbvGr,2
+BsmtFin SF 1 + Fireplace Qu + Kitchen AbvGr,2
+BsmtFin SF 1 + Exter Qual + Kitchen AbvGr,2
+BsmtFin SF 1 + Exter Cond + Kitchen AbvGr,2
+BsmtFin SF 1 + BsmtFin SF 2 + Kitchen AbvGr,2
+Bsmt Unf SF + Kitchen AbvGr + Utilities,2
+Bsmt Unf SF + Kitchen AbvGr + Open Porch SF,2
+Bsmt Unf SF + Kitchen AbvGr + Low Qual Fin SF,2
+Bsmt Unf SF + Kitchen AbvGr + Kitchen Qual,2
+Bsmt Unf SF + Heating QC + Kitchen AbvGr,2
+Bsmt Unf SF + Gr Liv Area + Kitchen AbvGr,2
+Bsmt Unf SF + Garage Qual + Kitchen AbvGr,2
+Bsmt Unf SF + Garage Cond + Kitchen AbvGr,2
+Bsmt Unf SF + Fireplace Qu + Kitchen AbvGr,2
+Exter Cond + Kitchen AbvGr + Open Porch SF,2
+Bsmt Unf SF + Exter Qual + Kitchen AbvGr,2
+Bsmt Unf SF + Exter Cond + Kitchen AbvGr,2
+Bsmt Unf SF + BsmtFin SF 1 + Kitchen AbvGr,2
+Bsmt Qual + Kitchen AbvGr + Utilities,2
+Bsmt Qual + Kitchen AbvGr + Open Porch SF,2
+Bsmt Qual + Kitchen AbvGr + Low Qual Fin SF,2
+Bsmt Qual + Kitchen AbvGr + Kitchen Qual,2
+Bsmt Qual + Heating QC + Kitchen AbvGr,2
+Bsmt Qual + Gr Liv Area + Kitchen AbvGr,2
+Bsmt Qual + Garage Qual + Kitchen AbvGr,2
+Bsmt Qual + Garage Cond + Kitchen AbvGr,2
+Bsmt Qual + Full Bath + Kitchen AbvGr,2
+BsmtFin SF 1 + Full Bath + Kitchen AbvGr,2
+BsmtFin SF 1 + Garage Cond + Kitchen AbvGr,2
+BsmtFin SF 1 + Garage Qual + Kitchen AbvGr,2
+BsmtFin SF 1 + Gr Liv Area + Kitchen AbvGr,2
+Exter Cond + Kitchen AbvGr + Low Qual Fin SF,2
+Exter Cond + Kitchen AbvGr + Kitchen Qual,2
+Exter Cond + Heating QC + Kitchen AbvGr,2
+Exter Cond + Gr Liv Area + Kitchen AbvGr,2
+Exter Cond + Garage Qual + Kitchen AbvGr,2
+Exter Cond + Garage Cond + Kitchen AbvGr,2
+Exter Cond + Full Bath + Kitchen AbvGr,2
+Exter Cond + Fireplace Qu + Kitchen AbvGr,2
+Exter Cond + Exter Qual + Kitchen AbvGr,2
+BsmtFin SF 2 + Kitchen AbvGr + Utilities,2
+BsmtFin SF 2 + Kitchen AbvGr + Open Porch SF,2
+BsmtFin SF 2 + Kitchen AbvGr + Low Qual Fin SF,2
+BsmtFin SF 2 + Kitchen AbvGr + Kitchen Qual,2
+BsmtFin SF 2 + Heating QC + Kitchen AbvGr,2
+BsmtFin SF 2 + Gr Liv Area + Kitchen AbvGr,2
+BsmtFin SF 2 + Garage Qual + Kitchen AbvGr,2
+BsmtFin SF 2 + Garage Cond + Kitchen AbvGr,2
+BsmtFin SF 2 + Full Bath + Kitchen AbvGr,2
+BsmtFin SF 2 + Fireplace Qu + Kitchen AbvGr,2
+BsmtFin SF 2 + Exter Qual + Kitchen AbvGr,2
+BsmtFin SF 1 + Kitchen AbvGr + Utilities,2
+BsmtFin SF 1 + Kitchen AbvGr + Open Porch SF,2
+BsmtFin SF 1 + Kitchen AbvGr + Low Qual Fin SF,2
+BsmtFin SF 1 + Kitchen AbvGr + Kitchen Qual,2
+BsmtFin SF 1 + Heating QC + Kitchen AbvGr,2
+BsmtFin SF 2 + Exter Cond + Kitchen AbvGr,2
+Enclosed Porch + Heating QC + Kitchen Qual,2
+Gr Liv Area + Kitchen AbvGr + Kitchen Qual,2
+Enclosed Porch + Exter Qual + Fireplace Qu,2
+Bsmt Qual + Enclosed Porch + Kitchen Qual,2
+Bsmt Qual + Enclosed Porch + Low Qual Fin SF,2
+Bsmt Qual + Enclosed Porch + Utilities,2
+Enclosed Porch + Exter Cond + Exter Qual,2
+Enclosed Porch + Exter Cond + Fireplace Qu,2
+Enclosed Porch + Exter Cond + Garage Cond,2
+Enclosed Porch + Exter Cond + Garage Qual,2
+Enclosed Porch + Exter Cond + Gr Liv Area,2
+Enclosed Porch + Exter Cond + Heating QC,2
+Enclosed Porch + Exter Cond + Kitchen Qual,2
+Enclosed Porch + Exter Cond + Low Qual Fin SF,2
+Enclosed Porch + Exter Cond + Utilities,2
+Enclosed Porch + Exter Qual + Garage Cond,2
+Enclosed Porch + Garage Cond + Garage Qual,2
+Enclosed Porch + Exter Qual + Garage Qual,2
+Enclosed Porch + Exter Qual + Gr Liv Area,2
+Enclosed Porch + Exter Qual + Heating QC,2
+Enclosed Porch + Exter Qual + Kitchen Qual,2
+Enclosed Porch + Exter Qual + Low Qual Fin SF,2
+Enclosed Porch + Exter Qual + Utilities,2
+Enclosed Porch + Fireplace Qu + Garage Cond,2
+Enclosed Porch + Fireplace Qu + Garage Qual,2
+Enclosed Porch + Fireplace Qu + Gr Liv Area,2
+Enclosed Porch + Fireplace Qu + Heating QC,2
+Enclosed Porch + Fireplace Qu + Kitchen Qual,2
+Enclosed Porch + Fireplace Qu + Low Qual Fin SF,2
+Bsmt Qual + Enclosed Porch + Heating QC,2
+Bsmt Qual + Enclosed Porch + Gr Liv Area,2
+Bsmt Qual + Enclosed Porch + Garage Qual,2
+Bsmt Qual + Enclosed Porch + Garage Cond,2
+Enclosed Porch + Garage Qual,2
+Enclosed Porch + Exter Qual,2
+Enclosed Porch + Gr Liv Area,2
+Enclosed Porch + Exter Cond,2
+Enclosed Porch + Heating QC,2
+Bsmt Qual + Enclosed Porch,2
+Enclosed Porch + Kitchen Qual,2
+Enclosed Porch + Low Qual Fin SF,2
+Enclosed Porch + Utilities,2
+Bsmt Cond + Enclosed Porch,2
+Bsmt Cond + Bsmt Qual + Enclosed Porch,2
+Bsmt Cond + Enclosed Porch + Exter Cond,2
+Bsmt Qual + Exter Qual + Kitchen AbvGr,2
+Bsmt Cond + Enclosed Porch + Exter Qual,2
+Bsmt Cond + Enclosed Porch + Fireplace Qu,2
+Bsmt Cond + Enclosed Porch + Garage Cond,2
+Bsmt Cond + Enclosed Porch + Garage Qual,2
+Bsmt Cond + Enclosed Porch + Gr Liv Area,2
+Bsmt Cond + Enclosed Porch + Heating QC,2
+Bsmt Cond + Enclosed Porch + Kitchen Qual,2
+Bsmt Cond + Enclosed Porch + Low Qual Fin SF,2
+Bsmt Cond + Enclosed Porch + Utilities,2
+Bsmt Qual + Enclosed Porch + Exter Cond,2
+Bsmt Qual + Enclosed Porch + Exter Qual,2
+Bsmt Qual + Enclosed Porch + Fireplace Qu,2
+Enclosed Porch + Fireplace Qu + Utilities,2
+Full Bath + Garage Cars + Wood Deck SF,2
+Garage Cars + Garage Qual + Screen Porch,2
+Enclosed Porch + Kitchen Qual + Utilities,2
+Heating QC + Kitchen AbvGr + Kitchen Qual,2
+Enclosed Porch + Garage Qual + Low Qual Fin SF,2
+Enclosed Porch + Garage Qual + Utilities,2
+Enclosed Porch + Gr Liv Area + Heating QC,2
+Enclosed Porch + Gr Liv Area + Kitchen Qual,2
+Enclosed Porch + Gr Liv Area + Low Qual Fin SF,2
+Enclosed Porch + Gr Liv Area + Utilities,2
+Enclosed Porch + Garage Cond,2
+Gr Liv Area + Kitchen AbvGr + Utilities,2
+Enclosed Porch + Heating QC + Low Qual Fin SF,2
+Enclosed Porch + Heating QC + Utilities,2
+Enclosed Porch + Kitchen Qual + Low Qual Fin SF,2
+Enclosed Porch + Low Qual Fin SF + Utilities,2
+Enclosed Porch + Garage Cond + Gr Liv Area,2
+Garage Cars + Screen Porch,2
+Bsmt Cond + Garage Cars + Screen Porch,2
+Bsmt Qual + Garage Cars + Screen Porch,2
+Bsmt Unf SF + Garage Cars + Screen Porch,2
+BsmtFin SF 1 + Garage Cars + Screen Porch,2
+Gr Liv Area + Kitchen AbvGr + Open Porch SF,2
+Gr Liv Area + Kitchen AbvGr + Low Qual Fin SF,2
+BsmtFin SF 2 + Garage Cars + Screen Porch,2
+Exter Cond + Garage Cars + Screen Porch,2
+Exter Qual + Garage Cars + Screen Porch,2
+Fireplace Qu + Garage Cars + Screen Porch,2
+Garage Cars + Garage Cond + Screen Porch,2
+Heating QC + Kitchen AbvGr + Low Qual Fin SF,2
+Heating QC + Kitchen AbvGr + Open Porch SF,2
+Heating QC + Kitchen AbvGr + Utilities,2
+Kitchen AbvGr + Kitchen Qual + Low Qual Fin SF,2
+Enclosed Porch + Garage Cond + Heating QC,2
+Garage Area + Garage Cars + Utilities,2
+Enclosed Porch + Garage Cond + Kitchen Qual,2
+Garage Area + Garage Cars + Low Qual Fin SF,2
+Enclosed Porch + Garage Cond + Low Qual Fin SF,2
+Garage Area + Garage Cars + Kitchen Qual,2
+Enclosed Porch + Garage Cond + Utilities,2
+Enclosed Porch + Garage Qual + Gr Liv Area,2
+Enclosed Porch + Garage Qual + Heating QC,2
+Garage Area + Garage Cars + Heating QC,2
+Enclosed Porch + Garage Qual + Kitchen Qual,2
+Garage Area + Garage Cars + Gr Liv Area,2
+Garage Area + Garage Cars + Garage Qual,2
+Garage Area + Garage Cars + Garage Cond,2
+Fireplace Qu + Garage Area + Garage Cars,2
+Exter Qual + Garage Area + Garage Cars,2
+Exter Cond + Garage Area + Garage Cars,2
+Bsmt Qual + Garage Area + Garage Cars,2
+Bsmt Cond + Garage Area + Garage Cars,2
+Garage Area + Garage Cars,2
+Kitchen AbvGr + Open Porch SF + Utilities,2
+Kitchen AbvGr + Low Qual Fin SF + Utilities,2
+Kitchen AbvGr + Low Qual Fin SF + Open Porch SF,2
+Kitchen AbvGr + Kitchen Qual + Utilities,2
+Kitchen AbvGr + Kitchen Qual + Open Porch SF,2
+Bsmt Qual + Fireplace Qu + Kitchen AbvGr,2
+Bsmt Unf SF + BsmtFin SF 2 + Kitchen AbvGr,2
+Bsmt Qual + Exter Cond + Kitchen AbvGr,2
+Garage Area + Kitchen Qual + Wood Deck SF,2
+Bsmt Unf SF + Garage Area + Wood Deck SF,2
+Garage Area + Half Bath,2
+BsmtFin SF 1 + Garage Area + Half Bath,2
+BsmtFin SF 1 + Garage Area + Wood Deck SF,2
+1st Flr SF + Screen Porch,2
+BsmtFin SF 2 + Garage Area + Wood Deck SF,2
+1st Flr SF + Bedroom AbvGr + Half Bath,2
+1st Flr SF + Bedroom AbvGr + Screen Porch,2
+Bsmt Unf SF + Garage Area + Half Bath,2
+1st Flr SF + Bsmt Cond + Screen Porch,2
+1st Flr SF + Bsmt Qual + Screen Porch,2
+Garage Area + Utilities + Wood Deck SF,2
+1st Flr SF + Bsmt Unf SF + Screen Porch,2
+Garage Area + Open Porch SF + Wood Deck SF,2
+1st Flr SF + BsmtFin SF 1 + Screen Porch,2
+1st Flr SF + BsmtFin SF 2 + Screen Porch,2
+Garage Area + Low Qual Fin SF + Wood Deck SF,2
+1st Flr SF + Exter Cond + Screen Porch,2
+Exter Cond + Garage Area + Wood Deck SF,2
+Exter Qual + Garage Area + Wood Deck SF,2
+1st Flr SF + Exter Qual + Screen Porch,2
+Bedroom AbvGr + Half Bath,2
+Bsmt Qual + Garage Area + Wood Deck SF,2
+BsmtFin SF 2 + Garage Area + Half Bath,2
+Garage Area + Half Bath + Utilities,2
+Bedroom AbvGr + Exter Cond + Wood Deck SF,2
+Bedroom AbvGr + BsmtFin SF 2 + Wood Deck SF,2
+Bedroom AbvGr + BsmtFin SF 1 + Wood Deck SF,2
+Bedroom AbvGr + Bsmt Unf SF + Wood Deck SF,2
+Bedroom AbvGr + Bsmt Qual + Wood Deck SF,2
+Bedroom AbvGr + Bsmt Cond + Wood Deck SF,2
+1st Flr SF + Bedroom AbvGr + Wood Deck SF,2
+Bedroom AbvGr + Wood Deck SF,2
+Garage Area + Wood Deck SF,2
+Garage Area + Half Bath + Low Qual Fin SF,2
+Exter Cond + Garage Area + Half Bath,2
+Garage Area + Half Bath + Kitchen Qual,2
+Garage Area + Half Bath + Heating QC,2
+Garage Area + Gr Liv Area + Half Bath,2
+Garage Area + Garage Qual + Half Bath,2
+Garage Area + Garage Cond + Half Bath,2
+Full Bath + Garage Area + Half Bath,2
+Bedroom AbvGr + Screen Porch,2
+Fireplace Qu + Garage Area + Half Bath,2
+Exter Qual + Garage Area + Half Bath,2
+Fireplace Qu + Garage Area + Wood Deck SF,2
+Bsmt Qual + Garage Area + Half Bath,2
+Bedroom AbvGr + Fireplace Qu + Wood Deck SF,2
+1st Flr SF + Fireplace Qu + Screen Porch,2
+Bedroom AbvGr + Bsmt Unf SF + Half Bath,2
+Bedroom AbvGr + Bsmt Unf SF + Screen Porch,2
+Bedroom AbvGr + BsmtFin SF 1 + Half Bath,2
+Bedroom AbvGr + BsmtFin SF 1 + Screen Porch,2
+Bedroom AbvGr + BsmtFin SF 2 + Half Bath,2
+Bedroom AbvGr + BsmtFin SF 2 + Screen Porch,2
+Bedroom AbvGr + Exter Cond + Half Bath,2
+Bedroom AbvGr + Exter Cond + Screen Porch,2
+Bedroom AbvGr + Half Bath + Kitchen Qual,2
+Bedroom AbvGr + Half Bath + Heating QC,2
+Bedroom AbvGr + Exter Qual + Half Bath,2
+Bedroom AbvGr + Exter Qual + Screen Porch,2
+Bedroom AbvGr + Gr Liv Area + Screen Porch,2
+Bedroom AbvGr + Gr Liv Area + Half Bath,2
+Bedroom AbvGr + Garage Qual + Screen Porch,2
+Bedroom AbvGr + Garage Qual + Half Bath,2
+Bedroom AbvGr + Garage Cond + Screen Porch,2
+Bedroom AbvGr + Garage Cond + Half Bath,2
+Bedroom AbvGr + Fireplace Qu + Half Bath,2
+Bedroom AbvGr + Fireplace Qu + Screen Porch,2
+Bedroom AbvGr + Garage Area + Half Bath,2
+Bedroom AbvGr + Bsmt Qual + Screen Porch,2
+Bedroom AbvGr + Bsmt Qual + Half Bath,2
+Bedroom AbvGr + Bsmt Cond + Screen Porch,2
+Bedroom AbvGr + Half Bath + Utilities,2
+1st Flr SF + Garage Area + Half Bath,2
+Bsmt Cond + Garage Area + Half Bath,2
+Garage Area + Garage Cond + Wood Deck SF,2
+1st Flr SF + Garage Cond + Screen Porch,2
+Bedroom AbvGr + Screen Porch + Utilities,2
+Bedroom AbvGr + Low Qual Fin SF + Screen Porch,2
+Bedroom AbvGr + Kitchen Qual + Screen Porch,2
+Bedroom AbvGr + Heating QC + Screen Porch,2
+Garage Area + Heating QC + Wood Deck SF,2
+1st Flr SF + Garage Qual + Screen Porch,2
+Bedroom AbvGr + Bsmt Cond + Half Bath,2
+Bsmt Qual + BsmtFin SF 2 + Kitchen AbvGr,2
+Bedroom AbvGr + Half Bath + Low Qual Fin SF,2
+1st Flr SF + Gr Liv Area + Screen Porch,2
+Garage Area + Gr Liv Area + Wood Deck SF,2
+Garage Area + Garage Qual + Wood Deck SF,2
+1st Flr SF + Heating QC + Screen Porch,2
+1st Flr SF + Kitchen Qual + Screen Porch,2
+1st Flr SF + Low Qual Fin SF + Screen Porch,2
+1st Flr SF + Screen Porch + Utilities,2
+Bedroom AbvGr + Exter Qual + Wood Deck SF,2
+Bsmt Cond + Garage Area + Wood Deck SF,2
+Bedroom AbvGr + Full Bath + Half Bath,2
+Bedroom AbvGr + Exter Qual + Kitchen AbvGr,2
+Bedroom AbvGr + Fireplace Qu + Kitchen AbvGr,2
+Kitchen AbvGr + Utilities,2
+Kitchen AbvGr + Open Porch SF,2
+Kitchen AbvGr + Low Qual Fin SF,2
+Kitchen AbvGr + Kitchen Qual,2
+Bedroom AbvGr + Full Bath + Kitchen AbvGr,2
+Heating QC + Kitchen AbvGr,2
+Gr Liv Area + Kitchen AbvGr,2
+Garage Qual + Kitchen AbvGr,2
+Garage Cond + Kitchen AbvGr,2
+Bedroom AbvGr + Garage Cond + Kitchen AbvGr,2
+Bedroom AbvGr + Garage Qual + Kitchen AbvGr,2
+Bedroom AbvGr + Gr Liv Area + Kitchen AbvGr,2
+Full Bath + Kitchen AbvGr,2
+Bedroom AbvGr + Heating QC + Kitchen AbvGr,2
+Bedroom AbvGr + Kitchen AbvGr + Kitchen Qual,2
+Fireplace Qu + Kitchen AbvGr,2
+Bedroom AbvGr + Kitchen AbvGr + Open Porch SF,2
+Bedroom AbvGr + Kitchen AbvGr + Utilities,2
+Exter Qual + Kitchen AbvGr,2
+Exter Cond + Kitchen AbvGr,2
+1st Flr SF + Bedroom AbvGr + Kitchen AbvGr,2
+Bedroom AbvGr + Exter Cond + Kitchen AbvGr,2
+BsmtFin SF 1 + Kitchen AbvGr,2
+1st Flr SF + Bsmt Cond + Kitchen AbvGr,2
+1st Flr SF + Fireplace Qu + Kitchen AbvGr,2
+1st Flr SF + Full Bath + Kitchen AbvGr,2
+1st Flr SF + Garage Cond + Kitchen AbvGr,2
+1st Flr SF + Garage Qual + Kitchen AbvGr,2
+1st Flr SF + Exter Qual + Kitchen AbvGr,2
+1st Flr SF + Gr Liv Area + Kitchen AbvGr,2
+1st Flr SF + Heating QC + Kitchen AbvGr,2
+1st Flr SF + Exter Cond + Kitchen AbvGr,2
+1st Flr SF + Kitchen AbvGr + Kitchen Qual,2
+1st Flr SF + Kitchen AbvGr + Low Qual Fin SF,2
+1st Flr SF + BsmtFin SF 2 + Kitchen AbvGr,2
+1st Flr SF + Kitchen AbvGr + Open Porch SF,2
+1st Flr SF + BsmtFin SF 1 + Kitchen AbvGr,2
+1st Flr SF + Kitchen AbvGr + Utilities,2
+Bedroom AbvGr + Bsmt Cond + Kitchen AbvGr,2
+1st Flr SF + Bsmt Unf SF + Kitchen AbvGr,2
+Bedroom AbvGr + Bsmt Qual + Kitchen AbvGr,2
+Bedroom AbvGr + Bsmt Unf SF + Kitchen AbvGr,2
+1st Flr SF + Bsmt Qual + Kitchen AbvGr,2
+Bedroom AbvGr + BsmtFin SF 1 + Kitchen AbvGr,2
+Bedroom AbvGr + BsmtFin SF 2 + Kitchen AbvGr,2
+BsmtFin SF 2 + Kitchen AbvGr,2
+Bedroom AbvGr + Kitchen AbvGr + Low Qual Fin SF,2
+Bsmt Cond + Exter Qual + Kitchen AbvGr,2
+Bsmt Cond + Bsmt Qual + Kitchen AbvGr,2
+Bsmt Cond + Bsmt Unf SF + Kitchen AbvGr,2
+Bsmt Cond + BsmtFin SF 1 + Kitchen AbvGr,2
+Bedroom AbvGr + Gr Liv Area + Wood Deck SF,2
+Bsmt Qual + Kitchen AbvGr,2
+Bedroom AbvGr + Heating QC + Wood Deck SF,2
+Bsmt Cond + BsmtFin SF 2 + Kitchen AbvGr,2
+Bedroom AbvGr + Kitchen Qual + Wood Deck SF,2
+Bsmt Cond + Kitchen AbvGr,2
+Bsmt Cond + Exter Cond + Kitchen AbvGr,2
+Bedroom AbvGr + Kitchen AbvGr,2
+1st Flr SF + Kitchen AbvGr,2
+Bedroom AbvGr + Utilities + Wood Deck SF,2
+Bedroom AbvGr + Low Qual Fin SF + Wood Deck SF,2
+Bsmt Cond + Kitchen AbvGr + Kitchen Qual,2
+Bsmt Cond + Heating QC + Kitchen AbvGr,2
+Bsmt Cond + Gr Liv Area + Kitchen AbvGr,2
+Bsmt Cond + Garage Qual + Kitchen AbvGr,2
+Bsmt Cond + Fireplace Qu + Kitchen AbvGr,2
+Bsmt Cond + Garage Cond + Kitchen AbvGr,2
+Bedroom AbvGr + Open Porch SF + Wood Deck SF,2
+Bsmt Cond + Full Bath + Kitchen AbvGr,2
+Bedroom AbvGr + Garage Qual + Wood Deck SF,2
+Bedroom AbvGr + Garage Cond + Wood Deck SF,2
+Bsmt Qual + BsmtFin SF 1 + Kitchen AbvGr,2
+Bsmt Qual + Bsmt Unf SF + Kitchen AbvGr,2
+Bsmt Cond + Kitchen AbvGr + Utilities,2
+Bsmt Cond + Kitchen AbvGr + Low Qual Fin SF,2
+Bsmt Unf SF + Kitchen AbvGr,2
+Bsmt Cond + Kitchen AbvGr + Open Porch SF,2
+Enclosed Porch + Exter Qual + Kitchen AbvGr,1
+Exter Cond + Garage Area + Kitchen AbvGr,1
+Half Bath + Low Qual Fin SF + Open Porch SF,1
+Enclosed Porch + Open Porch SF + Utilities,1
+Garage Area + Half Bath + Open Porch SF,1
+Enclosed Porch + Low Qual Fin SF + Open Porch SF,1
+Enclosed Porch + Gr Liv Area + Open Porch SF,1
+Enclosed Porch + Kitchen Qual + Open Porch SF,1
+Enclosed Porch + Kitchen AbvGr + Utilities,1
+Enclosed Porch + Kitchen AbvGr + Open Porch SF,1
+Enclosed Porch + Kitchen AbvGr + Low Qual Fin SF,1
+Garage Cond + Half Bath + Open Porch SF,1
+Enclosed Porch + Heating QC + Kitchen AbvGr,1
+Enclosed Porch + Kitchen AbvGr + Kitchen Qual,1
+1st Flr SF + Full Bath + Screen Porch,1
+Enclosed Porch + Heating QC + Open Porch SF,1
+1st Flr SF + Garage Area + Screen Porch,1
+Enclosed Porch + Full Bath + Open Porch SF,1
+Half Bath + Kitchen Qual + Open Porch SF,1
+Enclosed Porch + Full Bath + Kitchen AbvGr,1
+Enclosed Porch + Full Bath + Gr Liv Area,1
+Enclosed Porch + Full Bath + Heating QC,1
+Enclosed Porch + Garage Area + Utilities,1
+Enclosed Porch + Garage Area + Open Porch SF,1
+Enclosed Porch + Garage Area + Low Qual Fin SF,1
+Enclosed Porch + Garage Area + Kitchen Qual,1
+Enclosed Porch + Garage Area + Kitchen AbvGr,1
+Fireplace Qu + Garage Area + Kitchen AbvGr,1
+Enclosed Porch + Garage Area + Heating QC,1
+Enclosed Porch + Garage Area + Gr Liv Area,1
+Enclosed Porch + Garage Area + Garage Qual,1
+Enclosed Porch + Full Bath + Kitchen Qual,1
+Enclosed Porch + Garage Area + Garage Cond,1
+Enclosed Porch + Full Bath + Low Qual Fin SF,1
+Enclosed Porch + Full Bath + Garage Qual,1
+Enclosed Porch + Garage Cond + Kitchen AbvGr,1
+Enclosed Porch + Exter Qual + Open Porch SF,1
+Enclosed Porch + Garage Qual + Open Porch SF,1
+Enclosed Porch + Fireplace Qu + Full Bath,1
+Enclosed Porch + Fireplace Qu + Garage Area,1
+Enclosed Porch + Full Bath + Utilities,1
+Enclosed Porch + Gr Liv Area + Kitchen AbvGr,1
+Half Bath + Heating QC + Open Porch SF,1
+Garage Qual + Half Bath + Open Porch SF,1
+Enclosed Porch + Fireplace Qu + Kitchen AbvGr,1
+Enclosed Porch + Full Bath + Garage Cond,1
+Gr Liv Area + Half Bath + Open Porch SF,1
+1st Flr SF + Half Bath + Screen Porch,1
+Enclosed Porch + Garage Qual + Kitchen AbvGr,1
+Enclosed Porch + Fireplace Qu + Open Porch SF,1
+Enclosed Porch + Garage Cond + Open Porch SF,1
+Enclosed Porch + Full Bath + Garage Area,1
+Exter Qual + Garage Area + Kitchen AbvGr,1
+Bedroom AbvGr + Half Bath + Open Porch SF,1
+Full Bath + Garage Area + Kitchen AbvGr,1
+Gr Liv Area + Half Bath + Wood Deck SF,1
+Garage Cond + Half Bath + Wood Deck SF,1
+Garage Cars + Half Bath + Wood Deck SF,1
+Full Bath + Half Bath + Wood Deck SF,1
+Fireplace Qu + Half Bath + Wood Deck SF,1
+Exter Qual + Half Bath + Wood Deck SF,1
+Exter Cond + Half Bath + Wood Deck SF,1
+BsmtFin SF 2 + Half Bath + Wood Deck SF,1
+BsmtFin SF 1 + Half Bath + Wood Deck SF,1
+Bsmt Unf SF + Half Bath + Wood Deck SF,1
+Bsmt Qual + Half Bath + Wood Deck SF,1
+Bsmt Cond + Half Bath + Wood Deck SF,1
+1st Flr SF + Half Bath + Wood Deck SF,1
+Half Bath + Wood Deck SF,1
+Exter Cond + Half Bath + Open Porch SF,1
+Screen Porch + Utilities + Wood Deck SF,1
+Open Porch SF + Screen Porch + Wood Deck SF,1
+Open Porch SF + Screen Porch + Utilities,1
+Low Qual Fin SF + Screen Porch + Wood Deck SF,1
+Low Qual Fin SF + Open Porch SF + Screen Porch,1
+Kitchen Qual + Screen Porch + Wood Deck SF,1
+Kitchen Qual + Open Porch SF + Screen Porch,1
+Garage Qual + Half Bath + Wood Deck SF,1
+Half Bath + Heating QC + Wood Deck SF,1
+Garage Area + Garage Cond + Kitchen AbvGr,1
+Half Bath + Kitchen Qual + Wood Deck SF,1
+Half Bath + Open Porch SF,1
+Enclosed Porch + Garage Cars + Utilities,1
+Enclosed Porch + Garage Cars + Low Qual Fin SF,1
+Bsmt Cond + Half Bath + Open Porch SF,1
+Bsmt Qual + Half Bath + Open Porch SF,1
+Bsmt Unf SF + Half Bath + Open Porch SF,1
+BsmtFin SF 1 + Half Bath + Open Porch SF,1
+Enclosed Porch + Garage Cars + Kitchen Qual,1
+Enclosed Porch + Garage Cars + Heating QC,1
+Enclosed Porch + Garage Cars + Gr Liv Area,1
+Enclosed Porch + Garage Cars + Garage Qual,1
+Enclosed Porch + Garage Cars + Garage Cond,1
+Enclosed Porch + Fireplace Qu + Garage Cars,1
+Enclosed Porch + Exter Qual + Garage Cars,1
+Enclosed Porch + Exter Cond + Garage Cars,1
+Bsmt Qual + Enclosed Porch + Garage Cars,1
+Bsmt Cond + Enclosed Porch + Garage Cars,1
+Enclosed Porch + Garage Cars,1
+BsmtFin SF 2 + Half Bath + Open Porch SF,1
+Half Bath + Utilities + Wood Deck SF,1
+Half Bath + Low Qual Fin SF + Wood Deck SF,1
+Heating QC + Screen Porch + Wood Deck SF,1
+Heating QC + Open Porch SF + Screen Porch,1
+Bedroom AbvGr + Full Bath + Screen Porch,1
+Gr Liv Area + Screen Porch + Wood Deck SF,1
+Bsmt Qual + Screen Porch + Wood Deck SF,1
+Bsmt Qual + Open Porch SF + Screen Porch,1
+Full Bath + Half Bath + Open Porch SF,1
+Bsmt Cond + Screen Porch + Wood Deck SF,1
+Bsmt Cond + Open Porch SF + Screen Porch,1
+Bedroom AbvGr + Screen Porch + Wood Deck SF,1
+1st Flr SF + Half Bath + Open Porch SF,1
+Bedroom AbvGr + Garage Cars + Wood Deck SF,1
+Bedroom AbvGr + Garage Cars + Screen Porch,1
+1st Flr SF + Screen Porch + Wood Deck SF,1
+1st Flr SF + Open Porch SF + Screen Porch,1
+1st Flr SF + Garage Cars + Screen Porch,1
+Screen Porch + Wood Deck SF,1
+Open Porch SF + Screen Porch,1
+Garage Area + Kitchen AbvGr + Utilities,1
+Garage Area + Kitchen AbvGr + Open Porch SF,1
+Garage Area + Kitchen AbvGr + Low Qual Fin SF,1
+Garage Area + Kitchen AbvGr + Kitchen Qual,1
+Garage Area + Heating QC + Kitchen AbvGr,1
+Garage Area + Gr Liv Area + Kitchen AbvGr,1
+Garage Area + Garage Qual + Kitchen AbvGr,1
+Bsmt Unf SF + Open Porch SF + Screen Porch,1
+Bsmt Unf SF + Screen Porch + Wood Deck SF,1
+BsmtFin SF 1 + Open Porch SF + Screen Porch,1
+Garage Area + Screen Porch,1
+Gr Liv Area + Open Porch SF + Screen Porch,1
+Garage Qual + Screen Porch + Wood Deck SF,1
+Garage Qual + Open Porch SF + Screen Porch,1
+Garage Cond + Screen Porch + Wood Deck SF,1
+Garage Cond + Open Porch SF + Screen Porch,1
+Garage Cars + Screen Porch + Wood Deck SF,1
+Exter Qual + Half Bath + Open Porch SF,1
+Full Bath + Screen Porch,1
+Garage Cars + Open Porch SF + Screen Porch,1
+Fireplace Qu + Half Bath + Open Porch SF,1
+BsmtFin SF 1 + Screen Porch + Wood Deck SF,1
+Half Bath + Screen Porch,1
+Fireplace Qu + Screen Porch + Wood Deck SF,1
+Fireplace Qu + Open Porch SF + Screen Porch,1
+Exter Qual + Screen Porch + Wood Deck SF,1
+Exter Qual + Open Porch SF + Screen Porch,1
+Exter Cond + Screen Porch + Wood Deck SF,1
+Exter Cond + Open Porch SF + Screen Porch,1
+BsmtFin SF 2 + Screen Porch + Wood Deck SF,1
+BsmtFin SF 2 + Open Porch SF + Screen Porch,1
+Bedroom AbvGr + Open Porch SF + Screen Porch,1
+Bsmt Qual + Enclosed Porch + Open Porch SF,1
+Enclosed Porch + Exter Qual + Garage Area,1
+BsmtFin SF 1 + Full Bath + Screen Porch,1
+Enclosed Porch + Full Bath,1
+BsmtFin SF 1 + Garage Area + Screen Porch,1
+BsmtFin SF 1 + Half Bath + Screen Porch,1
+BsmtFin SF 2 + Enclosed Porch,1
+BsmtFin SF 1 + Enclosed Porch,1
+Bsmt Unf SF + Enclosed Porch,1
+BsmtFin SF 2 + Full Bath + Screen Porch,1
+Bedroom AbvGr + Enclosed Porch,1
+1st Flr SF + Enclosed Porch,1
+BsmtFin SF 2 + Garage Area + Screen Porch,1
+BsmtFin SF 2 + Half Bath + Screen Porch,1
+Exter Cond + Full Bath + Screen Porch,1
+Exter Cond + Garage Area + Screen Porch,1
+1st Flr SF + Garage Area + Wood Deck SF,1
+Exter Cond + Half Bath + Screen Porch,1
+Exter Qual + Full Bath + Screen Porch,1
+Exter Qual + Garage Area + Screen Porch,1
+Exter Qual + Half Bath + Screen Porch,1
+Fireplace Qu + Full Bath + Screen Porch,1
+Fireplace Qu + Garage Area + Screen Porch,1
+Fireplace Qu + Half Bath + Screen Porch,1
+Enclosed Porch + Garage Area,1
+Bsmt Unf SF + Half Bath + Screen Porch,1
+Full Bath + Garage Cond + Screen Porch,1
+Enclosed Porch + Kitchen AbvGr,1
+1st Flr SF + Enclosed Porch + Low Qual Fin SF,1
+1st Flr SF + Enclosed Porch + Kitchen Qual,1
+1st Flr SF + Enclosed Porch + Kitchen AbvGr,1
+1st Flr SF + Enclosed Porch + Heating QC,1
+1st Flr SF + Enclosed Porch + Gr Liv Area,1
+1st Flr SF + Enclosed Porch + Garage Qual,1
+1st Flr SF + Enclosed Porch + Garage Cond,1
+1st Flr SF + Enclosed Porch + Garage Area,1
+1st Flr SF + Enclosed Porch + Full Bath,1
+1st Flr SF + Enclosed Porch + Fireplace Qu,1
+1st Flr SF + Enclosed Porch + Exter Qual,1
+1st Flr SF + Enclosed Porch + Exter Cond,1
+1st Flr SF + BsmtFin SF 2 + Enclosed Porch,1
+1st Flr SF + BsmtFin SF 1 + Enclosed Porch,1
+1st Flr SF + Bsmt Unf SF + Enclosed Porch,1
+1st Flr SF + Bsmt Qual + Enclosed Porch,1
+1st Flr SF + Bsmt Cond + Enclosed Porch,1
+1st Flr SF + Bedroom AbvGr + Enclosed Porch,1
+Garage Area + Kitchen AbvGr,1
+Enclosed Porch + Open Porch SF,1
+Bsmt Unf SF + Garage Area + Screen Porch,1
+Full Bath + Garage Area + Screen Porch,1
+Full Bath + Garage Qual + Screen Porch,1
+1st Flr SF + Enclosed Porch + Utilities,1
+Half Bath + Low Qual Fin SF + Screen Porch,1
+Garage Cars + Kitchen AbvGr + Utilities,1
+Garage Cars + Kitchen AbvGr + Open Porch SF,1
+Garage Cars + Kitchen AbvGr + Low Qual Fin SF,1
+Garage Cars + Kitchen AbvGr + Kitchen Qual,1
+Garage Cars + Heating QC + Kitchen AbvGr,1
+Garage Cars + Gr Liv Area + Kitchen AbvGr,1
+Garage Cars + Garage Qual + Kitchen AbvGr,1
+Garage Cars + Garage Cond + Kitchen AbvGr,1
+Bedroom AbvGr + Full Bath + Wood Deck SF,1
+Full Bath + Garage Cars + Kitchen AbvGr,1
+Fireplace Qu + Garage Cars + Kitchen AbvGr,1
+Garage Cars + Kitchen AbvGr,1
+Exter Qual + Garage Cars + Kitchen AbvGr,1
+Exter Cond + Garage Cars + Kitchen AbvGr,1
+1st Flr SF + Garage Cars + Kitchen AbvGr,1
+BsmtFin SF 2 + Garage Cars + Kitchen AbvGr,1
+Bedroom AbvGr + Garage Cars + Kitchen AbvGr,1
+BsmtFin SF 1 + Garage Cars + Kitchen AbvGr,1
+Bsmt Unf SF + Garage Cars + Kitchen AbvGr,1
+Bsmt Cond + Garage Cars + Kitchen AbvGr,1
+Bsmt Qual + Garage Cars + Kitchen AbvGr,1
+Half Bath + Screen Porch + Utilities,1
+Half Bath + Kitchen Qual + Screen Porch,1
+Full Bath + Gr Liv Area + Screen Porch,1
+Half Bath + Heating QC + Screen Porch,1
+Full Bath + Half Bath + Screen Porch,1
+Full Bath + Heating QC + Screen Porch,1
+Full Bath + Kitchen Qual + Screen Porch,1
+Full Bath + Low Qual Fin SF + Screen Porch,1
+Full Bath + Garage Area + Garage Cars,1
+Full Bath + Screen Porch + Utilities,1
+Garage Area + Garage Cond + Screen Porch,1
+BsmtFin SF 2 + Garage Area + Garage Cars,1
+BsmtFin SF 1 + Garage Area + Garage Cars,1
+Bsmt Unf SF + Garage Area + Garage Cars,1
+Garage Area + Garage Qual + Screen Porch,1
+1st Flr SF + Garage Area + Garage Cars,1
+Garage Area + Gr Liv Area + Screen Porch,1
+Garage Area + Half Bath + Screen Porch,1
+Garage Area + Heating QC + Screen Porch,1
+Garage Area + Kitchen Qual + Screen Porch,1
+Garage Area + Low Qual Fin SF + Screen Porch,1
+Garage Area + Screen Porch + Utilities,1
+Garage Cond + Half Bath + Screen Porch,1
+Garage Qual + Half Bath + Screen Porch,1
+Gr Liv Area + Half Bath + Screen Porch,1
+1st Flr SF + Enclosed Porch + Open Porch SF,1
+1st Flr SF + Garage Area + Kitchen AbvGr,1
+Enclosed Porch + Exter Qual + Full Bath,1
+BsmtFin SF 1 + Enclosed Porch + Low Qual Fin SF,1
+BsmtFin SF 1 + Enclosed Porch + Kitchen AbvGr,1
+BsmtFin SF 1 + Enclosed Porch + Heating QC,1
+BsmtFin SF 1 + Enclosed Porch + Gr Liv Area,1
+BsmtFin SF 1 + Enclosed Porch + Garage Qual,1
+BsmtFin SF 1 + Enclosed Porch + Garage Cond,1
+BsmtFin SF 1 + Enclosed Porch + Garage Area,1
+BsmtFin SF 1 + Enclosed Porch + Full Bath,1
+BsmtFin SF 1 + Enclosed Porch + Fireplace Qu,1
+BsmtFin SF 1 + Enclosed Porch + Exter Qual,1
+BsmtFin SF 1 + Enclosed Porch + Exter Cond,1
+BsmtFin SF 1 + BsmtFin SF 2 + Enclosed Porch,1
+Bsmt Unf SF + Garage Area + Kitchen AbvGr,1
+Bsmt Unf SF + Enclosed Porch + Utilities,1
+Bsmt Unf SF + Enclosed Porch + Open Porch SF,1
+Bsmt Unf SF + Enclosed Porch + Low Qual Fin SF,1
+Bsmt Unf SF + Enclosed Porch + Kitchen Qual,1
+Bsmt Unf SF + Enclosed Porch + Kitchen AbvGr,1
+Bsmt Unf SF + Enclosed Porch + Heating QC,1
+Bsmt Unf SF + Enclosed Porch + Gr Liv Area,1
+Bsmt Unf SF + Enclosed Porch + Garage Qual,1
+Bsmt Unf SF + Enclosed Porch + Garage Cond,1
+BsmtFin SF 1 + Enclosed Porch + Kitchen Qual,1
+BsmtFin SF 1 + Enclosed Porch + Open Porch SF,1
+Bsmt Unf SF + Enclosed Porch + Full Bath,1
+BsmtFin SF 1 + Enclosed Porch + Utilities,1
+Bedroom AbvGr + Garage Area + Screen Porch,1
+Enclosed Porch + Exter Cond + Open Porch SF,1
+Enclosed Porch + Exter Cond + Kitchen AbvGr,1
+Enclosed Porch + Exter Cond + Garage Area,1
+Enclosed Porch + Exter Cond + Full Bath,1
+BsmtFin SF 2 + Garage Area + Kitchen AbvGr,1
+BsmtFin SF 2 + Enclosed Porch + Utilities,1
+BsmtFin SF 2 + Enclosed Porch + Open Porch SF,1
+BsmtFin SF 2 + Enclosed Porch + Low Qual Fin SF,1
+BsmtFin SF 2 + Enclosed Porch + Kitchen Qual,1
+BsmtFin SF 2 + Enclosed Porch + Kitchen AbvGr,1
+BsmtFin SF 2 + Enclosed Porch + Heating QC,1
+BsmtFin SF 2 + Enclosed Porch + Gr Liv Area,1
+BsmtFin SF 2 + Enclosed Porch + Garage Qual,1
+BsmtFin SF 2 + Enclosed Porch + Garage Cond,1
+BsmtFin SF 2 + Enclosed Porch + Garage Area,1
+BsmtFin SF 2 + Enclosed Porch + Full Bath,1
+BsmtFin SF 2 + Enclosed Porch + Fireplace Qu,1
+BsmtFin SF 2 + Enclosed Porch + Exter Qual,1
+BsmtFin SF 2 + Enclosed Porch + Exter Cond,1
+BsmtFin SF 1 + Garage Area + Kitchen AbvGr,1
+Bsmt Unf SF + Enclosed Porch + Garage Area,1
+Bsmt Unf SF + Enclosed Porch + Fireplace Qu,1
+Bedroom AbvGr + Bsmt Cond + Enclosed Porch,1
+Bsmt Cond + BsmtFin SF 2 + Enclosed Porch,1
+Bsmt Cond + Bsmt Unf SF + Enclosed Porch,1
+Bsmt Unf SF + Full Bath + Screen Porch,1
+Bedroom AbvGr + Garage Area + Kitchen AbvGr,1
+Bedroom AbvGr + Enclosed Porch + Utilities,1
+Bedroom AbvGr + Enclosed Porch + Open Porch SF,1
+Bedroom AbvGr + Enclosed Porch + Low Qual Fin SF,1
+Bedroom AbvGr + Enclosed Porch + Kitchen Qual,1
+Bedroom AbvGr + Enclosed Porch + Kitchen AbvGr,1
+Bedroom AbvGr + Enclosed Porch + Heating QC,1
+Bedroom AbvGr + Enclosed Porch + Gr Liv Area,1
+Bedroom AbvGr + Enclosed Porch + Garage Qual,1
+Bedroom AbvGr + Enclosed Porch + Garage Cond,1
+Bedroom AbvGr + Enclosed Porch + Garage Area,1
+Bedroom AbvGr + Enclosed Porch + Full Bath,1
+Bedroom AbvGr + Enclosed Porch + Fireplace Qu,1
+Bedroom AbvGr + Enclosed Porch + Exter Qual,1
+Bedroom AbvGr + Enclosed Porch + Exter Cond,1
+Bedroom AbvGr + BsmtFin SF 2 + Enclosed Porch,1
+Bedroom AbvGr + BsmtFin SF 1 + Enclosed Porch,1
+Bedroom AbvGr + Bsmt Unf SF + Enclosed Porch,1
+Bedroom AbvGr + Bsmt Qual + Enclosed Porch,1
+Bsmt Cond + BsmtFin SF 1 + Enclosed Porch,1
+Bsmt Qual + Half Bath + Screen Porch,1
+Bsmt Unf SF + Enclosed Porch + Exter Qual,1
+Bsmt Cond + Enclosed Porch + Full Bath,1
+Bsmt Unf SF + Enclosed Porch + Exter Cond,1
+Bsmt Unf SF + BsmtFin SF 2 + Enclosed Porch,1
+Bsmt Unf SF + BsmtFin SF 1 + Enclosed Porch,1
+Bsmt Qual + Garage Area + Kitchen AbvGr,1
+Bedroom AbvGr + Half Bath + Screen Porch,1
+Bsmt Qual + Enclosed Porch + Kitchen AbvGr,1
+Bsmt Qual + Enclosed Porch + Garage Area,1
+Bsmt Qual + Enclosed Porch + Full Bath,1
+Bsmt Cond + Full Bath + Screen Porch,1
+Bsmt Qual + BsmtFin SF 2 + Enclosed Porch,1
+Bsmt Qual + BsmtFin SF 1 + Enclosed Porch,1
+Bsmt Qual + Bsmt Unf SF + Enclosed Porch,1
+Bsmt Cond + Garage Area + Kitchen AbvGr,1
+Bsmt Cond + Garage Area + Screen Porch,1
+Bsmt Cond + Enclosed Porch + Open Porch SF,1
+Full Bath + Garage Area + Wood Deck SF,1
+Bsmt Cond + Half Bath + Screen Porch,1
+Bsmt Cond + Enclosed Porch + Kitchen AbvGr,1
+Bsmt Qual + Full Bath + Screen Porch,1
+Bsmt Qual + Garage Area + Screen Porch,1
+Bsmt Cond + Enclosed Porch + Garage Area,1
+Half Bath + Open Porch SF + Utilities,1
